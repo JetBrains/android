@@ -33,6 +33,7 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
+import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -83,8 +84,7 @@ public class CpuProfiler extends StudioProfiler {
 
     assert mySessionTraceFiles.containsKey(session.getSessionId());
     if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      ProfilingConfiguration importConfig =
-        new ProfilingConfiguration("Imported", CpuTraceType.UNSPECIFIED_TYPE, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
+      ProfilingConfiguration importConfig = new ImportedConfiguration();
       myProfilers.setStage(
         CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
     }

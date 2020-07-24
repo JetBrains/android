@@ -25,6 +25,7 @@ import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
@@ -476,7 +477,8 @@ public class CpuCaptureParser {
       updateParsingStateWhenDone();
 
       CpuCaptureMetadata metadata =
-        myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(new ProfilingConfiguration()));
+        myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(
+          new UnspecifiedConfiguration(ProfilingConfiguration.DEFAULT_CONFIGURATION_NAME)));
       metadata.setTraceFileSizeBytes((int)traceFile.length());
 
       if (capture != null) {

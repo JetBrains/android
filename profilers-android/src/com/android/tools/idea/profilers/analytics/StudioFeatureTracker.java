@@ -37,6 +37,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -87,7 +88,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private Common.Process myActiveProcess;
 
   @NotNull
-  private Project myTrackingProject;
+  private final Project myTrackingProject;
 
   public StudioFeatureTracker(@NotNull Project trackingProject) {
     myTrackingProject = trackingProject;
@@ -956,40 +957,33 @@ public final class StudioFeatureTracker implements FeatureTracker {
      */
     @NotNull
     private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
-      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-        .setSampleInterval(config.getProfilingSamplingIntervalUs())
-        .setSizeLimit(config.getProfilingBufferSizeInMb());
-
+      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder();
+      Cpu.CpuTraceConfiguration.UserOptions options = config.toProto();
       switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
+          cpuConfigInfo.setMode(config instanceof ArtSampledConfiguration
+                                ? CpuProfilingConfig.Mode.SAMPLED
+                                : CpuProfilingConfig.Mode.INSTRUMENTED);
+          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
           break;
         case SIMPLEPERF:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
+          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
           break;
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
           break;
         case PERFETTO:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
+          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
           break;
         case UNSPECIFIED_TYPE:
         case UNRECOGNIZED:
           break;
       }
-
-      switch (config.getMode()) {
-        case SAMPLED:
-          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-          break;
-        case INSTRUMENTED:
-          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
-          break;
-        case UNSPECIFIED_MODE:
-        case UNRECOGNIZED:
-          break;
-      }
-
       return cpuConfigInfo.build();
     }
 

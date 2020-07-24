@@ -30,16 +30,17 @@ class ProfilingConfigurationTest {
   fun fromProto() {
     val proto = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName("MyConfiguration")
-      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
       .setTraceType(Cpu.CpuTraceType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
       .setDisableLiveAllocation(true)
       .build()
     val config = ProfilingConfiguration.fromProto(proto)
-
+    assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
+    val art = config as ArtSampledConfiguration
     assertThat(config.name).isEqualTo("MyConfiguration")
-    assertThat(config.mode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(config.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
@@ -48,8 +49,7 @@ class ProfilingConfigurationTest {
 
   @Test
   fun toProto() {
-    val configuration = ProfilingConfiguration("MyConfiguration", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED).apply {
-      profilingBufferSizeInMb = 12
+    val configuration = SimpleperfConfiguration("MyConfiguration").apply {
       profilingSamplingIntervalUs = 1234
       isDisableLiveAllocation = true
     }
@@ -59,7 +59,6 @@ class ProfilingConfigurationTest {
     assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
     assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
-    assertThat(proto.bufferSizeInMb).isEqualTo(12)
     assertThat(proto.disableLiveAllocation).isTrue()
   }
 }

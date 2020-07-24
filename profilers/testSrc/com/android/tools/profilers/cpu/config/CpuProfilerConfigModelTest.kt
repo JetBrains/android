@@ -66,12 +66,12 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs).hasSize(2)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
-    assertThat(realConfigs[0].mode).isEqualTo(CpuTraceMode.SAMPLED)
+    assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].traceType).isEqualTo(CpuTraceType.ART)
-    assertThat(realConfigs[1].mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
+    assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
     assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
 
@@ -83,12 +83,12 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs).hasSize(4)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
-    assertThat(realConfigs[0].mode).isEqualTo(CpuTraceMode.SAMPLED)
+    assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].traceType).isEqualTo(CpuTraceType.ART)
-    assertThat(realConfigs[1].mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
+    assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
     assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
     // Second actual configuration should be ART Instrumented
@@ -176,7 +176,7 @@ class CpuProfilerConfigModelTest {
     var aspectCalled = false
     myProfilerStage!!.aspect.addDependency(observer).onChange(
       CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
-    model!!.profilingConfiguration = ProfilingConfiguration("cfg", CpuTraceType.ART, CpuTraceMode.SAMPLED)
+    model!!.profilingConfiguration = ArtSampledConfiguration("cfg")
     assertThat(aspectCalled).isTrue()
   }
 

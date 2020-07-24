@@ -18,12 +18,13 @@ package com.android.tools.profilers.cpu.config;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,13 +144,12 @@ public class CpuProfilerConfigModel {
       else if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
         // If there is a preference for a native configuration, we select simpleperf.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getTraceType() == CpuTraceType.SIMPLEPERF);
+          Iterables.find(defaultConfigs, pref -> pref instanceof SimpleperfConfiguration);
       }
       else {
         // Otherwise we select ART sampled.
         myProfilingConfiguration =
-          Iterables.find(defaultConfigs, pref -> pref != null && pref.getTraceType() == CpuTraceType.ART
-                                                 && pref.getMode() == CpuTraceMode.SAMPLED);
+          Iterables.find(defaultConfigs, pref -> pref instanceof ArtSampledConfiguration);
       }
     }
   }

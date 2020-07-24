@@ -97,7 +97,7 @@ class CpuProfilingConfigurationViewTest {
   @Test
   fun apiInitiatedCaptureShouldShowSpecialConfig() {
     assertThat(cpuService.traceType).isEqualTo(Cpu.CpuTraceType.ART)
-    val config = ProfilingConfiguration("My Config", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
+    val config = SimpleperfConfiguration("My Config")
     stage.profilerConfigModel.profilingConfiguration = config
 
     // Verify non-API-initiated config before the API tracing starts.
@@ -141,10 +141,7 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
-    val instrumented = ProfilingConfiguration(
-      FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME,
-      Cpu.CpuTraceType.ART,
-      Cpu.CpuTraceMode.INSTRUMENTED)
+    val instrumented = ArtInstrumentedConfiguration(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     configurationView.profilingConfiguration = instrumented
     assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
 
