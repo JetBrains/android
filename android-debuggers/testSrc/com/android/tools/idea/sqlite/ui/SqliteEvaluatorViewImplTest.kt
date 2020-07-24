@@ -23,7 +23,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
+import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -107,7 +107,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testActiveDatabaseRemainsActiveWhenNewDbsAreAdded() {
     // Prepare
-    val model = MockDatabaseInspectorModel()
+    val model = OpenDatabaseInspectorModel()
     val evaluatorController = sqliteEvaluatorController(model, DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()))
     evaluatorController.setUp()
 
@@ -186,7 +186,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val refreshButton =  TreeWalker(view.tableView.component).descendants().first { it.name == "refresh-button" }
 
     val evaluatorController = sqliteEvaluatorController(
-      MockDatabaseInspectorModel(),
+      OpenDatabaseInspectorModel(),
       DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     )
 

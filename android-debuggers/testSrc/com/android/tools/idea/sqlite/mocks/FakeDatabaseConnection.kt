@@ -22,9 +22,9 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 
-class MockDatabaseConnection(
+class FakeDatabaseConnection(
   private val schema: SqliteSchema,
-  private val resultSet: SqliteResultSet = MockSqliteResultSet()
+  private val resultSet: SqliteResultSet = FakeSqliteResultSet()
 ) : DatabaseConnection {
   override fun close(): ListenableFuture<Unit> = immediateFuture(Unit)
 

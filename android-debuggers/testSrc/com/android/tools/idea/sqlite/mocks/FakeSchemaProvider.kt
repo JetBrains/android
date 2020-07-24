@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.repository.DatabaseRepository
-import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
-import com.intellij.openapi.project.Project
-import java.util.concurrent.Executor
+import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteSchema
 
-open class MockDatabaseRepository(project: Project, executor: Executor) : DatabaseRepository by DatabaseRepositoryImpl(project, executor)
+class FakeSchemaProvider: SchemaProvider {
+  override fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema? = null
+}

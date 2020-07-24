@@ -22,7 +22,7 @@ import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
-open class MockTableView : TableView {
+open class FakeTableView : TableView {
 
   val errorReported = mutableListOf<Pair<String, Throwable?>>()
 

@@ -25,7 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
-class MockSqliteResultSet(
+class FakeSqliteResultSet(
   size: Int = 100,
   columns: List<ResultSetSqliteColumn> = listOf(
     ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
