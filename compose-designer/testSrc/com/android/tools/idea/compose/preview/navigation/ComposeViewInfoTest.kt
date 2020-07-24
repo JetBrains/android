@@ -15,7 +15,8 @@ import org.junit.Test
 private data class TestSourceLocation(override val className: String,
                                       override val methodName: String = "",
                                       override val fileName: String = "",
-                                      override val lineNumber: Int = -1): SourceLocation
+                                      override val lineNumber: Int = -1,
+                                      override val packageHash: Int = -1): SourceLocation
 private fun ComposeViewInfo.serializeHits(x: Int, y: Int): String =
   findHitWithDepth(x, y)
     .sortedBy { it.first }
