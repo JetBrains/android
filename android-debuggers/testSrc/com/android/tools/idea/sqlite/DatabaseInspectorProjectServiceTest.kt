@@ -39,6 +39,7 @@ import junit.framework.TestCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -53,6 +54,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var fileOpened: VirtualFile
   private lateinit var model: MockDatabaseInspectorModel
   private lateinit var repository: DatabaseRepositoryImpl
+
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val scope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
 
   override fun setUp() {
@@ -93,13 +96,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       2,
       EdtExecutorService.getInstance()
     )
@@ -157,7 +160,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )

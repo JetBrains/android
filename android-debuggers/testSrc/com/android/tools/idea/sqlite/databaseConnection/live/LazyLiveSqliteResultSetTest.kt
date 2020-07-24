@@ -18,8 +18,6 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.SupervisorJob
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
@@ -31,6 +29,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.LightPlatformTestCase.assertThrows
+import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -40,8 +39,9 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
-  private val scope = CoroutineScope(taskExecutor.asCoroutineDispatcher() + SupervisorJob())
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
+  private val edtExecutor = EdtExecutorService.getInstance()
+  private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
   fun testColumnsReturnCorrectListOfColumns() = runBlocking<Unit> {
     // Prepare
@@ -300,7 +300,12 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     statement: SqliteStatement,
     messenger: AppInspectorClient.CommandMessenger
   ): LiveSqliteResultSet {
-    val liveSqliteResultSet = LazyLiveSqliteResultSet(statement, DatabaseInspectorMessenger(messenger, scope), 0, taskExecutor)
+    val liveSqliteResultSet = LazyLiveSqliteResultSet(
+      statement,
+      DatabaseInspectorMessenger(messenger, scope, taskExecutor),
+      0,
+      taskExecutor
+    )
     Disposer.register(testRootDisposable, liveSqliteResultSet)
     return liveSqliteResultSet
   }

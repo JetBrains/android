@@ -612,7 +612,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   private fun createLiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger): LiveDatabaseConnection {
     return LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(messenger, scope, createErrorSideChannel(project)),
+      DatabaseInspectorMessenger(messenger, scope, taskExecutor, createErrorSideChannel(project)),
       1,
       taskExecutor
     )
