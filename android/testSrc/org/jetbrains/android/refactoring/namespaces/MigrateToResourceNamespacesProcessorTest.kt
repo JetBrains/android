@@ -233,7 +233,6 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
     refactorAndSync()
 
-/* b/162037025
     myFixture.checkResult(
       "AndroidManifest.xml",
       """
@@ -241,14 +240,12 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:lib="http://schemas.android.com/apk/res/com.example.lib"
             package="com.example.app">
-            <application android:icon="@drawable/icon"
-                android:label="@lib:string/libString">
+            <application android:icon="@drawable/icon" android:label="@lib:string/libString">
             </application>
         </manifest>
       """.trimIndent(),
       true
     )
-b/162037025 */
   }
 
   fun testCode() {
