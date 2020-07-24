@@ -30,7 +30,6 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
     addDynamicFeatureModule(DYNAMIC_FEATURE_MODULE_NAME, myModule, myFixture)
     addFragment("fragment1", null)
     addFragment("fragment2", null)
@@ -38,11 +37,6 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
     addFragment("dynamicFragment", DYNAMIC_FEATURE_MODULE_NAME)
     addActivity("activity1", null)
     addActivity("dynamicActivity", DYNAMIC_FEATURE_MODULE_NAME)
-  }
-
-  override fun tearDown() {
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   fun testToolsLayoutFragmentCompletion() {

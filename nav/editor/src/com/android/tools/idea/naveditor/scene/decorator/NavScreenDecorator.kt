@@ -93,12 +93,10 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
   }
 
   private fun getFacet(component: SceneComponent, model: NlModel): AndroidFacet? {
-    if (StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
-      component.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_MODULE_NAME)?.let {
-        val moduleManager = ModuleManager.getInstance(component.nlComponent.model.project) ?: return null
-        val module = moduleManager.findModuleByName(it) ?: return null
-        return AndroidFacet.getInstance(module)
-      }
+    component.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_MODULE_NAME)?.let {
+      val moduleManager = ModuleManager.getInstance(component.nlComponent.model.project) ?: return null
+      val module = moduleManager.findModuleByName(it) ?: return null
+      return AndroidFacet.getInstance(module)
     }
 
     return model.facet
