@@ -42,6 +42,7 @@ import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;

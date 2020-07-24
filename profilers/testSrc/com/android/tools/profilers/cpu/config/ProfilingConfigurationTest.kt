@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.config
 
 import com.android.tools.profiler.proto.Cpu
 import com.google.common.truth.Truth.assertThat
@@ -48,8 +48,7 @@ class ProfilingConfigurationTest {
 
   @Test
   fun toProto() {
-    val configuration = ProfilingConfiguration("MyConfiguration", Cpu.CpuTraceType.SIMPLEPERF,
-                                               Cpu.CpuTraceMode.SAMPLED).apply {
+    val configuration = ProfilingConfiguration("MyConfiguration", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED).apply {
       profilingBufferSizeInMb = 12
       profilingSamplingIntervalUs = 1234
       isDisableLiveAllocation = true

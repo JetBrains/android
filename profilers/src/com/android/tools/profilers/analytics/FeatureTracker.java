@@ -21,7 +21,7 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;

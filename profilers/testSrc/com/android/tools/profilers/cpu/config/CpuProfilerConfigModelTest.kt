@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
@@ -27,6 +27,9 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuProfilerAspect
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -171,7 +174,8 @@ class CpuProfilerConfigModelTest {
   fun aspectFiredWhenSettingProfilingConfig() {
     val observer = AspectObserver()
     var aspectCalled = false
-    myProfilerStage!!.aspect.addDependency(observer).onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
+    myProfilerStage!!.aspect.addDependency(observer).onChange(
+      CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
     model!!.profilingConfiguration = ProfilingConfiguration("cfg", CpuTraceType.ART, CpuTraceMode.SAMPLED)
     assertThat(aspectCalled).isTrue()
   }

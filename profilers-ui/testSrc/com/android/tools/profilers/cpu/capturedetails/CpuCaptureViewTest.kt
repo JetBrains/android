@@ -34,7 +34,7 @@ import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService

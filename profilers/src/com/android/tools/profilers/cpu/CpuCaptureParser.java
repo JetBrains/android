@@ -24,6 +24,7 @@ import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;

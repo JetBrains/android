@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.config;
 
 import com.android.tools.adtui.stdui.menu.CommonSeparatorUI;
 import com.android.tools.adtui.util.SwingUtil;
@@ -24,6 +24,9 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerCombobox;
 import com.android.tools.profilers.ProfilerComboboxCellRenderer;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 

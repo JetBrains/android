@@ -35,7 +35,7 @@ import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.ArrayList;
 import java.util.Arrays;

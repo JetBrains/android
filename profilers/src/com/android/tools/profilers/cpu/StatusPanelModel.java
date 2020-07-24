@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 /**

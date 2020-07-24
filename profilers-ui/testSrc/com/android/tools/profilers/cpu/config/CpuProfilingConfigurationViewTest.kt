@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.config
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -26,6 +26,8 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -55,18 +57,21 @@ class CpuProfilingConfigurationViewTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    configurationView = CpuProfilingConfigurationView(stage, FakeIdeProfilerComponents())
+    configurationView = CpuProfilingConfigurationView(stage,
+                                                                                                                FakeIdeProfilerComponents())
   }
 
   @Test
   fun editConfigurationEntryExists() {
-    assertThat(configurationView.profilingConfigurations).contains(CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY)
+    assertThat(configurationView.profilingConfigurations).contains(
+      CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY)
     assertThat(CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY.name).isNotEmpty()
   }
 
   @Test
   fun separatorEntryExists() {
-    assertThat(configurationView.profilingConfigurations).contains(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY)
+    assertThat(configurationView.profilingConfigurations).contains(
+      CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY)
     assertThat(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY.name).isNotEmpty()
   }
 
@@ -85,7 +90,8 @@ class CpuProfilingConfigurationViewTest {
 
   @Test
   fun separatorAndEditEntriesAreNotEqual() {
-    assertThat(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY).isNotEqualTo(CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY)
+    assertThat(CpuProfilingConfigurationView.CONFIG_SEPARATOR_ENTRY).isNotEqualTo(
+      CpuProfilingConfigurationView.EDIT_CONFIGURATIONS_ENTRY)
   }
 
   @Test
@@ -135,9 +141,10 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
-    val instrumented = ProfilingConfiguration(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME,
-                                              Cpu.CpuTraceType.ART,
-                                              Cpu.CpuTraceMode.INSTRUMENTED)
+    val instrumented = ProfilingConfiguration(
+      FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME,
+      Cpu.CpuTraceType.ART,
+      Cpu.CpuTraceMode.INSTRUMENTED)
     configurationView.profilingConfiguration = instrumented
     assertThat(configurationView.profilingConfiguration.name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
 

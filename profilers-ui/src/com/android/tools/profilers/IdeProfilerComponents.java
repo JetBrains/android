@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;

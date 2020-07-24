@@ -30,7 +30,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -146,9 +146,10 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testSampledJavaTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Java",
-                                                                                        Cpu.CpuTraceType.ART,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration(
+      "Sampled Java",
+      Cpu.CpuTraceType.ART,
+      Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -160,9 +161,10 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testInstrumentedJavaTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Instrumented Java",
-                                                                                        Cpu.CpuTraceType.ART,
-                                                                                        Cpu.CpuTraceMode.INSTRUMENTED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration(
+      "Instrumented Java",
+      Cpu.CpuTraceType.ART,
+      Cpu.CpuTraceMode.INSTRUMENTED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -174,9 +176,10 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testSampledNativeTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Native",
-                                                                                        Cpu.CpuTraceType.SIMPLEPERF,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration(
+      "Sampled Native",
+      Cpu.CpuTraceType.SIMPLEPERF,
+      Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -188,9 +191,10 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testATraceTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("ATrace",
-                                                                                        Cpu.CpuTraceType.ATRACE,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration(
+      "ATrace",
+      Cpu.CpuTraceType.ATRACE,
+      Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
