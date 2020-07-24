@@ -57,7 +57,10 @@ import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -143,9 +146,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void startCapturingInstrumented() throws InterruptedException {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     // Start a capture using INSTRUMENTED mode
-    ProfilingConfiguration instrumented = new ProfilingConfiguration("My Instrumented Config",
-                                                                     Cpu.CpuTraceType.ART,
-                                                                     Cpu.CpuTraceMode.INSTRUMENTED);
+    ProfilingConfiguration instrumented = new ArtInstrumentedConfiguration("My Instrumented Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(instrumented);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
   }
@@ -835,7 +836,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     ProfilingConfiguration trackedConfig =
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
     assertThat(trackedConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
-    assertThat(trackedConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
   }
 
   @Test
@@ -894,9 +894,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Needs to be set true else null is inserted into the capture parser.
     myServices.setShouldProceedYesNoDialog(true);
     // Try to parse a simpleperf trace with ART config.
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     assertThat(myStage.getStudioProfilers().getStage()).isEqualTo(myStage);
@@ -910,9 +908,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void configurationShouldBeTheOnGoingProfilingAfterExitAndEnter() throws InterruptedException {
-    ProfilingConfiguration testConfig = new ProfilingConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME,
-                                                                   Cpu.CpuTraceType.SIMPLEPERF,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration testConfig = new SimpleperfConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
     myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
@@ -931,9 +927,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void configurationShouldBeTheLastSelectedOneAfterExitAndEnter() {
-    ProfilingConfiguration testConfig = new ProfilingConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME,
-                                                                   Cpu.CpuTraceType.SIMPLEPERF,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration testConfig = new SimpleperfConfiguration(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
     myStage.getProfilerConfigModel().setProfilingConfiguration(testConfig);
     assertThat(myStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
     myStage.exit();
@@ -1062,9 +1056,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void cpuMetadataSuccessfulCapture() throws InterruptedException, IOException {
     CpuCaptureParser.clearPreviouslyLoadedCaptures();
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ArtSampledConfiguration config = new ArtSampledConfiguration("My Config");
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
@@ -1073,11 +1065,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.SUCCESS);
-    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
     assertThat(metadata.getStoppingTimeMs()).isEqualTo(FakeCpuService.FAKE_STOPPING_TIME_MS);
     assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
@@ -1088,9 +1079,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void cpuMetadataFailureStopCapture() throws InterruptedException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ArtSampledConfiguration config = new ArtSampledConfiguration("My Config");
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
@@ -1105,11 +1094,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED);
     // Profiling Configurations should remain the same
-    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
+    //assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     // Capture duration is calculated from the elapsed time since recording has started.
     // Note the legacy pipeline would generate two instances of metadata. First, it gets the error status from
     // the StopProfilingApp rpc right away. Second, just like unified pipeline, InProgressTraceHandler will detect
@@ -1126,9 +1115,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ArtSampledConfiguration config = new ArtSampledConfiguration("My Config");
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
@@ -1141,11 +1128,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
@@ -1158,9 +1144,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void cpuMetadataFailureUserAbort() throws InterruptedException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ArtSampledConfiguration config = new ArtSampledConfiguration("My Config");
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
@@ -1174,11 +1158,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
     // Profiling Configurations should remain the same.
-    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
-    assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
@@ -1194,9 +1177,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Make sure the TracePreProcessor fails to pre-process the trace
     ((FakeTracePreProcessor)myServices.getTracePreProcessor()).setFailedToPreProcess(true);
     // Select a simpleperf configuration
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.SIMPLEPERF,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration config = new SimpleperfConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
@@ -1213,9 +1194,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void parsingFailureIsNotifiedToUi() throws InterruptedException, IOException {
     // Start an ART capturing successfully
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ArtSampledConfiguration config = new ArtSampledConfiguration("My Config");
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
@@ -1326,9 +1305,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void stopCapturingFailureShowsErrorBalloon() throws IOException, ExecutionException, InterruptedException {
     myStage.setCapture(CpuProfilerTestUtils.getValidCapture());
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
@@ -1342,9 +1319,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
@@ -1362,9 +1337,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Make sure the TracePreProcessor fails to pre-process the trace
     ((FakeTracePreProcessor)myServices.getTracePreProcessor()).setFailedToPreProcess(true);
     // Select a simpleperf configuration
-    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                               Cpu.CpuTraceType.SIMPLEPERF,
-                                                               Cpu.CpuTraceMode.SAMPLED);
+    ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     // Use a trace that is not a raw simpleperf trace. That should cause pre-process to return a failure.
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
@@ -1583,9 +1556,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myServices.getPersistentProfilerPreferences().setInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
     myServices.enableLiveAllocationsSampling(false);
     addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
-    ProfilingConfiguration config = new ProfilingConfiguration("My Instrumented Config",
-                                                               Cpu.CpuTraceType.ART,
-                                                               Cpu.CpuTraceMode.INSTRUMENTED);
+    ProfilingConfiguration config = new ArtInstrumentedConfiguration("My Instrumented Config");
     config.setDisableLiveAllocation(false);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
     myTransportService.setAgentStatus(Common.AgentData.getDefaultInstance());

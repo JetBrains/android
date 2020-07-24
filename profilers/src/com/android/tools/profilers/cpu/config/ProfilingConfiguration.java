@@ -15,19 +15,14 @@
  */
 package com.android.tools.profilers.cpu.config;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.utils.HashCodes;
-import com.intellij.openapi.util.text.StringUtil;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Preferences set when start a profiling session.
  */
-public class ProfilingConfiguration {
+public abstract class ProfilingConfiguration {
   public static final String DEFAULT_CONFIGURATION_NAME = "Unnamed";
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
@@ -39,58 +34,16 @@ public class ProfilingConfiguration {
   private String myName;
 
   /**
-   * Profiler type.
-   */
-  @NotNull
-  private CpuTraceType myProfilerType;
-
-  /**
-   * Profiling mode (Sampled or Instrumented).
-   */
-  @NotNull
-  private CpuTraceMode myMode;
-
-  private int myProfilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB;
-
-  /**
-   * Sampling interval (for sample-based profiling) in microseconds.
-   */
-  private int myProfilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US;
-
-  /**
    * Whether to disable live allocation during CPU recording.
    */
   private boolean myDisableLiveAllocation = true;
 
-  public ProfilingConfiguration() {
-    this(DEFAULT_CONFIGURATION_NAME, CpuTraceType.UNSPECIFIED_TYPE, CpuTraceMode.UNSPECIFIED_MODE);
-  }
-
-  public ProfilingConfiguration(@NotNull String name,
-                                @NotNull CpuTraceType profilerType,
-                                @NotNull CpuTraceMode mode) {
+  protected ProfilingConfiguration(@NotNull String name) {
     myName = name;
-    myProfilerType = profilerType;
-    myMode = mode;
   }
 
   @NotNull
-  public CpuTraceMode getMode() {
-    return myMode;
-  }
-
-  public void setMode(@NotNull CpuTraceMode mode) {
-    myMode = mode;
-  }
-
-  @NotNull
-  public CpuTraceType getTraceType() {
-    return myProfilerType;
-  }
-
-  public void setTraceType(@NotNull CpuTraceType traceType) {
-    myProfilerType = traceType;
-  }
+  public abstract CpuTraceType getTraceType();
 
   @NotNull
   public String getName() {
@@ -101,18 +54,6 @@ public class ProfilingConfiguration {
     myName = name;
   }
 
-  public int getProfilingBufferSizeInMb() {
-    return myProfilingBufferSizeInMb;
-  }
-
-  public void setProfilingBufferSizeInMb(int profilingBufferSizeInMb) {
-    myProfilingBufferSizeInMb = profilingBufferSizeInMb;
-  }
-
-  public int getProfilingSamplingIntervalUs() {
-    return myProfilingSamplingIntervalUs;
-  }
-
   public boolean isDisableLiveAllocation() {
     return myDisableLiveAllocation;
   }
@@ -121,28 +62,10 @@ public class ProfilingConfiguration {
     myDisableLiveAllocation = disableLiveAllocation;
   }
 
-  public int getRequiredDeviceLevel() {
-    switch (myProfilerType) {
-      // Atrace requires '-o' option which is supported from Android 7.0 (N).
-      case ATRACE:
-        return AndroidVersion.VersionCodes.N;
-      // Simpleperf is supported from Android 8.0 (O)
-      case SIMPLEPERF:
-        return AndroidVersion.VersionCodes.O;
-      // Perfetto is supported from Android 9.0 (P)
-      case PERFETTO:
-        return AndroidVersion.VersionCodes.P;
-      default:
-        return 0;
-    }
-  }
+  public abstract int getRequiredDeviceLevel();
 
   public boolean isDeviceLevelSupported(int deviceLevel) {
     return deviceLevel >= getRequiredDeviceLevel();
-  }
-
-  public void setProfilingSamplingIntervalUs(int profilingSamplingIntervalUs) {
-    myProfilingSamplingIntervalUs = profilingSamplingIntervalUs;
   }
 
   /**
@@ -150,9 +73,39 @@ public class ProfilingConfiguration {
    */
   @NotNull
   public static ProfilingConfiguration fromProto(@NotNull Cpu.CpuTraceConfiguration.UserOptions proto) {
-    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getTraceType(), proto.getTraceMode());
-    configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
-    configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+    ProfilingConfiguration configuration = null;
+    switch (proto.getTraceType()) {
+      case ART:
+        if (proto.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
+          ArtSampledConfiguration artSampled = new ArtSampledConfiguration(proto.getName());
+          artSampled.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
+          artSampled.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+          configuration = artSampled;
+        } else {
+          ArtInstrumentedConfiguration art = new ArtInstrumentedConfiguration(proto.getName());
+          art.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+          configuration = art;
+        }
+        break;
+      case PERFETTO:
+        PerfettoConfiguration perfetto = new PerfettoConfiguration(proto.getName());
+        perfetto.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+        configuration = perfetto;
+        break;
+      case ATRACE:
+        AtraceConfiguration atrace = new AtraceConfiguration(proto.getName());
+        atrace.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+        configuration = atrace;
+        break;
+      case SIMPLEPERF:
+        SimpleperfConfiguration simpleperf = new SimpleperfConfiguration(proto.getName());
+        simpleperf.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
+        configuration = simpleperf;
+        break;
+      case UNRECOGNIZED:
+      case UNSPECIFIED_TYPE:
+        return new UnspecifiedConfiguration(DEFAULT_CONFIGURATION_NAME);
+    }
     configuration.setDisableLiveAllocation(proto.getDisableLiveAllocation());
     return configuration;
   }
@@ -162,16 +115,14 @@ public class ProfilingConfiguration {
    */
   @NotNull
   public Cpu.CpuTraceConfiguration.UserOptions toProto() {
-    return Cpu.CpuTraceConfiguration.UserOptions
-      .newBuilder()
+    return buildUserOptions()
       .setName(getName())
       .setTraceType(getTraceType())
-      .setTraceMode(getMode())
-      .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
-      .setBufferSizeInMb(getProfilingBufferSizeInMb())
       .setDisableLiveAllocation(isDisableLiveAllocation())
       .build();
   }
+
+  protected abstract Cpu.CpuTraceConfiguration.UserOptions.Builder buildUserOptions();
 
   @Override
   public boolean equals(Object obj) {
@@ -179,18 +130,11 @@ public class ProfilingConfiguration {
       return false;
     }
     ProfilingConfiguration incoming = (ProfilingConfiguration)obj;
-    return StringUtil.equals(getName(), incoming.getName()) &&
-           getTraceType() == incoming.getTraceType() &&
-           getMode() == incoming.getMode() &&
-           getProfilingSamplingIntervalUs() == incoming.getProfilingSamplingIntervalUs() &&
-           getProfilingBufferSizeInMb() == incoming.getProfilingBufferSizeInMb() &&
-           isDisableLiveAllocation() == incoming.isDisableLiveAllocation();
+    return incoming.toProto().equals(toProto());
   }
 
   @Override
   public int hashCode() {
-    return HashCodes
-      .mix(Objects.hashCode(getName()), Objects.hashCode(getTraceType()), Objects.hashCode(getMode()), getProfilingSamplingIntervalUs(),
-           getProfilingBufferSizeInMb(), Boolean.hashCode(isDisableLiveAllocation()));
+    return toProto().hashCode();
   }
 }
