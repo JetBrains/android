@@ -144,7 +144,7 @@ public class GuiTestRule implements TestRule {
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new NpwControl())
+//      .around(new NpwControl())
       .around(new ScreenshotOnFailure())
       .around(myInnerTimeout);
 
