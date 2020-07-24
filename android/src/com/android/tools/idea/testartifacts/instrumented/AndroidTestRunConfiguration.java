@@ -30,7 +30,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
@@ -40,6 +39,7 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
@@ -58,6 +58,7 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
@@ -316,7 +317,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       final ConsoleView consoleView;
       if ((runOnMultipleDevices || AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX())
           && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
-          && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
+          && (executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID)
+              || executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID))) {
         consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule());
         consoleView.attachToProcess(handler);
       } else {
