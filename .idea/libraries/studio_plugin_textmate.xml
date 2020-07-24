@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="studio-plugin-textmate">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/textmate/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/textmate/lib/jcodings-1.0.45.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/textmate/lib/joni-2.1.30.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/textmate/lib/textmate.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="studio-plugin-hg4idea">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/hg4idea/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/hg4idea/lib/hg4idea.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1036,6 +1036,14 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/analytics:unb.analytics[module]",
         "//tools/analytics-library/publisher:unb.analytics-publisher[module]",
         "//tools/adt/idea/build-common:unb.intellij.android.buildCommon[module]",
@@ -1273,6 +1281,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module, test]",

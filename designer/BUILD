@@ -211,6 +211,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/assistant:unb.assistant[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/base/pixelprobe:unb.studio.android.sdktools.pixelprobe[module]",
@@ -281,6 +284,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
         "//tools/adt/idea/assistant:unb.assistant[module]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",

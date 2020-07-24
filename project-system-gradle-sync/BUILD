@@ -145,6 +145,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
@@ -182,6 +185,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
         "//tools/adt/idea/project-system-gradle-sync:unb.intellij.android.projectSystem.gradle.sync[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",

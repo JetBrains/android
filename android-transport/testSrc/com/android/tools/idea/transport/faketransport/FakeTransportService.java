@@ -17,6 +17,7 @@ package com.android.tools.idea.transport.faketransport;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
@@ -46,13 +47,12 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.utils.ThreadSafe;
 
 /**
  *  This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and
  *  {@link com.android.tools.idea.transport.poller.TransportEventPoller} to poll on a thread from itsown thread-pool
  */
-@ThreadSafe
+@AnyThread
 public class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
   public static final String VERSION = "3141592";
   public static final long FAKE_DEVICE_ID = 1234;

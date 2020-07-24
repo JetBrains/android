@@ -143,6 +143,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
         "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
@@ -166,6 +169,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/base/common:unb.studio.android.sdktools.common[module, test]",

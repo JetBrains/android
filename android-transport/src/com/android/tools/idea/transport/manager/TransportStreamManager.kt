@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.transport.manager
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.annotations.VisibleForTesting
-import org.jetbrains.kotlin.utils.ThreadSafe
 import java.util.concurrent.Executor
 
 /**
@@ -46,7 +46,7 @@ interface TransportStreamListener {
  * Streams are provided in the form of [TransportStreamChannel], which provides users the ability to register their own listeners while
  * automatically associating them with the stream.
  */
-@ThreadSafe
+@AnyThread
 class TransportStreamManager private constructor(@VisibleForTesting val poller: TransportPoller) {
   private val streamLock = Any()
 
@@ -124,7 +124,7 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
  * Represents the transport channel of a stream, which is a device or emulator. It automatically associates user provided
  * [TransportStreamEventListener] with the stream and creates a new [StreamEventPollingTask] and adds it to poller for execution.
  */
-@ThreadSafe
+@AnyThread
 class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPoller) {
 
   private val listenersLock = Any()
