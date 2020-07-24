@@ -69,6 +69,8 @@ class LightArgsClassTest {
 
     // ... but cannot be found without context
     val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
+/* b/162037346
     assertThat(psiFacade.findClass("test.safeargs.Fragment1Args", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
+b/162037346 */
   }
 }
