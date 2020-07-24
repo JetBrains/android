@@ -22,16 +22,20 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorExcept
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.withContext
+import java.util.concurrent.Executor
 
 class DatabaseInspectorMessenger(
   private val messenger: AppInspectorClient.CommandMessenger,
   private val scope: CoroutineScope,
+  taskExecutor: Executor,
   private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) {
-  suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response {
+  private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
+
+  suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response = withContext(workerDispatcher) {
     val rawResponse = messenger.sendRawCommand(command.toByteArray())
     val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
     if (parsedResponse.hasErrorOccurred()) {
@@ -40,7 +44,7 @@ class DatabaseInspectorMessenger(
       val message = getErrorMessage(errorResponse.content)
       throw LiveInspectorException(message, errorResponse.content.stackTrace)
     }
-    return parsedResponse
+    parsedResponse
   }
 
   /**

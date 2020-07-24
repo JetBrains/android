@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
@@ -29,6 +28,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.LightPlatformTestCase.assertThrows
+import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -36,8 +36,9 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 
 class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
-  private val scope = CoroutineScope(taskExecutor.asCoroutineDispatcher() + SupervisorJob())
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
+  private val edtExecutor = EdtExecutorService.getInstance()
+  private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
   class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient.CommandMessenger {
     override suspend fun disposeInspector() = Unit
@@ -288,7 +289,12 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     statement: SqliteStatement,
     messenger: AppInspectorClient.CommandMessenger
   ): LiveSqliteResultSet {
-    val liveSqliteResultSet = PagedLiveSqliteResultSet(statement, DatabaseInspectorMessenger(messenger, scope), 0, taskExecutor)
+    val liveSqliteResultSet = PagedLiveSqliteResultSet(
+      statement,
+      DatabaseInspectorMessenger(messenger, scope, taskExecutor),
+      0,
+      taskExecutor
+    )
     Disposer.register(testRootDisposable, liveSqliteResultSet)
     return liveSqliteResultSet
   }

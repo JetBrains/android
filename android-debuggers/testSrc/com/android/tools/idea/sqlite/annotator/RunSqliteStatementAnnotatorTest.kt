@@ -37,6 +37,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.Icon
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -46,6 +47,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var sqliteDatabaseId1: SqliteDatabaseId
 
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val scope = CoroutineScope(EmptyCoroutineContext)
 
   override fun setUp() {
@@ -199,7 +201,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
-    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope)
+    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope, taskExecutor)
     return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }

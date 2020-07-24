@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
@@ -30,7 +29,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.JComponent
@@ -76,7 +74,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
         onDatabasePossiblyChanged,
         onDatabaseClosed,
         taskExecutor,
-        CoroutineScope(databaseInspectorProjectService.projectScope.coroutineContext + AndroidDispatchers.workerThread),
+        databaseInspectorProjectService.projectScope,
         errorsSideChannel
       )
 
@@ -88,7 +86,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       init {
         databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
-        DatabaseInspectorProjectService.getInstance(project).projectScope.launch {
+        databaseInspectorProjectService.projectScope.launch {
           client.startTrackingDatabaseConnections()
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onDispose() {
