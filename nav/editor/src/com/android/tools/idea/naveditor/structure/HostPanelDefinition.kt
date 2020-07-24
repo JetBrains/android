@@ -31,24 +31,16 @@ class HostPanelDefinition : ToolWindowDefinition<DesignSurface>(
   { HostPanelContainer() }
 )
 
-// TODO: Convert HostPanel itself to ToolContent<DesignSurface> and remove this
 private class HostPanelContainer : ToolContent<DesignSurface> {
   val panel = AdtSecondaryPanel(BorderLayout())
   var hostPanel: JComponent? = null
 
   override fun getComponent(): JComponent {
-    return panel
+    return hostPanel ?: panel
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {
-    if (hostPanel != null) {
-      panel.remove(hostPanel)
-      hostPanel = null
-    }
-    if (toolContext != null) {
-      hostPanel = HostPanel(toolContext)
-      panel.add(hostPanel)
-    }
+    hostPanel = toolContext?.let { HostPanel(it) }
   }
 
   override fun dispose() {

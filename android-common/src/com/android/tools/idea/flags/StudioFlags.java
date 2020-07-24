@@ -360,11 +360,6 @@ public final class StudioFlags {
 
   //region Navigation Editor
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
-  public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
-    NAV_EDITOR, "new.component", "Enable the new Component Tree",
-    "Enable the new Component Tree",
-    true);
-
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
