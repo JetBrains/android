@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.config
 
+import com.android.tools.adtui.model.options.OptionsProperty
+import com.android.tools.adtui.model.options.Slider
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceMode
 
@@ -23,6 +25,9 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceMode
  */
 
 class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) {
+  @Slider(min = 1, max = 32, step = 1)
+  @OptionsProperty(group = TRACE_CONFIG_GROUP, order = 101, name = "File size limit:", unit = "Mb",
+                description = "Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
   override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
