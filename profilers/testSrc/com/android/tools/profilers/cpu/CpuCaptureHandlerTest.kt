@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

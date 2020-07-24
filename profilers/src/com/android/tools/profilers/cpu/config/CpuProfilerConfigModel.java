@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.config;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
@@ -21,6 +21,9 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
