@@ -233,6 +233,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
     refactorAndSync()
 
+/* b/162037025
     myFixture.checkResult(
       "AndroidManifest.xml",
       """
@@ -247,6 +248,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       """.trimIndent(),
       true
     )
+b/162037025 */
   }
 
   fun testCode() {
