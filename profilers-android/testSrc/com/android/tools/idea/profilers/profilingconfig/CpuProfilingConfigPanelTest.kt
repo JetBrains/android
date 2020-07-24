@@ -23,6 +23,10 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.AtraceConfiguration
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -40,11 +44,11 @@ class CpuProfilingConfigPanelTest {
   val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
 
   private lateinit var myConfigPanel: CpuProfilingConfigPanel
-  private lateinit var myConfiguration: ProfilingConfiguration
+  private lateinit var myConfiguration: ArtSampledConfiguration
 
   fun setUp(deviceApiLevel: Int) {
     myConfigPanel = CpuProfilingConfigPanel(deviceApiLevel)
-    myConfiguration = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED)
+    myConfiguration = ArtSampledConfiguration("myConfig")
     myConfigPanel.setConfiguration(myConfiguration, false)
   }
 
@@ -107,7 +111,7 @@ class CpuProfilingConfigPanelTest {
   @Test
   fun fieldsAreDisabledWithAtraceSet() {
     myConfigPanel.setConfiguration(
-      ProfilingConfiguration("Test", Cpu.CpuTraceType.ATRACE, Cpu.CpuTraceMode.UNSPECIFIED_MODE), false)
+      AtraceConfiguration("Test"), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -120,7 +124,7 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun fieldsAreEnabledWithArtSampled() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED), false)
+    myConfigPanel.setConfiguration(ArtSampledConfiguration("Test"), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -133,7 +137,7 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun fieldsAreEnabledWithArtInstrumented() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.INSTRUMENTED), false)
+    myConfigPanel.setConfiguration(ArtInstrumentedConfiguration("Test"), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -146,7 +150,7 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun fieldsAreEnabledWithSimplePerf() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED), false)
+    myConfigPanel.setConfiguration(SimpleperfConfiguration("Test"), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -161,22 +165,22 @@ class CpuProfilingConfigPanelTest {
   fun sizeBufferEnabledOnlyForArtInPreO() {
     setUp(AndroidVersion.VersionCodes.N)
 
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED),
+    myConfigPanel.setConfiguration(ArtSampledConfiguration("Test"),
                                    false)
     val treeWalker = TreeWalker(myConfigPanel.component)
     fileSizeButtonValidation(treeWalker, true)
 
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.INSTRUMENTED), false)
+    myConfigPanel.setConfiguration(ArtInstrumentedConfiguration("Test"), false)
     fileSizeButtonValidation(treeWalker, true)
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED), false)
+    myConfigPanel.setConfiguration(SimpleperfConfiguration("Test"), false)
     fileSizeButtonValidation(treeWalker, false)
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ATRACE, Cpu.CpuTraceMode.UNSPECIFIED_MODE), false)
+    myConfigPanel.setConfiguration(AtraceConfiguration("Test"), false)
     fileSizeButtonValidation(treeWalker, false)
   }
 
   @Test
   fun testUsingDefaultConfiguration() {
-    val defaultConfig = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED)
+    val defaultConfig = ArtSampledConfiguration("myConfig")
     myConfigPanel.setConfiguration(defaultConfig, true)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
@@ -270,7 +274,7 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun testLoadingConfiguration() {
-    val configuration = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED).apply {
+    val configuration = ArtSampledConfiguration("myConfig").apply {
       profilingBufferSizeInMb = 1234
       profilingSamplingIntervalUs = 56789
       isDisableLiveAllocation = true

@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -347,9 +348,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       private void addConfiguration() {
-        ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
-                                                                          Cpu.CpuTraceType.ART,
-                                                                          Cpu.CpuTraceMode.SAMPLED);
+        ProfilingConfiguration configuration = new UnspecifiedConfiguration(getUniqueName("Unnamed"));
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration
