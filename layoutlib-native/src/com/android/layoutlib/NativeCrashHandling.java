@@ -21,6 +21,7 @@ import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.BaseComponent;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class NativeCrashHandling implements BaseComponent {
 
@@ -29,11 +30,16 @@ public class NativeCrashHandling implements BaseComponent {
     // If the previous run of Studio ended on a JVM crash, disable layoutlib native.
     List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
     for (StudioCrashDetails crash : crashes) {
-      if (crash.isJvmCrash()) {
+      if (isCrashCausedByLayoutlib(crash)) {
         PluginManagerCore.disablePlugin("com.android.layoutlib.native");
         PluginManagerCore.enablePlugin("com.android.layoutlib.standard");
         ApplicationManager.getApplication().restart();
       }
     }
+  }
+
+  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
+    return crash.isJvmCrash() &&
+           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
   }
 }
