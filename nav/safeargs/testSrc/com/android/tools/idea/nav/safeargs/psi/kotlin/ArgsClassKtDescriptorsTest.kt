@@ -59,6 +59,9 @@ class ArgsClassKtDescriptorsTest {
             <argument
                 android:name="arg2"
                 app:argType="integer[]" />
+            <argument
+                android:name="arg3"
+                app:argType=".Fragment1" />
           </fragment>
         </navigation>
       """.trimIndent())
@@ -89,7 +92,7 @@ class ArgsClassKtDescriptorsTest {
       .first()
 
     assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
-      "Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray)"
+      "Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray, arg3: test.safeargs.Fragment1)"
     )
 
     assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
@@ -98,14 +101,16 @@ class ArgsClassKtDescriptorsTest {
 
     assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
       "val arg1: kotlin.String",
-      "val arg2: kotlin.IntArray"
+      "val arg2: kotlin.IntArray",
+      "val arg3: test.safeargs.Fragment1"
     )
 
     assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
       // generated functions of data class
       "component1(): kotlin.String",
       "component2(): kotlin.IntArray",
-      "copy(arg1: kotlin.String, arg2: kotlin.IntArray): test.safeargs.Fragment1Args",
+      "component3(): test.safeargs.Fragment1",
+      "copy(arg1: kotlin.String, arg2: kotlin.IntArray, arg3: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
       // normal functions
       "toBundle(): android.os.Bundle"
     )
