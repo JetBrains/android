@@ -29,7 +29,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -119,9 +118,7 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
     add(createEmptyPanel(), "EMPTY")
     cardLayout.show(this, "LOADING")
 
-    if (!StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
-      list.emptyText.text = "No NavHostFragments found"
-    }
+    list.emptyText.text = "No NavHostFragments found"
 
     list.background = secondaryPanelBackground
     if (GeneralSettings.getInstance().isSupportScreenReaders) {
@@ -225,7 +222,7 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
               }
             }
           }
-          val name = if (list.model.size == 0 && StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
+          val name = if (list.model.size == 0) {
             "EMPTY"
           }
           else {
