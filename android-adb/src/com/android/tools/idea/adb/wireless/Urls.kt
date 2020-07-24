@@ -17,9 +17,9 @@ package com.android.tools.idea.adb.wireless
 
 object Urls {
   /** TODO: Enter final URL here */
-  const val learnMore: String = "https://developer.android.com/docs"
+  const val learnMore: String = "https://d.android.com/r/studio-ui/wifi-pairing"
   /** TODO: Enter final URL here */
-  const val cantConnectDevice: String = "https://developer.android.com/docs"
+  const val cantConnectDevice: String = "https://d.android.com/r/studio-ui/troubleshoot-wifi-connection"
   /** TODO: Enter final URL here */
-  const val troubleshootConnection: String = "https://developer.android.com/docs"
+  const val troubleshootConnection: String = "https://d.android.com/r/studio-ui/troubleshoot-wifi-connection"
 }
