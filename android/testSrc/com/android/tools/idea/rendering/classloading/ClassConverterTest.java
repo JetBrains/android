@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering.classloading;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.classVersionToJdk;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.findHighestMajorVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentJdkVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMinorVersion;
@@ -96,10 +95,6 @@ public class ClassConverterTest extends TestCase {
 
   public void testGetCurrentClassVersion() {
     assertTrue(getCurrentClassVersion() >= 50);
-  }
-
-  public void testGetCurrentJdkVersion() {
-    assertTrue(getCurrentJdkVersion().startsWith("1."));
   }
 
   public void testMangling() throws Exception {
