@@ -16,14 +16,14 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
-import com.google.common.annotations.VisibleForTesting
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
 import org.jetbrains.kotlin.types.ErrorUtils.createUnresolvedType
 import org.jetbrains.kotlin.types.KotlinType
@@ -41,7 +41,8 @@ fun KotlinBuiltIns.getKotlinType(
   moduleDescriptor: ModuleDescriptor,
   isNonNull: Boolean = true
 ): KotlinType {
-  val resolvedTypeStr = getPsiTypeStr(moduleDescriptor.fqNameSafe.toString(), typeStr, defaultValue)
+  val modulePackageName = moduleDescriptor.module.toModule()?.let { getPackageName(it) } ?: ""
+  val resolvedTypeStr = getPsiTypeStr(modulePackageName, typeStr, defaultValue)
 
   // array type
   if (resolvedTypeStr.endsWith("[]")) {
