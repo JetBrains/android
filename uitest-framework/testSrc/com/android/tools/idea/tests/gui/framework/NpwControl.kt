@@ -30,33 +30,15 @@ import org.junit.runner.Description
 import java.io.File
 
 /**
- * Rule to update a new Project created with the New Project Wizard.
- * This rule waits that NPW generates all files (from the NPW Templates) and before the project is imported:
+ * Listener to update a new Project created with the New Project Wizard.
+ * This listener waits that NPW generates all files (from the NPW Templates) and before the project is imported:
  * - If "build.gradle" is found, it adds to it a list of local repositories
  * - More modification can be added later
  */
-internal class NpwControl : TestWatcher() {
-  private val myApplicationMessageBus = ApplicationManager.getApplication().messageBus.connect()
-  private lateinit var myProjectMessageBus: MessageBusConnection
+class NpwControl(private val project: Project) : TemplateRendererListener {
 
-  override fun starting(description: Description) {
-    myApplicationMessageBus.subscribe(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-      override fun beforeProjectLoaded(project: Project) {
-        myProjectMessageBus = MultiTemplateRenderer.subscribe(project, object : TemplateRendererListener {
-          override fun multiRenderingFinished() {
-            myProjectMessageBus.disconnect()
-            updateProjectFiles(project)
-          }
-        })
-      }
-    })
-  }
-
-  override fun finished(description: Description) {
-    myApplicationMessageBus.disconnect()
-  }
-
-  private fun updateProjectFiles(project: Project) {
+  override fun multiRenderingFinished() {
+    // Update project files.
     val gradleFile = File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE)
     if (gradleFile.exists()) {
       val gradleVirtualFile = VfsUtil.findFileByIoFile(gradleFile, true)!!
