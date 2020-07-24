@@ -22,8 +22,8 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
+import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
@@ -50,9 +50,9 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var mockSqliteController: MockDatabaseInspectorController
+  private lateinit var databaseInspectorController: FakeDatabaseInspectorController
   private lateinit var fileOpened: VirtualFile
-  private lateinit var model: MockDatabaseInspectorModel
+  private lateinit var model: OpenDatabaseInspectorModel
   private lateinit var repository: DatabaseRepositoryImpl
 
   private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -69,8 +69,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     repository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    model = MockDatabaseInspectorModel()
-    mockSqliteController = spy(MockDatabaseInspectorController(repository, model))
+    model = OpenDatabaseInspectorModel()
+    databaseInspectorController = spy(FakeDatabaseInspectorController(repository, model))
 
     val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
 
@@ -78,7 +78,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
       project = project,
       fileOpener = fileOpener,
       model = model,
-      createController = { _, _ -> mockSqliteController }
+      createController = { _, _ -> databaseInspectorController }
     )
   }
 
@@ -135,10 +135,10 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     }
 
     // Assert
-    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
-    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(null)
-    verify(mockSqliteController).setAppInspectionServices(appInspectionServices)
-    verify(mockSqliteController).setAppInspectionServices(null)
+    verify(databaseInspectorController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
+    verify(databaseInspectorController).setDatabaseInspectorClientCommandsChannel(null)
+    verify(databaseInspectorController).setAppInspectionServices(appInspectionServices)
+    verify(databaseInspectorController).setAppInspectionServices(null)
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {
@@ -149,7 +149,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Assert
     runBlocking {
-      verify(mockSqliteController).databasePossiblyChanged()
+      verify(databaseInspectorController).databasePossiblyChanged()
     }
   }
 

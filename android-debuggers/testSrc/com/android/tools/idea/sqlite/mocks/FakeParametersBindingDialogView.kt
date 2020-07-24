@@ -15,10 +15,21 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.model.SqliteDatabaseId
-import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 
-class MockSchemaProvider: SchemaProvider {
-  override fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema? = null
+open class FakeParametersBindingDialogView : ParametersBindingDialogView {
+  val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
+
+  override fun show() { }
+
+  override fun showNamedParameters(parameters: Set<SqliteParameter>) { }
+
+  override fun addListener(listener: ParametersBindingDialogView.Listener) {
+    listeners.add(listener)
+  }
+
+  override fun removeListener(listener: ParametersBindingDialogView.Listener) {
+    listeners.remove(listener)
+  }
 }

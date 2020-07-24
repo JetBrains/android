@@ -26,7 +26,7 @@ import java.util.ArrayList
 import javax.swing.Icon
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorView : DatabaseInspectorView {
+open class FakeDatabaseInspectorView : DatabaseInspectorView {
   val viewListeners = ArrayList<Listener>()
   var lastDisplayedResultSetTabId: TabId? = null
 

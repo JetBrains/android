@@ -15,21 +15,10 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.controllers.SqliteParameter
-import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 
-open class MockParametersBindingDialogView : ParametersBindingDialogView {
-  val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
-
-  override fun show() { }
-
-  override fun showNamedParameters(parameters: Set<SqliteParameter>) { }
-
-  override fun addListener(listener: ParametersBindingDialogView.Listener) {
-    listeners.add(listener)
-  }
-
-  override fun removeListener(listener: ParametersBindingDialogView.Listener) {
-    listeners.remove(listener)
-  }
-}
+/** A [DatabaseInspectorModel] identical to [DatabaseInspectorModelImpl] but open to extension. */
+@UiThread
+open class OpenDatabaseInspectorModel : DatabaseInspectorModel by DatabaseInspectorModelImpl()

@@ -32,7 +32,7 @@ import java.awt.event.ActionListener
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 
-open class MockPopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
+open class FakePopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
 
   val mockPopUp: JBPopup = mock(JBPopup::class.java)
   var callback: Consumer<in SqliteDatabaseId>? = null

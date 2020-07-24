@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorController(private val repository: DatabaseRepositoryImpl, val model: DatabaseInspectorModel) : DatabaseInspectorController {
+open class FakeDatabaseInspectorController(private val repository: DatabaseRepositoryImpl, val model: DatabaseInspectorModel) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()

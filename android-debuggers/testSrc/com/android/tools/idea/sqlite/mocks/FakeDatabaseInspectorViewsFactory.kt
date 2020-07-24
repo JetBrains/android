@@ -25,11 +25,11 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
-  val sqliteEvaluatorView: MockSqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
-  val tableView: MockTableView = spy(MockTableView())
-  val parametersBindingDialogView: MockParametersBindingDialogView = spy(MockParametersBindingDialogView())
-  val databaseInspectorView: MockDatabaseInspectorView = spy(MockDatabaseInspectorView())
+open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
+  val sqliteEvaluatorView: FakeSqliteEvaluatorView = spy(FakeSqliteEvaluatorView::class.java)
+  val tableView: FakeTableView = spy(FakeTableView())
+  val parametersBindingDialogView: FakeParametersBindingDialogView = spy(FakeParametersBindingDialogView())
+  val databaseInspectorView: FakeDatabaseInspectorView = spy(FakeDatabaseInspectorView())
 
   init {
     `when`(tableView.component).thenReturn(mock(JComponent::class.java))

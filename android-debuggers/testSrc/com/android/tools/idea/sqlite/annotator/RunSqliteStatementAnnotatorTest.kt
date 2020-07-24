@@ -21,7 +21,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
@@ -60,7 +60,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
       model = model,
-      createController = { _, _ -> MockDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model) }
+      createController = { _, _ -> FakeDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model) }
     )
 
     ideComponents = IdeComponents(myFixture)

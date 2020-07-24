@@ -30,9 +30,9 @@ import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
-import com.android.tools.idea.sqlite.mocks.MockDatabaseRepository
-import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
-import com.android.tools.idea.sqlite.mocks.MockTableView
+import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
+import com.android.tools.idea.sqlite.mocks.FakeTableView
+import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -72,8 +72,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
 class TableControllerTest : LightPlatformTestCase() {
-  private lateinit var tableView: MockTableView
-  private lateinit var mockResultSet: MockSqliteResultSet
+  private lateinit var tableView: FakeTableView
+  private lateinit var sqliteResultSet: FakeSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var tableController: TableController
 
@@ -85,8 +85,8 @@ class TableControllerTest : LightPlatformTestCase() {
   private var customDatabaseConnection: DatabaseConnection? = null
   private lateinit var databaseRepository: DatabaseRepository
 
-  private val realDatabaseId = SqliteDatabaseId.fromLiveDatabase("real", 0)
-  private val mockDatabaseId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
+  private val realDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("real", 0)
+  private val mockDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
 
   private lateinit var authorIdColumn: ResultSetSqliteColumn
   private lateinit var authorNameColumn: ResultSetSqliteColumn
@@ -99,8 +99,8 @@ class TableControllerTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    tableView = spy(MockTableView::class.java)
-    mockResultSet = MockSqliteResultSet()
+    tableView = spy(FakeTableView::class.java)
+    sqliteResultSet = FakeSqliteResultSet()
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     orderVerifier = inOrder(tableView)
@@ -150,11 +150,11 @@ class TableControllerTest : LightPlatformTestCase() {
       )
     )
 
-    databaseRepository = MockDatabaseRepository(project, edtExecutor)
+    databaseRepository = OpenDatabaseRepository(project, edtExecutor)
 
     runDispatching {
-      databaseRepository.addDatabaseConnection(realDatabaseId, realDatabaseConnection)
-      databaseRepository.addDatabaseConnection(mockDatabaseId, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(realDatabaseConnectionId, realDatabaseConnection)
+      databaseRepository.addDatabaseConnection(mockDatabaseConnectionId, mockDatabaseConnection)
     }
   }
 
@@ -172,12 +172,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testSetUp() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -192,9 +192,9 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).showTableColumns(sqliteResultSet._columns.toViewColumns())
     orderVerifier.verify(tableView).setRowOffset(0)
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
@@ -203,12 +203,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testSetUpTableNameIsNull() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -230,12 +230,12 @@ class TableControllerTest : LightPlatformTestCase() {
     // Prepare
     val sqliteTable = SqliteTable("tableName", emptyList(), RowIdName.ROWID, false)
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -250,7 +250,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView)
-      .showTableColumns(mockResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName }.toViewColumns())
+      .showTableColumns(sqliteResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName }.toViewColumns())
   }
 
   fun testSetUpError() {
@@ -263,7 +263,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -285,12 +285,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testSetUpIsDisposed() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -317,7 +317,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -334,12 +334,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testRefreshData() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -356,9 +356,9 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).showTableColumns(sqliteResultSet._columns.toViewColumns())
     orderVerifier.verify(tableView).setRowOffset(0)
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
@@ -366,12 +366,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testRefreshDataScheduledOneAtATime() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -396,12 +396,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testReloadDataFailsWhenControllerIsDisposed() {
     // Prepare
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -427,7 +427,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
@@ -457,7 +457,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
@@ -489,13 +489,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(10)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(10)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -514,13 +514,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnNext`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(2)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(2)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       1,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -536,20 +536,20 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
-    verify(tableView).updateRows(mockResultSet.invocations[1].toCellUpdates())
+    verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    verify(tableView).updateRows(sqliteResultSet.invocations[1].toCellUpdates())
     verify(tableView, times(3)).setFetchNextRowsButtonState(false)
   }
 
   fun `test Next`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -573,7 +573,7 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(20, 29)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).setRowOffset(10)
@@ -582,13 +582,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Next ShowsLoadingUi`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -610,13 +610,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test NextBatchOf5`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       5,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -640,7 +640,7 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(10, 14)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).setRowOffset(5)
@@ -649,13 +649,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Next Prev`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -685,7 +685,7 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 9)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).setRowOffset(10)
@@ -696,13 +696,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Prev ShowsLoadingUi`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -724,13 +724,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Next Prev Next`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -766,18 +766,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(20, 29)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test ChangeBatchSize`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -804,18 +804,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(20, 24)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test ChangeBatchSize At End`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(20)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(20)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -839,18 +839,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(10, 19)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `testChangeBatchSize DisablesPreviousButton`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -871,20 +871,20 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 0)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     verify(tableView, times(4)).setFetchPreviousRowsButtonState(false)
   }
 
   fun `test ChangeBatchSize DisablesNextButton`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -905,20 +905,20 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 49)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     verify(tableView, times(3)).setFetchNextRowsButtonState(false)
   }
 
   fun `test ChangeBatchSize Max Min`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -942,20 +942,20 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 0)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
 
     verify(tableView, times(4)).setFetchNextRowsButtonState(false)
   }
 
   fun `test ChangeBatchSize Next`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -985,18 +985,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(25, 29)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test ChangeBatchSize Prev`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1026,18 +1026,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(15, 19)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test ChangeBatchSize Prev ChangeBatchSize Prev Next`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1079,18 +1079,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(10, 19)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test First`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1117,18 +1117,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 9)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test First ShowsLoadingUi`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1150,13 +1150,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test First ChangeBatchSize`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1183,18 +1183,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 4)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test Last`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1215,18 +1215,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(40, 49)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test Last ShowsLoadingUi`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1248,13 +1248,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test Last LastPage Not Full`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(61)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(61)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1275,18 +1275,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(60, 60)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test Last Prev ChangeBatchSize First`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1316,18 +1316,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(0, 4)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test InsertAtBeginning Next Prev`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1340,7 +1340,7 @@ class TableControllerTest : LightPlatformTestCase() {
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    mockResultSet.insertRowAtIndex(0, -1)
+    sqliteResultSet.insertRowAtIndex(0, -1)
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
@@ -1353,18 +1353,18 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(-1, 8)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun `test DeleteAtBeginning Next`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1377,7 +1377,7 @@ class TableControllerTest : LightPlatformTestCase() {
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    mockResultSet.deleteRowAtIndex(0)
+    sqliteResultSet.deleteRowAtIndex(0)
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -1387,7 +1387,7 @@ class TableControllerTest : LightPlatformTestCase() {
       listOf(11, 20)
     ).map { it.toSqliteValues() }
 
-    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+    assertRowSequence(sqliteResultSet.invocations, expectedInvocations)
   }
 
   fun testSetUpOnRealDb() {
@@ -1396,7 +1396,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
@@ -1419,7 +1419,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
@@ -1454,7 +1454,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
@@ -1485,7 +1485,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       2,
       tableView,
-      realDatabaseId,
+      realDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author ORDER BY author_id DESC"),
@@ -1529,12 +1529,12 @@ class TableControllerTest : LightPlatformTestCase() {
     )
 
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { customSqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
@@ -1733,13 +1733,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun `test AddRows`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(15)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1753,18 +1753,18 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
   }
 
   fun `test AddRows RemoveRows`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(15)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1780,19 +1780,19 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
   }
 
   fun `test AddRows UpdateRows`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(20)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(20)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1808,19 +1808,19 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].toCellUpdates())
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[1].toCellUpdates())
   }
 
   fun `test AddRows RemoveRows AddRows`() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet(15)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -1838,10 +1838,10 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
-    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
     orderVerifier.verify(tableView).updateRows(
-      mockResultSet.invocations[2].take(5).toCellUpdates() + mockResultSet.invocations[2].drop(5).map { RowDiffOperation.AddRow(it) }
+      sqliteResultSet.invocations[2].take(5).toCellUpdates() + sqliteResultSet.invocations[2].drop(5).map { RowDiffOperation.AddRow(it) }
     )
   }
 
@@ -2012,7 +2012,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2036,12 +2036,12 @@ class TableControllerTest : LightPlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2067,12 +2067,12 @@ class TableControllerTest : LightPlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2099,12 +2099,12 @@ class TableControllerTest : LightPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { customSqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
@@ -2131,12 +2131,12 @@ class TableControllerTest : LightPlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2159,13 +2159,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testNotifyDataMightBeStaleUpdatesTable() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
+    val mockResultSet = FakeSqliteResultSet()
     `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2193,13 +2193,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testToggleLiveUpdatesKeepsTableNotEditable() {
     // Prepare
-    val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val sqliteResultSet = FakeSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { null },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2279,7 +2279,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
@@ -2301,12 +2301,12 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testColumnInformationFromSchema() {
     // Prepare
-    val resultSet = mock(SqliteResultSet::class.java)
-    `when`(resultSet.getRowBatch(any(), any())).thenReturn(Futures.immediateFuture(emptyList()))
-    `when`(resultSet.totalRowCount).thenReturn(Futures.immediateFuture(0))
-    `when`(resultSet.columns).thenReturn(Futures.immediateFuture(listOf(ResultSetSqliteColumn("c1", null, null, null))))
+    val mockResultSet = mock(SqliteResultSet::class.java)
+    `when`(mockResultSet.getRowBatch(any(), any())).thenReturn(Futures.immediateFuture(emptyList()))
+    `when`(mockResultSet.totalRowCount).thenReturn(Futures.immediateFuture(0))
+    `when`(mockResultSet.columns).thenReturn(Futures.immediateFuture(listOf(ResultSetSqliteColumn("c1", null, null, null))))
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(resultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
 
     val table = SqliteTable("t1", listOf(SqliteColumn("c1", SqliteAffinity.TEXT, false, true)), null, false)
 
@@ -2314,7 +2314,7 @@ class TableControllerTest : LightPlatformTestCase() {
       project,
       10,
       tableView,
-      mockDatabaseId,
+      mockDatabaseConnectionId,
       { table },
       databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),

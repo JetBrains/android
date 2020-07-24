@@ -23,7 +23,7 @@ import org.mockito.Mockito.mock
 import java.util.ArrayList
 import javax.swing.JComponent
 
-open class MockSqliteEvaluatorView : SqliteEvaluatorView {
+open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
   override val project: Project = mock(Project::class.java)
   override val component: JComponent = mock(JComponent::class.java)
   override val tableView: TableView = mock(TableView::class.java)

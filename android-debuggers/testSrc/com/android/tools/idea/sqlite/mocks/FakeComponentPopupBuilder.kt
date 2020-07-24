@@ -36,7 +36,7 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
 
-open class MockComponentPopupBuilder : ComponentPopupBuilder {
+open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   val mockPopUp: JBPopup = Mockito.mock(JBPopup::class.java)
 
