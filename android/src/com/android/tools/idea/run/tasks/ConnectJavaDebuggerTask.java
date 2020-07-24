@@ -37,6 +37,7 @@ import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
 import com.google.common.base.Preconditions;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
@@ -49,6 +50,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -97,7 +99,19 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     // detach after the launch status has been updated to point to the new process handler
     processHandler.detachProcess();
 
-    AndroidDebugState debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, currentLaunchInfo.consoleProvider);
+    final AndroidDebugState debugState;
+
+    // Reuse the current ConsoleView to retain the UI state and not to lose test results.
+    Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
+    if (androidTestResultListener instanceof ConsoleView) {
+      ConsoleView consoleViewToReuse = (ConsoleView) androidTestResultListener;
+      debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, (parent, handler, executor) -> {
+        consoleViewToReuse.attachToProcess(handler);
+        return consoleViewToReuse;
+      });
+    } else {
+      debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, currentLaunchInfo.consoleProvider);
+    }
 
     RunContentDescriptor debugDescriptor;
     try {
