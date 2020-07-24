@@ -36,16 +36,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class NavEnumSupportProviderTest : NavTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
-    super.tearDown()
-  }
-
   fun testDestinations() {;
     val model = model("nav.xml") {
       navigation("root") {

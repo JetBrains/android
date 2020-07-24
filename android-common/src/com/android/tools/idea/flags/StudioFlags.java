@@ -365,11 +365,6 @@ public final class StudioFlags {
     "Enable the new Component Tree",
     true);
 
-  public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
-    NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
-    "Support for Dynamic Feature Modules",
-    true);
-
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",

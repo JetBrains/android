@@ -113,7 +113,6 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.model = model
     _menu = AddDestinationMenu(surface)
     _panel = getMainMenuPanel()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   fun testContent() {
@@ -209,7 +208,6 @@ class AddDestinationMenuTest : NavTestCase() {
   private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
 
   override fun tearDown() {
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     _model = null
     _menu = null
     _surface = null
