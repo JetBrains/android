@@ -51,25 +51,21 @@ fun <T : Any> Project.dumpAndroidProjectView(
       .replace(x64platformPattern, "<x64_PLATFORM>")
   }
 
-  fun Icon.getIconText(): Icon? {
-    var icon: Icon? = this
-    do {
-      val previous = icon
-      icon = if (icon is DeferredIcon) icon.evaluate() else icon
-      icon = if (icon is RetrievableIcon) icon.retrieveIcon() else icon
-      icon = if (icon is RowIcon && icon.allIcons.size == 1) icon.getIcon(0) else icon
-      icon = if (icon is LayeredIcon && icon.allLayers.size == 1) icon.getIcon(0) else icon
-    }
-    while (previous != icon)
-    return icon
-  }
-
   fun PresentationData.toTestText(): String {
-    val icon = getIcon(false)?.getIconText()
-    val iconText =
-      (icon as? IconLoader.CachedImageIcon)?.originalPath
-      ?: (icon as? ImageIconUIResource)?.let { it.description ?: "ImageIconUIResource(?)" }
-      ?: icon?.let { "$it (${it.javaClass.simpleName})" }
+    val icon = getIcon(false)
+
+    fun Icon.toText(): String? = when {
+      this is DeferredIcon -> evaluate().toText()
+      this is RetrievableIcon -> retrieveIcon().toText()
+      this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
+      this is IconLoader.CachedImageIcon -> originalPath
+      this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
+      this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
+      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
+      else -> "$this (${javaClass.simpleName})"
+    }
+
+    val iconText = icon?.toText()
     val nodeText =
       if (coloredText.isEmpty()) presentableText
       else coloredText.joinToString(separator = "") { it.text }
