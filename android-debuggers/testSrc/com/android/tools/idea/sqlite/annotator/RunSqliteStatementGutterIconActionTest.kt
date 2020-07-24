@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
+import com.android.tools.idea.sqlite.mocks.MockComponentPopupBuilder
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -31,9 +32,9 @@ import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -47,6 +48,7 @@ import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 
 class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -129,11 +131,11 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(MockComponentPopupBuilder())
 
     `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
-/* b/162036194
     buildActionFromJavaFile("select * from Foo")
 
     // Act
@@ -149,7 +151,6 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabaseId1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
     )
-b/162036194 */
   }
 
   fun testSqlStatementWithNoPositionalParameters() {
@@ -494,11 +495,11 @@ b/162036194 */
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(MockComponentPopupBuilder())
 
     `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
-/* b/162036194
     buildActionFromJavaFile("select * from Foo")
 
     // Act
@@ -507,7 +508,6 @@ b/162036194 */
 
     // Assert
     verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
-b/162036194 */
   }
 
   fun testRunFromGutterIconOpensToolWindowDirectly() {
@@ -561,7 +561,7 @@ b/162036194 */
 
   private fun setUpJavaFixture(sqlStatement: String) {
     myFixture.configureByText(
-      StdFileTypes.JAVA,
+      JavaFileType.INSTANCE,
       // language=java
       """
           package com.example;
