@@ -26,5 +26,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <appStarter implementation="com.intellij.testGuiFramework.impl.GuiTestStarter"/>
   </extensions>
+  <projectListeners>
+    <listener
+        class="com.android.tools.idea.tests.gui.framework.NpwControl"
+        topic="com.android.tools.idea.npw.model.MultiTemplateRenderer$TemplateRendererListener"/>
+  </projectListeners>
 
 </idea-plugin>
