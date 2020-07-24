@@ -21,8 +21,12 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -214,12 +218,10 @@ public class CpuProfilingConfigPanel {
       setEnabledTraceTechnologyPanel(true);
       setRadioButtons(myConfiguration);
       setEnabledFileSizeLimit(!myIsDeviceAtLeastO && myConfiguration.getTraceType().equals(Cpu.CpuTraceType.ART));
-      boolean isSamplingEnabled = myConfiguration.getMode() == Cpu.CpuTraceMode.SAMPLED;
-      setEnabledSamplingIntervalPanel(isSamplingEnabled);
-      myFileSize.setValue(myConfiguration.getProfilingBufferSizeInMb());
-
-      mySamplingInterval.getModel().setValue(myConfiguration.getProfilingSamplingIntervalUs());
-
+      Cpu.CpuTraceConfiguration.UserOptions options = myConfiguration.toProto();
+      setEnabledSamplingIntervalPanel(options.getSamplingIntervalUs() != 0);
+      myFileSize.setValue(options.getBufferSizeInMb());
+      mySamplingInterval.getModel().setValue(options.getSamplingIntervalUs());
       myDisableLiveAllocation.setSelected(myConfiguration.isDisableLiveAllocation());
       setEnabledDisableLiveAllocation(true);
     }
@@ -345,8 +347,17 @@ public class CpuProfilingConfigPanel {
         if (bt.isSelected()) {
           // This is only called when a radio button is selected, so myConfiguration should never be null.
           assert myConfiguration != null;
-          myConfiguration.setTraceType(technology.getType());
-          myConfiguration.setMode(technology.getMode());
+          if (technology.getType() == Cpu.CpuTraceType.ART && technology.getMode() == Cpu.CpuTraceMode.SAMPLED) {
+            myConfiguration = new ArtSampledConfiguration(technology.getName());
+          }
+          else if (technology.getType() == Cpu.CpuTraceType.ART && technology.getMode() == Cpu.CpuTraceMode.INSTRUMENTED) {
+            myConfiguration = new ArtInstrumentedConfiguration(technology.getName());
+          }
+          else if (technology.getType() == Cpu.CpuTraceType.SIMPLEPERF) {
+            myConfiguration = new SimpleperfConfiguration(technology.getName());
+          } else {
+            myConfiguration = new PerfettoConfiguration(technology.getName());
+          }
           updateFields();
         }
       }
@@ -377,9 +388,11 @@ public class CpuProfilingConfigPanel {
                                                 SAMPLING_SPINNER_STEP_SIZE);
     mySamplingInterval = new JSpinner(model);
     mySamplingInterval.addChangeListener(e -> {
-      if (myConfiguration != null) {
-        JSpinner source = (JSpinner)e.getSource();
-        myConfiguration.setProfilingSamplingIntervalUs((Integer)source.getValue());
+      JSpinner source = (JSpinner)e.getSource();
+      if (myConfiguration instanceof SimpleperfConfiguration) {
+        ((SimpleperfConfiguration)myConfiguration).setProfilingSamplingIntervalUs((Integer)source.getValue());
+      } else if (myConfiguration instanceof ArtSampledConfiguration) {
+        ((ArtSampledConfiguration)myConfiguration).setProfilingSamplingIntervalUs((Integer)source.getValue());
       }
     });
     samplingIntervalPanel.add(mySamplingInterval, new TabularLayout.Constraint(0, 1));
@@ -400,10 +413,13 @@ public class CpuProfilingConfigPanel {
     myFileSize.setMajorTickSpacing((myMaxFileSizeLimitMb - MIN_FILE_SIZE_LIMIT_MB) / 10);
     myFileSize.setPaintTicks(true);
     myFileSize.addChangeListener(e -> {
-      if (myConfiguration != null) {
         JSlider source = (JSlider)e.getSource();
         myFileSizeLimit.setText(getFileSizeLimitText(source.getValue()));
-        myConfiguration.setProfilingBufferSizeInMb(source.getValue());
+      if (myConfiguration instanceof ArtSampledConfiguration) {
+        ((ArtSampledConfiguration)myConfiguration).setProfilingBufferSizeInMb(source.getValue());
+      }
+      else if (myConfiguration instanceof ArtInstrumentedConfiguration) {
+        ((ArtInstrumentedConfiguration)myConfiguration).setProfilingBufferSizeInMb(source.getValue());
       }
     });
     myFileSizeLimit = new JLabel(getFileSizeLimitText(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB));
