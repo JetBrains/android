@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import argparse
 from lxml import etree as ET
@@ -31,11 +31,7 @@ HIDDEN = [
 
 
 def sdk_files(idea_home):
-  jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib")]
-  for plugin in os.listdir(idea_home + "/plugins"):
-    path = "/plugins/" + plugin + "/lib/"
-    jars += [path + jar for jar in os.listdir(idea_home + path)]
-  jars = [jar for jar in jars if jar.endswith(".jar") and jar not in HIDDEN]
+  jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
   return [idea_home + path for path in jars]
 
 
@@ -108,6 +104,23 @@ def write_build_file(workspace, sdk_dir, jars):
     file.write("    },\n")
     file.write(")\n")
 
+def gen_lib(project_dir, name, jars, srcs):
+  component = ET.Element("component", {"name": "libraryTable"})
+  library = ET.SubElement(component, "library", {"name": name})
+  classes = ET.SubElement(library, "CLASSES")
+  for jar in jars:
+    rel_path = os.path.relpath(jar, project_dir)
+    root = ET.SubElement(classes, "root", { "url": f"jar://$PROJECT_DIR$/{rel_path}!/" })
+
+  sources = ET.SubElement(library, "SOURCES")
+  for src in srcs:
+    rel_path = os.path.relpath(src, project_dir)
+    root = ET.SubElement(sources, "root", { "url": f"jar://$PROJECT_DIR$/{rel_path}!/" })
+
+  filename = name.replace("-", "_")
+  with open(project_dir + "/.idea/libraries/" + filename + ".xml", "wb") as file:
+    file.write(ET.tostring(component, pretty_print=True))
+
 
 def update_xml_file(workspace, jdk, sdk, jars):
   app = ET.Element("application")
@@ -143,9 +156,20 @@ def update_xml_file(workspace, jdk, sdk, jars):
       additional="IDEA jdk",
   )
 
-  with open(project_dir + "/.idea/jdk.table.lin.xml", "w") as file:
+  with open(project_dir + "/.idea/jdk.table.lin.xml", "wb") as file:
     file.write(ET.tostring(app, pretty_print=True))
 
+  idea_home = sdk + "/linux/android-studio"
+  lib_dir = project_dir + "/.idea/libraries/"
+  for lib in os.listdir(lib_dir):
+    if lib.startswith("studio_plugin_") and lib.endswith(".xml"):
+      os.remove(lib_dir + lib)
+
+  for plugin in os.listdir(idea_home + "/plugins"):
+    path = "/plugins/" + plugin + "/lib/"
+    jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
+    jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
+    gen_lib(project_dir, "studio-plugin-" + plugin, jars, [sdk + "/android-studio-sources.zip"])
 
 def update_embedded_sdk_xml(workspace, version):
   project_dir = workspace + "/tools/adt/idea/"

@@ -159,7 +159,7 @@ iml_module(
     name = "unb.intellij.android.nav.safeargs",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.iml"],
-    lint_baseline = "lint_baseline.xml",
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
         "manual",
         "unb",
@@ -168,6 +168,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
@@ -210,6 +212,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",

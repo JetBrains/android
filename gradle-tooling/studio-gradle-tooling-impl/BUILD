@@ -38,6 +38,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.javax-inject",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:unb.intellij.android.gradle-tooling.api[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",

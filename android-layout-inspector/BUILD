@@ -161,6 +161,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
         "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module]",
         "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
@@ -198,6 +199,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
         "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module]",
         "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
