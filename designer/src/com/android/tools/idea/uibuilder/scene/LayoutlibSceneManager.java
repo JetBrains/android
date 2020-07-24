@@ -1163,16 +1163,17 @@ public class LayoutlibSceneManager extends SceneManager {
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl(trigger)
         .handle((result, exception) -> {
-          if (result != null) {
-            return result;
-          } else {
+          if (exception != null) {
             return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
           }
+          return result;
         })
         .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
-            updateCachedRenderResult(result);
+            if (result != null) {
+              updateCachedRenderResult(result);
+            }
             // Downgrade the write lock to read lock
             myRenderResultLock.readLock().lock();
           }
