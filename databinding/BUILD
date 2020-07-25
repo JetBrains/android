@@ -167,8 +167,10 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker-mockito/1.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker/1.2:jar",
         "//prebuilts/tools/common/m2/repository/javax/annotation/jsr250-api/1.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.9.5:jar",
-        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/1.0:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
     ],
 )
 
