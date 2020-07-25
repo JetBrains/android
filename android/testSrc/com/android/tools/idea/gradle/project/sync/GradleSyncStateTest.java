@@ -18,21 +18,17 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ThreeState;
-import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
 
 /**
@@ -63,7 +59,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
   public void testSyncStartedUserNotification() {
     assertFalse(mySyncState.isSyncInProgress());
 
-    boolean syncStarted = mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    boolean syncStarted = mySyncState.syncStarted(TRIGGER_TEST_REQUESTED);
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
 
@@ -79,7 +75,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
   }
 
   public void testSyncSkippedAfterSyncStarted() {
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    mySyncState.syncStarted(TRIGGER_TEST_REQUESTED);
     mySyncState.syncSkipped(null);
     assertFalse(mySyncState.isSyncInProgress());
   }
@@ -225,7 +221,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
    * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
    */
   public void testExternalSystemTaskIdEnded() {
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    mySyncState.syncStarted(TRIGGER_TEST_REQUESTED);
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
     mySyncState.syncSucceeded();
@@ -236,7 +232,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
    * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
    */
   public void testExternalSystemTaskIdSkipped() {
-    mySyncState.syncStarted(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    mySyncState.syncStarted(TRIGGER_TEST_REQUESTED);
     mySyncState.setExternalSystemTaskId(myTaskId);
     assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
     mySyncState.syncSkipped(null);

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.UiThread
-import com.android.builder.model.level2.Library
 import com.android.ide.common.gradle.model.level2.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -204,7 +203,7 @@ open class GradleSyncState @NonInjectable constructor(
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
-  fun syncStarted(request: GradleSyncInvoker.Request) : Boolean {
+  fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
       if (isSyncInProgress) {
         LOG.info("Sync already in progress for project '${project.name}'.")
@@ -218,7 +217,7 @@ open class GradleSyncState @NonInjectable constructor(
     LOG.info("Started $syncType sync with Gradle for project '${project.name}'.")
 
     setSyncStartedTimeStamp()
-    trigger = request.trigger
+    this.trigger = trigger
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 

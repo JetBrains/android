@@ -168,7 +168,7 @@ public class GradleSyncInvoker {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
 
 
-    if (!GradleSyncState.getInstance(project).syncStarted(request)) {
+    if (!GradleSyncState.getInstance(project).syncStarted(request.trigger)) {
       return;
     }
 
