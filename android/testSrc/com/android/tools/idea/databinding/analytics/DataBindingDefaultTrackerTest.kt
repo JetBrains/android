@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -50,7 +49,7 @@ class DataBindingDefaultTrackerTest {
       try {
         UsageTracker.setWriterForTest(tracker)
         val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
+        syncState.syncStarted(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
         syncState.syncSucceeded()
 
         assertThat(

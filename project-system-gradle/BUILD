@@ -71,6 +71,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
         "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
+        "//tools/idea/.idea/libraries:studio-proto",
     ],
 )
 
@@ -150,6 +151,9 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/idea/.idea/libraries:commons-io[test]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/idea/.idea/libraries:studio-proto[test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
     ],
 )
 

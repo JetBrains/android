@@ -31,7 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
@@ -82,7 +81,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(request)
+        gradleSyncState.syncStarted(request.trigger)
 
         if (syncSuccessful) {
           gradleSyncState.syncSucceeded()
