@@ -99,5 +99,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlinx-coroutines-guava",
     ],
 )

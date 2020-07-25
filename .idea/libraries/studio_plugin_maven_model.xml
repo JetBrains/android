@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-java-decompiler">
+  <library name="studio-plugin-maven-model">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/java-decompiler/lib/java-decompiler.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/maven-model/lib/maven-model.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

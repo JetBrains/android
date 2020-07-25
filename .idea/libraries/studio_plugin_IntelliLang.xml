@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="studio-plugin-IntelliLang">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/IntelliLang/lib/intellilang-jps-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/linux/android-studio/plugins/IntelliLang/lib/IntelliLang.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/IntelliLang/lib/intellilang-jps-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/IntelliLang/lib/IntelliLang.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-201.7846.76.42/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

@@ -120,6 +120,7 @@ iml_module(
         "manual",
         "unb",
     ],
+    test_class = "com.android.tools.profilers.ProfilersUiTestSuite",
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -143,5 +144,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
     ],
 )

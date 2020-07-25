@@ -157,6 +157,7 @@ iml_module(
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
     ],
 )
 

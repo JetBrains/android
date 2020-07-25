@@ -388,7 +388,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-gradle",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-gradle_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-gradle_files"],
     tags = [
         "manual",
         "unb",
@@ -399,7 +399,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-java",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-java_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-java_files"],
     tags = [
         "manual",
         "unb",
@@ -410,7 +410,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-git4idea",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-git4idea_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-git4idea_files"],
     tags = [
         "manual",
         "unb",
@@ -421,7 +421,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-Kotlin",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-Kotlin_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-Kotlin_files"],
     tags = [
         "manual",
         "unb",
@@ -432,7 +432,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-Groovy",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-Groovy_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-Groovy_files"],
     tags = [
         "manual",
         "unb",
@@ -443,7 +443,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-gradle-java",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-gradle-java_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-gradle-java_files"],
     tags = [
         "manual",
         "unb",
@@ -454,7 +454,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-properties",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-properties_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-properties_files"],
     tags = [
         "manual",
         "unb",
@@ -465,7 +465,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-junit",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-junit_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-junit_files"],
     tags = [
         "manual",
         "unb",
@@ -476,7 +476,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-platform-images",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-platform-images_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-platform-images_files"],
     tags = [
         "manual",
         "unb",
@@ -487,7 +487,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-Compose",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-Compose_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-Compose_files"],
     tags = [
         "manual",
         "unb",
@@ -498,7 +498,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-configurationScript",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-configurationScript_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-configurationScript_files"],
     tags = [
         "manual",
         "unb",
@@ -509,7 +509,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-copyright",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-copyright_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-copyright_files"],
     tags = [
         "manual",
         "unb",
@@ -520,7 +520,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-coverage",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-coverage_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-coverage_files"],
     tags = [
         "manual",
         "unb",
@@ -531,7 +531,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-editorconfig",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-editorconfig_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-editorconfig_files"],
     tags = [
         "manual",
         "unb",
@@ -542,7 +542,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-filePrediction",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-filePrediction_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-filePrediction_files"],
     tags = [
         "manual",
         "unb",
@@ -553,7 +553,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-github",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-github_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-github_files"],
     tags = [
         "manual",
         "unb",
@@ -564,7 +564,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-hg4idea",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-hg4idea_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-hg4idea_files"],
     tags = [
         "manual",
         "unb",
@@ -575,7 +575,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-IntelliLang",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-IntelliLang_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-IntelliLang_files"],
     tags = [
         "manual",
         "unb",
@@ -586,7 +586,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-java-decompiler",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-java-decompiler_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-java-decompiler_files"],
     tags = [
         "manual",
         "unb",
@@ -597,7 +597,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-java-i18n",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-java-i18n_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-java-i18n_files"],
     tags = [
         "manual",
         "unb",
@@ -608,7 +608,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-java-ide-customization",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-java-ide-customization_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-java-ide-customization_files"],
     tags = [
         "manual",
         "unb",
@@ -619,7 +619,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-properties-resource-bundle-editor",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-properties-resource-bundle-editor_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-properties-resource-bundle-editor_files"],
     tags = [
         "manual",
         "unb",
@@ -630,7 +630,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-repository-search",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-repository-search_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-repository-search_files"],
     tags = [
         "manual",
         "unb",
@@ -641,7 +641,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-settings-repository",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-settings-repository_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-settings-repository_files"],
     tags = [
         "manual",
         "unb",
@@ -652,7 +652,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-sh",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-sh_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-sh_files"],
     tags = [
         "manual",
         "unb",
@@ -663,7 +663,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-stream-debugger",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-stream-debugger_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-stream-debugger_files"],
     tags = [
         "manual",
         "unb",
@@ -674,7 +674,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-svn4idea",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-svn4idea_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-svn4idea_files"],
     tags = [
         "manual",
         "unb",
@@ -685,7 +685,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-tasks",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-tasks_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-tasks_files"],
     tags = [
         "manual",
         "unb",
@@ -696,7 +696,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-terminal",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-terminal_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-terminal_files"],
     tags = [
         "manual",
         "unb",
@@ -707,7 +707,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-testng",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-testng_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-testng_files"],
     tags = [
         "manual",
         "unb",
@@ -718,7 +718,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-textmate",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-textmate_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-textmate_files"],
     tags = [
         "manual",
         "unb",
@@ -729,7 +729,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-vcs-changeReminder",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-vcs-changeReminder_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-vcs-changeReminder_files"],
     tags = [
         "manual",
         "unb",
@@ -740,7 +740,18 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.studio-plugin-yaml",
-    jars = ["//prebuilts/studio/intellij-sdk/AI-201.7846.76.42:unb.studio-plugin-yaml_files"],
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-yaml_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.studio-plugin-maven-model",
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202.4357.23.42:unb.studio-plugin-maven-model_files"],
     tags = [
         "manual",
         "unb",
