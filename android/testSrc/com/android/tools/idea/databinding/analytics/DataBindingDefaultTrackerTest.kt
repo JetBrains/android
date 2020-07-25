@@ -48,9 +48,7 @@ class DataBindingDefaultTrackerTest {
     runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
-        syncState.syncSucceeded()
+        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
 
         assertThat(
           tracker.usages
