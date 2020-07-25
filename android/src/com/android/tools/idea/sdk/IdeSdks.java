@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
+import static com.intellij.openapi.util.io.FileUtil.resolveShortWindowsName;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -42,10 +58,15 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -57,8 +78,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.SystemProperties;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -69,25 +88,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-
+/**
+ * Android Studio has single JDK and single Android SDK. Both can be configured via ProjectStructure dialog.
+ * IDEA has many JDKs and single Android SDK.
+ * <p>
+ * All the methods like {@code getJdk()}, {@code getJdkPath()} assume this single JDK in Android Studio. In AS it is used in three ways:
+ * <ol>
+ *   <li> Project JDK for imported projects
+ *   <li> Gradle JVM for gradle execution
+ *   <li> Parent JDK for all the registered Android SDKs
+ * </ol>
+ * <p>
+ * In IDEA this JDK is used as:
+ * <ol>
+ *   <li> Preferred JDK for new projects
+ *   <li> Preferred JVM for gradle execution
+ *   <li> Parent JDK for newly created Android SDKs
+ * </ol>
+ * <p>
+ * In IDEA user can update gradle/project/android JDK independently after the project has been opened, so they all can be different.
+ * This class only holds reasonable defaults for new entities.
+ * <p>
+ * In Android Studio user can update the JDK, and this will change all the usages all together. So normally AS users cannot have different
+ * JDKs for different purposes.
+ */
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
@@ -238,31 +262,17 @@ public class IdeSdks {
     if (isUsingEnvVariableJdk()) {
       return getEnvVariableJdk();
     }
-    List<Sdk> androidSdks = getEligibleAndroidSdks();
-    if (androidSdks.isEmpty() && createJdkIfNeeded) {
-      // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
-      // populate the text field with the existing JDK.
-      Sdk jdk = myJdks.chooseOrCreateJavaSdk();
-      if (jdk != null) {
-        String jdkPath = jdk.getHomePath();
-        if (jdkPath != null) {
-          return toSystemDependentPath(jdkPath);
-        }
-      }
+
+    JavaSdkVersion sdkVersion = getRunningVersionOrDefault();
+    Sdk jdk = getExistingJdk(sdkVersion);
+    if (createJdkIfNeeded && (jdk == null || jdk.getHomePath() == null)) {
+      jdk = createNewJdk(sdkVersion);
     }
-    else {
-      for (Sdk sdk : androidSdks) {
-        AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
-        assert data != null;
-        Sdk jdk = data.getJavaSdk();
-        if (jdk != null) {
-          String jdkHomePath = jdk.getHomePath();
-          if (jdkHomePath != null) {
-            return toSystemDependentPath(jdkHomePath);
-          }
-        }
-      }
+
+    if (jdk != null && jdk.getHomePath() != null) {
+      return new File(jdk.getHomePath());
     }
+
     return null;
   }
 
@@ -809,6 +819,14 @@ public class IdeSdks {
 
   @Nullable
   private Sdk getJdk(@Nullable JavaSdkVersion preferredVersion) {
+    Sdk existingJdk = getExistingJdk(preferredVersion);
+    if (existingJdk != null) return existingJdk;
+
+    return createNewJdk(preferredVersion);
+  }
+
+  @Nullable
+  private Sdk getExistingJdk(@Nullable JavaSdkVersion preferredVersion) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
@@ -819,8 +837,8 @@ public class IdeSdks {
         return jdk;
       }
     }
-    JavaSdk javaSdk = JavaSdk.getInstance();
 
+    JavaSdk javaSdk = JavaSdk.getInstance();
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
       for (Sdk jdk : jdks) {
@@ -829,7 +847,12 @@ public class IdeSdks {
         }
       }
     }
+    return null;
+  }
 
+  @Nullable
+  private Sdk createNewJdk(@Nullable JavaSdkVersion preferredVersion) {
+    // The following code tries to detect the best JDK (partially duplicates com.android.tools.idea.sdk.Jdks#chooseOrCreateJavaSdk)
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
     if (isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
@@ -839,6 +862,8 @@ public class IdeSdks {
       }
     }
 
+    JavaSdk javaSdk = JavaSdk.getInstance();
+    List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     Set<String> checkedJdkPaths = jdks.stream().map(Sdk::getHomePath).collect(Collectors.toSet());
     List<File> jdkPaths = getPotentialJdkPaths();
     for (File jdkPath : jdkPaths) {
