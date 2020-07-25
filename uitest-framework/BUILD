@@ -169,5 +169,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:unb.studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:unb.intellij.android.plugin[module, test]",
+        "//tools/adt/idea/emulator:unb.intellij.android.emulator[module, test]",
     ],
 )

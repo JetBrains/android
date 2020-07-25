@@ -6,6 +6,23 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.plugin" />
+    <orderEntry type="module" module-name="android-apk" />
+    <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-native" />
+    <orderEntry type="module" module-name="android-ndk" />
+    <orderEntry type="module" module-name="google-cloud-tools-as" />
+    <orderEntry type="module" module-name="firebase" />
+    <orderEntry type="module" module-name="firebase-testing" />
+    <orderEntry type="module" module-name="google-appindexing" />
+    <orderEntry type="module" module-name="google-cloud-tools-core-as" />
+    <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="module" module-name="google-samples" />
+    <orderEntry type="module" module-name="intellij.android.smali" />
+    <orderEntry type="module" module-name="test-recorder" />
+    <orderEntry type="module" module-name="url-assistant" />
     <orderEntry type="library" name="studio-plugin-Compose" level="project" />
     <orderEntry type="library" name="studio-plugin-configurationScript" level="project" />
     <orderEntry type="library" name="studio-plugin-copyright" level="project" />
@@ -25,6 +42,7 @@
     <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
     <orderEntry type="library" name="studio-plugin-properties-resource-bundle-editor" level="project" />
@@ -39,22 +57,5 @@
     <orderEntry type="library" name="studio-plugin-textmate" level="project" />
     <orderEntry type="library" name="studio-plugin-vcs-changeReminder" level="project" />
     <orderEntry type="library" name="studio-plugin-yaml" level="project" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.plugin" />
-    <orderEntry type="module" module-name="android-apk" />
-    <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib-native" />
-    <orderEntry type="module" module-name="android-ndk" />
-    <orderEntry type="module" module-name="google-cloud-tools-as" />
-    <orderEntry type="module" module-name="firebase" />
-    <orderEntry type="module" module-name="firebase-testing" />
-    <orderEntry type="module" module-name="google-appindexing" />
-    <orderEntry type="module" module-name="google-cloud-tools-core-as" />
-    <orderEntry type="module" module-name="google-login-as" />
-    <orderEntry type="module" module-name="google-samples" />
-    <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="test-recorder" />
-    <orderEntry type="module" module-name="url-assistant" />
   </component>
 </module>

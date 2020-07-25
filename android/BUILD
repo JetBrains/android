@@ -1187,7 +1187,10 @@ iml_module(
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
             # testDependentNativeModules (ag/9872410)
-            "tags": ["no_windows"],
+            "tags": [
+                "no_windows",
+                "manual",  # b/162036344
+            ],
             "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
         },
         "navigator.SourceProvidersSnapshotComparisonTest": {

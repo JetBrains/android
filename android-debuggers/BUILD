@@ -160,6 +160,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
@@ -198,6 +199,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
         "//tools/adt/idea/android-debuggers:unb.intellij.android.debuggers[module, test]",
         "//tools/adt/idea/android-adb:unb.intellij.android.adb[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
