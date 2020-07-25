@@ -315,8 +315,8 @@ public final class NlComponentTest extends LayoutTestCase {
     String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<layout>\n" +
                       "<RelativeLayout\n" +
-                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "  xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                       "  <Button\n" +
                       "         android:id=\"@+id/button\"\n" +
                       "         android:layout_width=\"wrap_content\"\n" +
@@ -342,9 +342,9 @@ public final class NlComponentTest extends LayoutTestCase {
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                      "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                      "<layout xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                      "    xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                       "<RelativeLayout>\n" +
                       "\n" +
                       "    <Button\n" +
@@ -389,8 +389,8 @@ public final class NlComponentTest extends LayoutTestCase {
     String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<layout>\n" +
                       "<RelativeLayout\n" +
-                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "  xmlns:tools123=\"http://schemas.android.com/tools\">" +
+                      "  xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
                       "  <Button\n" +
                       "         android:id=\"@+id/editText\"\n" +
                       "         android:layout_width=\"wrap_content\"\n" +
@@ -424,8 +424,8 @@ public final class NlComponentTest extends LayoutTestCase {
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                      "<layout xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
+                      "    xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                       "\n" +
                       "    <RelativeLayout>\n" +
                       "\n" +
@@ -446,7 +446,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "            tools123:text=\"ToolText\" />\n" +
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
-    assertEquals(expected, xmlFile.getText());
+    assertThat(xmlFile.getText()).isEqualTo(expected);
   }
 
   public void testNamespaceTransferFromRoot() {
@@ -479,10 +479,11 @@ public final class NlComponentTest extends LayoutTestCase {
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                       "    xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      " \n" +
                       "    app:something=\"1\">\n" +
-                      "\n" +
+                      " \n" +
                       "    <Button\n" +
                       "        android:id=\"@+id/editText\"\n" +
                       "        android:layout_width=\"wrap_content\"\n" +
@@ -492,7 +493,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "        android:orientation=\"vertical\"\n" +
                       "        tools123:layout_editor_absoluteX=\"32dp\"\n" +
                       "        tools123:layout_editor_absoluteY=\"43dp\" />\n" +
-                      "</RelativeLayout>\n";
+                      "</RelativeLayout>";
     assertEquals(expected, xmlFile.getText());
   }
 
