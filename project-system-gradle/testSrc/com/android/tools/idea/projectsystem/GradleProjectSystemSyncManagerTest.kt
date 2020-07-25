@@ -87,7 +87,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
           gradleSyncState.syncSucceeded()
         }
         else {
-          gradleSyncState.syncFailed("", null, null)
+          gradleSyncState.syncFailed("", null)
         }
       }
     }).`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())

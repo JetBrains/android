@@ -40,7 +40,7 @@ public class PostSyncProjectSetup {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (syncState.lastSyncFailed()) {
-      syncState.syncFailed("", null, null);
+      syncState.syncFailed("", null);
     }
     else {
       syncState.syncSucceeded();

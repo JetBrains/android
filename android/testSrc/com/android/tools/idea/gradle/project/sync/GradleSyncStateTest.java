@@ -83,7 +83,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
   public void testSyncFailed() {
     String msg = "Something went wrong";
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(msg, null, null);
+    mySyncState.syncFailed(msg, null);
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
     verify(myChangeNotification, times(1)).notifyStateChanged();
@@ -94,7 +94,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
   public void testSyncFailedWithoutSyncStarted() {
     String msg = "Something went wrong";
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(msg, null, null);
+    mySyncState.syncFailed(msg, null);
     verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
   }
 
@@ -241,21 +241,21 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
   public void testSyncStateFailedWithMessage() {
     mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed("Some Message", new RuntimeException("Runtime Message"), null);
+    mySyncState.syncFailed("Some Message", new RuntimeException("Runtime Message"));
 
     verify(myGradleSyncListener).syncFailed(myProject, "Some Message");
   }
 
   public void testSyncStateFailedWithThrowableMessage() {
     mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(null, new RuntimeException("Runtime Message"), null);
+    mySyncState.syncFailed(null, new RuntimeException("Runtime Message"));
 
     verify(myGradleSyncListener).syncFailed(myProject, "Runtime Message");
   }
 
   public void testSynStateFailedWithNoMessage() {
     mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
-    mySyncState.syncFailed(null, null, null);
+    mySyncState.syncFailed(null, null);
 
     verify(myGradleSyncListener).syncFailed(myProject, "Unknown cause");
   }

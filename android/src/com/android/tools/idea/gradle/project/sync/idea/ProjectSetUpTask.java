@@ -91,6 +91,9 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
     ProjectBuildFileChecksums.removeFrom(myProject);
     // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
-    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null, mySyncListener);
+    if (mySyncListener != null) {
+      mySyncListener.syncFailed(myProject, messageWithGuide);
+    }
+    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null);
   }
 }

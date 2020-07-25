@@ -288,7 +288,7 @@ open class GradleSyncState @NonInjectable constructor(
    *
    * TODO: This should only be called at the end of sync, not all throughout which is currently the case
    */
-  open fun syncFailed(message: String?, error: Throwable?, listener: GradleSyncListener?) {
+  open fun syncFailed(message: String?, error: Throwable?) {
     ProjectStructure.getInstance(project).clearData()
 
     val syncEndTimeStamp = System.currentTimeMillis()
@@ -327,7 +327,6 @@ open class GradleSyncState @NonInjectable constructor(
 
     syncFinished(syncEndTimeStamp)
 
-    listener?.syncFailed(project, causeMessage)
     syncPublisher { syncFailed(project, causeMessage) }
   }
 

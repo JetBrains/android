@@ -78,6 +78,6 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     // Verify that no events were created.
     verify(syncViewManager, never()).onEvent(eq(myTaskId), any());
     verify(mySyncState).syncFailed(eq("sync failed\nIllegalStateException: very bad thing happened\notherline:32\n\n" +
-                                      "Consult IDE log for more details (Help | Show Log)"), any(), any());
+                                      "Consult IDE log for more details (Help | Show Log)"), any());
   }
 }
