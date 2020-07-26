@@ -21,8 +21,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.TAG_USES_PERMISSION;
 import static com.android.tools.lint.checks.ManifestDetector.MOCK_LOCATION_PERMISSION;
 
-import com.android.builder.model.BuildType;
-import com.android.builder.model.BuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeBuildType;
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
@@ -75,8 +75,8 @@ class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
             if (androidModel != null && mainManifest != null
                 && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();
-              for (BuildTypeContainer container : androidModel.getAndroidProject().getBuildTypes()) {
-                BuildType buildType = container.getBuildType();
+              for (IdeBuildTypeContainer container : androidModel.getAndroidProject().getBuildTypes()) {
+                IdeBuildType buildType = container.getBuildType();
                 if (buildType.isDebuggable()) {
                   addManifest(module, src, buildType.getName());
                   return;
