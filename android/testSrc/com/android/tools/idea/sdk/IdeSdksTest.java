@@ -76,7 +76,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
+    myIdeSdks = new IdeSdks(new AndroidSdks(myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
     Sdks.allowAccessToSdk(getTestRootDisposable());
   }

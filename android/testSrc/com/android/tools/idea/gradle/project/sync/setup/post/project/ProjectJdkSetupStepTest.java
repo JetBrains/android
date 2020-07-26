@@ -124,7 +124,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     when(jdk.getHomePath()).thenReturn("somePath");
 
     when(myJdks.isApplicableJdk(jdk, JDK_1_8)).thenReturn(false);
-    when(myJdks.chooseOrCreateJavaSdk(JDK_1_8)).thenReturn(jdk);
+    when(myIdeSdks.getJdk()).thenReturn(jdk);
 
     Project project = getProject();
     mySetupStep.setUpProject(project);

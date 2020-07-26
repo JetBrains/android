@@ -91,8 +91,6 @@ public class AndroidSdks {
   @NonNls public static final String SDK_NAME_PREFIX = "Android ";
 
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final Jdks myJdks;
-
   @Nullable private AndroidSdkData mySdkData;
 
   @NotNull
@@ -101,14 +99,13 @@ public class AndroidSdks {
   }
 
   public AndroidSdks(){
-    this(Jdks.getInstance(), IdeInfo.getInstance());
+    this(IdeInfo.getInstance());
   }
 
   @NonInjectable
   @VisibleForTesting
-  AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
+  AndroidSdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
-    myJdks = jdks;
   }
 
   @Nullable
@@ -272,7 +269,7 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, boolean addRoots) {
-    Sdk jdk = myJdks.chooseOrCreateJavaSdk();
+    Sdk jdk = getJdk();
     return jdk != null ? create(target, sdkPath, jdk, addRoots) : null;
   }
 
@@ -614,5 +611,9 @@ public class AndroidSdks {
   private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
     return file != null ? file.getVirtualFile() : null;
+  }
+
+  Sdk getJdk() {
+    return IdeSdks.getInstance().getJdk();
   }
 }
