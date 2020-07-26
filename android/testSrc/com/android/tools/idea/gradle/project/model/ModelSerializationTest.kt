@@ -22,7 +22,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifactOutputImpl
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.IdeApiVersionImpl
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer
+import com.android.ide.common.gradle.model.IdeBuildTypeContainerImpl
 import com.android.ide.common.gradle.model.IdeBuildTypeImpl
 import com.android.ide.common.gradle.model.IdeClassFieldImpl
 import com.android.ide.common.gradle.model.IdeDependencyGraphs
@@ -41,7 +41,7 @@ import com.android.ide.common.gradle.model.IdeNativeSettingsImpl
 import com.android.ide.common.gradle.model.IdeNativeToolchainImpl
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.IdeOutputFileImpl
-import com.android.ide.common.gradle.model.IdeProductFlavorContainer
+import com.android.ide.common.gradle.model.IdeProductFlavorContainerImpl
 import com.android.ide.common.gradle.model.IdeProductFlavorImpl
 import com.android.ide.common.gradle.model.IdeProjectIdentifierImpl
 import com.android.ide.common.gradle.model.IdeProjectSyncIssues
@@ -270,7 +270,9 @@ class ModelSerializationTest {
 
   @Test
   fun buildTypeContainer() =
-    assertSerializable { IdeBuildTypeContainer(BuildTypeContainerStub(), modelCache) }
+    assertSerializable {
+      IdeBuildTypeContainerImpl(BuildTypeContainerStub(), modelCache)
+    }
 
   @Test
   fun classField() =
@@ -346,7 +348,9 @@ class ModelSerializationTest {
 
   @Test
   fun productFlavorContainer() =
-    assertSerializable { IdeProductFlavorContainer(ProductFlavorContainerStub(), modelCache) }
+    assertSerializable {
+      IdeProductFlavorContainerImpl(ProductFlavorContainerStub(), modelCache)
+    }
 
   @Test
   fun projectIdentifier() =
