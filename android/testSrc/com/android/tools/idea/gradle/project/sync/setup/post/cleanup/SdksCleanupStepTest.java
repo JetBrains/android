@@ -204,8 +204,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
-    Jdks jdks = Jdks.getInstance();
-    myJdk = jdks.chooseOrCreateJavaSdk();
+    myJdk = IdeSdks.getInstance().getJdk();
 
     mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", myJdk, true /* add roots */);
     assertNotNull(mySdk);

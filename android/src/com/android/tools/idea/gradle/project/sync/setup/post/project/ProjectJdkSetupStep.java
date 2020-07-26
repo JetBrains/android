@@ -66,7 +66,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
       ideJdk = myIdeSdks.getJdk();
     }
     else if (projectJdk == null || !myJdks.isApplicableJdk(projectJdk, javaLangVersion)) {
-      ideJdk = myJdks.chooseOrCreateJavaSdk(javaLangVersion);
+      ideJdk = myIdeSdks.getJdk();
     }
     else {
       ideJdk = projectJdk;

@@ -18,11 +18,8 @@ package com.android.tools.idea.sdk;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink;
@@ -42,17 +39,13 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -85,39 +78,6 @@ public final class Jdks {
     myIdeInfo = IdeInfo.getInstance();
   }
 
-  @Nullable
-  public Sdk chooseOrCreateJavaSdk() {
-    return chooseOrCreateJavaSdk(null);
-  }
-
-  @Nullable
-  public Sdk chooseOrCreateJavaSdk(@Nullable LanguageLevel langLevel) {
-    if (langLevel == null) {
-      langLevel = DEFAULT_LANG_LEVEL;
-    }
-    if (myIdeInfo.isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
-      File viableJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
-      if (viableJdkPath == null) {
-        // Set JRE that this process started with if no embedded JDK has been found.
-        viableJdkPath = new File(System.getProperty("java.home"));
-      }
-
-      Sdk jdk = createJdk(viableJdkPath.getPath());
-      assert jdk != null && isApplicableJdk(jdk, langLevel);
-      return jdk;
-    }
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      if (isApplicableJdk(sdk, langLevel)) {
-        return sdk;
-      }
-    }
-    String jdkHomePath = getJdkHomePath(langLevel);
-    if (jdkHomePath != null) {
-      return createJdk(jdkHomePath);
-    }
-    return null;
-  }
-
   public boolean isApplicableJdk(@NotNull Sdk jdk) {
     return isApplicableJdk(jdk, null);
   }
@@ -134,93 +94,6 @@ public final class Jdks {
       return hasMatchingLangLevel(version, langLevel);
     }
     return false;
-  }
-
-  @Nullable
-  private static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
-    Collection<String> jdkHomePaths = new ArrayList<>(JavaSdk.getInstance().suggestHomePaths());
-    if (jdkHomePaths.isEmpty()) {
-      return null;
-    }
-    // prefer jdk path of getJavaHome(), since we have to allow access to it in tests
-    // see AndroidProjectDataServiceTest#testImportData()
-    List<String> list = new ArrayList<>();
-    String javaHome = SystemProperties.getJavaHome();
-
-    if (javaHome != null && !javaHome.isEmpty()) {
-      for (Iterator<String> it = jdkHomePaths.iterator(); it.hasNext(); ) {
-        String path = it.next();
-
-        if (path != null && javaHome.startsWith(path)) {
-          it.remove();
-          list.add(path);
-        }
-      }
-    }
-    list.addAll(jdkHomePaths);
-    return getBestJdkHomePath(list, langLevel);
-  }
-
-  @Nullable
-  private static String getBestJdkHomePath(@NotNull Collection<String> jdkHomePaths, @NotNull LanguageLevel langLevel) {
-    // Search for JDKs in both the suggest folder and all its sub folders.
-    List<String> roots = new ArrayList<>();
-    for (String jdkHomePath : jdkHomePaths) {
-      if (isNotEmpty(jdkHomePath)) {
-        roots.add(jdkHomePath);
-        roots.addAll(getChildrenPaths(jdkHomePath));
-      }
-    }
-    return getBestJdk(roots, langLevel);
-  }
-
-  @NotNull
-  private static List<String> getChildrenPaths(@NotNull String dirPath) {
-    File dir = new File(dirPath);
-    if (!dir.isDirectory()) {
-      return emptyList();
-    }
-    List<String> childrenPaths = new ArrayList<>();
-    for (File child : notNullize(dir.listFiles())) {
-      boolean directory = child.isDirectory();
-      if (directory) {
-        childrenPaths.add(child.getAbsolutePath());
-      }
-    }
-    return childrenPaths;
-  }
-
-  @Nullable
-  private static String getBestJdk(@NotNull List<String> jdkRoots, @NotNull LanguageLevel langLevel) {
-    String bestJdk = null;
-    for (String jdkRoot : jdkRoots) {
-      if (JavaSdk.getInstance().isValidSdkHome(jdkRoot)) {
-        if (bestJdk == null && hasMatchingLangLevel(jdkRoot, langLevel)) {
-          bestJdk = jdkRoot;
-        }
-        else if (bestJdk != null) {
-          bestJdk = selectJdk(bestJdk, jdkRoot, langLevel);
-        }
-      }
-    }
-    return bestJdk;
-  }
-
-  @Nullable
-  private static String selectJdk(@NotNull String jdk1, @NotNull String jdk2, @NotNull LanguageLevel langLevel) {
-    if (hasMatchingLangLevel(jdk1, langLevel)) {
-      return jdk1;
-    }
-    if (hasMatchingLangLevel(jdk2, langLevel)) {
-      return jdk2;
-    }
-    return null;
-  }
-
-  private static boolean hasMatchingLangLevel(@NotNull String jdkRoot, @NotNull LanguageLevel langLevel) {
-    JavaSdkVersion version = getVersion(jdkRoot);
-    if (version == null) version = JavaSdkVersion.JDK_1_0;
-    return hasMatchingLangLevel(version, langLevel);
   }
 
   @VisibleForTesting

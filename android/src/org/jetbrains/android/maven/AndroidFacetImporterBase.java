@@ -8,7 +8,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
@@ -1078,7 +1078,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   private static Sdk createNewAndroidSdkForMaven(File sdkPath, IAndroidTarget target) {
     AndroidSdks androidSdks = AndroidSdks.getInstance();
     Sdk sdk = null;
-    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
+    Sdk jdk = IdeSdks.getInstance().getJdk();
     if (jdk != null) {
       String sdkName = "Maven " + androidSdks.chooseNameForNewLibrary(target);
       sdk = androidSdks.create(target, sdkPath, sdkName, jdk, false);

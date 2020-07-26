@@ -100,7 +100,7 @@ public final class AndroidSdkUtils {
    */
   @Nullable
   public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
-    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
+    Sdk jdk = IdeSdks.getInstance().getJdk();
     if (sdkPath != null && jdk != null) {
       sdkPath = toSystemIndependentName(sdkPath);
       IAndroidTarget target = findBestTarget(sdkPath);

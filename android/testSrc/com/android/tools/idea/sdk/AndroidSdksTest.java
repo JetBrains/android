@@ -75,11 +75,10 @@ public class AndroidSdksTest extends PlatformTestCase {
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 
-    Jdks jdks = Jdks.getInstance();
-    myJdk = jdks.chooseOrCreateJavaSdk();
+    myJdk = IdeSdks.getInstance().getJdk();
     assertNotNull(myJdk);
 
-    myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
+    myAndroidSdks = new AndroidSdks(myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
@@ -211,10 +210,12 @@ public class AndroidSdksTest extends PlatformTestCase {
   }
 
   public void testCreateSdkWithNullJdk() {
-    Jdks jdks = mock(Jdks.class);
-    myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
-
-    when(jdks.chooseOrCreateJavaSdk()).thenReturn(null);
+    myAndroidSdks = new AndroidSdks(myIdeInfo){
+      @Override
+      Sdk getJdk() {
+        return null;
+      }
+    };
 
     Sdk sdk = myAndroidSdks.create(findLatestAndroidTarget(mySdkPath), mySdkPath, true);
     assertNull(sdk);
