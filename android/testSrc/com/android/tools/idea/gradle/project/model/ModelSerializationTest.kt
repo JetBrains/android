@@ -19,19 +19,15 @@ import com.android.builder.model.Dependencies
 import com.android.ide.common.gradle.model.IdeAaptOptionsImpl
 import com.android.ide.common.gradle.model.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutputImpl
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.IdeApiVersionImpl
 import com.android.ide.common.gradle.model.IdeBuildTypeContainerImpl
 import com.android.ide.common.gradle.model.IdeBuildTypeImpl
 import com.android.ide.common.gradle.model.IdeClassFieldImpl
-import com.android.ide.common.gradle.model.IdeDependencyGraphs
 import com.android.ide.common.gradle.model.IdeFilterDataImpl
-import com.android.ide.common.gradle.model.IdeGraphItem
 import com.android.ide.common.gradle.model.IdeInstantRunImpl
 import com.android.ide.common.gradle.model.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.IdeJavaCompileOptionsImpl
-import com.android.ide.common.gradle.model.IdeJavaLibrary
 import com.android.ide.common.gradle.model.IdeLintOptions
 import com.android.ide.common.gradle.model.IdeMavenCoordinatesImpl
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
@@ -61,19 +57,15 @@ import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
-import com.android.ide.common.gradle.model.stubs.AndroidLibraryStub
 import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeStub
 import com.android.ide.common.gradle.model.stubs.ClassFieldStub
-import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.FilterDataStub
-import com.android.ide.common.gradle.model.stubs.GraphItemStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
 import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
-import com.android.ide.common.gradle.model.stubs.JavaLibraryStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
 import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
 import com.android.ide.common.gradle.model.stubs.NativeAndroidProjectStub
@@ -246,10 +238,6 @@ class ModelSerializationTest {
     }
 
   @Test
-  fun androidLibrary() =
-    assertSerializable { IdeAndroidLibrary(AndroidLibraryStub(), modelCache) }
-
-  @Test
   fun androidProject() =
     assertSerializable {
       IdeAndroidProjectImpl.create(
@@ -279,16 +267,8 @@ class ModelSerializationTest {
     assertSerializable { IdeClassFieldImpl(ClassFieldStub()) }
 
   @Test
-  fun dependencyGraphs() =
-    assertSerializable { IdeDependencyGraphs(DependencyGraphsStub(), modelCache) }
-
-  @Test
   fun filterData() =
     assertSerializable { IdeFilterDataImpl(FilterDataStub()) }
-
-  @Test
-  fun graphItem() =
-    assertSerializable { IdeGraphItem(GraphItemStub(), modelCache) }
 
   @Test
   fun instantRun() =
@@ -301,10 +281,6 @@ class ModelSerializationTest {
   @Test
   fun javaCompileOptions() =
     assertSerializable { IdeJavaCompileOptionsImpl(JavaCompileOptionsStub()) }
-
-  @Test
-  fun javaLibrary() =
-    assertSerializable { IdeJavaLibrary(JavaLibraryStub(), modelCache) }
 
   @Test
   fun lintOptions() =
