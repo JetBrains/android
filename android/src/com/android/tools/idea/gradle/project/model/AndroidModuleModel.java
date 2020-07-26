@@ -29,9 +29,7 @@ import static java.util.stream.Collectors.toMap;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.ApiVersion;
-import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
@@ -39,7 +37,9 @@ import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
@@ -98,8 +98,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
-  @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
-  @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
+  @NotNull private final transient Map<String, IdeBuildTypeContainer> myBuildTypesByName;
+  @NotNull private final transient Map<String, IdeProductFlavorContainer> myProductFlavorsByName;
   @NotNull final transient Map<String, IdeVariant> myVariantsByName;
 
   @GuardedBy("myGenericBuiltArtifactsMap")
@@ -272,7 +272,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public Boolean isDebuggable() {
-    BuildTypeContainer buildTypeContainer = findBuildType(getSelectedVariant().getBuildType());
+    IdeBuildTypeContainer buildTypeContainer = findBuildType(getSelectedVariant().getBuildType());
     if (buildTypeContainer != null) {
       return buildTypeContainer.getBuildType().isDebuggable();
     }
@@ -302,7 +302,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
         List<String> flavors = getSelectedVariant().getProductFlavors();
         for (String flavor : flavors) {
-          ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+          IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
           assert productFlavor != null;
           ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
           if (flavorVersion != null) {
@@ -348,7 +348,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public BuildTypeContainer findBuildType(@NotNull String name) {
+  public IdeBuildTypeContainer findBuildType(@NotNull String name) {
     return myBuildTypesByName.get(name);
   }
 
@@ -363,7 +363,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public ProductFlavorContainer findProductFlavor(@NotNull String name) {
+  public IdeProductFlavorContainer findProductFlavor(@NotNull String name) {
     return myProductFlavorsByName.get(name);
   }
 
@@ -496,7 +496,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
       List<String> flavors = variant.getProductFlavors();
       for (String flavor : flavors) {
-        ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+        IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
         assert productFlavor != null;
         if (productFlavor.getProductFlavor().getApplicationId() != null) {
           myOverridesManifestPackage = true;
@@ -558,7 +558,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     List<String> productFlavors = selectedVariant.getProductFlavors();
     List<SourceProvider> providers = new ArrayList<>();
     for (String flavor : productFlavors) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+      IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
       providers.add(productFlavor.getSourceProvider());
     }

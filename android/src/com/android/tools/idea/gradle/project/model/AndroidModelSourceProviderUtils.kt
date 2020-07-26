@@ -18,11 +18,11 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.ApiVersion
-import com.android.builder.model.BuildTypeContainer
-import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
 import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
@@ -48,8 +48,8 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
   ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST);
 
   fun IdeVariant.selectArtifact(): IdeBaseArtifact? = selector()
-  fun BuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
-  fun ProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
   private fun <T> T.providerBy(main: T.() -> SourceProvider, extra: T.() -> Collection<SourceProviderContainer>) =
     when (artifactName) {

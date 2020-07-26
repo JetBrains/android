@@ -28,10 +28,10 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -59,10 +59,10 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
@@ -331,7 +331,7 @@ public class AndroidJavaDocRenderer {
           IdeVariant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();
 
-          BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
+          IdeBuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
           assert buildType != null;
           SourceProvider sourceProvider = buildType.getSourceProvider();
           String buildTypeName = selectedVariant.getName();
@@ -343,7 +343,7 @@ public class AndroidJavaDocRenderer {
           // Iterate in *reverse* order
           for (int i = productFlavors.size() - 1; i >= 0; i--) {
             String flavorName = productFlavors.get(i);
-            ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
+            IdeProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
             assert productFlavor != null;
             SourceProvider provider = productFlavor.getSourceProvider();
             addItemsFromSourceSet(flavorName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName,
@@ -357,8 +357,8 @@ public class AndroidJavaDocRenderer {
           selectedProviders.add(main);
 
           // Next display any source sets that are *not* in the selected flavors or build types!
-          Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-          for (BuildTypeContainer container : buildTypes) {
+          Collection<IdeBuildTypeContainer> buildTypes = androidProject.getBuildTypes();
+          for (IdeBuildTypeContainer container : buildTypes) {
             SourceProvider provider = container.getSourceProvider();
             if (!selectedProviders.contains(provider)) {
               addItemsFromSourceSet(container.getBuildType().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider, type,
@@ -367,8 +367,8 @@ public class AndroidJavaDocRenderer {
             }
           }
 
-          Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
-          for (ProductFlavorContainer container : flavors) {
+          Collection<IdeProductFlavorContainer> flavors = androidProject.getProductFlavors();
+          for (IdeProductFlavorContainer container : flavors) {
             SourceProvider provider = container.getSourceProvider();
             if (!selectedProviders.contains(provider)) {
               addItemsFromSourceSet(container.getProductFlavor().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider,
