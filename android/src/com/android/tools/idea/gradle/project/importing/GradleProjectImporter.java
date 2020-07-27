@@ -144,11 +144,9 @@ public class GradleProjectImporter {
     newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.toPath());
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    @NotNull GradleVersion gradleVersion = projectSettings.resolveGradleVersion();
     @NotNull GradleSettings settings = GradleSettings.getInstance(newProject);
     GradleProjectImportUtil.setupGradleSettings(settings);
     GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, projectFolderPath.toPath());
-    GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, gradleVersion);
     GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

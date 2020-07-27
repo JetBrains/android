@@ -21,6 +21,7 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -118,6 +119,7 @@ public class IdeSdks {
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_1_8;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_11; // the largest LTS JDK compatible with SdkConstants.GRADLE_LATEST_VERSION = "6.1.1"
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -219,6 +221,7 @@ public class IdeSdks {
   public LocalPackage getHighestLocalNdkPackage(boolean allowPreview) {
     return getHighestLocalNdkPackage(allowPreview, null);
   }
+
   @Nullable
   public LocalPackage getHighestLocalNdkPackage(boolean allowPreview, @Nullable Predicate<Revision> filter) {
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
@@ -934,7 +937,17 @@ public class IdeSdks {
     if (preferredVersion == null) {
       return true;
     }
-    return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
+    JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
+    if (jdkVersion == null) {
+      return false;
+    }
+
+    return isJdkVersionCompatible(preferredVersion, jdkVersion);
+  }
+
+  @VisibleForTesting
+  boolean isJdkVersionCompatible(@NotNull JavaSdkVersion preferredVersion, @NotNull JavaSdkVersion jdkVersion) {
+    return jdkVersion.compareTo(preferredVersion) >= 0 && jdkVersion.compareTo(MAX_JDK_VERSION) <= 0;
   }
 
   /**
