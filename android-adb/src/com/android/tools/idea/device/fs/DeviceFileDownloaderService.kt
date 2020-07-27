@@ -37,6 +37,12 @@ interface DeviceFileDownloaderService {
    * Returns a map where each on-device path is mapped to the corresponding VirtualFile.
    *
    * If the device corresponding to [deviceId] is not found, the future fails with IllegalArgumentException.
+   *
+   * [downloadProgress] is a download progress for all the files, if canceled, all the running/waiting downloads will be stopped.
    */
-  fun downloadFiles(deviceId: String, onDevicePaths: List<String>): ListenableFuture<Map<String, VirtualFile>>
+  fun downloadFiles(
+    deviceId: String,
+    onDevicePaths: List<String>,
+    downloadProgress: DownloadProgress
+  ): ListenableFuture<Map<String, VirtualFile>>
 }

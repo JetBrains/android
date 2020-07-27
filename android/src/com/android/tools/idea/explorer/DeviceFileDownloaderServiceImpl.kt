@@ -54,7 +54,11 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val edtExecutor = EdtExecutorService.getInstance()
 
-  override fun downloadFiles(deviceId: String, onDevicePaths: List<String>): ListenableFuture<Map<String, VirtualFile>> {
+  override fun downloadFiles(
+    deviceId: String,
+    onDevicePaths: List<String>,
+    downloadProgress: DownloadProgress
+  ): ListenableFuture<Map<String, VirtualFile>> {
     if (onDevicePaths.isEmpty()) {
       return Futures.immediateFuture(emptyMap())
     }
@@ -63,12 +67,16 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
         val deviceFileSystem = devices!!.find { it.name == deviceId }
         require(deviceFileSystem != null)
-        doDownload(deviceFileSystem, onDevicePaths)
+        doDownload(deviceFileSystem, onDevicePaths, downloadProgress)
       }
     }
   }
 
-  private fun doDownload(deviceFileSystem: DeviceFileSystem, onDevicePaths: List<String>): ListenableFuture<Map<String, VirtualFile>> {
+  private fun doDownload(
+    deviceFileSystem: DeviceFileSystem,
+    onDevicePaths: List<String>,
+    downloadProgress: DownloadProgress
+  ): ListenableFuture<Map<String, VirtualFile>> {
     val futureEntries = mapPathsToEntries(deviceFileSystem, onDevicePaths)
 
     return futureEntries.transformAsync(taskExecutor) { entries ->
@@ -77,7 +85,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
         FileUtils.mkdirs(localPath.parent.toFile())
 
         fileManager
-          .downloadFileEntry(entry, localPath, FakeDownloadProgress())
+          .downloadFileEntry(entry, localPath, downloadProgress)
           .transform(taskExecutor) { file -> Pair(entry.fullPath, file) }
       }
 
@@ -136,15 +144,5 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     val firstPath = paths[0]
     val parentPath = AdbPathUtil.getParentPath(firstPath)
     return paths.none { AdbPathUtil.getParentPath(it) != parentPath }
-  }
-
-  /**
-   * A [DownloadProgress] that does nothing.
-   */
-  private class FakeDownloadProgress : DownloadProgress {
-    override val isCancelled = false
-    override fun onStarting(entryFullPath: String) {}
-    override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {}
-    override fun onCompleted(entryFullPath: String) {}
   }
 }
