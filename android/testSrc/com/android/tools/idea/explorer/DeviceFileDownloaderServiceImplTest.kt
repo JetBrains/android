@@ -167,4 +167,30 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     // Assert
     assertEquals(0, virtualFiles.size)
   }
+
+  fun testDeleteFile() {
+    // Prepare
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1"), progress)
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+    val fileToDelete = virtualFiles.getValue("/foo/bar1")
+
+    // Act
+    pumpEventsAndWaitForFuture(deviceFileDownloaderService.deleteFiles(listOf(fileToDelete)))
+
+    // Assert
+    assertFalse(fileToDelete.exists())
+  }
+
+  fun testDeleteMultipleFiles() {
+    // Prepare
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"), progress)
+    val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
+    val filesToDelete = virtualFiles.values.toList()
+
+    // Act
+    pumpEventsAndWaitForFuture(deviceFileDownloaderService.deleteFiles(filesToDelete))
+
+    // Assert
+    filesToDelete.forEach { assertFalse(it.exists()) }
+  }
 }

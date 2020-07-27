@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.concurrency.transformAsyncNullable
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
@@ -37,6 +38,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
+import java.util.concurrent.Callable
 
 @UiThread
 class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
@@ -70,6 +72,11 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
         doDownload(deviceFileSystem, onDevicePaths, downloadProgress)
       }
     }
+  }
+
+  override fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit> {
+    val futures = virtualFiles.map { fileManager.deleteFile(it).transformNullable(taskExecutor) { Unit } }
+    return Futures.whenAllSucceed(futures).call(Callable { Unit }, taskExecutor)
   }
 
   private fun doDownload(

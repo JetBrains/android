@@ -126,7 +126,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         if (virtualFile != null) {
           try {
             deleteVirtualFile(virtualFile);
-          } catch (IOException exception) {
+          } catch (Throwable exception) {
             futureResult.setException(exception);
             return;
           }
@@ -149,7 +149,25 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return futureResult;
   }
 
-  public void deleteVirtualFile(@NotNull VirtualFile virtualFile) throws IOException {
+  @Override
+  public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
+    SettableFuture<Void> futureResult = SettableFuture.create();
+
+    ApplicationManager.getApplication().invokeLater(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        try {
+          deleteVirtualFile(virtualFile);
+          futureResult.set(null);
+        } catch (Throwable exception) {
+          futureResult.setException(exception);
+        }
+      });
+    }, myProject.getDisposed());
+
+    return futureResult;
+  }
+
+  private void deleteVirtualFile(@NotNull VirtualFile virtualFile) throws IOException {
     // Using VFS to delete files has the advantage of throwing VFS events,
     // so listeners can react to actions on the files - for example by closing a file before it being deleted.
 
