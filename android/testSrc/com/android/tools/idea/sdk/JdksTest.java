@@ -27,41 +27,25 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHype
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link Jdks}.
  */
-public class JdksTest extends PlatformTestCase {
+public class JdksTest extends LightPlatformTestCase {
   private IdeSdks mySpyIdeSdks;
   private EmbeddedDistributionPaths mySpyEmbeddedDistributionPaths;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
     mySpyIdeSdks = spy(IdeSdks.getInstance());
     mySpyEmbeddedDistributionPaths = spy(EmbeddedDistributionPaths.getInstance());
     ideComponents.replaceApplicationService(IdeSdks.class, mySpyIdeSdks);
     ideComponents.replaceApplicationService(EmbeddedDistributionPaths.class, mySpyEmbeddedDistributionPaths);
-  }
-
-  // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way
-  // ensure that regressions are not introduced later.
-  public void testHasMatchingLangLevelWithLangLevel1dot6AndJdk7() {
-    assertTrue(Jdks.hasMatchingLangLevel(JavaSdkVersion.JDK_1_7, LanguageLevel.JDK_1_6));
-  }
-
-  public void testHasMatchingLangLevelWithLangLevel1dot7AndJdk7() {
-    assertTrue(Jdks.hasMatchingLangLevel(JavaSdkVersion.JDK_1_7, LanguageLevel.JDK_1_7));
-  }
-
-  public void testHasMatchingLangLevelWithLangLevel1dot7AndJdk6() {
-    assertFalse(Jdks.hasMatchingLangLevel(JavaSdkVersion.JDK_1_6, LanguageLevel.JDK_1_7));
   }
 
   /**
@@ -100,7 +84,7 @@ public class JdksTest extends PlatformTestCase {
 
   private void verifyGetWrongJdkQuickFixes(@NotNull Class<? extends NotificationHyperlink> hyperlinkClass) {
     Jdks jdks = Jdks.getInstance();
-    List<NotificationHyperlink> quickFixes = jdks.getWrongJdkQuickFixes(myProject);
+    List<NotificationHyperlink> quickFixes = jdks.getWrongJdkQuickFixes(getProject());
     if (IdeSdks.getInstance().isAndroidStudio()) {
       assertThat(quickFixes).hasSize(2);
       assertThat(quickFixes.get(0)).isInstanceOf(hyperlinkClass);

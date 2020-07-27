@@ -10,7 +10,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
@@ -106,7 +106,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     final List<String> javaSdks = new ArrayList<>();
     final Sdk[] sdks = sdkModel.getSdks();
     for (Sdk jdk : sdks) {
-      if (Jdks.getInstance().isApplicableJdk(jdk)) {
+      if (IdeSdks.getInstance().isJdkCompatible(jdk)) {
         javaSdks.add(jdk.getName());
       }
     }

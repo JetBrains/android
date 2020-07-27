@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -33,14 +40,6 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.ComponentStack;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ProjectJdkSetupStep}.
@@ -79,6 +78,9 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
       myIdeInfo = null;
       myProjectRootManager = null;
       myProjectSdk = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -123,7 +125,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     Sdk jdk = mock(Sdk.class);
     when(jdk.getHomePath()).thenReturn("somePath");
 
-    when(myJdks.isApplicableJdk(jdk, JDK_1_8)).thenReturn(false);
+    when(myIdeSdks.isJdkCompatible(jdk, JDK_1_8)).thenReturn(false);
     when(myIdeSdks.getJdk()).thenReturn(jdk);
 
     Project project = getProject();
@@ -135,7 +137,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
 
   public void testDoSetUpProjectWithIdeaWithApplicableProjectJdk() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
-    when(myJdks.isApplicableJdk(myProjectSdk, JDK_1_8)).thenReturn(true);
+    when(myIdeSdks.isJdkCompatible(myProjectSdk)).thenReturn(true);
 
     Project project = getProject();
     mySetupStep.setUpProject(project);

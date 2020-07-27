@@ -28,11 +28,11 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.asCharSink;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Strings;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
@@ -428,7 +427,7 @@ public class AndroidGradleTests {
 
     Sdk currentJdk = ideSdks.getJdk();
     TestCase.assertNotNull(currentJdk);
-    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
+    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), IdeSdks.getInstance().isJdkCompatible(currentJdk, JDK_1_8));
 
     // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
     // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager

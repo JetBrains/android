@@ -19,7 +19,6 @@ import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink;
@@ -29,7 +28,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperl
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -42,11 +40,11 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +57,6 @@ public final class Jdks {
 
   @NonNls public static final String DOWNLOAD_JDK_8_URL =
     "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
-
-  private static final LanguageLevel DEFAULT_LANG_LEVEL = JDK_1_8;
 
   @NotNull private final IdeInfo myIdeInfo;
 
@@ -78,28 +74,15 @@ public final class Jdks {
     myIdeInfo = IdeInfo.getInstance();
   }
 
+  /**
+   * @return {@code true} if JDK can be safely used as a project JDK for a project with android modules,
+   * parent JDK for Android SDK or as a gradle JVM to run builds with Android modules
+   * @deprecated use {@link IdeSdks#isJdkCompatible(Sdk)} instead
+   */
+  @Deprecated
+  @ApiStatus.ScheduledForRemoval(inVersion = "2020.3")
   public boolean isApplicableJdk(@NotNull Sdk jdk) {
-    return isApplicableJdk(jdk, null);
-  }
-
-  public boolean isApplicableJdk(@NotNull Sdk jdk, @Nullable LanguageLevel langLevel) {
-    if (!(jdk.getSdkType() instanceof JavaSdk)) {
-      return false;
-    }
-    if (langLevel == null) {
-      langLevel = DEFAULT_LANG_LEVEL;
-    }
-    JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
-    if (version != null) {
-      return hasMatchingLangLevel(version, langLevel);
-    }
-    return false;
-  }
-
-  @VisibleForTesting
-  static boolean hasMatchingLangLevel(@NotNull JavaSdkVersion jdkVersion, @NotNull LanguageLevel langLevel) {
-    LanguageLevel max = jdkVersion.getMaxLanguageLevel();
-    return max.isAtLeast(langLevel);
+    return IdeSdks.getInstance().isJdkCompatible(jdk);
   }
 
   @Nullable
