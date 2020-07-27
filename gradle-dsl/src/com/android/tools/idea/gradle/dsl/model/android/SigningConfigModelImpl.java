@@ -106,4 +106,10 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   public PasswordPropertyModel keyPassword() {
     return getPasswordModelForProperty(KEY_PASSWORD);
   }
+
+  @Override
+  @NotNull
+  public GradleDslElement getDslElement() {
+    return (GradleDslElement)myDslElement;
+  }
 }
