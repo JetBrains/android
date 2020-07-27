@@ -61,12 +61,14 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   private final CachedValue<PsiMethod[]> myMethodCache;
   @NotNull
   private final APIVersion myAPIVersion;
+  private final boolean myGenerateFallbackApiOnly;
 
   public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;
     myAPIVersion = APIVersion.fromProject(module.getProject());
+    myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(modelInfo.getMinParserVersion());
 
     setModuleInfo(module, false);
 
@@ -79,7 +81,8 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
           // Generated API added in version 1.
           for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
             methods.add(buildGetterMethod(tensorInfo, false));
-            if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
+            if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope(), myGenerateFallbackApiOnly).getClassName()
+              .equals("TensorBuffer")) {
               // Adds fallback getter method.
               methods.add(buildGetterMethod(tensorInfo, true));
             }
@@ -120,7 +123,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
     GlobalSearchScope scope = getResolveScope();
     PsiClassType returnType = usedForFallback
                               ? PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, getProject(), scope)
-                              : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
+                              : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope, myGenerateFallbackApiOnly);
     String methodName = MlNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType));
     DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(myManager, JavaLanguage.INSTANCE, methodName);
     method

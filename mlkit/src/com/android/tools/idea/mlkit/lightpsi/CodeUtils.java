@@ -34,10 +34,19 @@ import org.jetbrains.annotations.NotNull;
 public class CodeUtils {
 
   /**
-   * Gets {@link PsiClassType} based on {@link TensorInfo}.
+   * Gets {@link PsiClassType} based on {@link TensorInfo}
+   *
+   * If {@param generateFallbackApiOnly} is true, always return generic {@code TensorBuffer}. This implies the underlying AGP doesn't
+   * fully support this model.
    */
   @NotNull
-  public static PsiClassType getPsiClassType(@NotNull TensorInfo tensorInfo, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+  public static PsiClassType getPsiClassType(@NotNull TensorInfo tensorInfo,
+                                             @NotNull Project project,
+                                             @NotNull GlobalSearchScope scope,
+                                             boolean generateFallbackApiOnly) {
+    if (generateFallbackApiOnly) {
+      return PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, project, scope);
+    }
     if (tensorInfo.isRGBImage()) {
       // Only RGB image is supported right now.
       return PsiType.getTypeByName(ClassNames.TENSOR_IMAGE, project, scope);
