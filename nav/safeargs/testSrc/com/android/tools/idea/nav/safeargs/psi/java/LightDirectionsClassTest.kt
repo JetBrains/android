@@ -21,10 +21,8 @@ import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnTy
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -82,12 +80,6 @@ class LightDirectionsClassTest {
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)).isInstanceOf(LightDirectionsClass::class.java)
-
-    // ... but cannot be found without context
-    val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
-/* b/162037346
-    assertThat(psiFacade.findClass("test.safeargs.Fragment1Directions", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
-b/162037346 */
   }
 
   @Test
