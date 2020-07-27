@@ -34,9 +34,8 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleSyncState}.
  */
-public class GradleSyncStateTest extends PlatformTestCase {
+public class GradleSyncStateTest extends  PlatformTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
-  @Mock private StateChangeNotification myChangeNotification;
   @Mock private GradleFiles myGradleFiles;
   @Mock private ProjectStructure myProjectStructure;
   @Mock private ExternalSystemTaskId myTaskId;
@@ -51,7 +50,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
     new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
 
     new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
-    mySyncState = new GradleSyncState(myProject, myChangeNotification);
+    mySyncState = new GradleSyncState(myProject);
 
     myProject.getMessageBus().connect().subscribe(GRADLE_SYNC_TOPIC, myGradleSyncListener);
   }
@@ -62,15 +61,12 @@ public class GradleSyncStateTest extends PlatformTestCase {
     boolean syncStarted = mySyncState.syncStarted(TRIGGER_TEST_REQUESTED);
     assertTrue(syncStarted);
     assertTrue(mySyncState.isSyncInProgress());
-
-    verify(myChangeNotification, times(1)).notifyStateChanged();
   }
 
   public void testSyncSkipped() {
     mySyncState.syncSkipped(null);
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
-    verify(myChangeNotification, never()).notifyStateChanged();
     verify(myGradleSyncListener, times(1)).syncSkipped(myProject);
   }
 
@@ -86,7 +82,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     mySyncState.syncFailed(msg, null);
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
-    verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
     verify(myProjectStructure, times(1)).clearData();
   }
@@ -103,7 +98,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     mySyncState.syncSucceeded();
 
     assertThat(mySyncState.getLastSyncFinishedTimeStamp()).isNotEqualTo(-1L);
-    verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(myGradleSyncListener, times(1)).syncSucceeded(myProject);
   }
 

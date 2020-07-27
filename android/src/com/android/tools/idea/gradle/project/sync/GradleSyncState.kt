@@ -55,15 +55,12 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
@@ -72,24 +69,9 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 private val LOG = Logger.getInstance(GradleSyncState::class.java)
+private val SYNC_NOTIFICATION_GROUP =
+  NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
-private val SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
-
-open class StateChangeNotification(private val project: Project) {
-  open fun notifyStateChanged() {
-    invokeLaterIfProjectAlive(project) {
-      val editorNotifications = EditorNotifications.getInstance(project)
-      FileEditorManager.getInstance(project).openFiles.forEach { file ->
-        try {
-          editorNotifications.updateNotifications(file)
-        }
-        catch (e: Throwable) {
-          LOG.info("Failed to update editor notifications for file '${toSystemDependentName(file.path)}'", e)
-        }
-      }
-    }
-  }
-}
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -107,14 +89,7 @@ open class StateChangeNotification(private val project: Project) {
  * to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific invocation
  * of sync.
  */
-open class GradleSyncState @NonInjectable constructor(
-  private val project: Project,
-  private val changeNotification: StateChangeNotification
-) {
-
-  constructor(
-    project: Project
-  ) : this(project, StateChangeNotification(project))
+open class GradleSyncState @NonInjectable constructor(private val project: Project) {
 
   companion object {
     @JvmField
@@ -221,8 +196,6 @@ open class GradleSyncState @NonInjectable constructor(
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
-    changeNotification.notifyStateChanged()
-
     // If this is the first Gradle sync for this project this session, make sure that GradleSyncResultPublisher
     // has been initialized so that it will begin broadcasting sync results on PROJECT_SYSTEM_SYNC_TOPIC.
     // TODO(b/133154939): Move this out of GradleSyncState, possibly to AndroidProjectComponent.
@@ -231,6 +204,7 @@ open class GradleSyncState @NonInjectable constructor(
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
+    syncPublisher { syncStarted(project) }
     return true
   }
 
@@ -457,7 +431,6 @@ open class GradleSyncState @NonInjectable constructor(
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (!skipped) {
-      changeNotification.notifyStateChanged()
       ApplicationManager.getApplication().invokeAndWait { warnIfNotJdkHome() }
     }
   }

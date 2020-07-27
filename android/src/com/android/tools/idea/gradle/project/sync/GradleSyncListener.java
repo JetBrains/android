@@ -23,12 +23,11 @@ import java.util.EventListener;
 public interface GradleSyncListener extends EventListener {
 
   /**
-   * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
+   * Invoked when a Gradle project sync starts. This could be due to many reasons.
    *
-   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with
-   *                the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
-   */
-  default void syncSucceeded(@NotNull Project project) {
+   * NOTE: This notification is not delivered to direct listeners via {@link GradleSyncInvoker#sync}.
+   **/
+  default void syncStarted(@NotNull Project project) {
   }
 
   /**
@@ -39,6 +38,15 @@ public interface GradleSyncListener extends EventListener {
    * @param errorMessage the error message that the Sync failed with.
    */
   default void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+  }
+
+  /**
+   * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
+   *
+   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with
+   *                the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
+   */
+  default void syncSucceeded(@NotNull Project project) {
   }
 
   /**
