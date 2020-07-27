@@ -26,6 +26,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSys
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
+import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
@@ -42,22 +44,35 @@ import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.KotlinSupport
+import com.intellij.build.BuildProgressListener
+import com.intellij.build.SyncViewManager
+import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.FailureResult
+import com.intellij.build.events.FinishBuildEvent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
@@ -65,6 +80,8 @@ import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -72,6 +89,10 @@ private val LOG = Logger.getInstance(GradleSyncState::class.java)
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
+data class ProjectSyncTrigger(val projectRoot: String, val trigger: GradleSyncStats.Trigger)
+
+@JvmField
+val PROJECT_SYNC_TRIGGER = Key.create<ProjectSyncTrigger>("PROJECT_SYNC_TRIGGER")
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -104,16 +125,17 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
      * See [GradleSyncListener] for more details on the different hooks through the syncing process.
      */
     @JvmStatic
-    fun subscribe(project: Project, listener: GradleSyncListener) : MessageBusConnection = subscribe(project, listener, project)
+    fun subscribe(project: Project, listener: GradleSyncListener): MessageBusConnection = subscribe(project, listener, project)
+
     @JvmStatic
-    fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable) : MessageBusConnection {
+    fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
       val connection = project.messageBus.connect(disposable)
       connection.subscribe(GRADLE_SYNC_TOPIC, listener)
       return connection
     }
 
     @JvmStatic
-    fun getInstance(project: Project) : GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
+    fun getInstance(project: Project): GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
 
     @JvmStatic
     fun isSingleVariantSync(): Boolean {
@@ -121,7 +143,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
-  open var lastSyncedGradleVersion : GradleVersion? = null
+  open var lastSyncedGradleVersion: GradleVersion? = null
 
   /**
    * Indicates whether the last started Gradle sync has failed or will fail.
@@ -147,7 +169,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   open var isSyncInProgress = false
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
-  var externalSystemTaskId : ExternalSystemTaskId? = null
+  var externalSystemTaskId: ExternalSystemTaskId? = null
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
 
@@ -178,10 +200,11 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
+  @VisibleForTesting
   fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
       if (isSyncInProgress) {
-        LOG.info("Sync already in progress for project '${project.name}'.")
+        LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
         return false
       }
 
@@ -189,7 +212,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
 
     val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
-    LOG.info("Started $syncType sync with Gradle for project '${project.name}'.")
+    LOG.info("Started $syncType ($trigger) sync with Gradle for project '${project.name}'.")
 
     setSyncStartedTimeStamp()
     this.trigger = trigger
@@ -214,7 +237,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
-  open fun setupStarted() {
+  private fun setupStarted() {
     syncSetupStartedTimeStamp = System.currentTimeMillis()
 
     LOG.info("Started setup of project '${project.name}'.")
@@ -224,11 +247,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   /**
    * Triggered at the end of a successful sync, once the models have been fetched.
-   *
-   * TODO: This should be called after (rather than before) project setup
-   * TODO: Add SyncListener to params and call it in the method.
    */
-  open fun syncSucceeded() {
+  @VisibleForTesting
+  fun syncSucceeded() {
     // syncFailed should be called if there're any sync issues.
     assert(!lastSyncFailed())
 
@@ -255,6 +276,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     syncFinished(syncEndTimeStamp)
     syncPublisher { syncSucceeded(project) }
+    ProjectBuildFileChecksums.saveToDisk(project)
   }
 
   /**
@@ -278,7 +300,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     val throwableMessage = error?.message
     // Find a none null message from either the provided message or the given throwable.
-    val causeMessage : String = when {
+    val causeMessage: String = when {
       !message.isNullOrBlank() -> message
       !throwableMessage.isNullOrBlank() -> throwableMessage
       GradleSyncMessages.getInstance(project).errorDescription.isNotEmpty() -> GradleSyncMessages.getInstance(project).errorDescription
@@ -307,7 +329,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
-  open fun syncSkipped(listener: GradleSyncListener?) {
+  fun syncSkipped(listener: GradleSyncListener?) {
     val syncEndTimeStamp = System.currentTimeMillis()
     syncEndedTimeStamp = syncEndTimeStamp
 
@@ -325,10 +347,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * START public utility methods
    */
 
-  open fun isSyncNeeded() : ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
-  fun isSourceGenerationFinished() : Boolean = sourceGenerationEndedTimeStamp != -1L
+  open fun isSyncNeeded(): ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
+  fun isSourceGenerationFinished(): Boolean = sourceGenerationEndedTimeStamp != -1L
 
-  fun generateSyncEvent(kind: AndroidStudioEvent.EventKind) : AndroidStudioEvent.Builder {
+  fun generateSyncEvent(kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
     val event = AndroidStudioEvent.newBuilder()
     val syncStats = GradleSyncStats.newBuilder()
     val buildFileTypes = projectBuildFilesTypes(project)
@@ -357,9 +379,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Returns the total time taken by the last sync or 0 if there is a sync in progress and setup has not been reached.
    */
-  fun getSyncTotalTimeMs() : Long = when {
+  fun getSyncTotalTimeMs(): Long = when {
     syncEndedTimeStamp >= 0 -> syncEndedTimeStamp - syncStartedTimeStamp // Sync was successful
-    syncFailedTimeStamp >= 0 ->  syncFailedTimeStamp - syncStartedTimeStamp // Sync failed
+    syncFailedTimeStamp >= 0 -> syncFailedTimeStamp - syncStartedTimeStamp // Sync failed
     syncSetupStartedTimeStamp >= 0 -> syncSetupStartedTimeStamp - syncStartedTimeStamp // Only fetching model has finished
     else -> 0
   }
@@ -369,7 +391,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * If sync has been done from cache, sync has never occurs, sync is in progress or the last sync failed before
    * setup this method returns -1.
    */
-  fun getSyncIdeTimeMs() : Long = when {
+  fun getSyncIdeTimeMs(): Long = when {
     syncEndedTimeStamp < 0 -> -1  // Sync is in progress or something went wrong during the last sync
     syncSetupStartedTimeStamp < 0 -> -1 // Sync was done from cache (no gradle nor IDE part was done)
     else -> syncEndedTimeStamp - syncSetupStartedTimeStamp
@@ -405,11 +427,19 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   }
 
   @TestOnly
-  fun setSyncSetupStartedTimeStamp(timeStamp: Long) { syncSetupStartedTimeStamp = timeStamp }
+  fun setSyncSetupStartedTimeStamp(timeStamp: Long) {
+    syncSetupStartedTimeStamp = timeStamp
+  }
+
   @TestOnly
-  fun setSyncEndedTimeStamp(timeStamp: Long) { syncEndedTimeStamp = timeStamp }
+  fun setSyncEndedTimeStamp(timeStamp: Long) {
+    syncEndedTimeStamp = timeStamp
+  }
+
   @TestOnly
-  fun setSyncFailedTimeStamp(timeStamp: Long) { syncFailedTimeStamp = timeStamp }
+  fun setSyncFailedTimeStamp(timeStamp: Long) {
+    syncFailedTimeStamp = timeStamp
+  }
 
   /*
    * END Test-only state manipulation methods
@@ -491,9 +521,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     UsageTracker.log(event)
   }
 
-  private fun generateKotlinSupport() : KotlinSupport.Builder {
-    var kotlinVersion : GradleVersion? = null
-    var ktxVersion : GradleVersion? = null
+  private fun generateKotlinSupport(): KotlinSupport.Builder {
+    var kotlinVersion: GradleVersion? = null
+    var ktxVersion: GradleVersion? = null
 
     val ordering = Ordering.natural<GradleVersion>().nullsFirst<GradleVersion>()
 
@@ -517,7 +547,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     quickFixes: List<NotificationHyperlink>?
   ) {
     var resultMessage = message
-    var listener : NotificationListener? = null
+    var listener: NotificationListener? = null
     if (quickFixes != null) {
       quickFixes.forEach { quickFix ->
         resultMessage += "\n${quickFix.toHtml()}"
@@ -543,9 +573,131 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
   }
+
+  /**
+   * A helper project level service to keep track of external system sync related tasks and to detect and report any mismatched or
+   * unexpected events.
+   */
+  @Service
+  class SyncStateUpdaterService {
+    val runningTasks: ConcurrentMap<ExternalSystemTaskId, Pair<String, Disposable>> = ConcurrentHashMap()
+
+    fun trackTask(id: ExternalSystemTaskId, projectPath: String): Disposable? {
+      val disposable = Disposer.newDisposable()
+      val old = runningTasks.putIfAbsent(id, projectPath to disposable)
+      if (old != null) {
+        Logger.getInstance(SyncStateUpdater::class.java).warn("External task $id has been already started")
+        Disposer.dispose(disposable)
+        return null
+      }
+      return disposable
+    }
+
+    fun stopTrackingTask(id: ExternalSystemTaskId): Boolean {
+      val info = runningTasks.remove(id)
+      if (info == null) {
+        Logger.getInstance(SyncStateUpdater::class.java).warn("Unknown build $id finished")
+        return false
+      }
+      Disposer.dispose(info.second) // Unsubscribe from notifications.
+      return true
+    }
+
+    fun stopTrackingTask(projectDir: String): Boolean {
+      val task = runningTasks.entries.find { it.value.first == projectDir }?.key ?: return false
+      return stopTrackingTask(task)
+    }
+  }
+
+  class DataImportListener(val project: Project) : ProjectDataImportListener {
+    override fun onImportFinished(projectPath: String) {
+      val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
+      if (syncStateUpdaterService.stopTrackingTask(projectPath)) {
+        GradleSyncState.getInstance(project).syncSucceeded()
+      }
+    }
+  }
+
+  class SyncStateUpdater : ExternalSystemTaskNotificationListener, BuildProgressListener {
+
+    private fun ExternalSystemTaskId.findProjectorLog(): Project? {
+      val project = findProject()
+      if (project == null) {
+        Logger.getInstance(SyncStateUpdater::class.java).warn("No project found for $this")
+      }
+      return project
+    }
+
+    override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
+      if (!id.isGradleResolveProjectTask()) return
+      val project = id.findProjectorLog() ?: return
+      val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
+      val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
+      val trigger =
+        project.getUserData(PROJECT_SYNC_TRIGGER)
+          ?.takeIf { it.projectRoot == workingDir }
+          ?.trigger
+      if (trigger != null) {
+        project.putUserData(PROJECT_SYNC_TRIGGER, null)
+      }
+      if (!GradleSyncState.getInstance(project).syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)) {
+        stopTrackingTask(project, id)
+        return
+      }
+      project.getService(SyncViewManager::class.java).addListener(this, disposable)
+    }
+
+
+    override fun onSuccess(id: ExternalSystemTaskId) {
+      if (!id.isGradleResolveProjectTask()) return
+      val project = id.findProjectorLog() ?: return
+      val runningTasks = project.getService(SyncStateUpdaterService::class.java).runningTasks
+      if (!runningTasks.containsKey(id)) return
+      GradleSyncState.getInstance(project).setupStarted()
+    }
+
+    override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+      if (!id.isGradleResolveProjectTask()) return
+      val project = id.findProjectorLog() ?: return
+      if (!stopTrackingTask(project, id)) return
+      GradleSyncState.getInstance(project).syncFailed(null, e)
+    }
+
+    override fun onStart(id: ExternalSystemTaskId) = error("Not expected to be called. onStart with a different signature is implemented")
+
+    override fun onEnd(id: ExternalSystemTaskId) = Unit
+    override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) = Unit
+    override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) = Unit
+    override fun beforeCancel(id: ExternalSystemTaskId) = Unit
+    override fun onCancel(id: ExternalSystemTaskId) = Unit
+
+    override fun onEvent(buildId: Any, event: BuildEvent) {
+      if (event !is FinishBuildEvent) return
+      if (buildId !is ExternalSystemTaskId) {
+        Logger.getInstance(SyncStateUpdater::class.java).warn("Unexpected buildId $buildId of type ${buildId::class.java} encountered")
+        return
+      }
+      val project = buildId.findProjectorLog() ?: return
+      if (!stopTrackingTask(project, buildId)) return
+      // Regardless of the result report sync failure. A successful sync would have already removed the task via ProjectDataImportListener.
+      val failure = event.result as? FailureResult
+      val message = failure?.failures?.mapNotNull { it.message }?.joinToString(separator = "\n") ?: "Sync failed: reason unknown"
+      val throwable = failure?.failures?.map { it.error }?.firstOrNull { it != null }
+      GradleSyncState.getInstance(project).syncFailed(message, throwable)
+    }
+
+    private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): Boolean {
+      val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
+      return syncStateUpdaterService.stopTrackingTask(buildId)
+    }
+  }
 }
 
-private fun Collection<IdeLibrary>.findVersion(artifact: String) : GradleVersion? {
+private fun Collection<IdeLibrary>.findVersion(artifact: String): GradleVersion? {
   val library = firstOrNull { library -> library.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.artifactAddress)?.version
 }
+
+private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
+  projectSystemId == GRADLE_SYSTEM_ID && type == ExternalSystemTaskType.RESOLVE_PROJECT
+

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_TRIGGER;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -40,8 +41,8 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ProjectSyncTrigger;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -81,8 +82,6 @@ public class GradleSyncExecutor {
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     // Setup the settings for setup.
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-
     // Setup the settings for the resolver.
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
@@ -117,7 +116,7 @@ public class GradleSyncExecutor {
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
-      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
+      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       //noinspection TestOnlyProblems
       if (request.forceCreateDirs) {
         myProject.putUserData(FORCE_CREATE_DIRS_KEY, true);
@@ -127,6 +126,7 @@ public class GradleSyncExecutor {
       if (request.forceCreateDirs) {
         builder.createDirectoriesForEmptyContentRoots();
       }
+      myProject.putUserData(PROJECT_SYNC_TRIGGER, new ProjectSyncTrigger(rootPath, request.trigger));
       refreshProject(rootPath, builder.build());
     }
   }
