@@ -17,7 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -147,7 +147,7 @@ class AndroidSdkConfigurableForm {
   private void updateJdks() {
     myJdksModel.removeAllElements();
     for (Sdk sdk : mySdkModel.getSdks()) {
-      if (Jdks.getInstance().isApplicableJdk(sdk)) {
+      if (IdeSdks.getInstance().isJdkCompatible(sdk)) {
         myJdksModel.addElement(sdk);
       }
     }

@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk;
 
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -34,7 +33,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.util.ArrayList;
@@ -52,8 +50,6 @@ public class Jdks {
   @NonNls public static final String DOWNLOAD_JDK_8_URL =
     "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
 
-  private static final LanguageLevel DEFAULT_LANG_LEVEL = JDK_1_8;
-
   @NotNull private final IdeInfo myIdeInfo;
 
   @NotNull
@@ -69,30 +65,6 @@ public class Jdks {
   @VisibleForTesting
   public Jdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
-  }
-
-  public boolean isApplicableJdk(@NotNull Sdk jdk) {
-    return isApplicableJdk(jdk, null);
-  }
-
-  public boolean isApplicableJdk(@NotNull Sdk jdk, @Nullable LanguageLevel langLevel) {
-    if (!(jdk.getSdkType() instanceof JavaSdk)) {
-      return false;
-    }
-    if (langLevel == null) {
-      langLevel = DEFAULT_LANG_LEVEL;
-    }
-    JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
-    if (version != null) {
-      return hasMatchingLangLevel(version, langLevel);
-    }
-    return false;
-  }
-
-  @VisibleForTesting
-  static boolean hasMatchingLangLevel(@NotNull JavaSdkVersion jdkVersion, @NotNull LanguageLevel langLevel) {
-    LanguageLevel max = jdkVersion.getMaxLanguageLevel();
-    return max.isAtLeast(langLevel);
   }
 
   @Nullable

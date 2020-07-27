@@ -124,6 +124,7 @@ public class IdeSdks {
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
+  private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -877,9 +878,20 @@ public class IdeSdks {
     return virtualFiles;
   }
 
-  @VisibleForTesting
-  static boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
+  /**
+   * @return {@code true} if JDK can be safely used as a project JDK for a project with android modules,
+   * parent JDK for Android SDK or as a gradle JVM to run builds with Android modules
+   */
+  public boolean isJdkCompatible(@Nullable Sdk jdk) {
+    return isJdkCompatible(jdk, MIN_JDK_VERSION);
+  }
+
+  @Contract("null, _ -> false")
+  public boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
     if (jdk == null) {
+      return false;
+    }
+    if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
     }
     if (preferredVersion == null) {
