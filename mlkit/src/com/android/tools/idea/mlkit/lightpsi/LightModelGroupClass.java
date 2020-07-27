@@ -111,7 +111,7 @@ public class LightModelGroupClass extends AndroidLightClassBase {
   @NotNull
   private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType returnType = getPsiClassType(tensorInfo, getProject(), scope);
+    PsiType returnType = getPsiClassType(tensorInfo, getProject(), scope);
     String methodName = MlNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType));
     DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(myManager, JavaLanguage.INSTANCE, methodName);
     method
@@ -135,7 +135,7 @@ public class LightModelGroupClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private static PsiClassType getPsiClassType(@NotNull TensorInfo tensorInfo, @NotNull Project project, @NotNull GlobalSearchScope scope) {
+  private static PsiType getPsiClassType(@NotNull TensorInfo tensorInfo, @NotNull Project project, @NotNull GlobalSearchScope scope) {
     if (tensorInfo.getContentType() == TensorInfo.ContentType.BOUNDING_BOX) {
       return PsiType.getTypeByName(ClassNames.RECT_F, project, scope);
     }
@@ -143,14 +143,14 @@ public class LightModelGroupClass extends AndroidLightClassBase {
       return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_STRING, project, scope);
     }
     else if (tensorInfo.getDataType() == TensorInfo.DataType.FLOAT32) {
-      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
+      return PsiType.FLOAT;
     }
     else if (tensorInfo.getDataType() == TensorInfo.DataType.UINT8) {
-      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_INTEGER, project, scope);
+      return PsiType.INT;
     }
     else {
       Logger.getInstance(LightModelGroupClass.class).warn("Can't find desired data type, fallback to int.");
-      return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_INTEGER, project, scope);
+      return PsiType.INT;
     }
   }
 }
