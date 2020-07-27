@@ -19,6 +19,9 @@ import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_12;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_14;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
@@ -101,6 +104,9 @@ public class IdeSdksTest extends PlatformTestCase {
       myAndroidSdks = null;
       myIdeSdks = null;
       AndroidTestCaseHelper.removeExistingAndroidSdks();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -276,5 +282,14 @@ public class IdeSdksTest extends PlatformTestCase {
     AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
     doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
     myAndroidSdks.setSdkData(androidSdkData);
+  }
+
+  public void testIsJdkVersionCompatible() {
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_7)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_8)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_9)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isFalse();
   }
 }

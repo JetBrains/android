@@ -125,6 +125,7 @@ public class IdeSdks {
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_11; // the largest LTS JDK compatible with SdkConstants.GRADLE_LATEST_VERSION = "6.1.1"
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -903,7 +904,17 @@ public class IdeSdks {
     if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
       return true;
     }
-    return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
+    JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
+    if (jdkVersion == null) {
+      return false;
+    }
+
+    return isJdkVersionCompatible(preferredVersion, jdkVersion);
+  }
+
+  @VisibleForTesting
+  boolean isJdkVersionCompatible(@NotNull JavaSdkVersion preferredVersion, @NotNull JavaSdkVersion jdkVersion) {
+    return jdkVersion.compareTo(preferredVersion) >= 0 && jdkVersion.compareTo(MAX_JDK_VERSION) <= 0;
   }
 
   /**
