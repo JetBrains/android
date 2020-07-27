@@ -76,6 +76,7 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/idea/.idea/libraries:Trove4j",
+        "//tools/idea/.idea/libraries:fastutil-min",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/service-container:intellij.platform.serviceContainer[module]",
