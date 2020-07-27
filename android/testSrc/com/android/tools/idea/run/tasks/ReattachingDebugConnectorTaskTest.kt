@@ -18,12 +18,15 @@ package com.android.tools.idea.run.tasks
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import org.jetbrains.android.AndroidTestCase
@@ -44,6 +47,9 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
   @Mock lateinit var mockLaunchInfo: LaunchInfo
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockStatus: ProcessHandlerLaunchStatus
+  @Mock lateinit var mockProcessHandler: ProcessHandler
+  @Mock lateinit var mockAndroidSessionInfo: AndroidSessionInfo
+  @Mock lateinit var mockDescriptor: RunContentDescriptor
   @Mock lateinit var mockClient: Client
   @Mock lateinit var mockClientData: ClientData
 
@@ -56,8 +62,11 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
 
     MockitoAnnotations.initMocks(this)
     baseConnector = TestConnectDebuggerTask()
-    printer = ProcessHandlerConsolePrinter(mock(ProcessHandler::class.java))
+    printer = ProcessHandlerConsolePrinter(mockProcessHandler)
 
+    `when`(mockStatus.processHandler).thenReturn(mockProcessHandler)
+    `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockAndroidSessionInfo)
+    `when`(mockAndroidSessionInfo.descriptor).thenReturn(mockDescriptor)
     `when`(mockClient.clientData).thenReturn(mockClientData)
     `when`(mockClientData.clientDescription).thenReturn(TEST_APP_PACKAGE_NAME)
     `when`(mockClientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
