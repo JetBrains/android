@@ -285,10 +285,11 @@ private fun getEmulatorBinary(): Path {
 }
 
 private fun getSystemImage(): Path {
-  // Bazel environment.
-  val workspaceRoot = TestUtils.getWorkspaceRoot().toPath()
-  val imageDir = workspaceRoot.resolve("external/system_image_latest_default_x86_64")
-  if (Files.exists(imageDir)) {
+  if (TestUtils.runningFromBazel()) {
+    // Bazel environment.
+    val workspaceRoot = TestUtils.getWorkspaceRoot().toPath()
+    val imageDir = workspaceRoot.resolve("external/system_image_latest_default_x86_64")
+    check(Files.exists(imageDir)) { "The ${imageDir} directory doesn't exist" }
     return imageDir
   }
 
@@ -296,9 +297,7 @@ private fun getSystemImage(): Path {
   val home = System.getProperty("user.home") ?: throw IllegalStateException("Failed to find user home directory")
   val homeDir = Paths.get(home)
   val systemImages = homeDir.resolve("Android/Sdk/system-images")
-  if (Files.notExists(systemImages)) {
-    throw throw IllegalStateException("The ${systemImages} directory doesn't exist")
-  }
+  check(Files.exists(systemImages)) { "The ${systemImages} directory doesn't exist" }
   val latestPlatform = TestUtils.getLatestAndroidPlatform()
   val latestPlatformDir = systemImages.resolve(latestPlatform)
   for (apis in arrayOf("google_apis_playstore", "google_apis", "default")) {
