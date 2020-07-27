@@ -239,13 +239,7 @@ public class GradlePropertyModelBuilder {
                                                              @NotNull GradleDslElement context) {
     GradleDslElement dslElement = context.resolveExternalSyntaxReference(name, false);
     if (dslElement == null) return null;
-    if (dslElement.getParent() != null) {
-      if (dslElement instanceof GradlePropertiesDslElement) {
-        GradlePropertiesDslElement parent = (GradlePropertiesDslElement)dslElement.getParent();
-        return create(parent, dslElement.getName()).build();
-      }
-    }
-    return create(dslElement).build();
+    return createModelFromDslElement(dslElement);
   }
 
   /**
@@ -259,6 +253,17 @@ public class GradlePropertyModelBuilder {
                                                               @NotNull GradleDslElement context) {
     GradleDslElement dslElement = context.resolveInternalSyntaxReference(name, false);
     if (dslElement == null) return null;
+    return createModelFromDslElement(dslElement);
+  }
+
+
+  /**
+   * Create and build a {@link GradlePropertyModel} from a dslElement.
+   * @param dslElement the dslElement
+   * @return a {@link GradlePropertyModel}
+   */
+  @NotNull
+  public static GradlePropertyModel createModelFromDslElement(@NotNull GradleDslElement dslElement) {
     if (dslElement.getParent() != null) {
       if (dslElement instanceof GradlePropertiesDslElement) {
         GradlePropertiesDslElement parent = (GradlePropertiesDslElement)dslElement.getParent();

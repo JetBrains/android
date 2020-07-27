@@ -50,13 +50,10 @@ public final class ReferenceTo {
    * Create a reference to a {@link SigningConfigModel}.
    * In this method the reference is set to a model, so we are dealing with internal names.
    * @param model the signingConfigModel we are trying to refer to.
-   * @param context the property context from which we are creating the reference.
    */
-  public ReferenceTo(@NotNull SigningConfigModel model, @NotNull GradlePropertyModel context) {
+  public ReferenceTo(@NotNull SigningConfigModel model) {
     myReferenceText = SIGNING_CONFIGS + "." + GradleNameElement.escape(model.name());
-    GradlePropertyModel referenceModel = GradlePropertyModelBuilder.getModelFromInternalText(myReferenceText, context.getRawPropertyHolder());
-    if (referenceModel == null) throw new RuntimeException("Can't create ReferenceTo for " + SIGNING_CONFIGS + "." + model.name());
-    propertyModel = referenceModel;
+    propertyModel = GradlePropertyModelBuilder.createModelFromDslElement(model.getDslElement());
   }
 
   /**

@@ -56,8 +56,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
       //  build that references the signingConfig by name, which we could in principle find by resolving the Psi: those should arguably
       //  be renamed too.
       for (GradleReferenceInjection dependent : myDslElement.getDependents()) {
-        GradlePropertyModel dependentModel = GradlePropertyModelBuilder.create(dependent.getOriginElement()).build();
-        dependent.getOriginElement().setValue(new ReferenceTo(this, dependentModel));
+        dependent.getOriginElement().setValue(new ReferenceTo(this));
       }
       renameModelDependents(storePassword());
       renameModelDependents(storeFile());
