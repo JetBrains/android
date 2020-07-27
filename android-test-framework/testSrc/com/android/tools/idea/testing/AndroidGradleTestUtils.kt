@@ -71,7 +71,6 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTa
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
 import com.android.tools.idea.gradle.project.sync.issues.syncIssues
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
@@ -781,7 +780,6 @@ fun setupTestProjectFromAndroidModel(
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      PostSyncProjectSetup.Request(),
       null
     )
     if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")

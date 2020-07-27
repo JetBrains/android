@@ -24,7 +24,6 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -36,15 +35,11 @@ import org.jetbrains.annotations.Nullable;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
-  @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
-
   @Nullable private final GradleSyncListener mySyncListener;
 
   ProjectSetUpTask(@NotNull Project project,
-                   @NotNull PostSyncProjectSetup.Request setupRequest,
                    @Nullable GradleSyncListener syncListener) {
     myProject = project;
-    mySetupRequest = setupRequest;
     mySyncListener = syncListener;
   }
 
@@ -53,7 +48,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    GradleSyncState.getInstance(myProject).setupStarted();
     doPopulateProject(projectInfo);
   }
 
@@ -61,7 +55,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
     try {
       IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-      task.populateProject(projectInfo, mySetupRequest, mySyncListener);
+      task.populateProject(projectInfo, mySyncListener);
     }
     finally {
       myProject.putUserData(FORCE_CREATE_DIRS_KEY, null);
@@ -94,6 +88,5 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (mySyncListener != null) {
       mySyncListener.syncFailed(myProject, messageWithGuide);
     }
-    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null);
   }
 }
