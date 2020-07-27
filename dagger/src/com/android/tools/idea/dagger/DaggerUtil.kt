@@ -69,6 +69,8 @@ private const val MODULES_ATTR_NAME = "modules"
 private const val DEPENDENCIES_ATTR_NAME = "dependencies"
 private const val SUBCOMPONENTS_ATTR_NAME = "subcomponents"
 
+private val injectedConstructorAnnotations = setOf(INJECT_ANNOTATION, DAGGER_VIEW_MODEL_INJECT_ANNOTATION, DAGGER_WORKER_INJECT_ANNOTATION)
+
 /**
  * Returns all classes annotated [annotationName] in a given [searchScope].
  */
@@ -126,7 +128,7 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
   val unboxedType = type.unboxed
   val project = scope.project ?: return emptyList()
   val search = DaggerAnnotatedElementsSearch.getInstance(project)
-  return search.searchParameterOfMethodAnnotatedWith(INJECT_ANNOTATION, scope, unboxedType) +
+  return injectedConstructorAnnotations.flatMap { search.searchParameterOfMethodAnnotatedWith(it, scope, unboxedType) } +
          search.searchParameterOfMethodAnnotatedWith(DAGGER_BINDS_ANNOTATION, scope, unboxedType) +
          search.searchParameterOfMethodAnnotatedWith(DAGGER_PROVIDES_ANNOTATION, scope, unboxedType)
 }
@@ -159,7 +161,7 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
  */
 private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiMethod> {
   val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
-  return clazz.constructors.filter { it.isInjected }
+  return clazz.constructors.filter { constructor -> injectedConstructorAnnotations.any { constructor.hasAnnotation(it) } }
 }
 
 /**
@@ -185,11 +187,10 @@ private fun getDaggerBindsMethodsForType(type: PsiType, scope: GlobalSearchScope
 }
 
 /**
- * True if PsiModifierListOwner has @Inject annotation.
+ * True if PsiField has @Inject annotation.
  */
-private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTATION) ||
-                                                    hasAnnotation(DAGGER_VIEW_MODEL_INJECT_ANNOTATION) ||
-                                                    hasAnnotation(DAGGER_WORKER_INJECT_ANNOTATION)
+private val PsiField.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
+
 /**
  * True if KtProperty has @Inject annotation.
  */
@@ -217,8 +218,8 @@ private val PsiElement?.isBindsMethod: Boolean
  * True if PsiElement is @Inject-annotated constructor.
  */
 private val PsiElement?.isInjectedConstructor: Boolean
-  get() = this is PsiMethod && isConstructor && isInjected ||
-          this is KtConstructor<*> && (this as? KtAnnotated)?.findAnnotation(FqName(INJECT_ANNOTATION)) != null
+  get() = this is PsiMethod && isConstructor && injectedConstructorAnnotations.any { this.hasAnnotation(it) } ||
+          this is KtConstructor<*> && injectedConstructorAnnotations.any { this.findAnnotation(FqName(it)) != null }
 
 private val PsiElement?.isBindsInstanceMethodOrParameter: Boolean
   get() {
