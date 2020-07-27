@@ -47,14 +47,14 @@ public class APIVersion implements Comparable<APIVersion> {
    * </ul>
    */
   @NotNull
-  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), GradleVersion.parse("4.2.0"));
+  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), GradleVersion.parse("4.2.0-alpha8"));
 
   /**
    * Model schema version supported in current API version. If developer's model schema version is larger than this,
-   * onlly fallback API will be generated.
+   * only fallback API will be generated.
    */
   @NotNull
-  private final SemVer myModelVersion;
+  private final SemVer myModelParserVersion;
 
   /**
    * Minimum gradle version need to support current API version, since real codegen implementation lives in gradle task.
@@ -77,7 +77,7 @@ public class APIVersion implements Comparable<APIVersion> {
       Logger.getInstance(APIVersion.class).warn("GradleVersion is null in project: " + project);
       return API_VERSION_1;
     }
-    if (gradleVersion.compareIgnoringQualifiers(API_VERSION_2.myGradleVersion) >= 0) {
+    if (gradleVersion.compareTo(API_VERSION_2.myGradleVersion) >= 0) {
       return API_VERSION_2;
     }
     else {
@@ -85,8 +85,8 @@ public class APIVersion implements Comparable<APIVersion> {
     }
   }
 
-  private APIVersion(@NotNull SemVer modelVersion, @NotNull GradleVersion gradleVersion) {
-    this.myModelVersion = modelVersion;
+  private APIVersion(@NotNull SemVer modelParserVersion, @NotNull GradleVersion gradleVersion) {
+    this.myModelParserVersion = modelParserVersion;
     this.myGradleVersion = gradleVersion;
   }
 
@@ -94,8 +94,21 @@ public class APIVersion implements Comparable<APIVersion> {
     return compareTo(apiVersion) >= 0;
   }
 
+  /**
+   * Returns {@code true} if we only generate fallback API. This happens if model required version is higher than
+   * the version existed in AGP.
+   */
+  public boolean generateFallbackApiOnly(@NotNull String minParserVersion) {
+    SemVer semVer = SemVer.parseFromText(minParserVersion);
+    if (semVer == null) {
+      Logger.getInstance(APIVersion.class).error("Model min parser version is null.");
+      return false;
+    }
+    return !myModelParserVersion.isGreaterOrEqualThan(semVer);
+  }
+
   @Override
   public int compareTo(@NotNull APIVersion o) {
-    return myGradleVersion.compareIgnoringQualifiers(o.myGradleVersion);
+    return myGradleVersion.compareTo(o.myGradleVersion);
   }
 }

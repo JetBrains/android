@@ -75,9 +75,9 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
       .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
     SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
 
-    // Mock test to have gradle version 4.2.0
+    // Mock test to have gradle version 4.2.0-alpha8
     File rootFile = new File(myFixture.getProject().getBasePath());
-    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0"));
+    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0-alpha8"));
     doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
     AndroidModuleModel androidModuleModel =
       spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile, IdeAndroidProjectImpl

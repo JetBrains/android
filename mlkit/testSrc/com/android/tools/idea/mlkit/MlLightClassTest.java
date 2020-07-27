@@ -97,9 +97,14 @@ public class MlLightClassTest extends AndroidTestCase {
       .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
     SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
 
-    // Mock test to have gradle version 4.2.0
+    // Mock test to have gradle version 4.2.0-alpha8
+    mockAGPVersion("4.2.0-alpha8");
+  }
+
+  private void mockAGPVersion(String version) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
     File rootFile = new File(myFixture.getProject().getBasePath());
-    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0"));
+    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub(version));
     doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
     AndroidModuleModel androidModuleModel =
       spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile, IdeAndroidProjectImpl
@@ -205,6 +210,58 @@ public class MlLightClassTest extends AndroidTestCase {
       "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();" +
       "            TensorBuffer styledimageBuffer = outputs.getStyledImageAsTensorBuffer();" +
       "            styleTransferModel.close();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
+  public void testHighlighting_newAPINotExistInLowAGP_java() {
+    mockAGPVersion("4.2.0-alpha7");
+    VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/ssd_model_v2.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
+    FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
+
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import android.graphics.RectF;\n" +
+      "import java.lang.String;\n" +
+      "import java.lang.Float;\n" +
+      "import java.util.Map;\n" +
+      "import java.util.List;\n" +
+      "import org.tensorflow.lite.support.image.TensorImage;\n" +
+      "import org.tensorflow.lite.support.label.Category;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "import org.tensorflow.lite.support.model.Model;\n" +
+      "import java.io.IOException;\n" +
+      "import p1.p2.ml.SsdModelV2;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            Model.Options options = new Model.Options();\n" +
+      "            TensorImage image = new TensorImage();\n" +
+      "            TensorBuffer buffer = new TensorBuffer();\n" +
+      "\n" +
+      "            SsdModelV2 ssdModelV2 = SsdModelV2.newInstance(this);\n" +
+      "            SsdModelV2.Outputs ssdOutputsV2 = ssdModelV2.process<error descr=\"'process(org.tensorflow.lite.support.tensorbuffer.TensorBuffer)' in 'p1.p2.ml.SsdModelV2' cannot be applied to '(org.tensorflow.lite.support.image.TensorImage)'\">(image)</error>;\n" +
+      "            ssdOutputsV2 = ssdModelV2.process(buffer);\n" +
+      "            TensorBuffer locationsV2 = ssdOutputsV2.getLocationsAsTensorBuffer();\n" +
+      "            TensorBuffer classesV2 = ssdOutputsV2.getClassesAsTensorBuffer();\n" +
+      "            TensorBuffer scoresV2 = ssdOutputsV2.getScoresAsTensorBuffer();\n" +
+      "            TensorBuffer numberofdetectionsV2 = ssdOutputsV2.getNumberOfDetectionsAsTensorBuffer();\n" +
+      "            List<SsdModelV2.<error descr=\"Cannot resolve symbol 'DetectionResult'\">DetectionResult</error>> results = ssdOutputsV2.<error descr=\"Cannot resolve method 'getDetectionResultList' in 'Outputs'\">getDetectionResultList</error>();\n" +
+      "            ssdModelV2.close();\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"

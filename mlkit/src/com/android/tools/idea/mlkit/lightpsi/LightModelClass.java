@@ -86,12 +86,14 @@ public class LightModelClass extends AndroidLightClassBase {
   private final APIVersion myAPIVersion;
   @NotNull
   private PsiMethod[] myConstructors;
+  private boolean myGenerateFallbackApiOnly;
 
   public LightModelClass(@NotNull Module module, @NotNull VirtualFile modelFile, @NotNull LightModelClassConfig classConfig) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myModelFile = modelFile;
     myClassConfig = classConfig;
     myAPIVersion = APIVersion.fromProject(module.getProject());
+    myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(getModelInfo().getMinParserVersion());
 
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
       myClassConfig.myClassName + SdkConstants.DOT_JAVA,
@@ -110,9 +112,11 @@ public class LightModelClass extends AndroidLightClassBase {
         if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_1)) {
           // Generated API added in version 1.
           methods.add(buildProcessMethod(modelInfo.getInputs(), false));
-          if (modelInfo.getInputs().stream().anyMatch(tensorInfo -> tensorInfo.isRGBImage())) {
-            // Adds #process fallback method.
-            methods.add(buildProcessMethod(modelInfo.getInputs(), true));
+          if (!myGenerateFallbackApiOnly) {
+            if (modelInfo.getInputs().stream().anyMatch(tensorInfo -> tensorInfo.isRGBImage())) {
+              // Adds #process fallback method.
+              methods.add(buildProcessMethod(modelInfo.getInputs(), true));
+            }
           }
           methods.add(buildCloseMethod());
           methods.addAll(buildNewInstanceStaticMethods());
@@ -246,7 +250,7 @@ public class LightModelClass extends AndroidLightClassBase {
     for (TensorInfo tensorInfo : tensorInfos) {
       PsiType tensorType = usedForFallback
                            ? PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, getProject(), scope)
-                           : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
+                           : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope, myGenerateFallbackApiOnly);
       method.addNullabilityParameter(tensorInfo.getIdentifierName(), tensorType, true);
     }
     method.setNavigationElement(this);
