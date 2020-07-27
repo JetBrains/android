@@ -348,7 +348,7 @@ public abstract class IconGenerator implements Disposable {
       @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     List<Callable<GeneratedIcon>> tasks = createIconGenerationTasks(context, options, name);
     List<Future<GeneratedIcon>> futures = new ArrayList<>(tasks.size());
-    List<GeneratedIcon> icons = new ArrayList<>(futures.size());
+    List<GeneratedIcon> icons = new ArrayList<>(tasks.size());
 
     Disposable taskCanceler = () -> {
       synchronized (futures) {

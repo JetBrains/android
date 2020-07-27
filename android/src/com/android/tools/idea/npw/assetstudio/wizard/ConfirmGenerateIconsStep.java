@@ -24,8 +24,6 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.ProportionalImageScaler;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -33,6 +31,8 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -78,7 +78,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   private Tree myOutputPreviewTree;
 
   private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
-  private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
+  private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
   public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
