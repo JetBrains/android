@@ -17,7 +17,6 @@ package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.util.androidFacet
@@ -47,7 +46,7 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
     return getAdditionalResolveScope(facet)
   }
 
-  private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
+  internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
     val module = facet.module
@@ -58,13 +57,27 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
         .mapNotNull { module -> module.androidFacet }
 
       val scopeIncludingDeps = allFacets
-        // TODO(b/157922851): Mixed kotlin/java projects are not supported
         .filter { it.safeArgsMode == SafeArgsMode.JAVA }
         .map { it.getLocalScope() }
         .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
       CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
+  }
+
+  private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
+    val lightClasses = mutableListOf<PsiClass>()
+    val moduleCache = SafeArgsCacheModuleService.getInstance(this)
+    lightClasses.addAll(moduleCache.directions)
+    lightClasses.addAll(moduleCache.directions.flatMap { it.innerClasses.toList() })
+    lightClasses.addAll(moduleCache.args)
+    lightClasses.addAll(moduleCache.args.flatMap { it.innerClasses.toList() })
+
+    // Light classes don't exist on disk, so you have to use their view provider to get a
+    // corresponding virtual file. This same virtual file should be used by finders to verify
+    // that classes they are returning belong to the current scope.
+    val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
+    return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
   }
 }
 
@@ -75,44 +88,10 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
  * Therefore, we provide one here that simply delegates to it.
  */
 class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
+  private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     val facet = module.androidFacet ?: return null
-    return getAdditionalResolveScope(facet)
+    return delegateEnlarger.getAdditionalResolveScope(facet)
   }
-
-  private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
-    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
-
-    val module = facet.module
-    val project = module.project
-    return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val allFacets = listOf(facet) + ModuleRootManager.getInstance(module)
-        .getDependencies(false)
-        .mapNotNull { module -> module.androidFacet }
-
-      val scopeIncludingDeps = allFacets
-        // If it's SafeArgsMode.KOTLIN mode, since we've already provided kt descriptors for resolving, no need for
-        // additional scope computation. Same for disabled mode cases.
-        .filter { it.safeArgsMode == SafeArgsMode.JAVA }
-        .map { it.getLocalScope() }
-        .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
-
-      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
-    }
-  }
-}
-
-private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
-  val lightClasses = mutableListOf<PsiClass>()
-  val moduleCache = SafeArgsCacheModuleService.getInstance(this)
-  lightClasses.addAll(moduleCache.directions)
-  lightClasses.addAll(moduleCache.args)
-  lightClasses.addAll(moduleCache.args.map { it.builderClass })
-
-  // Light classes don't exist on disk, so you have to use their view provider to get a
-  // corresponding virtual file. This same virtual file should be used by finders to verify
-  // that classes they are returning belong to the current scope.
-  val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
-  return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
 }

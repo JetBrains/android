@@ -44,8 +44,9 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
     lightClassesCache = cachedValuesManager.createCachedValue {
       val builders = component.modulesUsingSafeArgs
         .asSequence()
-        .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence()}
-        .map { it.builderClass }
+        .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
+        .flatMap { it.innerClasses.asSequence() }
+        .filterIsInstance<LightArgsBuilderClass>()
         .toList()
 
       CachedValueProvider.Result.create(builders,
