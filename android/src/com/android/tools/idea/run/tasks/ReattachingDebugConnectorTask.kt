@@ -19,12 +19,14 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 
 
 /**
@@ -67,7 +69,11 @@ class ReattachingDebugConnectorTask(private val base: ConnectDebuggerTask,
       if (base.myApplicationIds.contains(clientDescription)) {
         if (changeMask and CHANGE_MASK != 0 && data.debuggerConnectionStatus == ClientData.DebuggerStatus.WAITING) {
           ApplicationManager.getApplication().invokeLater {
-            base.launchDebugger(launchInfo, client, status, printer)
+            // Make sure the Android session is still active. b/156897049.
+            val descriptor = status.processHandler.getUserData(AndroidSessionInfo.KEY)?.descriptor
+            if (descriptor != null && !Disposer.isDisposed(descriptor) && !Disposer.isDisposing(descriptor)) {
+              base.launchDebugger(launchInfo, client, status, printer)
+            }
           }
         }
       }
