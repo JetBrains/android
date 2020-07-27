@@ -18,11 +18,11 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.ApiVersion
-import com.android.builder.model.SourceProvider
-import com.android.builder.model.SourceProviderContainer
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer
+import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProviderContainer
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
@@ -51,7 +51,7 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
   fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
   fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
-  private fun <T> T.providerBy(main: T.() -> SourceProvider, extra: T.() -> Collection<SourceProviderContainer>) =
+  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider, extra: T.() -> Collection<IdeSourceProviderContainer>) =
     when (artifactName) {
       ARTIFACT_NAME_MAIN -> main()
       else -> extra().singleOrNull { it.artifactName == artifactName }?.sourceProvider
@@ -62,12 +62,12 @@ internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) 
 internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
 internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
 
-internal fun AndroidModuleModel.collectAllSourceProviders(): List<SourceProvider> = collectAllProvidersFor(MAIN)
-internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(UNIT_TEST)
-internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(ANDROID_TEST)
+internal fun AndroidModuleModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
+internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
+internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
 
-private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<SourceProvider> =
-  mutableListOf<SourceProvider>().apply {
+private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
+  mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
       val artifact = variant.selectArtifact()
@@ -79,9 +79,9 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
     }
   }
 
-private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<SourceProvider> {
+private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
   val variants = androidProject.variants.filterIsInstance<IdeVariant>()
-  return mutableListOf<SourceProvider>().apply {
+  return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
       addAll(androidProject.productFlavors.mapNotNull { it.selectProvider() })

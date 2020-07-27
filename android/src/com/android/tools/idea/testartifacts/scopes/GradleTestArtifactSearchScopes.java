@@ -24,6 +24,7 @@ import static com.intellij.openapi.roots.DependencyScope.TEST;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -145,12 +146,12 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         // Special case where android tests correspond actually to the _main_ artifact (i.e. com.android.test plugin).
         // There is only instrumentation test artifacts in this project type so the whole directory is in testing scope.
         roots.add(androidModel.getRootDirPath());
-        for (SourceProvider sourceProvider : androidModel.getActiveSourceProviders()) {
+        for (IdeSourceProvider sourceProvider : androidModel.getActiveSourceProviders()) {
           roots.addAll(getAllSourceFolders(sourceProvider));
         }
       }
       else {
-        for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
+        for (IdeSourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
           roots.addAll(getAllSourceFolders(sourceProvider));
         }
 

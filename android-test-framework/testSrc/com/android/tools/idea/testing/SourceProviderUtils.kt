@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.builder.model.SourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -61,7 +61,7 @@ fun Project.dumpSourceProviders(): String {
       }
     }
 
-    fun SourceProvider.dumpPaths(name: String, getter: (SourceProvider) -> Collection<File>) =
+    fun IdeSourceProvider.dumpPaths(name: String, getter: (IdeSourceProvider) -> Collection<File>) =
       dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
 
     fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Collection<String>) =
@@ -70,7 +70,7 @@ fun Project.dumpSourceProviders(): String {
     fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Collection<VirtualFile?>) =
       dumpPathsCore(name, getter) { it?.url }
 
-    fun SourceProvider.dump() {
+    fun IdeSourceProvider.dump() {
       out(name)
       nest {
         dumpPaths("Manifest") { listOf(manifestFile) }
@@ -136,7 +136,7 @@ fun Project.dumpSourceProviders(): String {
             }
             val model = AndroidModuleModel.get(module)
 
-            fun SourceProvider.adjustedName() =
+            fun IdeSourceProvider.adjustedName() =
               if (name == "main") "_" else name
 
             fun NamedIdeaSourceProvider.adjustedName() =

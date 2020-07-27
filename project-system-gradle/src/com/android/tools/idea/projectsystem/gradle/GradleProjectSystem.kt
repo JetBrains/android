@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.SourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -149,7 +150,7 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
       model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) }
     )
 
-  fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
+  fun IdeSourceProvider.toIdeaSourceProvider() = all.getValue(this)
 
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),

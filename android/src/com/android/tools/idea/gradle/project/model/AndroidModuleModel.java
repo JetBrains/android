@@ -30,7 +30,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
@@ -40,6 +39,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
@@ -196,27 +196,27 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public SourceProvider getDefaultSourceProvider() {
+  public IdeSourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
   @NotNull
-  public List<SourceProvider> getActiveSourceProviders() {
+  public List<IdeSourceProvider> getActiveSourceProviders() {
     return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getUnitTestSourceProviders() {
+  public List<IdeSourceProvider> getUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getAndroidTestSourceProviders() {
+  public List<IdeSourceProvider> getAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
+  public List<IdeSourceProvider> getTestSourceProviders(@NotNull String artifactName) {
     switch (artifactName) {
       case ARTIFACT_ANDROID_TEST:
         return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
@@ -234,17 +234,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public List<SourceProvider> getAllSourceProviders() {
+  public List<IdeSourceProvider> getAllSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllSourceProviders(this);
   }
 
   @NotNull
-  public List<SourceProvider> getAllUnitTestSourceProviders() {
+  public List<IdeSourceProvider> getAllUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllUnitTestSourceProviders(this);
   }
 
   @NotNull
-  public List<SourceProvider> getAllAndroidTestSourceProviders() {
+  public List<IdeSourceProvider> getAllAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllAndroidTestSourceProviders(this);
   }
 
@@ -553,10 +553,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @Deprecated
   @NotNull
-  public List<SourceProvider> getFlavorSourceProviders() {
+  public List<IdeSourceProvider> getFlavorSourceProviders() {
     IdeVariant selectedVariant = getSelectedVariant();
     List<String> productFlavors = selectedVariant.getProductFlavors();
-    List<SourceProvider> providers = new ArrayList<>();
+    List<IdeSourceProvider> providers = new ArrayList<>();
     for (String flavor : productFlavors) {
       IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;

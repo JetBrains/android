@@ -42,8 +42,8 @@ import com.android.ide.common.gradle.model.IdeProductFlavorImpl
 import com.android.ide.common.gradle.model.IdeProjectIdentifierImpl
 import com.android.ide.common.gradle.model.IdeProjectSyncIssues
 import com.android.ide.common.gradle.model.IdeSigningConfigImpl
-import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeSourceProviderContainerImpl
+import com.android.ide.common.gradle.model.IdeSourceProviderImpl
 import com.android.ide.common.gradle.model.IdeSyncIssueImpl
 import com.android.ide.common.gradle.model.IdeTestOptionsImpl
 import com.android.ide.common.gradle.model.IdeTestedTargetVariantImpl
@@ -346,7 +346,7 @@ class ModelSerializationTest {
 
   @Test
   fun sourceProvider() =
-    assertSerializable { IdeSourceProvider.create(SourceProviderStub(), deduplicate = { this }) }
+    assertSerializable { IdeSourceProviderImpl.create(SourceProviderStub(), deduplicate = { this }) }
 
   @Test
   fun sourceProviderContainer() =
