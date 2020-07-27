@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -29,13 +28,10 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ProjectJdkSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
@@ -56,7 +52,6 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
 
   @Override
   public void setUpProject(@NotNull Project project) {
-    LanguageLevel javaLangVersion = JDK_1_8;
     Sdk projectJdk = ProjectRootManager.getInstance(project).getProjectSdk();
     Sdk ideJdk;
 
@@ -65,7 +60,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
     if (androidStudio) {
       ideJdk = myIdeSdks.getJdk();
     }
-    else if (projectJdk == null || !myJdks.isApplicableJdk(projectJdk, javaLangVersion)) {
+    else if (projectJdk == null || !myIdeSdks.isJdkCompatible(projectJdk)) {
       ideJdk = myIdeSdks.getJdk();
     }
     else {

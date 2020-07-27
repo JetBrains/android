@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -57,7 +57,7 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
     Sdk jdk = mock(Sdk.class);
 
     when(myIdeSdks.getJdk()).thenReturn(jdk);
-    when(myJdks.isApplicableJdk(jdk, JDK_1_7)).thenReturn(false);
+    when(myIdeSdks.isJdkCompatible(jdk, JDK_1_7)).thenReturn(false);
 
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 

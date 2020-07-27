@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -41,15 +44,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 
 public class JdkModuleSetupStep extends AndroidModuleSetupStep {
   private static final String PROJECT_CONFIGURATION_SYNC_MESSAGE_GROUP = "Project Configuration";
@@ -85,7 +83,7 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
       Sdk jdk = myIdeSdks.getJdk();
-      if (jdk != null && !myJdks.isApplicableJdk(jdk, JDK_1_7)) {
+      if (jdk != null && !IdeSdks.getInstance().isJdkCompatible(jdk, JDK_1_7)) {
         Project project = module.getProject();
 
         SyncMessage msg;

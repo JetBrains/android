@@ -16,7 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -77,7 +77,7 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
       }
       else {
         for (Sdk jdk : jdkTable.getAllJdks()) {
-          if (Jdks.getInstance().isApplicableJdk(jdk)) {
+          if (IdeSdks.getInstance().isJdkCompatible(jdk)) {
             myJavaSdk = jdk;
             break;
           }
