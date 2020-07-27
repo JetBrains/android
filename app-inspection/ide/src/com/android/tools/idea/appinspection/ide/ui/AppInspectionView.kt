@@ -28,10 +28,10 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
@@ -167,7 +167,7 @@ class AppInspectionView(
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
           }.client
-        }.transform { client ->
+        }.transform(MoreExecutors.directExecutor()) { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             var crashed = false
             override fun onCrashEvent(message: String) {

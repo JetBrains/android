@@ -49,10 +49,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 /**
- * Wrapper function to apply transform function to ListenableFuture after it get done
+ * @see Futures.transform
  */
-//TODO(b/151801197) remove default value for executor.
-fun <I, O> ListenableFuture<I>.transform(executor: Executor = directExecutor(), func: (I) -> O): ListenableFuture<O> {
+fun <I, O> ListenableFuture<I>.transform(executor: Executor, func: (I) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i!!) }, executor)
 }
 
@@ -77,18 +76,16 @@ fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: 
 /**
  * Transforms a [ListenableFuture] by throwing out the result.
  */
-fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform { null }
+fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform(directExecutor()) { null }
 
 /**
  * Wrapper function to convert Future to ListenableFuture
  */
-//TODO(b/151801197) remove default value for executor.
-fun <I> Future<I>.listenInPoolThread(executor: Executor = directExecutor()): ListenableFuture<I> {
+fun <I> Future<I>.listenInPoolThread(executor: Executor): ListenableFuture<I> {
   return JdkFutureAdapters.listenInPoolThread(this, executor)
 }
 
-//TODO(b/151801197) remove default value for executor.
-fun <I> List<Future<I>>.listenInPoolThread(executor: Executor = directExecutor()): List<ListenableFuture<I>> {
+fun <I> List<Future<I>>.listenInPoolThread(executor: Executor): List<ListenableFuture<I>> {
   return this.map { future: Future<I> -> future.listenInPoolThread(executor) }
 }
 
@@ -99,8 +96,7 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
-//TODO(b/151801197) remove default value for executor.
-fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
+fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
   addCallback(executor, object : FutureCallback<I> {
     override fun onFailure(t: Throwable?) {
       failure(t)
@@ -115,8 +111,7 @@ fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), s
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
-//TODO(b/151801197) remove default value for executor.
-fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), futureCallback: FutureCallback<I>) {
+fun <I> ListenableFuture<I>.addCallback(executor: Executor, futureCallback: FutureCallback<I>) {
   Futures.addCallback(this, futureCallback, executor)
 }
 
@@ -253,7 +248,7 @@ fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> 
     }
   })
 
-  futureResult.addCallback(directExecutor(), {}) {
+  futureResult.addCallback(executor, {}) {
     if (futureResult.isCancelled) {
       inputFuture.cancel(true)
     }
