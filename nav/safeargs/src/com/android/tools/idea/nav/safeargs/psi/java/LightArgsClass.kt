@@ -63,7 +63,7 @@ class LightArgsClass(facet: AndroidFacet,
   }
 
   private val NAV_ARGS_FQCN = "androidx.navigation.NavArgs"
-  val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
+  private val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
   private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(destination.id) }
