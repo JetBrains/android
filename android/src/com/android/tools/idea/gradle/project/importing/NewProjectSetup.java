@@ -62,6 +62,12 @@ public final class NewProjectSetup {
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new project");
     }
+
+    Sdk projectJdk = IdeSdks.getInstance().getJdk();
+    if (projectJdk != null) {
+      ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(newProject).setProjectSdk(projectJdk));
+    }
+
     return newProject;
   }
 
