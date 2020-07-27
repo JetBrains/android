@@ -54,23 +54,29 @@ public class CodeUtils {
   }
 
   /**
-   * Gets type name from {@link PsiClassType}.
+   * Gets type name from {@link PsiType}.
    *
    * <p>If it has parameters, add parameter name to type name. So {@code List<Category>} will become {@code CategoryList}.
    */
   @NotNull
-  public static String getTypeName(@NotNull PsiClassType psiClassType) {
-    PsiType[] psiTypes = psiClassType.getParameters();
-    if (ArrayUtils.isEmpty(psiTypes)) {
-      return psiClassType.getClassName();
+  public static String getTypeName(@NotNull PsiType psiType) {
+    if (psiType instanceof PsiClassType) {
+      PsiClassType psiClassType = (PsiClassType)psiType;
+      PsiType[] psiTypes = psiClassType.getParameters();
+      if (ArrayUtils.isEmpty(psiTypes)) {
+        return psiClassType.getClassName();
+      }
+      else {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (PsiType paramType : psiTypes) {
+          stringBuilder.append(paramType.getPresentableText());
+        }
+        stringBuilder.append(psiClassType.getClassName());
+        return stringBuilder.toString();
+      }
     }
     else {
-      StringBuilder stringBuilder = new StringBuilder();
-      for (PsiType psiType : psiTypes) {
-        stringBuilder.append(psiType.getPresentableText());
-      }
-      stringBuilder.append(psiClassType.getClassName());
-      return stringBuilder.toString();
+      return psiType.getPresentableText();
     }
   }
 }
