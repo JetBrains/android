@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.explorer
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
@@ -25,6 +27,9 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
+import org.mockito.InOrder
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.verify
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Supplier
@@ -47,6 +52,9 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
   private lateinit var foo2Bar2Entry: MockDeviceFileEntry
 
   private lateinit var fooBar1LocalPath: Path
+
+  private lateinit var progress: DownloadProgress
+  private lateinit var orderVerifier: InOrder
 
   override fun setUp() {
     super.setUp()
@@ -77,51 +85,83 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     fooBar1LocalPath = Paths.get(
       FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
     )
+
+    mockDeviceFileSystem.setDownloadFileChunkSize(1000) // download chunks of 1000 bytes at a time
+    mockDeviceFileSystem.setDownloadFileChunkIntervalMillis(10) // wait 10 millis between each 1000 bytes chunk
+
+    fooBar1Entry.size = 2000
+    fooBar2Entry.size = 2000
+
+    foo2Bar1Entry.size = 2000
+    foo2Bar1Entry.size = 2000
+
+    progress = mock()
+    orderVerifier = inOrder(progress)
   }
 
   fun testDownloadFilesFromSameDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"))
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"), progress)
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
     assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
     assertTrue(virtualFiles.getValue("/foo/bar2").path.endsWith("/foo/bar2"))
+
+    verify(progress).onStarting("/foo/bar1")
+    verify(progress).onStarting("/foo/bar2")
+    verify(progress).onProgress("/foo/bar1", 0, 2000)
+    verify(progress).onProgress("/foo/bar2", 0, 2000)
+    verify(progress).onProgress("/foo/bar1", 2000, 2000)
+    verify(progress).onProgress("/foo/bar2", 2000, 2000)
+    verify(progress).onCompleted("/foo/bar1")
+    verify(progress).onCompleted("/foo/bar2")
   }
 
   fun testDownloadFilesFromDifferentDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo2/bar1"))
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo2/bar1"), progress)
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
     assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
     assertTrue(virtualFiles.getValue("/foo2/bar1").path.endsWith("/foo2/bar1"))
+
+    verify(progress).onProgress("/foo/bar1", 0, 2000)
+    verify(progress).onProgress("/foo2/bar1", 0, 2000)
+    verify(progress).onProgress("/foo/bar1", 2000, 2000)
+    verify(progress).onProgress("/foo2/bar1", 2000, 2000)
   }
 
   fun testDownloadFilesMissingFile() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/barMissing"))
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/barMissing"), progress)
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
     assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
     assertEquals(1, virtualFiles.size)
+
+    orderVerifier.verify(progress).onProgress("/foo/bar1", 0, 2000)
+    orderVerifier.verify(progress).onProgress("/foo/bar1", 2000, 2000)
   }
 
   fun testDownloadFilesMissingDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/missingDir/bar"))
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/missingDir/bar"), progress)
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
     assertTrue(virtualFiles.getValue("/foo/bar1").path.endsWith("/foo/bar1"))
     assertEquals(1, virtualFiles.size)
+
+    orderVerifier.verify(progress).onProgress("/foo/bar1", 0, 2000)
+    orderVerifier.verify(progress).onProgress("/foo/bar1", 2000, 2000)
   }
 
   fun testDownloadEmptyList() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", emptyList())
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", emptyList(), progress)
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
