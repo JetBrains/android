@@ -23,6 +23,8 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
@@ -51,6 +53,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
   private lateinit var foo2Bar2Entry: MockDeviceFileEntry
 
   private lateinit var fooBar1LocalPath: Path
+  private lateinit var tempDirTestFixture: TempDirTestFixture
 
   override fun setUp() {
     super.setUp()
@@ -78,6 +81,14 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     fooBar1LocalPath = Paths.get(
       FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
     )
+
+    tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+    tempDirTestFixture.setUp()
+  }
+
+  override fun tearDown() {
+    tempDirTestFixture.tearDown()
+    super.tearDown()
   }
 
   fun testGetDefaultLocalPathForEntry() {
@@ -101,5 +112,16 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
     orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
     verifyNoMoreInteractions(downloadProgress)
+  }
+
+  fun testDeleteFile() {
+    // Prepare
+    val fileToDelete = tempDirTestFixture.createFile("newfile")
+
+    // Act
+    pumpEventsAndWaitForFuture(myDeviceExplorerFileManager.deleteFile(fileToDelete))
+
+    // Assert
+    assertFalse(fileToDelete.exists())
   }
 }

@@ -45,4 +45,14 @@ interface DeviceFileDownloaderService {
     onDevicePaths: List<String>,
     downloadProgress: DownloadProgress
   ): ListenableFuture<Map<String, VirtualFile>>
+
+  /**
+   * Deletes the [VirtualFile]s passed as argument, using the VFS.
+   *
+   * The returned future fails with IOException in case of problems during file deletion.
+   *
+   * There is no guarantee on the order files are going to be deleted in. To avoid issues on Windows they should all be closed
+   * and the caller should make sure to not delete a folder and the files inside it.
+   */
+  fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit>
 }
