@@ -1008,6 +1008,11 @@
   </applicationListeners>
 
   <projectListeners>
+    <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+  </projectListeners>
+
+  <projectListeners>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
   </projectListeners>
