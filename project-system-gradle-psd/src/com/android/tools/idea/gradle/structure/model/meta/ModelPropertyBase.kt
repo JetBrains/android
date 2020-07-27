@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.concurrency.transform
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 
 abstract class ModelPropertyBase<in ModelT, ValueT : Any> {
   abstract val parser: (String) -> Annotated<ParsedValue<ValueT>>
@@ -31,7 +32,7 @@ abstract class ModelPropertyBase<in ModelT, ValueT : Any> {
     override fun format(value: ValueT): String = formatter(value)
 
     override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> =
-      knownValuesGetter(model).transform {
+      knownValuesGetter(model).transform(directExecutor()) {
         object : KnownValues<ValueT> {
           private val knownValues = variableMatchingStrategy.prepare(it)
           override val literals: List<ValueDescriptor<ValueT>> = it

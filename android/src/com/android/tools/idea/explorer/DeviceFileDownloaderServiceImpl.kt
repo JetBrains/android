@@ -78,7 +78,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
 
         fileManager
           .downloadFileEntry(entry, localPath, FakeDownloadProgress())
-          .transform { file -> Pair(entry.fullPath, file) }
+          .transform(taskExecutor) { file -> Pair(entry.fullPath, file) }
       }
 
       Futures
@@ -111,7 +111,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       Futures
         // if the path is not found getEntry fails with IllegalArgumentException.
         .successfulAsList(futureEntries)
-        .transform { it.filterNotNull() }
+        .transform(taskExecutor) { it.filterNotNull() }
     }
   }
 
