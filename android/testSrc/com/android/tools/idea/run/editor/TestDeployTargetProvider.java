@@ -18,18 +18,16 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-class TestDeployTargetProvider extends DeployTargetProvider {
+public class TestDeployTargetProvider extends DeployTargetProvider {
   @NotNull
   private final TargetSelectionMode myMode;
 
   @NotNull
   private final String myDisplayName;
 
-  TestDeployTargetProvider(@NotNull TargetSelectionMode mode, @NotNull String displayName) {
+  public TestDeployTargetProvider(@NotNull TargetSelectionMode mode, @NotNull String displayName) {
     myMode = mode;
     myDisplayName = displayName;
   }
@@ -60,28 +58,12 @@ class TestDeployTargetProvider extends DeployTargetProvider {
   public final DeployTargetConfigurable createConfigurable(@NotNull Project project,
                                                            @NotNull Disposable parent,
                                                            @NotNull DeployTargetConfigurableContext context) {
-    return new Configurable();
-  }
-
-  private static final class Configurable implements DeployTargetConfigurable {
-    @Nullable
-    @Override
-    public JComponent createComponent() {
-      return null;
-    }
-
-    @Override
-    public void resetFrom(@NotNull Object state, int id) {
-    }
-
-    @Override
-    public void applyTo(@NotNull Object state, int id) {
-    }
+    return DeployTargetConfigurable.DEFAULT_CONFIGURABLE;
   }
 
   @NotNull
   @Override
-  public final DeployTarget getDeployTarget() {
+  public final DeployTarget getDeployTarget(@NotNull Project project) {
     throw new UnsupportedOperationException();
   }
 }

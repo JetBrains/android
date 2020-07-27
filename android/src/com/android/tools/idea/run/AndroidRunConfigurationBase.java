@@ -66,9 +66,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base {@link com.intellij.execution.configurations.RunConfiguration} for all Android run configs.
- *
+ * <p>
  * This class serves as the base model of Android build + run execution data.
- *
+ * <p>
  * Note this class inherits from {@link RunConfigurationWithSuppressedDefaultDebugAction} so as to
  * prevent the {@link com.intellij.debugger.impl.GenericDebuggerRunner} from recognizing this run
  * config as runnable. This allows Studio to disable the debug button when this type of run config
@@ -104,7 +104,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
       getOptions().setAllowRunningInParallel(true);
-    } else {
+    }
+    else {
       getOptions().setAllowRunningInParallel(!androidTests);
     }
   }
@@ -285,7 +286,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     stats.setUserSelectedTarget(context.getCurrentDeployTargetProvider().requiresRuntimePrompt(facet.getModule().getProject()));
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
-    DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
+    DeployTarget deployTarget = getDeployTarget(facet);
     if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
       return null;
     }
@@ -295,7 +296,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, hashCode());
+    DeviceFutures deviceFutures = deployTarget.getDevices(facet);
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
@@ -361,27 +362,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget(@NotNull Executor executor,
-                                       @NotNull ExecutionEnvironment env,
-                                       boolean debug,
-                                       @NotNull AndroidFacet facet) {
+  private DeployTarget getDeployTarget(@NotNull AndroidFacet facet) {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
     Project project = getProject();
 
     DeployTarget deployTarget;
 
     if (currentTargetProvider.requiresRuntimePrompt(project)) {
-      deployTarget =
-        currentTargetProvider.showPrompt(
-          executor,
-          env,
-          facet,
-          getDeviceCount(debug),
-          myAndroidTests,
-          getDeployTargetContext().getDeployTargetStates(),
-          hashCode(),
-          LaunchCompatibilityCheckerImpl.create(facet, env, this)
-        );
+      deployTarget = currentTargetProvider.showPrompt(facet);
       if (deployTarget == null) {
         return null;
       }
