@@ -24,6 +24,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -148,8 +149,8 @@ class ExcludedRoots {
     }
 
     String artifactName = artifact.getName();
-    List<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
-    for (SourceProvider sourceProvider : testSourceProviders) {
+    List<IdeSourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
+    for (IdeSourceProvider sourceProvider : testSourceProviders) {
       for (File file : getAllSourceFolders(sourceProvider)) {
         action.accept(file);
       }
@@ -250,7 +251,7 @@ class ExcludedRoots {
     return myExcludedRoots;
   }
 
-  public static Collection<File> getAllSourceFolders(SourceProvider provider) {
+  public static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {
     return Stream.of(
       provider.getJavaDirectories(),
       provider.getResDirectories(),

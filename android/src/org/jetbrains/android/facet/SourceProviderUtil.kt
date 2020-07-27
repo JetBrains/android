@@ -16,7 +16,7 @@
 @file:JvmName("SourceProviderUtil")
 package org.jetbrains.android.facet
 
-import com.android.builder.model.SourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ScopeType
@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
 @JvmOverloads
-fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
+fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
   return NamedIdeaSourceProviderImpl(
     it.name,
     scopeType,

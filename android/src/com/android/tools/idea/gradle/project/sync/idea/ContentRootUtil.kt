@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.SourceProvider
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -165,7 +165,7 @@ private fun IdeVariant.processGeneratedSources(
  * Processes all sources contained within this [SourceProvider] using the given [processor]. This
  * [processor] is called with the absolute path to the file and the type of the source.
  */
-private fun SourceProvider.processAll(
+private fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
