@@ -51,6 +51,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res [-]
             AssetsFolderRelativePath      : /src/main/assets
@@ -111,6 +112,8 @@ PROJECT             : testSwitchingVariants_simpleApplication
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out [-]
             Generated           : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/release [-]
             Generated           : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/release [-]
             Generated           : true

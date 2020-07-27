@@ -24,6 +24,7 @@ MODULE              : project.app
         MainArtifact
             ApplicationId       :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
+            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
@@ -179,6 +180,7 @@ MODULE              : project.app
             - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId       :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
+        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]

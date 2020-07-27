@@ -94,8 +94,14 @@ import java.io.File
  *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
  *
  *       Or with bazel:
-bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots  \
---jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
+```
+bazel test \
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+--test_output=streamed \
+--nocache_test_results \
+--strategy=TestRunner=standalone \
+//tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots
+ ```
  */
 abstract class GradleSyncProjectComparisonTest(
   private val singleVariantSync: Boolean = false
