@@ -4,10 +4,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -527,17 +523,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
-    final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
-    final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-
-    ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
-    try {
-      doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "28", "29");
-    }
-    finally {
-      ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
-    }
+    doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
+                             "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                             "26", "27", "28", "29");
   }
 }
