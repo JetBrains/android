@@ -89,6 +89,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -327,6 +328,18 @@ public class RenderTask {
       });
     } catch(Throwable t) {
       LOG.debug(t);
+    }
+  }
+
+  private void clearHandlerCallbacks() {
+    try {
+      Class<?> handlerDelegateClass = myLayoutlibCallback.findClass("android.os.Handler_Delegate");
+      Field runnableQueueField = handlerDelegateClass.getDeclaredField("sRunnablesQueues");
+      runnableQueueField.setAccessible(true);
+      WeakHashMap<?, ?> runnablesQueue = (WeakHashMap<?, ?>)runnableQueueField.get(null);
+      runnablesQueue.clear();
+    } catch (Throwable t) {
+      LOG.warn(t);
     }
   }
 
@@ -963,6 +976,7 @@ public class RenderTask {
           clearComposeTables();
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
+          clearHandlerCallbacks();
         });
       }
       catch (Exception e) {

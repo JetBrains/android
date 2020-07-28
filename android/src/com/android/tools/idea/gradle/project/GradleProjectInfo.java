@@ -21,9 +21,11 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFi
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
@@ -34,6 +36,8 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,11 +46,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -107,6 +114,9 @@ public class GradleProjectInfo {
     return ReadAction.compute(() -> {
       if (myProject.isDisposed()) {
         return false;
+      }
+      if (isBeingInitializedAsGradleProject(myProject)) {
+        return true;
       }
       if (Arrays.stream(ModuleManager.getInstance(myProject).getModules())
         .anyMatch(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it))) {
@@ -269,6 +279,38 @@ public class GradleProjectInfo {
       return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
     }
     return Module.EMPTY_ARRAY;
+  }
+
+  private static final Key<Set<File>> PROJECTS_BEING_INITIALIZED = Key.create("PROJECTS_BEING_INITIALIZED");
+
+  /**
+   * Registers the given location as the location of a new Gradle project which is being initialized.
+   *
+   * <p>This makes {@link #isBuildWithGradle()} return true for projects at this location.
+   *
+   * @return an access token which should be finalized when the project is initialized.
+   */
+  public static AccessToken beginInitializingGradleProjectAt(@NotNull File projectFolderPath) {
+    UserDataHolderEx userData = (UserDataHolderEx)ApplicationManager.getApplication();
+    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED, newConcurrentSet());
+    if (!projectsBeingInitialized.add(projectFolderPath)) {
+      throw new IllegalStateException(
+        "Cannot initialize two projects at the same location at the same time. Project location: " + projectFolderPath);
+    }
+    return new AccessToken() {
+      @Override
+      public void finish() {
+        projectsBeingInitialized.remove(projectFolderPath);
+      }
+    };
+  }
+
+  private static boolean isBeingInitializedAsGradleProject(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) return false;
+    Set<File> projectsBeingInitialized = ApplicationManager.getApplication().getUserData(PROJECTS_BEING_INITIALIZED);
+    if (projectsBeingInitialized == null) return false;
+    return projectsBeingInitialized.contains(new File(basePath));
   }
 
   private static boolean isProjectModule(@NotNull Module module) {

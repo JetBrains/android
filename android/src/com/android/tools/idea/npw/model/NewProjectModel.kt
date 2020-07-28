@@ -109,7 +109,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     val projectLocation = projectLocation.get()
     val projectBaseDirectory = File(projectLocation)
     project = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
-    GradleProjectImporter.configureNewProject(project)
     AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
       logger.info("Rendering a new project.")
       NonProjectFileWritingAccessProvider.disableChecksDuring {
