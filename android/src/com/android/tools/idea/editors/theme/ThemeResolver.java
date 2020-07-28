@@ -19,7 +19,6 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -34,6 +33,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -352,6 +352,6 @@ public class ThemeResolver {
 
   private static boolean isNamespacingEnabled(@NotNull Module module) {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
-    return repositoryManager != null && repositoryManager.getNamespacing() == AaptOptions.Namespacing.REQUIRED;
+    return repositoryManager != null && repositoryManager.getNamespacing() == Namespacing.REQUIRED;
   }
 }

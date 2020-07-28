@@ -33,6 +33,7 @@ import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
+import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
@@ -50,6 +51,7 @@ import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -598,8 +600,16 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   @Override
-  public AaptOptions.Namespacing getNamespacing() {
-    return myAndroidProject.getAaptOptions().getNamespacing();
+  public Namespacing getNamespacing() {
+    IdeAaptOptions.Namespacing namespacing = myAndroidProject.getAaptOptions().getNamespacing();
+    switch (namespacing) {
+      case DISABLED:
+        return Namespacing.DISABLED;
+      case REQUIRED:
+        return Namespacing.REQUIRED;
+      default:
+        throw new IllegalStateException("Unknown namespacing option: " + namespacing);
+    }
   }
 
   @NotNull

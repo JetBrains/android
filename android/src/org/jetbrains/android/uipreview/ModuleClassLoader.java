@@ -7,7 +7,6 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
@@ -16,6 +15,7 @@ import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -419,7 +419,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceRepository rClassContents;
     ResourceNamespace resourcesNamespace;
     String packageName;
-    if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+    if (repositoryManager.getNamespacing() == Namespacing.DISABLED) {
       packageName = getPackageName(library);
       if (packageName == null) {
         return;

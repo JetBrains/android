@@ -47,8 +47,6 @@ import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
-import com.android.builder.model.AaptOptions
-import com.android.builder.model.AaptOptions.Namespacing
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -77,6 +75,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -1056,7 +1055,7 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
 
   val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
 
-  return if (repositoryManager.namespacing == AaptOptions.Namespacing.DISABLED) {
+  return if (repositoryManager.namespacing == Namespacing.DISABLED) {
     // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
     // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
     // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.

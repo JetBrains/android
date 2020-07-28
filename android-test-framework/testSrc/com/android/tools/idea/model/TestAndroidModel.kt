@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.model
 
-import com.android.builder.model.AaptOptions
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.lint.detector.api.Desugaring
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,13 +31,13 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
   private val versionCode: Int? = null,
-  private val namespacing: AaptOptions.Namespacing = AaptOptions.Namespacing.DISABLED,
+  private val namespacing: Namespacing = Namespacing.DISABLED,
   private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT
 ) : AndroidModel {
 
   companion object {
     @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(
-      namespacing = AaptOptions.Namespacing.REQUIRED
+      namespacing = Namespacing.REQUIRED
     )
   }
 
@@ -52,7 +50,7 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
   override fun getVersionCode(): Int? = versionCode
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
-  override fun getNamespacing(): AaptOptions.Namespacing = namespacing
+  override fun getNamespacing(): Namespacing = namespacing
   override fun getDesugaring(): Set<Desugaring> = desugaringLevel
   override fun isGenerated(file: VirtualFile): Boolean = TODO("not implemented")
   override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean = TODO("not implemented")

@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom.converters
 
-import com.android.builder.model.AaptOptions.Namespacing.DISABLED
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveResourceNamespace
 import com.intellij.openapi.util.TextRange
@@ -51,7 +51,7 @@ class ResourceNamespaceReference(
 
     val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return null
 
-    if (prefixDeclaration != null && repositoryManager.namespacing != DISABLED) {
+    if (prefixDeclaration != null && repositoryManager.namespacing != Namespacing.DISABLED) {
       // TODO(b/76409654): In non-namespaced projects, namespaced resource references cannot rely on XML namespace definitions.
       return prefixDeclaration
     }

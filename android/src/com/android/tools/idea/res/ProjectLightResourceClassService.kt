@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions.Namespacing
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager

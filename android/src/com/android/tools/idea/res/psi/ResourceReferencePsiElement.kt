@@ -17,7 +17,6 @@ package com.android.tools.idea.res.psi
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_NAME
-import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.FileResourceNameValidator
@@ -25,6 +24,7 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
@@ -119,7 +119,7 @@ class ResourceReferencePsiElement(
       val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
       val facet = element.androidFacet
       val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
-      val resourceNamespace = if (AaptOptions.Namespacing.REQUIRED == namespacing) {
+      val resourceNamespace = if (Namespacing.REQUIRED == namespacing) {
         ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
       }
       else {
@@ -134,7 +134,7 @@ class ResourceReferencePsiElement(
         is ResourceRepositoryRClass -> {
           val facet = element.androidFacet
           val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
-          val resourceNamespace = if (AaptOptions.Namespacing.REQUIRED == namespacing) {
+          val resourceNamespace = if (Namespacing.REQUIRED == namespacing) {
             ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
           }
           else {

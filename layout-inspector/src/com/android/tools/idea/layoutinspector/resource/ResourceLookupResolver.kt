@@ -27,7 +27,6 @@ import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.PREFIX_THEME_REF
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
-import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -45,6 +44,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -103,7 +103,7 @@ fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
  */
 fun mapNamespace(facet: AndroidFacet?, namespace: ResourceNamespace): ResourceNamespace =
   when {
-    facet != null && facet.namespacing == AaptOptions.Namespacing.REQUIRED -> namespace
+    facet != null && facet.namespacing == Namespacing.REQUIRED -> namespace
     namespace == ResourceNamespace.ANDROID -> ResourceNamespace.ANDROID
     else -> ResourceNamespace.RES_AUTO
   }
@@ -115,7 +115,7 @@ fun mapNamespace(facet: AndroidFacet?, namespace: ResourceNamespace): ResourceNa
  * Map these into [ResourceNamespace.RES_AUTO] if the design resources are not using namespaces.
  */
 fun mapReference(facet: AndroidFacet?, reference: ResourceReference?): ResourceReference? =
-  if (reference == null || facet?.namespacing == AaptOptions.Namespacing.REQUIRED) reference
+  if (reference == null || facet?.namespacing == Namespacing.REQUIRED) reference
   else ResourceReference(mapNamespace(facet, reference.namespace), reference.resourceType, reference.name)
 
 /**
