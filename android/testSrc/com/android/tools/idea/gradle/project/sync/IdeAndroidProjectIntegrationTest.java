@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.tools.idea.testing.TestProjectPaths;
 
 /**

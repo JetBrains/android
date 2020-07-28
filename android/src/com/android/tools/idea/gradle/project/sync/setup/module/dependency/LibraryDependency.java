@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.ide.common.gradle.model.IdeMavenCoordinatesImpl.LOCAL_AARS;
+import static com.android.ide.common.gradle.model.impl.IdeMavenCoordinatesImpl.LOCAL_AARS;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;

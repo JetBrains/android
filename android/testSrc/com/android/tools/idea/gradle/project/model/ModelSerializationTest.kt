@@ -16,39 +16,39 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.Dependencies
-import com.android.ide.common.gradle.model.IdeAaptOptionsImpl
-import com.android.ide.common.gradle.model.IdeAndroidArtifactImpl
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutputImpl
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
-import com.android.ide.common.gradle.model.IdeApiVersionImpl
-import com.android.ide.common.gradle.model.IdeBuildTypeContainerImpl
-import com.android.ide.common.gradle.model.IdeBuildTypeImpl
-import com.android.ide.common.gradle.model.IdeClassFieldImpl
-import com.android.ide.common.gradle.model.IdeFilterDataImpl
-import com.android.ide.common.gradle.model.IdeInstantRunImpl
-import com.android.ide.common.gradle.model.IdeJavaArtifactImpl
-import com.android.ide.common.gradle.model.IdeJavaCompileOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
+import com.android.ide.common.gradle.model.impl.IdeClassFieldImpl
+import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl
+import com.android.ide.common.gradle.model.impl.IdeInstantRunImpl
+import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.ide.common.gradle.model.IdeLintOptions
-import com.android.ide.common.gradle.model.IdeMavenCoordinatesImpl
-import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.IdeNativeFileImpl
-import com.android.ide.common.gradle.model.IdeNativeSettingsImpl
-import com.android.ide.common.gradle.model.IdeNativeToolchainImpl
-import com.android.ide.common.gradle.model.IdeNativeVariantAbiImpl
-import com.android.ide.common.gradle.model.IdeOutputFileImpl
-import com.android.ide.common.gradle.model.IdeProductFlavorContainerImpl
-import com.android.ide.common.gradle.model.IdeProductFlavorImpl
-import com.android.ide.common.gradle.model.IdeProjectIdentifierImpl
-import com.android.ide.common.gradle.model.IdeSigningConfigImpl
-import com.android.ide.common.gradle.model.IdeSourceProviderContainerImpl
-import com.android.ide.common.gradle.model.IdeSourceProviderImpl
-import com.android.ide.common.gradle.model.IdeSyncIssueImpl
-import com.android.ide.common.gradle.model.IdeTestOptionsImpl
-import com.android.ide.common.gradle.model.IdeTestedTargetVariantImpl
-import com.android.ide.common.gradle.model.IdeVariantImpl
-import com.android.ide.common.gradle.model.IdeVectorDrawablesOptionsImpl
-import com.android.ide.common.gradle.model.IdeViewBindingOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeMavenCoordinatesImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeFileImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeSettingsImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeToolchainImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeVariantAbiImpl
+import com.android.ide.common.gradle.model.impl.IdeOutputFileImpl
+import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
+import com.android.ide.common.gradle.model.impl.IdeProjectIdentifierImpl
+import com.android.ide.common.gradle.model.impl.IdeSigningConfigImpl
+import com.android.ide.common.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
+import com.android.ide.common.gradle.model.impl.IdeSyncIssueImpl
+import com.android.ide.common.gradle.model.impl.IdeTestOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeTestedTargetVariantImpl
+import com.android.ide.common.gradle.model.impl.IdeVariantImpl
+import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
@@ -227,7 +227,10 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifact() =
-    assertSerializable { IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
+    assertSerializable {
+      IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache,
+                                                                                         dependenciesFactory, gradleVersion)
+    }
 
   @Test
   fun androidArtifactOutput() =
@@ -274,7 +277,10 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() =
-    assertSerializable { IdeJavaArtifactImpl(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
+    assertSerializable {
+      IdeJavaArtifactImpl(JavaArtifactStub(), modelCache, dependenciesFactory,
+                                                                                      gradleVersion)
+    }
 
   @Test
   fun javaCompileOptions() =
@@ -290,11 +296,15 @@ class ModelSerializationTest {
 
   @Test
   fun nativeAndroidProjectImpl() =
-    assertSerializable { IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()) }
+    assertSerializable {
+      IdeNativeAndroidProjectImpl(NativeAndroidProjectStub())
+    }
 
   @Test
   fun nativeArtifact() =
-    assertSerializable { IdeNativeArtifactImpl(NativeArtifactStub(), modelCache) }
+    assertSerializable {
+      IdeNativeArtifactImpl(NativeArtifactStub(), modelCache)
+    }
 
   @Test
   fun nativeFile() =
@@ -310,7 +320,9 @@ class ModelSerializationTest {
 
   @Test
   fun nativeVariantAbi() =
-    assertSerializable { IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache) }
+    assertSerializable {
+      IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache)
+    }
 
   @Test
   fun outputFile() =
@@ -328,11 +340,13 @@ class ModelSerializationTest {
 
   @Test
   fun projectIdentifier() =
-    assertSerializable { IdeProjectIdentifierImpl(object : Dependencies.ProjectIdentifier {
-      override fun getBuildId() = "/root/project1"
+    assertSerializable {
+      IdeProjectIdentifierImpl(object : Dependencies.ProjectIdentifier {
+        override fun getBuildId() = "/root/project1"
 
-      override fun getProjectPath() = ":"
-    }) }
+        override fun getProjectPath() = ":"
+      })
+    }
 
   @Test
   fun signingConfig() =
@@ -362,7 +376,10 @@ class ModelSerializationTest {
 
   @Test
   fun variant() =
-    assertSerializable { IdeVariantImpl(VariantStub(), modelCache, dependenciesFactory, gradleVersion) }
+    assertSerializable {
+      IdeVariantImpl(VariantStub(), modelCache, dependenciesFactory,
+                                                                                 gradleVersion)
+    }
 
   @Test
   fun vectorDrawablesOptions() =

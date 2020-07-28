@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.model;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 import com.android.builder.model.SyncIssue;
-import com.android.ide.common.gradle.model.IdeSyncIssueImpl;
+import com.android.ide.common.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
