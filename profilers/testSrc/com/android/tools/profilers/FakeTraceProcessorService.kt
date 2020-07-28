@@ -24,7 +24,6 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.CpuCoreModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
-import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import java.io.File
 import java.io.FileInputStream
 import java.io.ObjectInputStream
@@ -75,8 +74,14 @@ class FakeTraceProcessorService: TraceProcessorService {
 
   private val loadedTraces = mutableMapOf<Long, File>()
 
+  /**
+   * If true, will always return false on loadTrace() calls, to simulate when the daemon return a failure when attempting to
+   * load a trace file.
+   */
+  var forceFailLoadTrace = false
+
   override fun loadTrace(traceId: Long, traceFile: File, tracker: FeatureTracker): Boolean {
-    if (validTraces.contains(traceFile)) {
+    if (validTraces.contains(traceFile) && !forceFailLoadTrace) {
       loadedTraces[traceId] = traceFile
       return true
     } else {
