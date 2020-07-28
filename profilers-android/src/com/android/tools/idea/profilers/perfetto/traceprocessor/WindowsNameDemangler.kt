@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.intellij.ide.plugins.PluginManagerCore
+import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -44,8 +44,8 @@ import java.util.concurrent.TimeUnit
 class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
   private fun getLlvmCppFiltPath(): String {
     val exe = "x86_64-linux-android-c++filt.exe"
-    val result = if (PluginManagerCore.isRunningFromSources()) {
-      Paths.get(PathManager.getHomePath(), "..", "..", "prebuilts", "tools", "windows-x86_64", "lldb", "bin", exe)
+    val result = if (StudioPathManager.isRunningFromSources()) {
+      Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", "windows-x86_64", "lldb", "bin", exe)
     }
     else {
       Paths.get(PathManager.getBinPath(), "lldb", "bin", exe)
