@@ -31,11 +31,11 @@ import com.android.ide.common.gradle.model.IdeJavaCompileOptionsImpl
 import com.android.ide.common.gradle.model.IdeLintOptions
 import com.android.ide.common.gradle.model.IdeMavenCoordinatesImpl
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.IdeNativeArtifact
+import com.android.ide.common.gradle.model.IdeNativeArtifactImpl
 import com.android.ide.common.gradle.model.IdeNativeFileImpl
 import com.android.ide.common.gradle.model.IdeNativeSettingsImpl
 import com.android.ide.common.gradle.model.IdeNativeToolchainImpl
-import com.android.ide.common.gradle.model.IdeNativeVariantAbi
+import com.android.ide.common.gradle.model.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.IdeOutputFileImpl
 import com.android.ide.common.gradle.model.IdeProductFlavorContainerImpl
 import com.android.ide.common.gradle.model.IdeProductFlavorImpl
@@ -48,7 +48,7 @@ import com.android.ide.common.gradle.model.IdeTestOptionsImpl
 import com.android.ide.common.gradle.model.IdeTestedTargetVariantImpl
 import com.android.ide.common.gradle.model.IdeVariantImpl
 import com.android.ide.common.gradle.model.IdeVectorDrawablesOptionsImpl
-import com.android.ide.common.gradle.model.IdeViewBindingOptions
+import com.android.ide.common.gradle.model.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
@@ -76,7 +76,6 @@ import com.android.ide.common.gradle.model.stubs.NativeVariantAbiStub
 import com.android.ide.common.gradle.model.stubs.OutputFileStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
-import com.android.ide.common.gradle.model.stubs.ProjectSyncIssuesStub
 import com.android.ide.common.gradle.model.stubs.SigningConfigStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
@@ -295,7 +294,7 @@ class ModelSerializationTest {
 
   @Test
   fun nativeArtifact() =
-    assertSerializable { IdeNativeArtifact(NativeArtifactStub(), modelCache) }
+    assertSerializable { IdeNativeArtifactImpl(NativeArtifactStub(), modelCache) }
 
   @Test
   fun nativeFile() =
@@ -311,7 +310,7 @@ class ModelSerializationTest {
 
   @Test
   fun nativeVariantAbi() =
-    assertSerializable { IdeNativeVariantAbi(NativeVariantAbiStub(), modelCache) }
+    assertSerializable { IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache) }
 
   @Test
   fun outputFile() =
@@ -373,7 +372,7 @@ class ModelSerializationTest {
 
   @Test
   fun viewBindingOptions() {
-    assertSerializable { IdeViewBindingOptions(ViewBindingOptionsStub()) }
+    assertSerializable { IdeViewBindingOptionsImpl(ViewBindingOptionsStub()) }
   }
 
   @Test

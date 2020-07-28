@@ -63,6 +63,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
+import com.android.ide.common.gradle.model.IdeNativeVariantAbiImpl;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
@@ -355,7 +356,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       IdeNativeAndroidProject nativeProjectCopy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
       List<IdeNativeVariantAbi> ideNativeVariantAbis;
       if (variantGroup != null) {
-        ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbi::new);
+        ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbiImpl::new);
       }
       else {
         ideNativeVariantAbis = new ArrayList<>();
