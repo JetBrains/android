@@ -34,6 +34,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.sdklib.AndroidVersion;
@@ -343,7 +344,7 @@ public class GradleApkProvider implements ApkProvider {
                               boolean fromTestArtifact) throws ApkProvisionException {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
-    @SuppressWarnings("deprecation") List<AndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
+    @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
     return myBestOutputFinder.findBestOutput(variant, device, outputs);
   }
 

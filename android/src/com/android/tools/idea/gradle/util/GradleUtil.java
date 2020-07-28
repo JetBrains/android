@@ -175,7 +175,7 @@ public final class GradleUtil {
     else {
       List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
       if (outputs.isEmpty()) return null;
-      AndroidArtifactOutput output = getFirstItem(outputs);
+      IdeAndroidArtifactOutput output = getFirstItem(outputs);
       assert output != null;
       return output.getMainOutputFile().getOutputFile();
     }
