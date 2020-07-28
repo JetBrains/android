@@ -143,10 +143,13 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext sceneContext) {
     x = snapX(x);
     y = snapY(y);
-    super.mouseDrag(x, y, closestTargets);
+    super.mouseDrag(x, y, closestTargets, sceneContext);
   }
 
   @Override

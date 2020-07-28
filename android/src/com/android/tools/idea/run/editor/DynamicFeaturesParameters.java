@@ -205,7 +205,7 @@ public class DynamicFeaturesParameters {
   private DynamicFeatureRow createRow(@NotNull Module module, AvailableDeployTypes deployType) {
     if (deployType == AvailableDeployTypes.INSTANT_AND_INSTALLED) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
-      if (model != null && model.getSelectedVariant().isInstantAppCompatible()) {
+      if (model != null && model.getSelectedVariant().getInstantAppCompatible()) {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()));
       } else {
         return new DynamicFeatureRow(module, isFeatureEnabled(module.getName()), true, FeatureType.NON_INSTANT_DYNAMIC_FEATURE);

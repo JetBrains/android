@@ -88,7 +88,7 @@ class VisibilityPopupContent(
     c.ipady = MENU_INNER_PADDING
 
     c.gridwidth = 4
-    val androidText = JBLabel("Android:visibility")
+    val androidText = JBLabel("android:visibility")
     add(androidText, c)
 
     c.gridwidth = 1
@@ -109,7 +109,7 @@ class VisibilityPopupContent(
     c.fill = GridBagConstraints.NONE
     c.gridy++
     c.gridwidth = 4
-    val toolsText = JBLabel("Tools:visibility")
+    val toolsText = JBLabel("tools:visibility")
     add(toolsText, c)
 
     c.gridwidth = 1
@@ -177,11 +177,22 @@ class VisibilityPopupButtons(
     val isToolsAttr = uri == SdkConstants.TOOLS_URI
     val button = NlVisibilityButton()
     val item = ButtonPresentation(visibility, isToolsAttr)
+    item.updateBgWhenHovered = true
     button.update(item)
 
     button.addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
         onClick(button)
+      }
+
+      override fun mouseEntered(e: MouseEvent?) {
+        button.isHovered = true
+        button.parent.repaint()
+      }
+
+      override fun mouseExited(e: MouseEvent?) {
+        button.isHovered = false
+        button.parent.repaint()
       }
     })
 

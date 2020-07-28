@@ -17,7 +17,6 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
-import com.android.builder.model.AndroidProject
 import com.android.repository.api.RepoManager
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.RESOLVER_LOG
@@ -53,7 +52,7 @@ fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
 
 /**
  * Attempts to find a matching SDK that has been setup in the IDE matching the compile target that
- * was obtained from Gradle via the [AndroidProject].
+ * was obtained from Gradle via the [IdeAndroidProject].
  *
  * First we check to see if an Android Sdk that fits that compile target has already been registered,
  * if it has we use that one.

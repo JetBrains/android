@@ -379,11 +379,13 @@ public class AndroidFileChangeListener implements Disposable {
   }
 
   static class MyDocumentListener implements DocumentListener {
+    private final Project myProject;
     private final FileDocumentManager myFileDocumentManager;
     private final PsiDocumentManager myPsiDocumentManager;
     private final ResourceFolderRegistry myRegistry;
 
     private MyDocumentListener(@NotNull Project project, @NotNull ResourceFolderRegistry registry) {
+      myProject = project;
       myPsiDocumentManager = PsiDocumentManager.getInstance(project);
       myFileDocumentManager = FileDocumentManager.getInstance();
       myRegistry = registry;
@@ -391,6 +393,12 @@ public class AndroidFileChangeListener implements Disposable {
 
     @Override
     public void documentChanged(@NotNull DocumentEvent event) {
+      if (myProject.isDisposed()) {
+        // note that event may arrive from any project, not only from myProject
+        // myProject can be temporarily disposed in light tests
+        return;
+      }
+
       Document document = event.getDocument();
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {

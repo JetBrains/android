@@ -17,8 +17,9 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -298,7 +299,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify discovery host has only notified about the process that ran on >= O device.
     latch.await()
-    assertThat(processDescriptor.stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
+    assertThat(processDescriptor.toTransportImpl().stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
   }
 
   // Test the scenario where discovery encounters a device it has discovered before.

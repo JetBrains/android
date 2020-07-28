@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
@@ -29,7 +30,6 @@ import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
-import javax.annotation.concurrent.GuardedBy
 import kotlin.properties.Delegates
 
 

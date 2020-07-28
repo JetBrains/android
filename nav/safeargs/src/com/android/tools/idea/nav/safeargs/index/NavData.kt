@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.index
 
 import com.google.common.base.CaseFormat
+import com.intellij.util.containers.addIfNotNull
 
 /**
  * An argument parameter for a navigation destination.
@@ -32,6 +33,10 @@ interface NavArgumentData {
   val type: String?
   val defaultValue: String?
   val nullable: String?
+
+  fun isNonNull(): Boolean {
+    return nullable != "true" && defaultValue != "@null"
+  }
 }
 
 /**
@@ -39,11 +44,20 @@ interface NavArgumentData {
  * another.
  *
  * A destination may have zero or more actions.
+ *
+ * An action itself should point to a single target destination, which is usually set by `destination`,
+ * but could also just be set by `popUpTo` (which essentially means the user wants to navigate backwards
+ * to a destination that's in the back stack)
  */
 interface NavActionData {
   val id: String
-  val destination: String
+  val destination: String?
+  val popUpTo: String?
   val arguments: List<NavArgumentData>
+
+  fun resolveDestination(): String? {
+    return destination ?: popUpTo
+  }
 }
 
 /**
@@ -88,22 +102,46 @@ interface NavNavigationData : MaybeNavDestinationData {
       override val actions = this@NavNavigationData.actions
     }
   }
-
-  private val allNavigations: List<NavNavigationData>
-    get() = listOf(this) + navigations.flatMap { it.allNavigations }
-
-  val allDestinations: List<NavDestinationData>
-    get() {
-      val allNavigations = allNavigations // Avoid recalculating over and over
-      return allNavigations.mapNotNull { it.toDestination() } +
-             allNavigations
-               .flatMap { it.potentialDestinations }
-               .mapNotNull { it.toDestination() }
-    }
 }
 
 /**
  * Data class for storing the indexed content nav XML files, useful for generating relevant
  * safe args classes.
  */
-data class NavXmlData(val root: NavNavigationData)
+data class NavXmlData(val root: NavNavigationData) {
+  /**
+   * Returns a list of all destinations with global actions updated.
+   * (https://developer.android.com/guide/navigation/navigation-global-action)
+   *
+   * Global actions are collected along the path while traversing, and duplicates are resolved like actions overrides.
+   */
+  val resolvedDestinations: List<NavDestinationData> by lazy {
+    root.traverse(emptyList(), mutableListOf())
+  }
+
+  private fun NavNavigationData.traverse(
+    globalActions: List<NavActionData>,
+    allDestinations: MutableList<NavDestinationData>
+  ): List<NavDestinationData> {
+    allDestinations.addIfNotNull(this.toDestination()?.withGlobalActions(globalActions))
+
+    val newGlobalActions = (this.actions + globalActions).distinctBy { it.id }
+    this.potentialDestinations
+      .mapNotNull { it.toDestination()?.withGlobalActions(newGlobalActions) }
+      .let { allDestinations.addAll(it) }
+
+    this.navigations.map {
+      it.traverse(newGlobalActions, allDestinations)
+    }
+
+    return allDestinations
+  }
+
+  private fun NavDestinationData.withGlobalActions(globalActions: List<NavActionData>): NavDestinationData {
+    if (globalActions.isEmpty()) return this
+
+    return object : NavDestinationData by this {
+      override val actions = (this@withGlobalActions.actions + globalActions).distinctBy { it.id }
+    }
+  }
+}

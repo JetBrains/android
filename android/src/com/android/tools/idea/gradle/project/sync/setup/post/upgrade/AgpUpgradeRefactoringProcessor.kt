@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
@@ -43,11 +44,16 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.navigation.ItemPresentation
+import com.intellij.navigation.NavigationItem
+import com.intellij.navigation.PsiElementNavigationItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil.pluralize
+import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -56,9 +62,21 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import com.intellij.usages.Usage
+import com.intellij.usages.UsageGroup
+import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageTarget
+import com.intellij.usages.UsageView
+import com.intellij.usages.impl.rules.UsageType
+import com.intellij.usages.impl.rules.UsageTypeProvider
+import com.intellij.usages.rules.SingleParentUsageGroupingRule
+import com.intellij.usages.rules.UsageGroupingRule
+import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
+import javax.swing.Icon
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
 
@@ -176,6 +194,9 @@ class AgpUpgradeRefactoringProcessor(
       }
 
       override fun getProcessedElementsHeader() = "Upgrade AGP from $current to $new"
+
+      /** see [ComponentGroupingRuleProvider] for an explanation of this override */
+      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String = "References considered"
     }
   }
 
@@ -263,7 +284,7 @@ enum class AgpUpgradeComponentNecessity {
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
-abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
+sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
   val current: GradleVersion
   val new: GradleVersion
   private var _isEnabled: Boolean? = null
@@ -354,7 +375,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               else -> element.psiElement
             }
             psiElement?.let {
-              usages.add(AgpVersionUsageInfo(it, current, new, resultModel))
+              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE), current, new, resultModel))
             }
           }
           NO -> return@model
@@ -378,10 +399,14 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
       override fun getProcessedElementsHeader() = "Upgrade AGP classpath dependency version from $current to $new"
     }
   }
+
+  companion object {
+    val USAGE_TYPE = UsageType("Update version string")
+  }
 }
 
 class AgpVersionUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val resultModel: GradlePropertyModel
@@ -437,8 +462,9 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             if (!repositories.hasGoogleMavenRepository()) {
               // TODO(xof) if we don't have a psiElement, we should add a suitable parent (and explain what
               //  we're going to do in terms of that parent.  (But a buildscript block without a repositories block is unusual)
-              repositories.psiElement?.let {
-                element -> usages.add(RepositoriesNoGMavenUsageInfo(element, current, new, repositories, gradleVersion))
+              repositories.psiElement?.let { element ->
+                val wrappedElement = WrappedPsiElement(element, this, USAGE_TYPE)
+                usages.add(RepositoriesNoGMavenUsageInfo(wrappedElement, current, new, repositories, gradleVersion))
               }
             }
           }
@@ -462,10 +488,14 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       override fun getProcessedElementsHeader() = "Add google() GMaven to buildscript repositories"
     }
   }
+
+  companion object {
+    val USAGE_TYPE = UsageType("Add GMaven declaration")
+  }
 }
 
 class RepositoriesNoGMavenUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val repositoriesModel: RepositoriesModel,
@@ -507,7 +537,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(property.psiElement, current, new, gradleVersion))
+          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), current, new, gradleVersion))
         }
       }
     }
@@ -527,10 +557,14 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       override fun getProcessedElementsHeader() = "Upgrade Gradle version to $gradleVersion"
     }
   }
+
+  companion object {
+    val USAGE_TYPE = UsageType("Update Gradle distribution URL")
+  }
 }
 
 class GradleVersionUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val gradleVersion: GradleVersion
@@ -540,9 +574,10 @@ class GradleVersionUsageInfo(
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
-    //  does all that is necessary to save files, so we do that here to mimic that.
+    //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
+    //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = documentManager.getDocument(element!!.containingFile) ?: return
     if (documentManager.isDocumentBlockedByPsi(document)) {
@@ -573,6 +608,13 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   }
 
   override fun findComponentUsages(): Array<out UsageInfo> {
+    fun usageType(model: LanguageLevelPropertyModel): UsageType? = when {
+      model.psiElement != null -> EXISTING_DIRECTIVE_USAGE_TYPE
+      noLanguageLevelAction == INSERT_OLD_DEFAULT -> INSERT_OLD_USAGE_TYPE
+      noLanguageLevelAction == ACCEPT_NEW_DEFAULT -> ACCEPT_NEW_USAGE_TYPE
+      else -> null
+    }
+
     val usages = mutableListOf<UsageInfo>()
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
@@ -580,28 +622,41 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       val pluginNames = model.plugins().map { it.name().forceString() }
       pluginNames.firstOrNull { it.startsWith("java") || it == "application" }?.let { _ ->
         model.java().sourceCompatibility().let {
-          val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
+          val psiElement = listOf(it, model.java(), model).firstNotNullResult { model -> model.psiElement }!!
+          val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
+          val existing = it.psiElement != null
+          usages.add(JavaLanguageLevelUsageInfo(wrappedElement, current, new, it, existing, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.java().targetCompatibility().let {
-          val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
+          val psiElement = listOf(it, model.java(), model).firstNotNullResult { model -> model.psiElement }!!
+          val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
+          val existing = it.psiElement != null
+          usages.add(JavaLanguageLevelUsageInfo(wrappedElement, current, new, it, existing, noLanguageLevelAction, "targetCompatibility"))
         }
       }
 
       pluginNames.firstOrNull { it.startsWith("com.android") }?.let { _ ->
         model.android().compileOptions().sourceCompatibility().let {
-          val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "sourceCompatibility"))
+          val psiElement = listOf(it, model.android().compileOptions(), model.android(), model)
+            .firstNotNullResult { model -> model.psiElement }!!
+          val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
+          val existing = it.psiElement != null
+          usages.add(JavaLanguageLevelUsageInfo(wrappedElement, current, new, it, existing, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.android().compileOptions().targetCompatibility().let {
-          val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "targetCompatibility"))
+          val psiElement = listOf(it, model.android().compileOptions(), model.android(), model)
+            .firstNotNullResult { model -> model.psiElement }!!
+          val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
+          val existing = it.psiElement != null
+          usages.add(JavaLanguageLevelUsageInfo(wrappedElement, current, new, it, existing, noLanguageLevelAction, "targetCompatibility"))
         }
         pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
           model.android().kotlinOptions().jvmTarget().let {
-            val psiElement = it.psiElement ?: model.android().kotlinOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
-            usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, noLanguageLevelAction, "jvmOptions"))
+            val psiElement = listOf(it, model.android().kotlinOptions(), model.android(), model)
+              .firstNotNullResult { model -> model.psiElement }!!
+            val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
+            val existing = it.psiElement != null
+            usages.add(KotlinLanguageLevelUsageInfo(wrappedElement, current, new, it, existing, noLanguageLevelAction, "jvmTarget"))
           }
         }
       }
@@ -637,6 +692,10 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
+
+    val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType("Existing language level directive (leave unchanged)")
+    val ACCEPT_NEW_USAGE_TYPE = UsageType("Accept new default (leave unchanged)")
+    val INSERT_OLD_USAGE_TYPE = UsageType("Continue using Java 7 (insert language level directives)")
   }
 
   enum class NoLanguageLevelAction(val text: String) {
@@ -649,7 +708,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 }
 
 class JavaLanguageLevelUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val model: LanguageLevelPropertyModel,
@@ -680,7 +739,7 @@ class JavaLanguageLevelUsageInfo(
 }
 
 class KotlinLanguageLevelUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val model: LanguageLevelPropertyModel,
@@ -740,14 +799,16 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     fun maybeAddUsageForDependency(dependency: DependencyModel, compileReplacement: String, psiElement: PsiElement) {
       val configuration = dependency.configurationName()
       computeReplacementName(configuration, compileReplacement)?.let {
-        usages.add(ObsoleteConfigurationDependencyUsageInfo(psiElement, current, new, dependency, it))
+        val wrappedElement = WrappedPsiElement(psiElement, this, CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE)
+        usages.add(ObsoleteConfigurationDependencyUsageInfo(wrappedElement, current, new, dependency, it))
       }
     }
 
     fun maybeAddUsageForConfiguration(configuration: ConfigurationModel, compileReplacement: String, psiElement: PsiElement) {
       val name = configuration.name()
       computeReplacementName(name, compileReplacement)?.let {
-        usages.add(ObsoleteConfigurationConfigurationUsageInfo(psiElement, current, new, configuration, it))
+        val wrappedElement = WrappedPsiElement(psiElement, this, RENAME_CONFIGURATION_USAGE_TYPE)
+        usages.add(ObsoleteConfigurationConfigurationUsageInfo(wrappedElement, current, new, configuration, it))
       }
     }
 
@@ -806,11 +867,14 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   companion object {
     val IMPLEMENTATION_API_INTRODUCED = GradleVersion(3, 5, 0)
     val COMPILE_REMOVED = GradleVersion(5, 0, 0)
+
+    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType("Rename configuration")
+    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType("Change dependency configuration")
   }
 }
 
 class ObsoleteConfigurationDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val dependency: DependencyModel,
@@ -830,7 +894,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
 }
 
 class ObsoleteConfigurationConfigurationUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val configuration: ConfigurationModel,
@@ -846,5 +910,109 @@ class ObsoleteConfigurationConfigurationUsageInfo(
   override fun equals(other: Any?): Boolean {
     return super.equals(other) && other is ObsoleteConfigurationConfigurationUsageInfo &&
            configuration == other.configuration && newConfigurationName == other.newConfigurationName
+  }
+}
+
+/**
+ * This class is a [PsiElement] wrapper with additional fields to store [AgpUpgradeComponentRefactoringProcessor] metadata.
+ *
+ * We can't use the existing user data slot on the PsiElement, because an upgrade refactoring will in general have multiple
+ * Usages with the same PsiElement, and some of the protocol functions offer us nothing but the element to distinguish -- so
+ * we can't tell which of the usages a particular call corresponds to without something equivalent to this breaking of object
+ * identity.
+ */
+class WrappedPsiElement(
+  val realElement: PsiElement,
+  val processor: AgpUpgradeComponentRefactoringProcessor,
+  val usageType: UsageType?
+) : PsiElement by realElement, PsiElementNavigationItem {
+  // We override this PsiElement method in order to have it stored in the PsiElementUsage.
+  override fun getNavigationElement(): PsiElement = this
+  // We need to make sure that we wrap copies of us.
+  override fun copy(): PsiElement = WrappedPsiElement(realElement.copy(), processor, usageType)
+  // This is not the PsiElement we would get from parsing the text range in the element's file.
+  override fun isPhysical(): Boolean = false
+
+  // These Navigatable and NavigationItem methods can't just operate by delegation.
+  override fun navigate(requestFocus: Boolean) = (realElement as? Navigatable)?.navigate(requestFocus) ?: Unit
+  override fun canNavigate(): Boolean = (realElement as? Navigatable)?.canNavigate() ?: false
+  override fun canNavigateToSource(): Boolean = (realElement as? Navigatable)?.canNavigateToSource() ?: false
+
+  override fun getName(): String? = (realElement as? NavigationItem)?.getName()
+  // TODO(xof): see if overriding this makes a nice target appear
+  override fun getPresentation(): ItemPresentation? = (realElement as? NavigationItem)?.getPresentation()
+
+  // The target of our navigation will be the realElement.
+  override fun getTargetElement(): PsiElement = realElement
+}
+
+/**
+ * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
+ *
+ * This usage type provider will only provide a usage type if the element in question is a [WrappedPsiElement], which is not
+ * intended for use outside this package; it will return null in all other cases.  The [UsageType] it returns should give
+ * a high-level description of the effect the refactoring will have on this usage.
+ */
+class AgpComponentUsageTypeProvider : UsageTypeProvider {
+  override fun getUsageType(element: PsiElement?): UsageType? =
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) (element as? WrappedPsiElement)?.usageType else null
+}
+
+/**
+ * Usage Grouping by component.
+ *
+ * In [UsageView] and related classes (e.g. [UsageViewDescriptor], [UsageViewDescriptorAdapter]) there is the notion of grouping by
+ * various attributes: file, module, and so on.
+ *
+ * Superficially, the grouping by Usage Type looks like we could adapt or override it to our purpose: to provide a grouping of usages
+ * by component (on the assumption that that is a more meaningful grouping for the kind of whole-project refactoring that we are aiming
+ * to provide.  However, the UsageView apparatus allows us only to compute a UsageType from [PsiElement]s, not [UsageInfo]s, and in general
+ * we can have an arbitrary number of different [UsageInfo]s, with different semantics, related to the same [PsiElement].
+ *
+ * Therefore, we need our own [UsageGroupingRuleProvider].
+ *
+ * Unfortunately, the groups that providers can create cannot replace or interpose themselves between other provided rules.  We cannot
+ * replace, as far as I can tell, the Usage Type grouping -- at least not without re-implementing everything (or the "gross hack" as in
+ * ASwB's UsageGroupingRuleProviderOverride).  This is fine, in that it probably makes sense for the component grouping to be outermost,
+ * but it does render the default [UsageViewDescriptorAdapter.getCodeReferencesText] meaningless, as the usagesCount/filesCount arguments
+ * are apparently over the whole refactoring, not the group.
+ */
+class ComponentGroupingRuleProvider : UsageGroupingRuleProvider {
+  override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) arrayOf(ComponentGroupingRule()) else UsageGroupingRule.EMPTY_ARRAY
+  // TODO(xof): do we need createGroupingActions()?
+}
+
+class ComponentGroupingRule : SingleParentUsageGroupingRule() {
+  override fun getParentGroupFor(usage: Usage, targets: Array<out UsageTarget>?): UsageGroup? {
+    // TODO(xof): arguably we should have AgpComponentUsageInfo here
+    val usageInfo = (usage as? UsageInfo2UsageAdapter)?.usageInfo as? GradleBuildModelUsageInfo ?: return null
+    val wrappedElement = (usageInfo as? GradleBuildModelUsageInfo)?.element as? WrappedPsiElement ?: return null
+    return ComponentUsageGroup(wrappedElement.processor.commandName)
+  }
+
+  // The rank for this grouping rule is somewhat arbitrary.  It affects how the rule composes with other rules, but the
+  // other rules that we expect to be applicable to our usages are the built-in ones (e.g. groups by module, by file, by
+  // usage type), and the built-in ones all have an effective rank of Integer.MAX_VALUE, so as long as the rank we return
+  // here is less than that, we will get the desired behaviour of the component groups being closer to the tree root than
+  // built-in ones.  -42 is whimsically defensive against some other grouping rule coming along with a rank of 0, while
+  // allowing smaller and larger ranks if necessary.
+  override fun getRank(): Int = -42
+}
+
+data class ComponentUsageGroup(val usageName: String) : UsageGroup {
+  override fun navigate(requestFocus: Boolean) {}
+  override fun getIcon(isOpen: Boolean): Icon? = null
+  override fun getFileStatus(): FileStatus? = null
+  override fun update() {}
+  override fun canNavigate(): Boolean = false
+  override fun canNavigateToSource(): Boolean = false
+  override fun isValid(): Boolean = true
+
+  override fun getText(view: UsageView?): String = usageName
+
+  override fun compareTo(other: UsageGroup?): Int = when (other) {
+    is ComponentUsageGroup -> usageName.compareTo(other.usageName)
+    else -> -1
   }
 }

@@ -133,7 +133,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
   ): Collection<QualifiedDescriptor> {
-    return entry.data.root.allDestinations
+    return entry.data.resolvedDestinations
       .asSequence()
       .filter { destination -> destination.actions.isNotEmpty() }
       .mapNotNull { destination ->
@@ -168,12 +168,12 @@ class KtDescriptorCacheModuleService(val module: Module) {
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
   ): Collection<QualifiedDescriptor> {
-    return entry.data.root.allDestinations
+    return entry.data.resolvedDestinations
       .asSequence()
-      .filter { fragment -> fragment.arguments.isNotEmpty() }
-      .mapNotNull { fragment ->
+      .filter { destination -> destination.arguments.isNotEmpty() }
+      .mapNotNull { destination ->
 
-        val fqName = fragment.name.let { name ->
+        val fqName = destination.name.let { name ->
           val resolvedName = if (!name.startsWith('.')) name else "$modulePackage$name"
           resolvedName + "Args"
         }
@@ -182,7 +182,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
         val packageName = FqName(fqName.substringBeforeLast('.'))
 
         val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
-                                      ?.findXmlTagById(fragment.id)
+                                      ?.findXmlTagById(destination.id)
                                       ?.let {
                                         XmlSourceElement(
                                           SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
@@ -194,8 +194,8 @@ class KtDescriptorCacheModuleService(val module: Module) {
           listOf(ktType)
         }
 
-        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className, fragment,
-                                                        superTypesProvider, resolvedSourceElement, storageManager)
+        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className,
+                                                        destination, superTypesProvider, resolvedSourceElement, storageManager)
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }

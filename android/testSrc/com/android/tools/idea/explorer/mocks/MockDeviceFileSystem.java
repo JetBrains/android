@@ -101,7 +101,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     ListenableFuture<DeviceFileEntry> currentDir = getRootDirectory();
     myTaskExectuor.addCallback(currentDir, new FutureCallback<DeviceFileEntry>() {
       @Override
-      public void onSuccess(@javax.annotation.Nullable DeviceFileEntry result) {
+      public void onSuccess(@Nullable DeviceFileEntry result) {
         assert result != null;
 
         if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
@@ -134,7 +134,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     ListenableFuture<List<DeviceFileEntry>> entriesFuture = currentEntry.getEntries();
     myTaskExectuor.addCallback(entriesFuture, new FutureCallback<List<DeviceFileEntry>>() {
       @Override
-      public void onSuccess(@javax.annotation.Nullable List<DeviceFileEntry> result) {
+      public void onSuccess(@Nullable List<DeviceFileEntry> result) {
         assert result != null;
 
         Optional<DeviceFileEntry> entry = result

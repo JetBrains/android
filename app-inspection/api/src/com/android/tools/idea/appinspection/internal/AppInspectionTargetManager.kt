@@ -15,30 +15,37 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * A class that exclusively attaches, tracks, and disposes of [AppInspectionTarget].
  */
-@ThreadSafe
+@AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val executor: ExecutorService,
-  private val transportClient: TransportClient
+  private val transportClient: TransportClient,
+  private val scope: CoroutineScope
 ) : ProcessListener {
   @VisibleForTesting
-  internal val targets = ConcurrentHashMap<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
+  internal class TargetInfo(val targetFuture: ListenableFuture<AppInspectionTarget>, val projectName: String)
+
+  @VisibleForTesting
+  internal val targets = ConcurrentHashMap<ProcessDescriptor, TargetInfo>()
 
   /**
    * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future of [AppInspectionTarget] which can be
@@ -51,9 +58,11 @@ internal class AppInspectionTargetManager internal constructor(
     projectName: String
   ): ListenableFuture<AppInspectionTarget> {
     return targets.computeIfAbsent(processDescriptor) {
+      val processDescriptor = processDescriptor.toTransportImpl()
       val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-      attachAppInspectionTarget(transport, jarCopier, projectName)
-    }.also {
+      val targetFuture = attachAppInspectionTarget(transport, jarCopier, scope)
+      TargetInfo(targetFuture, projectName)
+    }.targetFuture.also {
       it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
         override fun onSuccess(result: AppInspectionTarget?) {}
         override fun onFailure(t: Throwable) {
@@ -71,9 +80,14 @@ internal class AppInspectionTargetManager internal constructor(
     targets.remove(descriptor)
   }
 
+  // Remove all current clients that belong to the provided project.
+  // We dispose targets that were done and attempt to cancel those that are not.
   internal fun disposeClients(project: String) {
-    targets.filterValues { target -> target.isDone && target.get().projectName == project }.keys.forEach {
-      targets.remove(it)?.get()?.dispose()
+    targets.filterValues { targetInfo ->
+      targetInfo.projectName == project
+    }.keys.forEach { process ->
+      val future = targets.remove(process)?.targetFuture ?: return@forEach
+      future.getDoneOrNull()?.dispose() ?: future.cancel(false)
     }
   }
 }

@@ -19,6 +19,7 @@ import static com.android.SdkConstants.TAG_VECTOR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.AnyThread;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.tools.adtui.validation.Validator;
@@ -40,7 +41,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import javax.annotation.concurrent.GuardedBy;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

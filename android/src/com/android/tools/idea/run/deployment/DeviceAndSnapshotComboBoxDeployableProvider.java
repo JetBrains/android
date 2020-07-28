@@ -18,46 +18,38 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.execution.configurations.RunConfiguration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployableProvider {
-  private final @NotNull AndroidFacet myFacet;
-  private final @NotNull ApplicationIdProvider myApplicationIdProvider;
-
-  public DeviceAndSnapshotComboBoxDeployableProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    myFacet = facet;
-    myApplicationIdProvider = applicationIdProvider;
-  }
-
-  @Override
-  public boolean isDependentOnUserInput() {
-    return false;
-  }
-
   @Nullable
   @Override
-  public Deployable getDeployable() throws ApkProvisionException {
-    if (Disposer.isDisposed(myFacet)) {
+  public Deployable getDeployable(@NotNull RunConfiguration runConfiguration) throws ApkProvisionException {
+    if (!(runConfiguration instanceof AndroidRunConfigurationBase)) {
       return null;
     }
+    AndroidRunConfigurationBase androidRunConfiguration = (AndroidRunConfigurationBase)runConfiguration;
 
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(myFacet.getModule().getProject());
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(androidRunConfiguration.getProject());
 
     if (devices.size() != 1) {
       return null;
     }
 
-    return new DeployableDevice(devices.get(0), myApplicationIdProvider.getPackageName());
+    ApplicationIdProvider applicationIdProvider = androidRunConfiguration.getApplicationIdProvider();
+    if (applicationIdProvider == null) {
+      return null;
+    }
+    return new DeployableDevice(devices.get(0), applicationIdProvider.getPackageName());
   }
 
   private static final class DeployableDevice implements Deployable {

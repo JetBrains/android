@@ -20,6 +20,8 @@ import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
+import com.android.utils.usLocaleCapitalize
+import com.android.utils.usLocaleDecapitalize
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -33,7 +35,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 
 internal val MODIFIERS_PUBLIC_CONSTRUCTOR = arrayOf(PsiModifier.PUBLIC)
-internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
+internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC)
 internal val MODIFIERS_STATIC_PUBLIC_METHOD = MODIFIERS_PUBLIC_METHOD + arrayOf(PsiModifier.STATIC)
 
 private const val STRING_FQCN = "java.lang.String"
@@ -160,7 +162,7 @@ internal fun PsiClass.createConstructor(
 
 internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag? = null): LightFieldBuilder {
   val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-  val nonNull = psiType is PsiPrimitiveType || arg.nullable != "true"
+  val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
   val navigationElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
   val fallback = this.navigationElement
   return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
@@ -172,8 +174,8 @@ internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, x
  * Annotate the target type with the proper nullability based on the <argument> nullable
  * attribute.
  */
-internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = null): PsiType {
-  val nonNull = psiType is PsiPrimitiveType || nullable != "true"
+internal fun PsiClass.annotateNullability(psiType: PsiType, isNonNull: Boolean = true): PsiType {
+  val nonNull = psiType is PsiPrimitiveType || isNonNull
 
   return project.annotateType(psiType, nonNull, context)
 }
@@ -192,5 +194,5 @@ internal fun PsiClass.createMethod(
     }
 }
 
-internal fun String.toCamelCase() = this.toUpperCamelCase().decapitalize()
-internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.capitalize() }
+internal fun String.toCamelCase() = this.toUpperCamelCase().usLocaleDecapitalize()
+internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.usLocaleCapitalize() }

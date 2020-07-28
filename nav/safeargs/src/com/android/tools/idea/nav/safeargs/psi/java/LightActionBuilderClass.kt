@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
-import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -36,13 +37,13 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class LightActionBuilderClass(
   className: String,
-  private val targetDestination: NavDestinationData,
   private val backingResourceFile: XmlFile?,
   facet: AndroidFacet,
   private val modulePackage: String,
-  private val directionsClass: LightDirectionsClass
-) : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL)) {
-  private val NAV_DIRECTIONS_FQCN  = "androidx.navigation.NavDirections"
+  private val directionsClass: LightDirectionsClass,
+  private val action: NavActionData
+) : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
+  private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
   private val qualifiedName: String = "${directionsClass.qualifiedName}.$name"
   private val _constructors by lazy { computeConstructors() }
@@ -62,8 +63,6 @@ class LightActionBuilderClass(
 
   override fun getImplementsListTypes() = arrayOf(navDirectionsType)
   override fun getSuperTypes() = arrayOf(navDirectionsType)
-  override fun getSuperClassType() = navDirectionsType
-  override fun getSuperClass() = navDirectionsClass
   override fun getSupers() = navDirectionsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getMethods() = _methods
@@ -75,17 +74,17 @@ class LightActionBuilderClass(
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
 
-    return targetDestination.arguments.flatMap { arg ->
+    return action.arguments.flatMap { arg ->
       // Create a getter and setter per argument
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod(name = "set${arg.name.capitalize()}",
+      val setter = createMethod(name = "set${arg.name.usLocaleCapitalize()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
         .addParameter(arg.name, argType)
 
-      val getter = createMethod(name = "get${arg.name.capitalize()}",
+      val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(argType, arg.nullable))
+                                returnType = annotateNullability(argType, arg.isNonNull()))
 
       listOf(setter, getter)
     }.toTypedArray()
@@ -93,7 +92,7 @@ class LightActionBuilderClass(
 
   private fun computeConstructors(): Array<PsiMethod> {
     val privateConstructor = createConstructor().apply {
-      targetDestination.arguments.forEach { arg ->
+      action.arguments.forEach { arg ->
         if (arg.defaultValue == null) {
           val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
           this.addParameter(arg.name, argType)
@@ -106,8 +105,11 @@ class LightActionBuilderClass(
   }
 
   private fun computeFields(): Array<PsiField> {
-    val targetDestinationTag = backingResourceFile?.findXmlTagById(targetDestination.id) ?: return emptyArray()
-    return targetDestination.arguments
+    val destinationId = action.resolveDestination() ?: return emptyArray()
+    val targetDestinationTag = backingResourceFile?.findXmlTagById(destinationId)
+    // TODO(b/161369564): It can be overridden arguments, so corresponding parent tag is the targetDestinationTag. This can be
+    //  implemented after we support 'getParent'.
+    return action.arguments
       .asSequence()
       .map { createField(it, modulePackage, targetDestinationTag) }
       .toList()

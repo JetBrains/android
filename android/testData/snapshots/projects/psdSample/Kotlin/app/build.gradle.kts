@@ -84,7 +84,7 @@ android {
         }
         create("otherBar") {
             setDimension("bar")
-            matchingFallbacks = mutableListOf("bar")
+            setMatchingFallbacks("bar")
             resConfig("en")
             resConfigs("hdpi", "xhdpi")
         }

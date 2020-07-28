@@ -47,10 +47,14 @@ import com.android.tools.idea.naveditor.model.isSelfAction
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
+import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavActionSourceHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavDestinationHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavHorizontalActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavSelfActionHitProvider
 import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.NewDestinationLayoutAlgorithm
-import com.android.tools.idea.naveditor.scene.targets.NavActionTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -319,8 +323,16 @@ open class NavSceneManager(
   public override fun getHitProvider(component: NlComponent): HitProvider {
     return when {
       component.supportsActions -> NavActionSourceHitProvider
-      isHorizontalAction(component) -> NavHorizontalActionHitProvider
+      component.isAction -> getActionHitProvider(component)
       else -> NavDestinationHitProvider
+    }
+  }
+
+  private fun getActionHitProvider(component: NlComponent): HitProvider {
+    return when (component.getActionType(root)) {
+      ActionType.GLOBAL, ActionType.EXIT -> NavHorizontalActionHitProvider
+      ActionType.SELF -> NavSelfActionHitProvider
+      else -> NavRegularActionHitProvider
     }
   }
 
@@ -508,10 +520,6 @@ open class NavSceneManager(
           }
           sceneComponent.setSize(x.toInt(), y.toInt())
         }
-      }
-      else if (sceneComponent.nlComponent.isAction) {
-        sceneComponent.setTargetProvider(NavActionTargetProvider)
-        sceneComponent.updateTargets()
       }
     }
   }

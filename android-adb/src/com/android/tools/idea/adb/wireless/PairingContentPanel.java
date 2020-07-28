@@ -38,18 +38,11 @@ public class PairingContentPanel {
   @NotNull private JPanel myBottomLeftPanel;
 
   public PairingContentPanel() {
-    setTitlePanelBorder(myQrCodeTitlePanel, 0);
-    setTitlePanelBorder(myPinCodeTitlePanel, 1);
+    EditorPaneUtils.setTitlePanelBorder(myQrCodeTitlePanel, 0);
+    EditorPaneUtils.setTitlePanelBorder(myPinCodeTitlePanel, 1);
     setBottomPanelBorder(myBottomLeftPanel, 0);
     setBottomPanelBorder(myHelpLinkPanel, 1);
     myPinCodePanel.setBorder(new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, 1, 0, 0));
-  }
-
-  private static void setTitlePanelBorder(@NotNull JComponent panel, int leftPixels) {
-    Border line = new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, leftPixels, 1, 0);
-    Border c = new CompoundBorder(line, JBUI.Borders.empty(5, 10));
-    panel.setBorder(c);
-    panel.setMinimumSize(new JBDimension(0, 30));
   }
 
   private static void setBottomPanelBorder(@NotNull JComponent panel, int leftPixels) {

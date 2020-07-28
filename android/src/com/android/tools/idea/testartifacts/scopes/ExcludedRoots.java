@@ -21,7 +21,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -163,7 +162,7 @@ class ExcludedRoots {
    * <p>These folders are added to the classpath by {@link AndroidJunitPatcher} and potentially filtered out by this class via
    * {@link GradleTestArtifactSearchScopes}.
    */
-  public static List<File> getAdditionalClasspathFolders(@NotNull BaseArtifact artifact) {
+  public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
     return ImmutableList.<File>builder()
       .add(artifact.getJavaResourcesFolder())
       .addAll(artifact.getAdditionalClassesFolders())

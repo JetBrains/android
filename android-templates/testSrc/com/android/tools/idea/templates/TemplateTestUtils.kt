@@ -241,8 +241,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
       targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
       minApi = ApiVersion(AndroidVersion.VersionCodes.M, AndroidVersion.VersionCodes.M.toString()),
       // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P),
-      buildApiRevision = null
+      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
     )
   }
 }

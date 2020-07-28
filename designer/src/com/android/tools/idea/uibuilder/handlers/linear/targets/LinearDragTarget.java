@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -70,7 +71,10 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext ignored) {
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
     myComponent.setDragging(true);

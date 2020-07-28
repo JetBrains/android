@@ -57,27 +57,29 @@ class DeployableFileTest {
   }
 
   @Test
-  fun getDirPrefersReleaseDirOverDevDir() {
+  fun getDirIsReleaseDir() {
     val releaseDir = temporaryFolder.newFolder("release")
     temporaryFolder.newFolder("dev")
 
     val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(false)
+      .setHomePath(temporaryFolder.root.absolutePath)
       .build()
 
     assertThat(hostFile.dir).isEqualTo(releaseDir)
   }
 
   @Test
-  fun getDirIsDevDirIfNoReleaseDir() {
+  fun getDirIsDevDir() {
     val devDir = temporaryFolder.newFolder("dev")
 
     val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     assertThat(hostFile.dir).isEqualTo(devDir)

@@ -142,14 +142,14 @@ class ViewContextMenuFactoryTest {
 
     val selectView = createdGroup?.getChildren(null)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(null)
-    assertThat(views.map { it.templateText }).containsExactly("rootId", "viewName", "myText").inOrder()
+    assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
     views[1].actionPerformed(mock())
     assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
   }
 }
 
@@ -211,13 +211,13 @@ class ViewContextMenuFactoryLegacyTest {
 
     val selectView = createdGroup?.getChildren(null)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(null)
-    assertThat(views.map { it.templateText }).containsExactly("rootId", "viewName", "myText").inOrder()
+    assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
     views[1].actionPerformed(mock())
     assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
   }
 }

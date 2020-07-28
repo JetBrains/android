@@ -144,6 +144,13 @@ public class RenderService implements Disposable {
     }
   }
 
+  /**
+   * Returns true if the current thread is the render thread managed by this executor.
+   */
+  public static boolean isCurrentThreadARenderThread() {
+    return ourExecutor.isCurrentThreadARenderThread();
+  }
+
   @VisibleForTesting
   protected RenderService(@NotNull Project project) {
     myProject = project;

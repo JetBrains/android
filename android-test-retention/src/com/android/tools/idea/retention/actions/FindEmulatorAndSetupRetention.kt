@@ -25,11 +25,15 @@ import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -57,6 +61,8 @@ private const val LOAD_SNAPSHOT_FRACTION = 0.7
 private const val CLIENTS_READY_FRACTION = 0.8
 private const val DEBUGGER_CONNECTED_FRACTION = 0.9
 
+private const val NOTIFICATION_GROUP_NAME = "Retention Snapshot Load"
+
 /**
  * An action to load an Android Test Retention snapshot.
  */
@@ -73,11 +79,21 @@ class FindEmulatorAndSetupRetention : AnAction() {
         override fun run(indicator: ProgressIndicator) {
           indicator.isIndeterminate = false
           indicator.fraction = 0.0
-          // TODO(b/154140562): we currently don't have the emulator ID, so just use the first running emulator.
+          val deviceName = dataContext.getData(DEVICE_NAME_KEY)
           val catalog = RunningEmulatorCatalog.getInstance()
           val emulators = catalog.updateNow().get()
           if (emulators != null) {
-            val emulatorController = emulators.iterator().next()
+            val emulatorController = if (deviceName != null) {
+              emulators.find { it.emulatorId.avdId == deviceName }
+            } else {
+              emulators.iterator().next()
+            }
+            if (emulatorController == null) {
+              if (deviceName == null) {
+                showErrorMessage(project, "Cannot find running emulators with matching AVD name. Expected device: ${deviceName}")
+              }
+              return
+            }
             if (emulatorController.connectionState != EmulatorController.ConnectionState.CONNECTED) {
               emulatorController.connectGrpc()
             }
@@ -87,7 +103,10 @@ class FindEmulatorAndSetupRetention : AnAction() {
             val shouldAttachDebugger = dataContext.getData(RETENTION_AUTO_CONNECT_DEBUGGER_KEY) ?: false
             val packageName = dataContext.getData(PACKAGE_NAME_KEY) ?: return
             if (!shouldAttachDebugger) {
-              emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)
+              if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+                showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
+                                          + "command line parameters as you run the test.")
+              }
               return
             }
 
@@ -120,7 +139,8 @@ class FindEmulatorAndSetupRetention : AnAction() {
             AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
             try {
               if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
-                LOG.warn("Failed to import snapshots.")
+                showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
+                  + "command line parameters as you run the test.")
                 return
               }
               indicator.fraction = LOAD_SNAPSHOT_FRACTION
@@ -132,8 +152,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
               throw exception
             }
             if (adbDevice == null) {
-              // TODO(b/156287594): pop up error dialogues
-              LOG.warn("Failed to connect to device.")
+              showErrorMessage(project, "Failed to connect to device.")
               return
             }
 
@@ -325,3 +344,8 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
 }
 
 private val LOG = logger<FindEmulatorAndSetupRetention>()
+private val NOTIFICATION_GROUP = NotificationGroup(NOTIFICATION_GROUP_NAME, NotificationDisplayType.BALLOON)
+
+private fun showErrorMessage(project: Project, message: String) {
+  NOTIFICATION_GROUP.createNotification(message, NotificationType.ERROR).notify(project)
+}

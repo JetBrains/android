@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -174,8 +175,11 @@ public class GenericLinearDragHandler extends DragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @JdkConstants.InputEventMask int modifiers) {
-    super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x,
+                       @AndroidDpCoordinate int y,
+                       @JdkConstants.InputEventMask int modifiers,
+                       @NotNull SceneContext sceneContext) {
+    super.update(x, y, modifiers, sceneContext);
 
     boolean isVertical = myVertical;
 

@@ -42,6 +42,7 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.EditorTextField
@@ -149,12 +150,15 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act/Assert
     view.setDatabases(listOf(database1, database2), database1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(mockPsiManager).dropPsiCaches()
 
     view.setDatabases(listOf(database1, database2), database2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(mockPsiManager, times(3)).dropPsiCaches()
 
     comboBox.selectedIndex = 0
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(mockPsiManager, times(4)).dropPsiCaches()
   }
 
@@ -170,6 +174,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     view.schemaChanged(database)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(mockPsiManager, times(2)).dropPsiCaches()

@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.TEST_JAR
@@ -31,11 +32,10 @@ class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppIns
   override val displayName = inspectorId
   override val inspectorAgentJar = TEST_JAR
 
-  override fun createTab(
-    project: Project,
-    messenger: AppInspectorClient.CommandMessenger,
-    ideServices: AppInspectionIdeServices
-  ): AppInspectorTab {
+  override fun createTab(project: Project,
+                         ideServices: AppInspectionIdeServices,
+                         processDescriptor: ProcessDescriptor,
+                         messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
       override val client: AppInspectorClient = StubTestAppInspectorClient(messenger)
       override val component = JPanel()

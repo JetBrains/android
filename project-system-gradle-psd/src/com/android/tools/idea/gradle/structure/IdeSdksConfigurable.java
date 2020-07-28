@@ -385,7 +385,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       }
     }
 
-    File envVarPath = ideSdks.getEnvVariableJdk();
+    File envVarPath = ideSdks.getEnvVariableJdkFile();
     if (envVarPath != null) {
       comboBox.addItem(new LabelAndFileForLocation(JDK_LOCATION_ENV_VARIABLE_NAME, envVarPath));
     }

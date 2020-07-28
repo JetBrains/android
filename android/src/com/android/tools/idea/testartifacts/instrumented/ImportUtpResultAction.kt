@@ -21,20 +21,25 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
+import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
-import java.io.InputStream
 
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
@@ -42,6 +47,7 @@ import java.io.InputStream
 class ImportUtpResultAction : AnAction() {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
+    private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
   }
 
   /**
@@ -69,17 +75,34 @@ class ImportUtpResultAction : AnAction() {
   @VisibleForTesting
   fun parseResultsAndDisplay(file: File, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
-    val toolWindow = getToolWindow(project)
-    val testSuiteView = AndroidTestSuiteView(disposable, project, null)
-    val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
-    contentManager.addContent(content)
-    val testAdapter = UtpTestResultAdapter(testSuiteView)
-    // TODO: error handling
-    project.coroutineScope.launch {
-      testAdapter.importResult(file)
+    try {
+      val testAdapter = UtpTestResultAdapter(file)
+      val packageName = testAdapter.getPackageName()
+      val module = ModuleManager.getInstance(project).modules.find {
+        getPackageName(it) == packageName
+      }
+      if (module == null) {
+        NOTIFICATION_GROUP.createNotification("Cannot find corresponding module. Some features might not be available. Did you "
+                                              + "import the test results from a different project?", NotificationType.WARNING)
+          .notify(project)
+      }
+      val testSuiteView = AndroidTestSuiteView(disposable, project, module)
+      val toolWindow = getToolWindow(project)
+      val contentManager = toolWindow.contentManager
+      val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
+      contentManager.addContent(content)
+
+      project.coroutineScope.launch {
+        testAdapter.forwardResults(testSuiteView)
+      }
+      toolWindow.activate(null)
     }
-    toolWindow.activate(null)
+    catch (exception: InvalidProtocolBufferException) {
+      NOTIFICATION_GROUP.createNotification("Failed to import protobuf with exception: " + exception.toString(),
+                                            NotificationType.ERROR)
+        .notify(project)
+      throw exception
+    }
   }
 
   /**

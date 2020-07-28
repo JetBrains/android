@@ -70,6 +70,9 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       p.setEnabled(necessity == MANDATORY_CODEPENDENT || necessity == MANDATORY_INDEPENDENT);
       if (p.isEnabled()) {
         sb.append("<li>").append(p.getCommandName());
+        if (p.isAlwaysNoOpForProject()) {
+          sb.append(" (no effect on this project)");
+        }
         String url = p.getReadMoreUrl();
         if (url != null) {
           sb.append(" [<a href='").append(url).append("'>read more</a>]");

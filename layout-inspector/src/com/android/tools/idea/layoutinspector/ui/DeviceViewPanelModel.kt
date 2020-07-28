@@ -39,7 +39,16 @@ import kotlin.math.sqrt
 
 val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
-data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: DrawViewNode, val clip: Rectangle)
+data class ViewDrawInfo(
+  val bounds: Shape,
+  val transform: AffineTransform,
+  val node: DrawViewNode,
+  val clip: Rectangle,
+  val hitLevel: Int,
+  val isCollapsed: Boolean
+)
+
+private data class LevelListItem(val node: DrawViewNode, val clip: Rectangle, val isCollapsed: Boolean)
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
@@ -120,13 +129,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val isActive
     get() = !model.isEmpty
 
-  fun findViewsAt(x: Double, y: Double): List<ViewNode> =
-    hitRects.asSequence()
+  /**
+   * Find all the views drawn under the given point, in order from closest to farthest from the front, except
+   * if the view is an image drawn by a parent at a different depth, the depth of the parent is used rather than
+   * the depth of the child.
+   */
+  fun findViewsAt(x: Double, y: Double): Sequence<ViewNode> =
+    hitRects.asReversed()
+      .asSequence()
       .filter { it.bounds.contains(x, y) }
+      .sortedByDescending { it.hitLevel }
       .map { it.node.owner }
-      .toList()
+      .distinct()
 
-  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).lastOrNull()
+  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
 
   fun rotate(xRotation: Double, yRotation: Double) {
     xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)
@@ -148,7 +164,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     }
     val root = model.root
 
-    val levelLists = mutableListOf<MutableList<Pair<DrawViewNode, Rectangle>>>()
+    val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
     root.drawChildren.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
     maxDepth = levelLists.size
@@ -158,7 +174,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.second }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      rootBounds = levelLists[0].map { it.clip }.reduce { acc, bounds -> acc.apply { add(bounds) } }
       transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
       // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
@@ -179,7 +195,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   private fun buildLevelLists(root: DrawViewNode,
                               parentClip: Rectangle,
-                              levelListCollector: MutableList<MutableList<Pair<DrawViewNode, Rectangle>>>,
+                              levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int) {
     var childClip = parentClip
     var newLevelIndex = levelListCollector.size
@@ -196,18 +212,15 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         newLevelIndex += minLevel + 1
       }
       val levelList = levelListCollector.getOrElse(newLevelIndex) {
-        mutableListOf<Pair<DrawViewNode, Rectangle>>().also { levelListCollector.add(it) }
+        mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
       }
       childClip = parentClip.intersection(root.owner.bounds)
-      levelList.add(Pair(root, childClip))
-      if (root is DrawViewChild) {
+      levelList.add(LevelListItem(root, childClip, false))
+      if (!root.canCollapse) {
         // Add leading images to this level
-        for (drawChild in root.owner.drawChildren) {
-          if (drawChild !is DrawViewImage) {
-            break
-          }
-          levelList.add(Pair(drawChild, childClip))
-        }
+        root.owner.drawChildren
+          .takeWhile { it.canCollapse }
+          .mapTo(levelList) { LevelListItem(it, childClip, true) }
       }
     }
     if (root is DrawViewChild) {
@@ -226,10 +239,13 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   private fun rebuildRectsForLevel(transform: AffineTransform,
                                    magnitude: Double,
                                    angle: Double,
-                                   allLevels: List<List<Pair<DrawViewNode, Rectangle>>>,
+                                   allLevels: List<List<LevelListItem>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
+    val ownerToLevel = mutableMapOf<ViewNode, Int>()
+
     allLevels.forEachIndexed { level, levelList ->
-      levelList.forEach { (view, clip) ->
+      levelList.forEach { (view, clip, isCollapsed) ->
+        val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
@@ -239,7 +255,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
         val rect = viewTransform.createTransformedShape(view.owner.bounds)
-        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip, hitLevel, isCollapsed))
       }
     }
   }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,8 +54,6 @@ public class EmbeddedDistributionPaths {
   @NotNull
   static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
     List<File> repoPaths = new ArrayList<>();
-    // Repo path candidates, the path should be relative to tools/idea.
-    List<String> repoCandidates = new ArrayList<>();
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
@@ -64,19 +63,26 @@ public class EmbeddedDistributionPaths {
       }
       repoPaths.add(customRepoPath);
     }
-    else {
-      repoCandidates.add("/../../out/repo");
-    }
 
-    // Add locally published offline studio repo
-    repoCandidates.add("/../../out/studio/repo");
-    // Add prebuilts repo.
-    repoCandidates.add("/../../prebuilts/tools/common/m2/repository");
+    if (StudioPathManager.isRunningFromSources()) {
+      // Repo path candidates, the path should be relative to tools/idea.
+      List<String> repoCandidates = new ArrayList<>();
 
-    for (String candidate : repoCandidates) {
-      File offlineRepo = new File(toCanonicalPath(PathManager.getHomePath() + toSystemDependentName(candidate)));
-      if (offlineRepo.isDirectory()) {
-        repoPaths.add(offlineRepo);
+      if (studioCustomRepo == null) {
+        repoCandidates.add("out/repo");
+      }
+
+      // Add locally published offline studio repo
+      repoCandidates.add("out/studio/repo");
+      // Add prebuilts repo.
+      repoCandidates.add("prebuilts/tools/common/m2/repository");
+
+      String sourcesRoot = StudioPathManager.getSourcesRoot();
+      for (String candidate : repoCandidates) {
+        File offlineRepo = new File(toCanonicalPath(Paths.get(sourcesRoot, candidate).toString()));
+        if (offlineRepo.isDirectory()) {
+          repoPaths.add(offlineRepo);
+        }
       }
     }
 
@@ -85,50 +91,51 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform() {
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
-    if (file.exists()) {
-      return file;
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development build
+      return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
+    } else {
+      return new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     }
-
-    // Development build
-    String relativePath = toSystemDependentName("/../../bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
-    return new File(PathManager.getHomePath() + relativePath);
   }
 
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
-    File distributionPath = getDefaultRootDirPath();
-    if (distributionPath != null) {
+    //noinspection IfStatementWithIdenticalBranches
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development build.
+      String sourcesRoot = StudioPathManager.getSourcesRoot();
+      String relativePath = toSystemDependentName("tools/external/gradle");
+      File distributionPath = new File(toCanonicalPath(Paths.get(sourcesRoot, relativePath).toString()));
+      if (distributionPath.isDirectory()) {
+        return distributionPath;
+      }
+
+      // Development build.
+      String localDistributionPath = System.getProperty("local.gradle.distribution.path");
+      if (localDistributionPath != null) {
+        distributionPath = new File(toCanonicalPath(localDistributionPath));
+        if (distributionPath.isDirectory()) {
+          return distributionPath;
+        }
+      }
+
+      return null;
+    } else {
       // Release build
       Logger log = getLog();
-      File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
-      log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-      if (embeddedPath.isDirectory()) {
-        log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
-        return embeddedPath;
+      File distributionPath = getDefaultRootDirPath();
+      if (distributionPath == null) {
+        File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
+        log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
+        if (embeddedPath.isDirectory()) {
+          log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
+          return embeddedPath;
+        }
       }
       log.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
       return null;
     }
-
-    // Development build.
-    String ideHomePath = getIdeHomePath();
-    String relativePath = toSystemDependentName("/../../tools/external/gradle");
-    distributionPath = new File(toCanonicalPath(ideHomePath + relativePath));
-    if (distributionPath.isDirectory()) {
-      return distributionPath;
-    }
-
-    // Development build.
-    String localDistributionPath = System.getProperty("local.gradle.distribution.path");
-    if (localDistributionPath != null) {
-      distributionPath = new File(toCanonicalPath(localDistributionPath));
-      if (distributionPath.isDirectory()) {
-        return distributionPath;
-      }
-    }
-
-    return null;
   }
 
   @Nullable

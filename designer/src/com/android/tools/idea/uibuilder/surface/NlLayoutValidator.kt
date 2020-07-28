@@ -50,6 +50,8 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
 
   private val listeners = HashSet<Listener>()
 
+  val metricTracker = NlLayoutValidatorMetricTracker(lintIntegrator)
+
   init {
     Disposer.register(parent, this)
   }
@@ -83,6 +85,7 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
       validatorResult.issues.forEach { lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap)) }
       lintIntegrator.populateLints()
       result = validatorResult
+      metricTracker.trackResult(result)
     } finally {
       viewToComponent.clear()
       idToComponent.clear()

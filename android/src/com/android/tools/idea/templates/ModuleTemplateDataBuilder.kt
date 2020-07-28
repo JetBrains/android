@@ -117,7 +117,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   fun setFacet(facet: AndroidFacet) {
     projectTemplateDataBuilder.setEssentials(facet.module.project)
 
-    val target = AndroidPlatform.getInstance(facet.module)?.target
     val moduleInfo = AndroidModuleInfo.getInstance(facet)
     val targetSdkVersion = moduleInfo.targetSdkVersion
     val buildSdkVersion = moduleInfo.buildSdkVersion ?: targetSdkVersion
@@ -128,9 +127,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       targetApi = ApiVersion(targetSdkVersion.featureLevel, targetSdkVersion.apiString),
       minApi = ApiVersion(minSdkVersion.featureLevel, minSdkVersion.apiString),
       // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = targetSdkVersion.featureLevel.coerceAtMost(P),
-      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
-      buildApiRevision = if (target?.version?.isPreview == true) target.revision else 0
+      appCompatVersion = targetSdkVersion.featureLevel.coerceAtMost(P)
     )
 
     isLibrary = facet.configuration.isLibraryProject
@@ -182,9 +179,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       targetApi = ApiVersion(buildVersion.targetApiLevel, buildVersion.targetApiLevelStr),
       minApi = ApiVersion(buildVersion.minApiLevel, buildVersion.minApiLevelStr),
       // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = buildVersion.buildApiLevel.coerceAtMost(P),
-      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
-      buildApiRevision = buildVersion.androidTarget?.revision ?: 0
+      appCompatVersion = buildVersion.buildApiLevel.coerceAtMost(P)
     )
   }
 
@@ -277,8 +272,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
       targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
       minApi = ApiVersion(LOWEST_ACTIVE_API, LOWEST_ACTIVE_API.toString()),
       // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = HIGHEST_KNOWN_STABLE_API.coerceAtMost(P),
-      buildApiRevision = null
+      appCompatVersion = HIGHEST_KNOWN_STABLE_API.coerceAtMost(P)
     )
   }
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.model.*
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.intellij.openapi.diagnostic.Logger
 
@@ -62,13 +63,13 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
         map({ it.targets })?.flatten()?.filterIsInstance<CoordinatorSnapTarget>()?.toList() ?: emptyList())
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
-    val ret = super.update(x, y, modifiers)
+  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+    val ret = super.update(x, y, modifiers, sceneContext)
 
     @AndroidDpCoordinate val dx = x + startX - sceneComponent.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - sceneComponent.drawHeight / 2
 
-    dragTarget.mouseDrag(dx, dy, snapTargets.filter({ it.isSnapped(x, y) }))
+    dragTarget.mouseDrag(dx, dy, snapTargets.filter({ it.isSnapped(x, y) }), sceneContext)
     return ret
   }
 

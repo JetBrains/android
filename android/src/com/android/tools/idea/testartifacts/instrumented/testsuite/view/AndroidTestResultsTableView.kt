@@ -75,6 +75,7 @@ import java.awt.event.MouseEvent
 import java.io.File
 import java.time.Duration
 import java.util.Comparator
+import java.util.Vector
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -90,7 +91,6 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreeNode
 import kotlin.math.max
 
 /**
@@ -124,10 +124,11 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    * @param testCase a test case to be displayed in the table
    */
   @UiThread
-  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase) {
+  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase): AndroidTestResults {
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
+    return testRow
   }
 
   /**
@@ -157,6 +158,12 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
     myModel.setVisibleCondition(filter)
+    refreshTable()
+  }
+
+  @UiThread
+  fun setRowComparator(comparator: Comparator<AndroidTestResults>) {
+    myTableView.myRowComparator = comparator
     refreshTable()
   }
 
@@ -285,6 +292,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   private var myDeviceToShowTestDuration: AndroidDevice? = null
   private var myLastReportedResults: AndroidTestResults? = null
   private var myLastReportedDevice: AndroidDevice? = null
+  var myRowComparator: Comparator<AndroidTestResults>? = null
 
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
@@ -506,6 +514,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       column.maxWidth = width
       column.preferredWidth = width
     }
+    myRowComparator?.let { model.sort(it) }
     model.reload()
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
     prevSelectedObject?.let { addSelection(it) }
@@ -544,7 +553,7 @@ private class AndroidTestResultsTableModel :
    * Creates and adds a new row for a pair of given [device] and [testCase]. If the row for the [testCase.id] has existed already,
    * it adds the [testCase] to that row.
    */
-  fun addTestResultsRow(device: AndroidDevice, testCase: AndroidTestCase): TreeNode {
+  fun addTestResultsRow(device: AndroidDevice, testCase: AndroidTestCase): AndroidTestResultsRow {
     val row = myTestResultsRows.getOrPut(testCase.id) {
       AndroidTestResultsRow(testCase.methodName, testCase.className, testCase.packageName).also { resultsRow ->
         val testClassAggRow = myTestClassAggregationRow.getOrPut(resultsRow.getFullTestClassName()) {
@@ -570,15 +579,37 @@ private class AndroidTestResultsTableModel :
       }
     }
   }
+
+  fun sort(comparator: Comparator<AndroidTestResults>) {
+    fun doSort(node: AggregationRow) {
+      node.sort(comparator)
+      node.children().asSequence().forEach {
+        if (it is AggregationRow) {
+          doSort(it)
+        }
+      }
+    }
+    doSort(myRootAggregationRow)
+  }
+}
+
+val TEST_NAME_COMPARATOR = compareBy<AndroidTestResults> {
+  it.methodName
+}.thenBy {
+  it.className
+}.thenBy {
+  it.getFullTestCaseName()
+}
+
+val TEST_DURATION_COMPARATOR = compareBy<AndroidTestResults> {
+  it.getTotalDuration()
 }
 
 /**
  * A column for displaying a test name.
  */
 private object TestNameColumn : TreeColumnInfo("Tests") {
-  private val myComparator = Comparator<AndroidTestResults> { lhs, rhs ->
-    compareValues(lhs.getFullTestCaseName(), rhs.getFullTestCaseName())
-  }
+  private val myComparator = TEST_NAME_COMPARATOR
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
   override fun getWidth(table: JTable?): Int = 400
 }
@@ -725,6 +756,14 @@ private class AndroidTestResultsRow(override val methodName: String,
     return Duration.ofMillis(max(end - start, 0))
   }
 
+  override fun getTotalDuration(): Duration {
+    return Duration.ofMillis(myTestCases.values.asSequence().map {
+      val start = it.startTimestampMillis ?: return@map 0L
+      val end = it.endTimestampMillis ?: System.currentTimeMillis()
+      max(end - start, 0L)
+    }.sum())
+  }
+
   /**
    * Returns an error stack for a given [device].
    */
@@ -836,6 +875,11 @@ private class AggregationRow(override val packageName: String = "",
       }
     }
   }
+  override fun getTotalDuration(): Duration {
+    return Duration.ofMillis(children?.asSequence()?.map {
+      (it as? AndroidTestResults)?.getTotalDuration()?.toMillis() ?: 0
+    }?.sum() ?: 0)
+  }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
   override fun getBenchmark(device: AndroidDevice): String {
     return children?.fold("") { acc, result ->
@@ -852,4 +896,11 @@ private class AggregationRow(override val packageName: String = "",
     }?:""
   }
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+
+  /**
+   * Sorts children of this tree node by a given [comparator].
+   */
+  fun sort(comparator: Comparator<AndroidTestResults>) {
+    (children as? Vector<AndroidTestResults>)?.sortWith(comparator)
+  }
 }

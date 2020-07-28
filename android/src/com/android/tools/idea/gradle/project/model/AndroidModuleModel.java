@@ -16,36 +16,32 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
-import com.android.builder.model.Variant;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
@@ -73,7 +69,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
@@ -122,47 +117,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
-  @VisibleForTesting
-  public static AndroidModuleModel create(@NotNull String moduleName,
-                                          @NotNull File rootDirPath,
-                                          @NotNull AndroidProject androidProject,
-                                          @NotNull String selectedVariantName,
-                                          @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return
-      create(moduleName, rootDirPath, androidProject, selectedVariantName, new HashMap<>(), dependenciesFactory, null, emptyList(), emptyList());
-  }
-
   public static AndroidModuleModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull IdeAndroidProject androidProject,
                                           @NotNull String variantName) {
     return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, androidProject, variantName);
-  }
-
-  /**
-   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath         the root directory of the imported Android-Gradle project.
-   * @param androidProject      imported Android-Gradle project.
-   * @param variantName         the name of selected variant.
-   * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
-   * @param variantsToAdd       list of variants to add that were requested but not present in the {@link AndroidProject}.
-   * @param cachedVariants      list of IdeVariants to add that were cached from previous Gradle Sync.
-   * @param syncIssues          Model containing all sync issues that were produced by Gradle.
-   */
-  public static AndroidModuleModel create(@NotNull String moduleName,
-                                          @NotNull File rootDirPath,
-                                          @NotNull AndroidProject androidProject,
-                                          @NotNull String variantName,
-                                          @NotNull Map<String, String> strings,
-                                          @NotNull IdeDependenciesFactory dependenciesFactory,
-                                          @Nullable Collection<Variant> variantsToAdd,
-                                          @NotNull Collection<IdeVariant> cachedVariants,
-                                          @NotNull Collection<SyncIssue> syncIssues) {
-    IdeAndroidProject ideAndroidProject =
-      IdeAndroidProjectImpl.create(androidProject, strings, dependenciesFactory, variantsToAdd, syncIssues
-      );
-    ideAndroidProject.addVariants(cachedVariants);
-    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
   @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
@@ -302,7 +261,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
-    for (Variant variant : myAndroidProject.getVariants()) {
+    for (IdeVariant variant : myAndroidProject.getVariants()) {
       String applicationId = getApplicationIdUsingCache(variant.getName());
       if (applicationId != UNINITIALIZED_APPLICATION_ID) {
         ids.add(applicationId);
@@ -378,8 +337,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @Nullable
   public Integer getVersionCode() {
-    Variant variant = getSelectedVariant();
-    ProductFlavor flavor = variant.getMergedFlavor();
+    IdeVariant variant = getSelectedVariant();
+    IdeProductFlavor flavor = variant.getMergedFlavor();
     return flavor.getVersionCode();
   }
 
@@ -533,7 +492,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     if (myOverridesManifestPackage == null) {
       myOverridesManifestPackage = getAndroidProject().getDefaultConfig().getProductFlavor().getApplicationId() != null;
 
-      Variant variant = getSelectedVariant();
+      IdeVariant variant = getSelectedVariant();
 
       List<String> flavors = variant.getProductFlavors();
       for (String flavor : flavors) {
@@ -590,16 +549,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
-   *
-   * @return the flavor source providers or {@code null} in legacy projects.
    * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
    */
   @Deprecated
   @NotNull
   public List<SourceProvider> getFlavorSourceProviders() {
-    Variant selectedVariant = getSelectedVariant();
+    IdeVariant selectedVariant = getSelectedVariant();
     List<String> productFlavors = selectedVariant.getProductFlavors();
     List<SourceProvider> providers = new ArrayList<>();
     for (String flavor : productFlavors) {

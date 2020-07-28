@@ -98,7 +98,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
   private final List<MinimizeListener> myMinimizeListener = new ArrayList();
+  private ExpandListener myExpandListener;
   @Nullable private IssueView mySelectedIssueView;
+  @Nullable private Issue mySelectedIssue;
 
   /**
    * Whether the user has seen the issues or not. We consider the issues "seen" if the panel is not minimized
@@ -427,12 +429,29 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     myMinimizeListener.add(listener);
   }
 
+  public void setExpandListener(ExpandListener listener) {
+    myExpandListener = listener;
+  }
+
+  @Nullable
+  public ExpandListener getExpandListener() {
+    return myExpandListener;
+  }
+
+  @Nullable
+  public Issue getSelectedIssue() {
+    return mySelectedIssue;
+  }
+
   /**
    * Listener to be notified when this panel is minimized
    */
   @Override
   public void dispose() {
     myMinimizeListener.clear();
+    myExpandListener = null;
+    mySelectedIssue = null;
+    mySelectedIssueView = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
     UIManager.removePropertyChangeListener(this);
   }
@@ -451,6 +470,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(true);
         Issue issue = myDisplayedError.inverse().get(mySelectedIssueView);
+        mySelectedIssue = issue;
         if (issue == null) {
           return;
         }
@@ -559,6 +579,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
 
   public interface MinimizeListener {
     void onMinimizeChanged(boolean isMinimized);
+  }
+
+  public interface ExpandListener {
+    void onExpanded(Issue issue, boolean isExpanded);
   }
 
   /**

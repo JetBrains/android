@@ -18,21 +18,12 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.Executor
-
-typealias TargetTerminatedListener = () -> Unit
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
  */
 internal interface AppInspectionTarget {
-  /**
-   * The name of the project this target belongs to.
-   */
-  val projectName: String
-
   /**
    * Creates an inspector in the connected process.
    *

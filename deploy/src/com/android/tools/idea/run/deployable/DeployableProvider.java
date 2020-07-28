@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.run.deployable;
 
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A provider interface that can procure {@link Deployable}s for locally connected devices.
  */
 public interface DeployableProvider {
-  /**
-   * @return whether or not {@link Deployable}s can be given up front or if further user actions are required.
-   */
-  boolean isDependentOnUserInput();
+
+  static DeployableProvider getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, DeployableProvider.class);
+  }
 
   @Nullable
-  Deployable getDeployable() throws Exception;
+  Deployable getDeployable(@NotNull RunConfiguration runConfiguration) throws Exception;
 }

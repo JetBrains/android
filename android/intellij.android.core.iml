@@ -63,7 +63,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module-library">
       <library name="okio" type="repository">
         <properties maven-id="com.squareup.okio:okio:1.14.0" />

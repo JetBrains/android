@@ -33,11 +33,15 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -48,13 +52,25 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
   private lateinit var liveDatabaseConnection: LiveDatabaseConnection
+  private lateinit var scope: CoroutineScope
 
-  override fun tearDown() {
-    super.tearDown()
-    Disposer.dispose(liveDatabaseConnection)
+  override fun setUp() {
+    super.setUp()
+    scope = CoroutineScope(taskExecutor.asCoroutineDispatcher() + SupervisorJob())
   }
 
-  fun testReadSchema() {
+  override fun tearDown() {
+    try {
+      Disposer.dispose(liveDatabaseConnection)
+      scope.cancel()
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
+  }
+
+  fun testReadSchema() = runBlocking<Unit> {
     // Prepare
     val column1 = SqliteInspectorProtocol.Column.newBuilder()
       .setName("column1")
@@ -92,7 +108,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(schemaResponse.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(schemaResponse.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -113,7 +129,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals(SqliteAffinity.BLOB, sqliteSchema.tables.first().columns[3].affinity)
   }
 
-  fun testExecuteQuery() {
+  fun testExecuteQuery() = runBlocking<Unit> {
     val largeFloat = Float.MAX_VALUE * 2.0
     val largeInteger = Long.MAX_VALUE
 
@@ -150,7 +166,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -186,7 +202,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
 
-  fun testExecuteExplain() {
+  fun testExecuteExplain() = runBlocking<Unit> {
     // Prepare
     val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
@@ -220,7 +236,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -256,7 +272,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
 
-  fun testExecutePragma() {
+  fun testExecutePragma() = runBlocking<Unit> {
     // Prepare
     val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
     val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
@@ -286,7 +302,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -322,7 +338,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
 
-  fun testExecuteStatementWithParameters() {
+  fun testExecuteStatementWithParameters() = runBlocking<Unit> {
     // Prepare
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     val sqliteStatement = SqliteStatement(
@@ -335,7 +351,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setQuery(QueryResponse.newBuilder())
       .build()
 
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -356,12 +372,12 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     verify(mockMessenger).sendRawCommand(queryCommand.toByteArray())
   }
 
-  fun testReturnsEmptyResultSetForEmptyResponse() {
+  fun testReturnsEmptyResultSetForEmptyResponse() = runBlocking<Unit> {
     // Prepare
     val cursor = Response.newBuilder().build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -378,7 +394,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertSize(0, sqliteColumns)
   }
 
-  fun testThrowsRecoverableErrorOnErrorOccurredResponse() {
+  fun testThrowsRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
     // Prepare
     val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
       SqliteInspectorProtocol.ErrorContent.newBuilder()
@@ -393,7 +409,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -409,7 +425,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
-  fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() {
+  fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
     // Prepare
     val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
       SqliteInspectorProtocol.ErrorContent.newBuilder()
@@ -424,7 +440,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -440,7 +456,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
-  fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() {
+  fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() = runBlocking<Unit> {
     // Prepare
     val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
       SqliteInspectorProtocol.ErrorContent.newBuilder()
@@ -455,7 +471,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -471,7 +487,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
-  fun testRecoverableErrorAnalytics() {
+  fun testRecoverableErrorAnalytics() = runBlocking<Unit> {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
@@ -489,7 +505,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -502,7 +518,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
   }
 
-  fun testNonRecoverableErrorAnalytics() {
+  fun testNonRecoverableErrorAnalytics() = runBlocking<Unit> {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
@@ -520,7 +536,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -533,7 +549,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE)
   }
 
-  fun testUnknownRecoverableErrorAnalytics() {
+  fun testUnknownRecoverableErrorAnalytics() = runBlocking<Unit> {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
@@ -551,7 +567,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -564,7 +580,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
   }
 
-  fun testErrorNoExistingDbIsNotReportedInAnalytics() {
+  fun testErrorNoExistingDbIsNotReportedInAnalytics() = runBlocking<Unit> {
     // Prepare
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
@@ -583,7 +599,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
 
@@ -596,7 +612,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   private fun createLiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger): LiveDatabaseConnection {
     return LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)),
+      DatabaseInspectorMessenger(messenger, scope, createErrorSideChannel(project)),
       1,
       taskExecutor
     )

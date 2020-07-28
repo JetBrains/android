@@ -66,10 +66,15 @@ class PathStringPoolTest : PlatformTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
-    aFile.toFile()?.delete()
-    fs.close()
-    TempFileSystem.getInstance().deleteFile(Any(), aVirtualFile.toVirtualFile()!!)
+    try {
+      aFile.toFile()?.delete()
+      fs.close()
+      TempFileSystem.getInstance().deleteFile(Any(), aVirtualFile.toVirtualFile()!!)
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun verifyFileContents(f: File) {

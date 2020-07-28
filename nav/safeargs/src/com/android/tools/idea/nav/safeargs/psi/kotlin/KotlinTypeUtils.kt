@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.types.typeUtil.makeNullable
  *
  * It falls back to [fallbackType] if defined. Else [UnresolvedType] is returned.
  */
-@VisibleForTesting
 fun KotlinBuiltIns.getKotlinType(
   typeStr: String?,
   defaultValue: String?,

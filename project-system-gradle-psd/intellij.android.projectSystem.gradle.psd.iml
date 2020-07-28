@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="library" name="swingx" level="project" />

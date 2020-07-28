@@ -20,8 +20,7 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;

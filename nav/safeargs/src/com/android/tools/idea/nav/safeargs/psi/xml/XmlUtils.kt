@@ -59,6 +59,17 @@ internal fun XmlTag.findChildTagElementById(tagName: String, idAttr: String): Xm
   }
 }
 
+internal fun XmlTag.findFirstMatchingElementByTraversingUp(tagName: String, idAttr: String): XmlTag? {
+  var currentTag: XmlTag? = this
+  while (currentTag != null) {
+    val found = currentTag.findChildTagElementById(tagName, idAttr)
+
+    if (found != null) return found
+    currentTag = currentTag.parentTag
+  }
+  return null
+}
+
 internal fun XmlTag.hasMatchedNameAttr(name: String): Boolean {
   return this.attributes.firstOrNull {
     it != null && it.localName == SdkConstants.ATTR_NAME && it.value == name

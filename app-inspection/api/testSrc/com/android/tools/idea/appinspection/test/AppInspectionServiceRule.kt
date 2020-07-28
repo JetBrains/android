@@ -21,10 +21,10 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
@@ -42,6 +42,12 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -59,6 +65,7 @@ class AppInspectionServiceRule(
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
   lateinit var executorService: ExecutorService
+  lateinit var scope: CoroutineScope
   lateinit var streamManager: TransportStreamManager
   lateinit var streamChannel: TransportStreamChannel
   lateinit var transport: AppInspectionTransport
@@ -93,17 +100,20 @@ class AppInspectionServiceRule(
     streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
+    scope = CoroutineScope(executorService.asCoroutineDispatcher())
     transport = AppInspectionTransport(client, stream, process, executorService, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(executorService, client)
+    targetManager = AppInspectionTargetManager(executorService, client, scope)
     processNotifier = AppInspectionProcessDiscovery(executorService, streamManager)
     launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery) { jarCopier }
-    apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher)
+    apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
   }
 
-  override fun after(description: Description) {
+  override fun after(description: Description) = runBlocking {
     TransportStreamManager.unregisterManager(streamManager)
+    scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
+    client.shutdown()
     timer.currentTimeNs += 1
   }
 

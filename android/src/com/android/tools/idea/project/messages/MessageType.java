@@ -21,8 +21,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.util.ui.MessageCategory;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
@@ -26,7 +25,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.get
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +32,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -42,10 +39,7 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
-import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
@@ -85,7 +79,6 @@ import org.mockito.Mock;
 public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectFinder myProjectFinder;
-  @Mock private VariantSelector myVariantSelector;
   @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @Mock private NativeAndroidProject myNativeAndroidProject;
   @Mock private IdeNativeAndroidProject myIdeNativeAndroidProject;
@@ -172,32 +165,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     }
   }
 
-  public void testPopulateModuleContentRootsWithNativeAndroidProject() {
-    DataNode<ProjectData> projectNode = createProjectNode();
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModuleModel, projectNode);
-    myProjectResolver.populateModuleContentRoots(myNativeAndroidModuleModel, moduleDataNode);
-
-    // Verify module does not have AndroidGradleModel.
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).isEmpty();
-
-    // Verify module has NativeAndroidGradleModel.
-    Collection<DataNode<NdkModuleModel>> ndkModuleModelNodes = getChildren(moduleDataNode, NDK_MODEL);
-    assertThat(ndkModuleModelNodes).hasSize(1);
-
-    DataNode<NdkModuleModel> nativeAndroidModelNode = getFirstItem(ndkModuleModelNodes);
-    assertNotNull(nativeAndroidModelNode);
-    assertSame(myIdeNativeAndroidProject, ((V1NdkModel)nativeAndroidModelNode.getData().getNdkModel()).getAndroidProject());
-
-    // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODULE_MODEL);
-    assertThat(gradleModelNodes).hasSize(1);
-
-    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
-    assertNotNull(gradleModelNode);
-    assertEquals(myNativeAndroidModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
-  }
-
   public void testPopulateModuleContentRootsWithJavaProject() {
     DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
@@ -280,8 +247,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
       }
     };
 
-    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
-
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
     allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
     allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
@@ -292,7 +257,7 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
     assertThat(androidModelNodes).hasSize(1);
     AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
-    Variant variant = androidModuleModel.findVariantByName("debug");
+    IdeVariant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
   }
 
@@ -327,8 +292,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
         return ImmutableList.of(androidTestSetModel, unitTestSetModel);
       }
     };
-
-    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
     allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);

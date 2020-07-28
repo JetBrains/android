@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -79,6 +80,8 @@ class AndroidTestSuiteViewTest {
     view.myFailedToggleButton.isSelected = true
     view.mySkippedToggleButton.isSelected = true
     view.myInProgressToggleButton.isSelected = true
+    view.mySortByNameToggleButton.isSelected = false
+    view.mySortByDurationToggleButton.isSelected = false
   }
 
   @Test
@@ -370,6 +373,66 @@ class AndroidTestSuiteViewTest {
     val tableViewModel = view.tableForTesting.getModelForTesting()
     assertThat(tableViewModel.columnInfos[2].getWidth(tableView)).isEqualTo(120)
     assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(1)
+  }
+
+  @Test
+  fun sortRows() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    val device1 = device("deviceId1", "deviceName1")
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "Z_method1", "class", "package")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "A_method2", "class", "package")
+
+    view.onTestSuiteScheduled(device1)
+
+    // Test execution on device 1.
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase1OnDevice1)
+    testcase1OnDevice1.apply {
+      result = AndroidTestCaseResult.PASSED
+      startTimestampMillis = 0
+      endTimestampMillis = 100
+    }
+    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase1OnDevice1)
+    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase2OnDevice1)
+    testcase2OnDevice1.apply {
+      result = AndroidTestCaseResult.PASSED
+      startTimestampMillis = 0
+      endTimestampMillis = 200
+    }
+    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase2OnDevice1)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    val tableView = view.tableForTesting.getTableViewForTesting()
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+
+    // Enable sort by name.
+    view.mySortByNameToggleButton.isSelected = true
+
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+
+    // Disabling sort by name should restore the original insertion order.
+    view.mySortByNameToggleButton.isSelected = false
+
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+
+    // Enable sort by duration.
+    view.mySortByDurationToggleButton.isSelected = true
+
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
   }
 
   @Test

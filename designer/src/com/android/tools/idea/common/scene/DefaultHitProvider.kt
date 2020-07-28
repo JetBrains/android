@@ -29,7 +29,7 @@ open class DefaultHitProvider : HitProvider {
                    sceneTransform.getSwingYDip((rect.y + rect.height).toFloat()))
   }
 
-  override fun intersects(component: SceneComponent, rectangle: Rectangle): Boolean {
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, rectangle: Rectangle): Boolean {
     component.fillRect(rect)
     return rectangle.intersects(rect)
   }

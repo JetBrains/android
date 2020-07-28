@@ -170,9 +170,8 @@ class SqliteEvaluatorViewImpl(
     fileDocumentManager.getFile(expandableEditor.collapsedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     fileDocumentManager.getFile(expandableEditor.expandedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
-    ApplicationManager.getApplication().assertIsDispatchThread()
     // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
-    PsiManager.getInstance(project).dropPsiCaches()
+    ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
   }
 
   override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {

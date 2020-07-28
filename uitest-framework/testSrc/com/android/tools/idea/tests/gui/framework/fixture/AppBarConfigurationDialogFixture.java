@@ -23,7 +23,6 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -57,7 +56,7 @@ public class AppBarConfigurationDialogFixture extends DialogFixture {
     waitUntilShowing(robot(),
                    Matchers.byName(JBLabel.class, "CollapsedPreview").and(new GenericTypeMatcher<JBLabel>(JBLabel.class) {
                      @Override
-                     protected boolean isMatching(@Nonnull JBLabel component) {
+                     protected boolean isMatching(@NotNull JBLabel component) {
                        return component.getIcon() != null;
                      }
                    }));

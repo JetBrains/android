@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.intellij.concurrency.JobScheduler;
@@ -22,7 +23,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.*;

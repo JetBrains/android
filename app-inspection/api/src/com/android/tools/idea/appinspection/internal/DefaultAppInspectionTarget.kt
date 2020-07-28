@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.transport.TransportFileManager
@@ -40,9 +41,11 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
@@ -51,7 +54,7 @@ import javax.annotation.concurrent.ThreadSafe
 internal fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
   jarCopier: AppInspectionJarCopier,
-  projectName: String
+  scope: CoroutineScope
 ): ListenableFuture<AppInspectionTarget> {
   return Futures.submitAsync(
     AsyncCallable {
@@ -74,7 +77,7 @@ internal fun attachAppInspectionTarget(
           filter = { it.agentData.status == ATTACHED },
           isTransient = true
         ) {
-          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier, projectName))
+          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier, scope))
         })
       transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
       connectionFuture
@@ -82,13 +85,15 @@ internal fun attachAppInspectionTarget(
   )
 }
 
-@ThreadSafe
+
+@AnyThread
 internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
-  override val projectName: String
+  scope: CoroutineScope
 ) : AppInspectionTarget {
   private val isDisposed = AtomicBoolean(false)
+  private val targetScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
 
   @VisibleForTesting
   internal val clients = ConcurrentHashMap<AppInspectorLauncher.LaunchParameters, ListenableFuture<AppInspectorClient>>()
@@ -107,7 +112,8 @@ internal class DefaultAppInspectionTarget(
           val connectionFuture = SettableFuture.create<AppInspectorConnection>()
           val createInspectorCommand = CreateInspectorCommand.newBuilder()
             .setDexPath(fileDevicePath)
-            .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
+            .setLaunchMetadata(
+              AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
             .build()
           val appInspectionCommand = AppInspectionCommand.newBuilder()
             .setInspectorId(params.inspectorId)
@@ -122,7 +128,8 @@ internal class DefaultAppInspectionTarget(
             ) { event ->
               if (event.appInspectionResponse.status == SUCCESS) {
                 connectionFuture.set(AppInspectorConnection(transport, params.inspectorId, event.timestamp))
-              } else {
+              }
+              else {
                 connectionFuture.setException(
                   AppInspectionLaunchException(
                     "Could not launch inspector ${params.inspectorId}: ${event.appInspectionResponse.errorMessage}")
@@ -132,19 +139,20 @@ internal class DefaultAppInspectionTarget(
           )
           connectionFuture
         }.transform(transport.executorService) { inspectorConnection ->
-        setupEventListener(creator, inspectorConnection).also { inspectorClient ->
-          inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-            override fun onDispose() {
-              clients.remove(params)
-            }
-          }, MoreExecutors.directExecutor())
+          setupEventListener(creator, inspectorConnection).also { inspectorClient ->
+            inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+              override fun onDispose() {
+                clients.remove(params)
+              }
+            }, MoreExecutors.directExecutor())
+          }
         }
-      }
     }
     if (isDisposed.get()) {
       clients.remove(params)?.cancel(false)
       return Futures.immediateFailedFuture(ProcessNoLongerExistsException("Target process does not exist because it has ended."))
-    } else {
+    }
+    else {
       return clientFuture
     }
   }
@@ -154,8 +162,12 @@ internal class DefaultAppInspectionTarget(
    */
   override fun dispose() {
     if (isDisposed.compareAndSet(false, true)) {
-      clients.values.forEach { if (it.isDone) it.get().messenger.disposeInspector() }
-      clients.clear()
+      targetScope.launch {
+        clients.values.forEach {
+          it.getDoneOrNull()?.messenger?.disposeInspector() ?: it.cancel(false)
+        }
+        clients.clear()
+      }
     }
   }
 }

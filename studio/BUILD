@@ -199,7 +199,7 @@ studio_plugin(
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
             "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
             "//tools/base/deploy/installer:android-installer-bundle",
-            "//tools/adt/idea/android:images-bundle",  # duplicated in android.jar
+            "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
@@ -358,7 +358,6 @@ android_studio(
         "lib": [
             # For now listing all the project library needed until we get them from deps
             "//tools/adt/idea/.idea/libraries:unb.javax-inject",
-            "//tools/adt/idea/.idea/libraries:unb.jsr305",
             "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
             "//tools/adt/idea/.idea/libraries:unb.studio-proto",
             "//tools/adt/idea/.idea/libraries:unb.dexlib2",

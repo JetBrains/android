@@ -1,7 +1,11 @@
 package com.android.tools.idea.gradle.project;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.BaseArtifact;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.util.io.FileUtil.join;
+
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -10,21 +14,17 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderRootType;
-import org.gradle.util.GradleVersion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
-import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.FactoryImpl;
-import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
+import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.FactoryImpl;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
-
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * {@link AndroidGradleOrderEnumeratorHandlerFactory} was introduced to make
@@ -111,44 +111,50 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
 
   @NotNull
   private static List<String> getAndroidCompilerOutputFolders(@NotNull AndroidModuleModel androidModel,
-                                                                    boolean includeProduction,
-                                                                    boolean includeTests) {
+                                                              boolean includeProduction,
+                                                              boolean includeTests) {
     List<String> toAdd = new LinkedList<>();
     // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
     // if multiple definitions of the same class exist in both the test and the main artifact.
     if (includeTests) {
       if (androidModel.getSelectedVariant().getUnitTestArtifact() != null) {
-        addFoldersFromArtifact(androidModel.getSelectedVariant().getUnitTestArtifact(), toAdd);
+        addFoldersFromJavaArtifact(androidModel.getSelectedVariant().getUnitTestArtifact(), toAdd);
       }
       if (androidModel.getSelectedVariant().getAndroidTestArtifact() != null) {
-        addFoldersFromArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
+        addFoldersFromAndroidArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
       }
     }
     if (includeProduction) {
-      addFoldersFromArtifact(androidModel.getSelectedVariant().getMainArtifact(), toAdd);
+      addFoldersFromAndroidArtifact(androidModel.getSelectedVariant().getMainArtifact(), toAdd);
     }
     return toAdd;
   }
 
-  private static void addFoldersFromArtifact(@NotNull BaseArtifact artifact, @NotNull List<String> toAdd) {
+  private static void addFoldersFromBaseArtifact(@NotNull IdeBaseArtifact artifact, @NotNull List<String> toAdd) {
     toAdd.add(pathToIdeaUrl(artifact.getClassesFolder()));
     artifact.getAdditionalClassesFolders().stream()
-            .filter(Objects::nonNull)
-            .map(FilePaths::pathToIdeaUrl)
-            .forEach(toAdd::add);
+      .filter(Objects::nonNull)
+      .map(FilePaths::pathToIdeaUrl)
+      .forEach(toAdd::add);
     toAdd.add(pathToIdeaUrl(artifact.getJavaResourcesFolder()));
-    if (artifact instanceof AndroidArtifact) {
-      ((AndroidArtifact)artifact).getGeneratedResourceFolders().stream()
-                                 .filter(Objects::nonNull)
-                                 .map(FilePaths::pathToIdeaUrl)
-                                 .forEach(toAdd::add);
-    }
+  }
+
+  private static void addFoldersFromJavaArtifact(@NotNull IdeJavaArtifact artifact, @NotNull List<String> toAdd) {
+    addFoldersFromBaseArtifact(artifact, toAdd);
+  }
+
+  private static void addFoldersFromAndroidArtifact(@NotNull IdeAndroidArtifact artifact, @NotNull List<String> toAdd) {
+    addFoldersFromBaseArtifact(artifact, toAdd);
+    artifact.getGeneratedResourceFolders().stream()
+      .filter(Objects::nonNull)
+      .map(FilePaths::pathToIdeaUrl)
+      .forEach(toAdd::add);
   }
 
   @NotNull
   private static Collection<String> getJavaAndKotlinCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
-                                                                 boolean includeProduction,
-                                                                 boolean includeTests) {
+                                                                          boolean includeProduction,
+                                                                          boolean includeTests) {
     Collection<String> toAdd = new LinkedList<>();
     File mainClassesFolderPath = null;
     File mainResourcesFolderPath = null;

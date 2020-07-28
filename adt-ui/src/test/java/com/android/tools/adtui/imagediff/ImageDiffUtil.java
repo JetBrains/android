@@ -204,8 +204,12 @@ public final class ImageDiffUtil {
                                         double maxPercentDifferent) throws IOException {
     if (!goldenFile.exists()) {
       Files.createParentDirs(goldenFile);
+      File outFile = new File(TestUtils.getTestOutputDir(), goldenFile.getName());
+      // This will show up in undeclared outputs when running on a test server
+      ImageIO.write(actual, "PNG", outFile);
+      // This will copy the file to its designated location. Useful when running locally.
       ImageIO.write(actual, "PNG", goldenFile);
-      fail("File did not exist, created here:" + goldenFile);
+      fail("File did not exist, created here:" + goldenFile + "  and in undeclared outputs");
     }
 
     BufferedImage goldenImage = ImageIO.read(goldenFile);

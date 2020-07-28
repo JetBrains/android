@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
@@ -54,7 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * See also: [LightArgsClass], which own this builder.
  */
 class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: String, private val argsClass: LightArgsClass)
-  : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL)) {
+  : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   companion object {
     const val BUILDER_NAME = "Builder"
   }
@@ -101,14 +102,14 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
     // Create a getter and setter per argument
     val argMethods: Array<PsiMethod> = containingClass.destination.arguments.flatMap { arg ->
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod(name = "set${arg.name.capitalize()}",
+      val setter = createMethod(name = "set${arg.name.usLocaleCapitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
         .addParameter(arg.name, argType)
 
-      val getter = createMethod(name = "get${arg.name.capitalize()}",
+      val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
                                 navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(argType, arg.nullable))
+                                returnType = annotateNullability(argType, arg.isNonNull()))
 
       listOf(setter, getter)
     }.toTypedArray()

@@ -131,6 +131,39 @@ class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
     assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import androidx.hilt.lifecycle.ViewModelInject;
+
+        public class MyViewClass {
+          @ViewModelInject public MyViewClass(String consumer) {}
+          public MyViewClass(int notConsumer) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
+
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import androidx.hilt.work.WorkerInject;
+
+        public class MyWorkerClass {
+          @WorkerInject public MyWorkerClass(String consumer) {}
+          public MyWorkerClass(int notConsumer) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
   }
 
   fun testIsConsumer_injectedConstructorParam_kotlin() {
@@ -1127,8 +1160,13 @@ class DaggerCrossModuleTest : UsefulTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
-    myFixture.tearDown()
+    try {
+      myFixture.tearDown()
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {

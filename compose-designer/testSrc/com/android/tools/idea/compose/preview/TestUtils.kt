@@ -19,6 +19,18 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
+/**
+ * List of variations of namespaces to be tested by the Compose tests. This is done
+ * to support the name migration. We test the old/new preview annotation names with the
+ * old/new composable annotation names.
+ */
+internal val namespaceVariations = listOf(
+  arrayOf("androidx.ui.tooling.preview", "androidx.compose"),
+  arrayOf("androidx.ui.tooling.preview", "androidx.compose.runtime"),
+  arrayOf("androidx.compose.tooling.preview", "androidx.compose"),
+  arrayOf("androidx.compose.tooling.preview", "androidx.compose.runtime")
+)
+
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes
     .asSequence()

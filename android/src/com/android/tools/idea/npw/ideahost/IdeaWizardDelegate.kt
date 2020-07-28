@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost
 
+import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.ide.util.newProjectWizard.WizardDelegate
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.openapi.Disposable
@@ -30,4 +31,9 @@ interface IdeaWizardDelegate: WizardDelegate, Disposable {
    * Update the buttons on the host wizard to reflect the state of the guest wizard
    */
   fun updateButtons()
+
+  /**
+   * Set a new [ModelWizard]
+   */
+  fun setModelWizard(modelWizard: ModelWizard) {}
 }

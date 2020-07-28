@@ -23,12 +23,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
@@ -77,8 +77,8 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, configuration);
     AndroidModel.set(myAndroidFacet, androidModel);
 
-    List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
-    List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
+    List<IdeAndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(IdeAndroidArtifactOutput.class));
+    List<IdeAndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(IdeAndroidArtifactOutput.class));
     List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> input);
     List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> input);
 

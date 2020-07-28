@@ -34,6 +34,8 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
                                   taskExecutor: Executor) : AdbDevicePairingService {
   private val LOG = logger<AdbDevicePairingServiceImpl>()
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+  private val studioServiceNamePrefix = "studio-"
+
 
   override fun checkMdnsSupport(): ListenableFuture<MdnsSupportState> {
     // TODO: Investigate updating (then using) ddmlib instead of spawning an adb client command, so that
@@ -74,11 +76,11 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
 
   override fun generateQrCode(backgroundColor: Color, foregroundColor: Color): ListenableFuture<QrCodeImage> {
     return taskExecutor.executeAsync {
-      val service = "studio-" + createRandomString(10)
+      val serviceName = studioServiceNamePrefix + createRandomString(10)
       val password = createRandomString(12)
-      val pairingString = createPairingString(service, password)
+      val pairingString = createPairingString(serviceName, password)
       val image = QrCodeGenerator.encodeQrCodeToImage(pairingString, backgroundColor, foregroundColor)
-      QrCodeImage(service, password, pairingString, image)
+      QrCodeImage(serviceName, password, pairingString, image)
     }
   }
 
@@ -97,7 +99,7 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
       //  adb-939AX05XBZ-vWgJpq	_adb-tls-pairing._tcp.	192.168.1.86:37313
       // Regular expression
       //  adb-<everything-until-space><spaces>__adb-tls-pairing._tcp.<spaces><everything-until-colon>:<port>
-      val lineRegex = Regex("([^\\t]*)\\t*_adb-tls-pairing._tcp.\\t*([^:]*):([0-9]*)")
+      val lineRegex = Regex("([^\\t]+)\\t*_adb-tls-pairing._tcp.\\t*([^:]+):([0-9]+)")
 
       if (result.errorCode != 0) {
         throw AdbCommandException("Error discovering services", result.errorCode, result.stderr)
@@ -113,12 +115,14 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
           val matchResult = lineRegex.find(line)
           matchResult?.let {
             try {
+              val serviceName = it.groupValues[1]
               val ipAddress = InetAddress.getByName(it.groupValues[2])
               val port = it.groupValues[3].toInt()
-              MdnsService(it.groupValues[1], ipAddress, port)
+              val serviceType = if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode else ServiceType.PinCode
+              MdnsService(serviceName, serviceType, ipAddress, port)
             }
             catch (ignored: Exception) {
-              // TODO: Logging?
+              LOG.warn("mDNS service entry ignored due do invalid characters: ${line}")
               null
             }
           }

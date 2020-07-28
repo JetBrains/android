@@ -61,4 +61,7 @@ object UIColors {
 
   @JvmField
   val ERROR_TEXT: Color = UIUtil.getInactiveTextColor()
+
+  @JvmField
+  val LIGHT_LABEL: Color = UIUtil.getInactiveTextColor()
 }

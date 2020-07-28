@@ -371,9 +371,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
     else {
       // Enable instant app deploy checkbox if module is instant enabled
-      myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().isInstantAppCompatible());
+      myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().getInstantAppCompatible());
       // If the module is not instant-eligible, uncheck the checkbox.
-      if (model == null || !model.getSelectedVariant().isInstantAppCompatible()) {
+      if (model == null || !model.getSelectedVariant().getInstantAppCompatible()) {
         myInstantAppDeployCheckBox.setSelected(false);
       }
 
@@ -385,7 +385,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myLaunchOptionCombo.setEnabled(!isInstantApp);
     myDynamicFeaturesParameters.setActiveModule(currentModule,
-                                                (model != null && model.getSelectedVariant().isInstantAppCompatible()
+                                                (model != null && model.getSelectedVariant().getInstantAppCompatible()
                                                  && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
                                                 ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
                                                 : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);

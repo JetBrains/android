@@ -7,6 +7,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.profilers.ui.iml"],
     lint_baseline = "lint_baseline.xml",
+    test_class = "com.android.tools.profilers.ProfilersUiTestSuite",
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -68,6 +69,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
 

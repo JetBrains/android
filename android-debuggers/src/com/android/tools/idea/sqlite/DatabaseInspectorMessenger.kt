@@ -18,29 +18,38 @@ package com.android.tools.idea.sqlite
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.withContext
 
 class DatabaseInspectorMessenger(
   private val messenger: AppInspectorClient.CommandMessenger,
-  private val taskExecutor: Executor,
+  private val scope: CoroutineScope,
   private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) {
-  fun sendCommand(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> {
-    return messenger.sendRawCommand(command.toByteArray()).transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-      if (response.hasErrorOccurred()) {
-        val errorResponse = response.errorOccurred
-        errorsSideChannel(command, errorResponse)
-        val message = getErrorMessage(errorResponse.content)
-        throw LiveInspectorException(message, errorResponse.content.stackTrace)
-      }
-      response
+  suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response {
+    val rawResponse = messenger.sendRawCommand(command.toByteArray())
+    val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
+    if (parsedResponse.hasErrorOccurred()) {
+      val errorResponse = parsedResponse.errorOccurred
+      errorsSideChannel(command, errorResponse)
+      val message = getErrorMessage(errorResponse.content)
+      throw LiveInspectorException(message, errorResponse.content.stackTrace)
     }
+    return parsedResponse
   }
+
+  /**
+   * The alternate version of sendCommand using futures. It delegates work to [sendCommand].
+   *
+   * This is intended to be used in the interim while database inspector is being migrated to kotlin coroutines, or for Java clients that
+   * cannot be easily ported to Kotlin.
+   */
+  fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> = scope.future { sendCommand(command) }
 }
 
 typealias ErrorsSideChannel = (Command, SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit

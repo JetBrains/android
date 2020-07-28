@@ -20,11 +20,17 @@ import com.android.utils.HtmlBuilder
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.JBColor
+import com.intellij.ui.border.CustomLineBorder
+import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.net.URL
+import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.border.Border
+import javax.swing.border.CompoundBorder
 import javax.swing.event.HyperlinkEvent
 
 fun createHtmlEditorPane(): JEditorPane {
@@ -45,4 +51,11 @@ fun createHtmlEditorPane(): JEditorPane {
 
 fun JEditorPane.setHtml(htmlBuilder: HtmlBuilder, textColor: Color?) {
   SwingHelper.setHtml(this, htmlBuilder.html, textColor)
+}
+
+fun setTitlePanelBorder(panel: JComponent, leftPixels: Int) {
+  val line: Border = CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, leftPixels, 1, 0)
+  val c: Border = CompoundBorder(line, JBUI.Borders.empty(5, 10))
+  panel.border = c
+  panel.minimumSize = JBDimension(0, 30)
 }

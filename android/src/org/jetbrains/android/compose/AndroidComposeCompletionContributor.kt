@@ -81,7 +81,8 @@ private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
 
 private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() {
   val lastArgType = lastOrNull()?.type ?: return false
-  return lastArgType.isBuiltinFunctionalType && lastArgType.annotations.hasAnnotation(FqName(COMPOSABLE_FQ_NAME))
+  return lastArgType.isBuiltinFunctionalType
+         && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
 }
 
 /**

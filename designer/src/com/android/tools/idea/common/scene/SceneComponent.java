@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -36,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import javax.annotation.concurrent.GuardedBy;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -652,12 +652,12 @@ public class SceneComponent {
 
   /**
    * Returns true if the component intersects with the given rect
-   *
+   * @param sceneTransform
    * @param rectangle
    * @return true if intersecting with the rectangle
    */
-  public boolean intersects(@AndroidDpCoordinate Rectangle rectangle) {
-    return myHitProvider.intersects(this, rectangle);
+  public boolean intersects(@NotNull SceneContext sceneTransform, @AndroidDpCoordinate Rectangle rectangle) {
+    return myHitProvider.intersects(this, sceneTransform, rectangle);
   }
 
   //endregion

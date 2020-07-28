@@ -55,12 +55,12 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
       val result = mutableListOf<AnAction>()
       if (views.size > 1) {
         val viewMenu = DropDownAction("Select View", null, null)
-        viewMenu.addAll(views.reversed().map { SelectViewAction(it, inspectorModel) })
+        viewMenu.addAll(views.map { SelectViewAction(it, inspectorModel) })
         result.add(viewMenu)
       }
       if (inspectorModel.hasSubImages) {
         if (views.isNotEmpty()) {
-          val topView = views.last()
+          val topView = views.first()
           result.add(object : AnAction("Hide Subtree") {
             override fun actionPerformed(unused: AnActionEvent) {
               topView.flatten().forEach { it.visible = false }

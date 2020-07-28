@@ -18,8 +18,9 @@ package com.android.tools.idea.appinspection.test
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -70,7 +71,7 @@ object AppInspectionTestUtils {
     process: Common.Process = FakeTransportService.FAKE_PROCESS
   ): ProcessDescriptor {
     val stream = Common.Stream.newBuilder().setDevice(device).setStreamId(device.deviceId).build()
-    return ProcessDescriptor(stream, process)
+    return TransportProcessDescriptor(stream, process)
   }
 
   fun createFakeLaunchParameters(

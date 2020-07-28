@@ -31,17 +31,14 @@ import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
-  private fun isInteractive(): Boolean {
-    val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return false
+  private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
 
-    return manager.interactivePreviewElementInstanceId != null
-  }
+  private fun isInteractive() = getComposePreviewManager()?.interactivePreviewElementInstanceId != null
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-
-    e.presentation.isEnabled = true
+    val isAnimationInspectorOpen = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
+    e.presentation.isEnabled = !isAnimationInspectorOpen
     e.presentation.isVisible = !isInteractive()
   }
 

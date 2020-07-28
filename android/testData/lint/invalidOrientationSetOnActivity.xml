@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.pkg">
   <application>
-    <activity android:name=".TestActivity" <error descr="Expecting `android:screenOrientation=\"unspecified\"` or `\"fullSensor\"` for this activity so the user can use the application in any orientation and provide a great experience on Chrome OS devices">android:<caret>screenOrientation="portrait"</error>/>
+    <activity android:name=".TestActivity" <warning descr="Expecting `android:screenOrientation=\"unspecified\"` or `\"fullSensor\"` for this activity so the user can use the application in any orientation and provide a great experience on Chrome OS devices">android:<caret>screenOrientation="portrait"</warning>/>
   </application>
 </manifest>

@@ -20,7 +20,6 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.isClassPackageNeeded
-import com.android.tools.idea.res.isViewPackageNeeded
 import com.android.tools.lint.checks.AnnotationDetector
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.JavaPsiFacade
@@ -59,7 +58,7 @@ fun findClassValidInXMLByName(facet: AndroidFacet, name: String, baseClassName: 
   val candidate = findClassByName(facet, name, baseClassName) ?: return null
   if (!candidate.isVisibleInXml()) return null
   if (candidate.name == name &&
-      isClassPackageNeeded(candidate.qualifiedName!!, candidate, AndroidModuleInfo.getInstance(facet).moduleMinApi)) {
+      isClassPackageNeeded(candidate.qualifiedName!!, candidate, AndroidModuleInfo.getInstance(facet).moduleMinApi, baseClassName)) {
     return null
   }
   return candidate
@@ -79,38 +78,15 @@ fun findViewValidInXMLByName(facet: AndroidFacet, name: String) = findClassValid
  * Returns all tags by which class can be used in XML.
  *
  * For classes that can't be used in XML (i.e abstract) returns empty array.
- *
- * If `c` is an inheritor of [CLASS_VIEW] use [getViewTagNamesByClass].
- * Methods work the same, but latter optimized for views.
  */
-fun getTagNamesByClass(c: PsiClass, apiLevel: Int): Array<String> {
+fun getTagNamesByClass(c: PsiClass, apiLevel: Int, parentClassQualifiedName: String?): Array<String> {
   return runReadAction {
     val name = c.name
     if (name == null || !c.isVisibleInXml()) {
       return@runReadAction emptyArray()
     }
     val qualifiedName = c.qualifiedName ?: return@runReadAction arrayOf(name)
-    if (isClassPackageNeeded(qualifiedName, c, apiLevel)) {
-      return@runReadAction arrayOf(qualifiedName)
-    }
-    arrayOf(name, qualifiedName)
-  }
-}
-
-/**
- * Optimized version [getTagNamesByClass] for views.
- *
- * Instead of [isClassPackageNeeded] method directly uses [isViewPackageNeeded] that allows to avoid calling of [InheritanceUtil.isInheritor].
- * [InheritanceUtil.isInheritor] is expensive especially if call it a lot like in [org.jetbrains.android.TagToClassMapperImpl.fillMap].
- */
-fun getViewTagNamesByClass(c: PsiClass, apiLevel: Int): Array<String> {
-  return runReadAction {
-    val name = c.name
-    if (name == null || !c.isVisibleInXml()) {
-      return@runReadAction emptyArray()
-    }
-    val qualifiedName = c.qualifiedName ?: return@runReadAction arrayOf(name)
-    if (isViewPackageNeeded(qualifiedName, apiLevel)) {
+    if (isClassPackageNeeded(qualifiedName, c, apiLevel, parentClassQualifiedName)) {
       return@runReadAction arrayOf(qualifiedName)
     }
     arrayOf(name, qualifiedName)

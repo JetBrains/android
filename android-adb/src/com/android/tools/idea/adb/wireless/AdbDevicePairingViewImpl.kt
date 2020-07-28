@@ -122,7 +122,12 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
       updateQrCodeImage(newImage)
     }
 
-    override fun mdnsServicesDiscovered(services: List<MdnsService>) {
+    override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
+    }
+
+    override fun pinCodeServicesDiscovered(services: List<MdnsService>) {
+      //TODO: Move logic to controller?
+      dlg.showPinCodeServices(services)
     }
   }
 }

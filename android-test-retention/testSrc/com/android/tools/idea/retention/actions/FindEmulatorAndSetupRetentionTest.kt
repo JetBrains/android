@@ -20,6 +20,7 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
@@ -64,6 +65,7 @@ class FindEmulatorAndSetupRetentionTest {
     tempFolder = emulatorRule.root.toPath()
     snapshotFile = emulatorRule.newFile()
     snapshotFile.writeText("file content")
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
 
     parentDataContext = DataContext { projectRule.project }
     dataContext = object : DataContext {
@@ -89,6 +91,9 @@ class FindEmulatorAndSetupRetentionTest {
         if (dataId == RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name) {
           return false
         }
+        if (dataId == DEVICE_NAME_KEY.name) {
+          return emulator.avdId
+        }
         return parentDataContext.getData(dataId)
       }
     }
@@ -97,7 +102,6 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Test
   fun pushAndLoad() {
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = RunningEmulatorCatalog.getInstance().updateNow().get()
     assertThat(emulators).hasSize(1)

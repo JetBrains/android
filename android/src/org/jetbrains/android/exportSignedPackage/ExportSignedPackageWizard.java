@@ -20,8 +20,8 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
@@ -208,16 +208,16 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = Lists.newArrayList();
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties.add(
-          createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+          createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
+        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
         assert myProject != null;
 
@@ -258,7 +258,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
                       ", destination: " +
-                      createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+                      createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {
@@ -284,7 +284,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       taskNames = getTaskNamesFromBuildInformation(androidModuleModel, buildVariants, targetType);
     }
     else {
-      Variant selectedVariant = androidModuleModel.getSelectedVariant();
+      IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
       String selectedTaskName = getTaskName(selectedVariant, targetType);
       if (selectedTaskName == null) {
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariant.getName());
@@ -354,7 +354,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return null;
   }
 
-  private static String getTaskName(Variant v, String targetType) {
+  private static String getTaskName(IdeVariant v, String targetType) {
     if (targetType.equals(BUNDLE)) {
       return v.getMainArtifact().getBundleTaskName();
     }

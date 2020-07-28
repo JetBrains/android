@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
@@ -43,7 +44,7 @@ public class ManifestPlaceholderResolver {
     if (model != null) {
       ImmutableMap.Builder<String, Object> placeholdersBuilder = ImmutableMap.builder();
 
-      Variant selectedVariant = model.getSelectedVariant();
+      IdeVariant selectedVariant = model.getSelectedVariant();
       BuildTypeContainer buildType = model.findBuildType(selectedVariant.getBuildType());
       if (buildType != null) {
         placeholdersBuilder.putAll(buildType.getBuildType().getManifestPlaceholders());

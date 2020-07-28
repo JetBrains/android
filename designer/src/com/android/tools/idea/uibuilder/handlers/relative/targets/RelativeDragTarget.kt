@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
@@ -47,7 +48,7 @@ class RelativeDragTarget : DragBaseTarget() {
     super.mouseDown(x, y)
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>, ignored: SceneContext) {
     myComponent.isDragging = true
 
     val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()

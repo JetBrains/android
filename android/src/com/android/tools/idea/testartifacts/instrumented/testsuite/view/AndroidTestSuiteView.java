@@ -35,11 +35,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent;
+import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
@@ -47,7 +49,9 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.editor.PlatformEditorBundle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
@@ -69,8 +73,11 @@ import java.awt.Graphics2D;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -182,15 +189,19 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private ComboBox<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBox;
   private JPanel myTestStatusFilterPanel;
   @VisibleForTesting SortedComboBoxModel<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBoxModel;
-  @VisibleForTesting TestFilterToggleAction myFailedToggleButton;
-  @VisibleForTesting TestFilterToggleAction myPassedToggleButton;
-  @VisibleForTesting TestFilterToggleAction mySkippedToggleButton;
-  @VisibleForTesting TestFilterToggleAction myInProgressToggleButton;
+  @VisibleForTesting MyToggleAction myFailedToggleButton;
+  @VisibleForTesting MyToggleAction myPassedToggleButton;
+  @VisibleForTesting MyToggleAction mySkippedToggleButton;
+  @VisibleForTesting MyToggleAction myInProgressToggleButton;
+  @VisibleForTesting MyToggleAction mySortByNameToggleButton;
+  @VisibleForTesting MyToggleAction mySortByDurationToggleButton;
 
   private static final String FAILED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myFailedToggleButton";
   private static final String PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton";
   private static final String SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton";
   private static final String IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myInProgressToggleButton";
+  private static final String SORT_BY_NAME_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByNameToggleButton";
+  private static final String SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByDurationToggleButton";
 
   private final Project myProject;
   @VisibleForTesting final AndroidTestSuiteLogger myLogger;
@@ -198,6 +209,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private final JBSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
+  private final Map<AndroidTestResults, Integer> myInsertionOrderMap;
 
   // Number of devices which we will run tests against.
   private int myScheduledDevices = 0;
@@ -219,14 +231,24 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myStatusFilterSeparator = new MyItemSeparator();
     myDeviceFilterSeparator = new MyItemSeparator();
 
-    myFailedToggleButton = new TestFilterToggleAction(
-      "Show failed tests", AndroidTestCaseResult.FAILED, FAILED_TOGGLE_BUTTON_STATE_KEY, true);
-    myPassedToggleButton = new TestFilterToggleAction(
-      "Show passed tests", AndroidTestCaseResult.PASSED, PASSED_TOGGLE_BUTTON_STATE_KEY, true);
-    mySkippedToggleButton = new TestFilterToggleAction(
-      "Show skipped tests", AndroidTestCaseResult.SKIPPED, SKIPPED_TOGGLE_BUTTON_STATE_KEY, true);
-    myInProgressToggleButton = new TestFilterToggleAction(
-      "Show running tests", AndroidTestCaseResult.IN_PROGRESS, IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY, true);
+    myFailedToggleButton = new MyToggleAction(
+      "Show failed tests", AndroidTestResultsTableViewKt.getIconFor(AndroidTestCaseResult.FAILED, false),
+      FAILED_TOGGLE_BUTTON_STATE_KEY, true);
+    myPassedToggleButton = new MyToggleAction(
+      "Show passed tests", AndroidTestResultsTableViewKt.getIconFor(AndroidTestCaseResult.PASSED, false),
+      PASSED_TOGGLE_BUTTON_STATE_KEY, true);
+    mySkippedToggleButton = new MyToggleAction(
+      "Show skipped tests", AndroidTestResultsTableViewKt.getIconFor(AndroidTestCaseResult.SKIPPED, false),
+      SKIPPED_TOGGLE_BUTTON_STATE_KEY, true);
+    myInProgressToggleButton = new MyToggleAction(
+      "Show running tests", AndroidTestResultsTableViewKt.getIconFor(AndroidTestCaseResult.IN_PROGRESS, false),
+      IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY, true);
+    mySortByNameToggleButton = new MyToggleAction(
+      PlatformEditorBundle.message("action.sort.alphabetically"), AllIcons.ObjectBrowser.Sorted,
+      SORT_BY_NAME_TOGGLE_BUTTON_STATE_KEY, false);
+    mySortByDurationToggleButton = new MyToggleAction(
+      ExecutionBundle.message("junit.runing.info.sort.by.statistics.action.name"), AllIcons.RunConfigurations.SortbyDuration,
+      SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY, false);
 
     myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
     DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
@@ -252,18 +274,22 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project, @Nullable Module module) {
     myProject = project;  // Note: this field assignment is called before createUIComponents().
+    // Note: private final properties need to be initialized here instead of initialization value. You will hit
+    //       NPE otherwise. This restriction comes from the IntelliJ form editor runtime.
     myLogger = new AndroidTestSuiteLogger();
+    myInsertionOrderMap = new HashMap<>();
 
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
-    DefaultActionGroup testStatusFilterActionGroup = new DefaultActionGroup();
-    testStatusFilterActionGroup.addAll(
-      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton);
+    DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
+    testFilterAndSorterActionGroup.addAll(
+      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
+      Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton);
     myTestStatusFilterPanel.add(
       ActionManager.getInstance().createActionToolbar(
         ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-        testStatusFilterActionGroup, true).getComponent());
+        testFilterAndSorterActionGroup, true).getComponent());
 
     TestArtifactSearchScopes testArtifactSearchScopes = null;
     if (module != null) {
@@ -308,6 +334,25 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       }
       return true;
     });
+    myTable.setRowComparator(new Comparator<AndroidTestResults>() {
+      @Override
+      public int compare(AndroidTestResults o1, AndroidTestResults o2) {
+        if (mySortByNameToggleButton.isSelected) {
+          int result = AndroidTestResultsTableViewKt.getTEST_NAME_COMPARATOR().compare(o1, o2);
+          if (result != 0) {
+            return result;
+          }
+        }
+        if (mySortByDurationToggleButton.isSelected) {
+          int result = AndroidTestResultsTableViewKt.getTEST_DURATION_COMPARATOR().compare(o1, o2) * -1;
+          if (result != 0) {
+            return result;
+          }
+        }
+        return Integer.compare(myInsertionOrderMap.getOrDefault(o1, Integer.MAX_VALUE),
+                               myInsertionOrderMap.getOrDefault(o2, Integer.MAX_VALUE));
+      }
+    });
     ItemListener tableUpdater = new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
@@ -341,17 +386,16 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     Disposer.register(parentDisposable, this);
   }
 
-  @VisibleForTesting class TestFilterToggleAction extends ToggleAction {
+  @VisibleForTesting class MyToggleAction extends ToggleAction {
     private final String myPropertiesComponentKey;
     private final boolean myDefaultState;
     private boolean isSelected;
 
-    TestFilterToggleAction(@NotNull String actionText,
-                           @NotNull AndroidTestCaseResult testCaseResultToDisplay,
-                           @NotNull String propertiesComponentKey,
-                           boolean defaultState) {
-      super(() -> actionText,
-            AndroidTestResultsTableViewKt.getIconFor(testCaseResultToDisplay, false));
+    MyToggleAction(@NotNull String actionText,
+                   @Nullable Icon actionIcon,
+                   @NotNull String propertiesComponentKey,
+                   boolean defaultState) {
+      super(() -> actionText, actionIcon);
       myPropertiesComponentKey = propertiesComponentKey;
       myDefaultState = defaultState;
       isSelected = PropertiesComponent.getInstance(myProject).getBoolean(propertiesComponentKey, defaultState);
@@ -443,7 +487,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @AnyThread
   public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
-      myTable.addTestCase(device, testCase);
+      AndroidTestResults results = myTable.addTestCase(device, testCase);
+      myInsertionOrderMap.computeIfAbsent(results, (unused) -> myInsertionOrderMap.size());
       myDetailsView.reloadAndroidTestResults();
     });
   }

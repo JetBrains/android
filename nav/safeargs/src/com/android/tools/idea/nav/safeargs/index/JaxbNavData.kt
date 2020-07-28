@@ -104,14 +104,18 @@ data class MutableNavActionData(
   @field:XmlAttribute(namespace = ANDROID_URI)
   override var id: String,
 
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = AUTO_URI)
-  override var destination: String,
+  override var destination: String?,
+
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
+  @field:XmlAttribute(namespace = AUTO_URI)
+  override var popUpTo: String?,
 
   @field:XmlElement(name = "argument")
   override var arguments: List<MutableNavArgumentData>
 ) : NavActionData {
-  constructor() : this("", "", mutableListOf())
+  constructor() : this("", null, null, mutableListOf())
 }
 
 @XmlRootElement(name = "maybeDestination") // Fake root element name only used for indexing, required by JAXB marshalling

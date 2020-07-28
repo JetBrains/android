@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.future
@@ -66,6 +67,11 @@ interface DatabaseInspectorProjectService {
    * [JComponent] that contains the view of the Database Inspector.
    */
   val sqliteInspectorComponent: JComponent
+
+  /**
+   * The base coroutine scope for this [DatabaseInspectorProjectService].
+   */
+  val projectScope: CoroutineScope
 
   /**
    * Opens a connection to the database contained in the file passed as argument. The database is then shown in the Database Inspector.
@@ -199,7 +205,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
-  private val projectScope = AndroidCoroutineScope(project, uiThread)
+  override val projectScope = AndroidCoroutineScope(project, uiThread)
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()

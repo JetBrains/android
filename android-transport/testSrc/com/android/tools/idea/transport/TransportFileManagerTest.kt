@@ -59,7 +59,8 @@ class TransportFileManagerTest {
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(false)
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
@@ -96,7 +97,8 @@ class TransportFileManagerTest {
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     `when`(mockDevice.abis).thenReturn(listOf(
@@ -144,7 +146,8 @@ class TransportFileManagerTest {
       .setDevDir("dev")
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     `when`(mockDevice.abis).thenReturn(listOf(
@@ -197,7 +200,8 @@ class TransportFileManagerTest {
       .setDevDir("dev")
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("%s/perfetto")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     `when`(mockDevice.abis).thenReturn(listOf(

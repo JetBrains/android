@@ -27,10 +27,10 @@ interface INdkModel {
   val features: NdkModelFeatures
   val allVariantAbis: Collection<VariantAbi>
   val syncedVariantAbis: Collection<VariantAbi>
-  fun getSymbolFolders(): Map<VariantAbi, Set<File>>
-  fun getBuildFiles(): Collection<File>
-  fun getBuildSystems(): Collection<String>
-  fun getDefaultNdkVersion(): String
+  val symbolFolders: Map<VariantAbi, Set<File>>
+  val buildFiles: Collection<File>
+  val buildSystems: Collection<String>
+  val defaultNdkVersion: String
 }
 
 sealed class NdkModel : INdkModel
@@ -132,15 +132,21 @@ class V1NdkModel(
 
   val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
 
-  override fun getSymbolFolders(): Map<VariantAbi, Set<File>> = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
+  @Transient
+  override val symbolFolders: Map<VariantAbi, Set<File>> = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
     ndkVariant.artifacts.mapNotNull { artifact ->
       artifact.outputFile?.takeIf { it.exists() }?.parentFile
     }.toSet()
   }
 
-  override fun getBuildFiles(): Collection<File> = androidProject.buildFiles
-  override fun getBuildSystems(): Collection<String> = androidProject.buildSystems
-  override fun getDefaultNdkVersion(): String = androidProject.defaultNdkVersion
+  @Transient
+  override val buildFiles: Collection<File> = androidProject.buildFiles
+
+  @Transient
+  override val buildSystems: Collection<String> = androidProject.buildSystems
+
+  @Transient
+  override val defaultNdkVersion: String = androidProject.defaultNdkVersion
 
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
   fun findToolchain(toolchainName: String): NativeToolchain? = toolchainsByName[toolchainName]

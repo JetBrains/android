@@ -66,7 +66,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:transport-proto",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:jsr305[test]",
     ],
 )
 
@@ -104,6 +103,5 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
-        "//tools/adt/idea/.idea/libraries:unb.jsr305[test]",
     ],
 )

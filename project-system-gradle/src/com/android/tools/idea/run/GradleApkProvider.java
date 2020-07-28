@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
@@ -266,7 +265,7 @@ public class GradleApkProvider implements ApkProvider {
    * @return a list of ApkInfo objects for each additional runtime Apk
    */
   @NotNull
-  private static List<ApkInfo> getAdditionalApks(@NotNull AndroidArtifact testArtifactInfo) {
+  private static List<ApkInfo> getAdditionalApks(@NotNull IdeAndroidArtifact testArtifactInfo) {
     List<ApkInfo> result = new ArrayList<>();
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {

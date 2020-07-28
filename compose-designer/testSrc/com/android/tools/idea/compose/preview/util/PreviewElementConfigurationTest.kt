@@ -20,9 +20,9 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -55,16 +55,17 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
  * Tests checking [PreviewElement] being applied to a [Configuration].
  */
 @RunWith(Parameterized::class)
-class PreviewElementConfigurationTest(libraryNamespace: ComposeLibraryNamespace) {
+class PreviewElementConfigurationTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
   }
 
   @get:Rule
-  val projectRule = ComposeProjectRule(libraryNamespace = libraryNamespace)
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
   private val fixture get() = projectRule.fixture
 
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {

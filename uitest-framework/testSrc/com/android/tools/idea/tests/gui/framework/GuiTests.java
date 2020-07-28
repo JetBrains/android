@@ -61,7 +61,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
-import com.intellij.ui.popup.WizardPopup;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
@@ -80,7 +79,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -193,7 +191,9 @@ public final class GuiTests {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               ideSdks.setAndroidSdkPath(androidSdkPath, null);
 
-              ideSdks.setUseEmbeddedJdk();
+              if (!ideSdks.isUsingEnvVariableJdk()) {
+                ideSdks.setUseEmbeddedJdk();
+              }
               System.out.println(String.format("Setting JDK: '%1$s'", ideSdks.getJdkPath()));
 
               System.out.println();
@@ -408,7 +408,7 @@ public final class GuiTests {
     if (menu != null) {
       new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
-        protected boolean isMatching(@Nonnull JMenuItem component) {
+        protected boolean isMatching(@NotNull JMenuItem component) {
           return predicate.test(component.getText());
         }
       }).click();

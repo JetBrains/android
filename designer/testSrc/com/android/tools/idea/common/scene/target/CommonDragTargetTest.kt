@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
@@ -299,7 +300,7 @@ class CommonDragTargetTest : SceneTest() {
       // Drag textView should select both
       myScene.select(listOf(textView, textView2))
       target.mouseDown(10, 10)
-      target.mouseDrag(11, 11, listOf())
+      target.mouseDrag(11, 11, listOf(), SceneContext.get())
       target.mouseRelease(12, 12, listOf())
       val newSelection = target.newSelection()
       assertEquals(2, newSelection.size)
@@ -312,7 +313,7 @@ class CommonDragTargetTest : SceneTest() {
       // Drag textView2 should select both
       myScene.select(listOf(textView, textView2))
       target2.mouseDown(10, 10)
-      target2.mouseDrag(11, 11, listOf())
+      target2.mouseDrag(11, 11, listOf(), SceneContext.get())
       target2.mouseRelease(12, 12, listOf())
       val newSelection = target2.newSelection()
       assertEquals(2, newSelection.size)

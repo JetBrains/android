@@ -24,6 +24,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -176,6 +177,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {
+    if (IdeInfo.isGameTool()) {
+      return AndroidStudioEvent.IdeBrand.GAME_TOOLS;
+    }
     // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
     // builds, it is just "Blaze"
     return Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> plugin.isBundled() && plugin.getName().contains("Blaze"))

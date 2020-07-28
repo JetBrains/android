@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import com.android.tools.idea.testartifacts.instrumented.RetentionConstantsKt;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,6 +39,10 @@ public class RetentionView {
   private class RetentionPanel extends JPanel implements DataProvider {
     private static final String SNAPSHOT_ID = "test_failure_snapshot";
     private File snapshotFile = null;
+    private AndroidDevice device = null;
+    public void setAndroidDevice(AndroidDevice device) {
+      this.device = device;
+    }
 
     public void setSnapshotFile(File snapshotFile) {
       this.snapshotFile = snapshotFile;
@@ -56,6 +61,8 @@ public class RetentionView {
         return true;
       } else if (dataId == RetentionConstantsKt.RETENTION_ON_FINISH_KEY.getName()) {
         return (Runnable)() -> myRetentionDebugButton.setEnabled(true);
+      } else if (dataId == RetentionConstantsKt.DEVICE_NAME_KEY.getName()) {
+        return device.getDeviceName();
       }
       return null;
     }
@@ -80,6 +87,8 @@ public class RetentionView {
   public void setSnapshotFile(File snapshotFile) {
     ((RetentionPanel)myRootPanel).setSnapshotFile(snapshotFile);
   }
+
+  public void setAndroidDevice(AndroidDevice device) { ((RetentionPanel)myRootPanel).setAndroidDevice(device); }
 
   private void createUIComponents() {
     myRootPanel = new RetentionPanel();

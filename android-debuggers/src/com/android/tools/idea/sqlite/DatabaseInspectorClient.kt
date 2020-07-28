@@ -24,6 +24,8 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import java.util.concurrent.Executor
 
 /**
@@ -33,6 +35,7 @@ import java.util.concurrent.Executor
  * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
+ * @param scope the coroutine scoped used to send messages to inspector.
  */
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
@@ -42,10 +45,11 @@ class DatabaseInspectorClient constructor(
   private val onDatabasePossiblyChanged: () -> Unit,
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
+  scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) : AppInspectorClient(messenger) {
-
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, taskExecutor, errorsSideChannel)
+  private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, clientScope, errorsSideChannel)
 
   override val rawEventListener = object : RawEventListener {
     override fun onRawEvent(eventData: ByteArray) {
@@ -80,7 +84,7 @@ class DatabaseInspectorClient constructor(
    * Sends a command to the on-device inspector to start looking for database connections.
    * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
-  fun startTrackingDatabaseConnections() {
+  suspend fun startTrackingDatabaseConnections() {
     dbMessenger.sendCommand(
       SqliteInspectorProtocol.Command.newBuilder()
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
@@ -94,14 +98,14 @@ class DatabaseInspectorClient constructor(
    * Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
    */
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-    val response = dbMessenger.sendCommand(
+    val response = dbMessenger.sendCommandAsync(
       SqliteInspectorProtocol.Command.newBuilder()
         .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen).build())
         .build()
     )
 
     return response.transform(taskExecutor) {
-      return@transform when(it.oneOfCase) {
+      return@transform when (it.oneOfCase) {
         SqliteInspectorProtocol.Response.OneOfCase.KEEP_DATABASES_OPEN -> keepOpen
         else -> null
       }
