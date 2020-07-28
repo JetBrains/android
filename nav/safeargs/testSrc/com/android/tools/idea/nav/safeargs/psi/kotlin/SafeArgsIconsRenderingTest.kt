@@ -38,6 +38,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
 
+@org.junit.Ignore("b/162363662")
 @RunsInEdt
 class SafeArgsIconsRenderingTest {
   private val projectRule = AndroidGradleProjectRule()
