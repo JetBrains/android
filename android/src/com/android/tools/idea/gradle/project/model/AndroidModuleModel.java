@@ -30,7 +30,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
@@ -40,6 +39,7 @@ import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
@@ -511,7 +511,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public Collection<SyncIssue> getSyncIssues() {
+  public Collection<IdeSyncIssue> getSyncIssues() {
     if (getFeatures().isIssueReportingSupported()) {
       return myAndroidProject.getSyncIssues();
     }
