@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+  <info organisation="org.gradle.sample" module="checks" revision="1.0-SNAPSHOT" status="integration" publication="20200720183524"/>
+  <configurations>
+    <conf name="compile" visibility="public"/>
+    <conf name="default" visibility="public" extends="compile,runtime"/>
+    <conf name="runtime" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="checks" type="jar" ext="jar" conf="compile" m:classifier="sources"/>
+    <artifact name="checks" type="jar" ext="jar" conf="compile"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

@@ -54,6 +54,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -93,6 +94,7 @@ public class IdeSdks {
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_1_8;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
+  @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -102,8 +104,9 @@ public class IdeSdks {
   private boolean myUseJdkEnvVariable = false;
   private boolean myIsJdkEnvVariableValid = false;
   private Boolean myIsJdkEnvVariableDefined;
-  private File myEnvVariableJdk = null;
+  private File myEnvVariableJdkFile = null;
   private String myEnvVariableJdkValue = null;
+  private Sdk myEnvVariableJdkSdk = null;
   private final Object myEnvVariableLock = new Object();
 
   @NotNull
@@ -240,7 +243,7 @@ public class IdeSdks {
   @Nullable
   private File doGetJdkPath(boolean createJdkIfNeeded) {
     if (isUsingEnvVariableJdk()) {
-      return getEnvVariableJdk();
+      return getEnvVariableJdkFile();
     }
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (androidSdks.isEmpty() && createJdkIfNeeded) {
@@ -310,15 +313,25 @@ public class IdeSdks {
       if (myEnvVariableJdkValue == null) {
         // Environment variable is not defined.
         myIsJdkEnvVariableDefined = Boolean.FALSE;
-        myEnvVariableJdk = null;
+        myEnvVariableJdkFile = null;
         myIsJdkEnvVariableValid = false;
         myUseJdkEnvVariable = false;
         return;
       }
       myIsJdkEnvVariableDefined = Boolean.TRUE;
-      myEnvVariableJdk = validateJdkPath(new File(toSystemDependentName(myEnvVariableJdkValue)));
-      if (myEnvVariableJdk == null) {
+      myEnvVariableJdkFile = validateJdkPath(new File(toSystemDependentName(myEnvVariableJdkValue)));
+      if (myEnvVariableJdkFile == null) {
         // Environment variable is defined but not valid
+        myIsJdkEnvVariableValid = false;
+        myUseJdkEnvVariable = false;
+        return;
+      }
+      try {
+        myEnvVariableJdkSdk = createJdk(myEnvVariableJdkFile);
+      }
+      catch (Throwable exc) {
+        LOG.warn("Could not use provided jdk from " + myEnvVariableJdkValue, exc);
+        // Environment variable is defined and a valid JDK but could not create Jdk from it
         myIsJdkEnvVariableValid = false;
         myUseJdkEnvVariable = false;
         return;
@@ -326,6 +339,7 @@ public class IdeSdks {
       // Environment variable is defined and valid
       myIsJdkEnvVariableValid = true;
       myUseJdkEnvVariable = true;
+      LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + myEnvVariableJdkValue);
     }
   }
 
@@ -357,10 +371,10 @@ public class IdeSdks {
    * @return A valid JDK location iff environment variable {@value JDK_LOCATION_ENV_VARIABLE_NAME} is set to a valid JDK Location
    */
   @Nullable
-  public File getEnvVariableJdk() {
+  public File getEnvVariableJdkFile() {
     synchronized (myEnvVariableLock) {
       initializeJdkEnvVariable();
-      return myEnvVariableJdk;
+      return myEnvVariableJdkFile;
     }
   }
 
@@ -810,6 +824,12 @@ public class IdeSdks {
    */
   @Nullable
   public Sdk getJdk() {
+    // b/161405154  If STUDIO_GRADLE_JDK is valid and selected then return the corresponding Sdk
+    synchronized (myEnvVariableLock) {
+      if (isUsingEnvVariableJdk()) {
+        return myEnvVariableJdkSdk;
+      }
+    }
     return getJdk(getRunningVersionOrDefault());
   }
 

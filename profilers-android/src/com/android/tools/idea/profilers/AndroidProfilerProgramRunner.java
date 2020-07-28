@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.run.AndroidBaseProgramRunner;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
@@ -50,11 +51,17 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
   protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env)
     throws ExecutionException {
     RunContentDescriptor descriptor = super.doExecute(state, env);
-    createProfilerToolWindow(env.getProject(), descriptor);
+    createProfilerToolWindow(env.getProject(), descriptor, env.getUserData(SwapInfo.SWAP_INFO_KEY) != null);
     return descriptor;
   }
 
   public static void createProfilerToolWindow(@NotNull Project project, @Nullable RunContentDescriptor descriptor) {
+    createProfilerToolWindow(project, descriptor, false);
+  }
+
+  public static void createProfilerToolWindow(@NotNull Project project,
+                                              @Nullable RunContentDescriptor descriptor,
+                                              boolean isSwapExecution) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (descriptor != null) {
@@ -82,7 +89,12 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       // 1. Stops profiling the old process
       // 2. Configures startup profiling for the process to be launched
       // 3. Starts profiling the new process
-      profilerToolWindow.getProfilers().getSessionsManager().endCurrentSession();
+      //
+      // Don't do it for swap (Apply Changes). Swap doesn't end the process and therefore the
+      // current session is expected to continue.
+      if (!isSwapExecution) {
+        profilerToolWindow.getProfilers().getSessionsManager().endCurrentSession();
+      }
     }
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRunWithProfiling();

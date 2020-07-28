@@ -18,6 +18,8 @@ allprojects {
     repositories {
         google()
         jcenter()
+        // Add Ivy repo as regression test for http://b/161405989
+        ivy { url "$rootDir/ivyRepo" }
     }
 }
 
