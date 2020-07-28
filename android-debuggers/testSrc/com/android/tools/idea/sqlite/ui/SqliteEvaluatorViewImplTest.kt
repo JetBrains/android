@@ -267,7 +267,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testSqliteStatementTextChanged() {
     // Prepare
-    val collapsedEditor = TreeWalker(view.component).descendants().first { it.name == "collapsed-editor" } as EditorTextField
+    val collapsedEditor = TreeWalker(view.component).descendants().first { it.name == "editor" } as EditorTextField
 
     val invocations = mutableListOf<String>()
     val mockListener = object : SqliteEvaluatorView.Listener {
