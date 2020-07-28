@@ -867,6 +867,7 @@ b/154962759 */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
     List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+/* b/162363312
     assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
@@ -877,6 +878,7 @@ b/154962759 */
     requestSyncAndWait();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
     assertThat(daemonStatus).isNotEmpty();
+b/162363312 */
   }
 
   private boolean isModulePerSourceSet() {
