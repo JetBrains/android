@@ -92,13 +92,15 @@ abstract class SamplesVariantRule : ComponentMetadataRule {
     }
     val id = ctx.details.id
     val addVariant = ctx.details.javaClass.getMethod("addVariant", String::class.java, Action::class.java)
+    val category: Category = objectFactory.named(Category.DOCUMENTATION)
+    val docsType: DocsType = objectFactory.named(SAMPLE_SOURCE_CLASSIFIER)
 
     val action: Action<VariantMetadata> = object : Action<VariantMetadata> {
       override fun execute(vm: VariantMetadata) {
         vm.attributes(object : Action<AttributeContainer> {
           override fun execute(ac: AttributeContainer) {
-            ac.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.DOCUMENTATION))
-            ac.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(SAMPLE_SOURCE_CLASSIFIER))
+            ac.attribute(Category.CATEGORY_ATTRIBUTE, category)
+            ac.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, docsType)
           }
         })
         val withFiles = vm.javaClass.getMethod("withFiles", Action::class.java)
