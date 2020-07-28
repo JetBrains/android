@@ -227,7 +227,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
-        zoom(onChangedZoom, -1, -1);
+        UIUtil.invokeLaterIfNeeded(() -> zoom(onChangedZoom, -1, -1));
       }
 
       return true;
