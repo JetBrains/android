@@ -479,11 +479,10 @@ public final class NlComponentTest extends LayoutTestCase {
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                      " \n" +
+                      "    xmlns:tools123=\"http://schemas.android.com/tools\"\n" +
                       "    app:something=\"1\">\n" +
-                      " \n" +
+                      "\n" +
                       "    <Button\n" +
                       "        android:id=\"@+id/editText\"\n" +
                       "        android:layout_width=\"wrap_content\"\n" +
@@ -493,7 +492,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "        android:orientation=\"vertical\"\n" +
                       "        tools123:layout_editor_absoluteX=\"32dp\"\n" +
                       "        tools123:layout_editor_absoluteY=\"43dp\" />\n" +
-                      "</RelativeLayout>";
+                      "</RelativeLayout>\n";
     assertEquals(expected, xmlFile.getText());
   }
 
