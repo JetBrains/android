@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectio
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -100,7 +100,7 @@ class DatabaseInspectorControllerImpl(
   private var evaluatorTabCount = 0
   private var keepConnectionsOpen = false
   set(value) {
-    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transform(edtExecutor) {
+    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transformNullable(edtExecutor) {
         if (it != null) {
           field = it
           view.updateKeepConnectionOpenButton(value)
