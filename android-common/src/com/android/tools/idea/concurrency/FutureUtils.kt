@@ -51,8 +51,19 @@ import java.util.concurrent.TimeoutException
 /**
  * @see Futures.transform
  */
-fun <I, O> ListenableFuture<I>.transform(executor: Executor, func: (I) -> O): ListenableFuture<O> {
+fun <I: Any, O> ListenableFuture<I>.transform(executor: Executor, func: (I) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i!!) }, executor)
+}
+
+/**
+ * @see Futures.transform
+ *
+ * This function is useful for interoperability between Java and Kotlin
+ * When in Java the future is ListenableFuture<Void> we set a `null` value to complete the future, if that future is used
+ * from Kotlin with the [transform] defined above it throws exception because we are assigning null to a non-nullable variable (I)
+ */
+fun <I, O> ListenableFuture<I>.transformNullable(executor: Executor, func: (I?) -> O): ListenableFuture<O> {
+  return Futures.transform(this, Function<I, O> { i -> func(i) }, executor)
 }
 
 /**
