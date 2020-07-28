@@ -18,7 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
-import com.android.ide.common.gradle.model.IdeAndroidArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.testutils.VirtualTimeScheduler
@@ -26,7 +26,6 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub.toIdeAndroidProject
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.stats.toProtoValue
@@ -47,8 +46,9 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        IdeAndroidArtifactImpl(AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
-                               ModelCache(), IdeDependenciesFactory(), null),
+        IdeAndroidArtifactImpl(
+          AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+          ModelCache(), IdeDependenciesFactory(), null),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }

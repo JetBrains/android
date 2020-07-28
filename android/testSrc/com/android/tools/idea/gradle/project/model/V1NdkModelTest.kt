@@ -21,9 +21,9 @@ import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
-import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.IdeNativeVariantAbiImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
