@@ -24,9 +24,9 @@
 
 package com.android.tools.idea
 
-import com.android.builder.model.AaptOptions
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -63,4 +63,4 @@ fun findDependenciesWithResources(module: Module): Map<String, ExternalLibrary> 
 /**
  * Checks namespacing of the module with the given [AndroidFacet].
  */
-val AndroidFacet.namespacing: AaptOptions.Namespacing get() = AndroidModel.get(this)?.namespacing ?: AaptOptions.Namespacing.DISABLED
+val AndroidFacet.namespacing: Namespacing get() = AndroidModel.get(this)?.namespacing ?: Namespacing.DISABLED

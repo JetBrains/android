@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android
 
-import com.android.builder.model.AaptOptions
 import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass
@@ -139,8 +139,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
         return when (file.getUserData(LIGHT_CLASS_KEY)) {
           ModuleRClass::class.java -> isModuleRVirtualFileAccessible(file)
           ManifestClass::class.java -> isLightVirtualFileFromAccessibleModule(file)
-          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == AaptOptions.Namespacing.REQUIRED
-          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == AaptOptions.Namespacing.DISABLED
+          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.REQUIRED
+          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.DISABLED
           ResourceRepositoryRClass::class.java -> {
             // For BlazeRClass which does not take into account test scope or transitivity
             isLightVirtualFileFromAccessibleModule(file)

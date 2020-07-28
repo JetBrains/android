@@ -45,7 +45,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.AdapterBinding;
@@ -71,6 +70,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -160,7 +160,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
-  private final AaptOptions.Namespacing myNamespacing;
+  private final Namespacing myNamespacing;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -226,7 +226,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
     myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
@@ -930,7 +930,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Override
   public boolean isResourceNamespacingRequired() {
-    return myNamespacing == AaptOptions.Namespacing.REQUIRED;
+    return myNamespacing == Namespacing.REQUIRED;
   }
 
   @Override
