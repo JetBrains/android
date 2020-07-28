@@ -163,7 +163,6 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/idea/.idea/libraries:kotlin-reflect",
         "//tools/idea/.idea/libraries:Java_Compatibility",
-        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/idea/.idea/libraries:NanoXML",

@@ -161,7 +161,6 @@
     <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
-    <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.resources-base" />
     <orderEntry type="library" name="NanoXML" level="project" />
