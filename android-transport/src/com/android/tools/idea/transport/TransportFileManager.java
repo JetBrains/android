@@ -263,7 +263,7 @@ public final class TransportFileManager implements TransportFileCopier {
     try {
       // TODO: Handle the case where we don't have file for this platform.
       if (!Files.exists(localPath)) {
-        throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
+        throw new RuntimeException(String.format("File %s could not be found for device: %s", localPath.toString(), myDevice));
       }
       /*
        * If copying the agent fails, we will attach the previous version of the agent
