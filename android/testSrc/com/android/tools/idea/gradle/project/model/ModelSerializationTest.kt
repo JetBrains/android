@@ -40,7 +40,6 @@ import com.android.ide.common.gradle.model.IdeOutputFileImpl
 import com.android.ide.common.gradle.model.IdeProductFlavorContainerImpl
 import com.android.ide.common.gradle.model.IdeProductFlavorImpl
 import com.android.ide.common.gradle.model.IdeProjectIdentifierImpl
-import com.android.ide.common.gradle.model.IdeProjectSyncIssues
 import com.android.ide.common.gradle.model.IdeSigningConfigImpl
 import com.android.ide.common.gradle.model.IdeSourceProviderContainerImpl
 import com.android.ide.common.gradle.model.IdeSourceProviderImpl
@@ -335,10 +334,6 @@ class ModelSerializationTest {
 
       override fun getProjectPath() = ":"
     }) }
-
-  @Test
-  fun projectSyncIssues() =
-    assertSerializable { IdeProjectSyncIssues(ProjectSyncIssuesStub(), modelCache) }
 
   @Test
   fun signingConfig() =
