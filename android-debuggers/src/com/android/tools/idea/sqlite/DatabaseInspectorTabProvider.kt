@@ -38,7 +38,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   override val displayName = "Database Inspector"
   override val inspectorAgentJar = AppInspectorJar(
     name = "sqlite-inspection.jar",
-    developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/",
+    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
     releaseDirectory = "plugins/android/resources/app-inspection/"
   )
 

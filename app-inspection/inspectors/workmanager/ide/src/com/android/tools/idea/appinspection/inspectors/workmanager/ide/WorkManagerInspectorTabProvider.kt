@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.ide
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -31,7 +31,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.work.inspector"
   override val displayName = "WorkManager Inspector"
   override val inspectorAgentJar = AppInspectorJar("workmanager-inspector.jar",
-                                                   developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/work/",
+                                                   developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
                                                    releaseDirectory = "plugins/android/resources/app-inspection/")
 
   override fun isApplicable(): Boolean {
