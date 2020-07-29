@@ -54,9 +54,11 @@ import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
+import io.grpc.stub.StreamObserver
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
+import java.nio.charset.Charset
 import java.util.concurrent.CountDownLatch
 
 // Const values for the progress bar
@@ -268,7 +270,13 @@ private fun EmulatorController.pushAndLoadSync(snapshotId: String, snapshotFile:
 private fun EmulatorController.loadSnapshotSync(snapshotId: String): Boolean {
   val doneSignal = CountDownLatch(1)
   var succeeded = true
-  loadSnapshot(snapshotId, object : EmptyStreamObserver<SnapshotPackage>() {
+  loadSnapshot(snapshotId, object : StreamObserver<SnapshotPackage> {
+    override fun onNext(response: SnapshotPackage) {
+      if (!response.success) {
+        succeeded = false
+        showErrorMessage(null, "Snapshot load failed: " + response.err.toString(Charset.defaultCharset()))
+      }
+    }
     override fun onCompleted() {
       doneSignal.countDown()
     }
@@ -339,7 +347,12 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
         }
       }
 
-      override fun onNext(snapshotPackage: SnapshotPackage) {}
+      override fun onNext(response: SnapshotPackage) {
+        if (!response.success) {
+          succeeded = false
+          showErrorMessage(null, "Snapshot push failed: " + response.err.toString(Charset.defaultCharset()))
+        }
+      }
     })
 
     // Slow
@@ -351,6 +364,6 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
 private val LOG = logger<FindEmulatorAndSetupRetention>()
 private val NOTIFICATION_GROUP = NotificationGroup(NOTIFICATION_GROUP_NAME, NotificationDisplayType.BALLOON)
 
-private fun showErrorMessage(project: Project, message: String) {
+private fun showErrorMessage(project: Project?, message: String) {
   NOTIFICATION_GROUP.createNotification(message, NotificationType.ERROR).notify(project)
 }
