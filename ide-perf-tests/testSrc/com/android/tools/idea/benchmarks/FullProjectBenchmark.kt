@@ -38,13 +38,15 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.nextLeafs
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.junit.After
 import org.junit.Ignore
 import java.io.File
@@ -244,9 +246,8 @@ abstract class FullProjectBenchmark {
       })
 
     // Measure completion time, fast path
-    // TODO: http://b/162400668
-    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
-    //  .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
+    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+      .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
     val fastPathSample = Metric.MetricSample(
@@ -266,9 +267,8 @@ abstract class FullProjectBenchmark {
     fixture.openFileInEditor(layoutFile)
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
-    // TODO: http://b/162400668
-    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
-    //  .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
+    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+      .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
     val mediumPathSample = Metric.MetricSample(
       System.currentTimeMillis(),
       measureElapsedMillis {
