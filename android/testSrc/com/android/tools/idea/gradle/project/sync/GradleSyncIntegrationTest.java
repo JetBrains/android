@@ -782,7 +782,7 @@ b/154962759 */
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be false.
-    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
 
     // Change the option in the build file and re-sync
     File appBuildFile = getBuildFilePath("app");
@@ -790,7 +790,7 @@ b/154962759 */
     requestSyncAndWait();
 
     // Check that the new option is visible from the IDE.
-    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
   }
 
   public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
