@@ -25,7 +25,6 @@ import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
 import com.android.ide.common.gradle.model.impl.IdeClassFieldImpl
 import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl
-import com.android.ide.common.gradle.model.impl.IdeInstantRunImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.ide.common.gradle.model.IdeLintOptions
@@ -270,10 +269,6 @@ class ModelSerializationTest {
   @Test
   fun filterData() =
     assertSerializable { IdeFilterDataImpl(FilterDataStub()) }
-
-  @Test
-  fun instantRun() =
-    assertSerializable { IdeInstantRunImpl(InstantRunStub()) }
 
   @Test
   fun javaArtifact() =
