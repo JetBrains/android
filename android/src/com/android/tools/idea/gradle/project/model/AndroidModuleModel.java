@@ -36,6 +36,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeApiVersion;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
@@ -477,7 +478,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
-    JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
+    IdeJavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
   }
