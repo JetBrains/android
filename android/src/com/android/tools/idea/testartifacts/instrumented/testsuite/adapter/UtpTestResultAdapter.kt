@@ -133,7 +133,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val testSuite = deviceTestSuite.testSuite
       val testCaseProto = testResultProto.testCase
       val fullName = "${testCaseProto.testPackage}.${testCaseProto.testClass}#${testCaseProto.testMethod}"
-      val iceboxArtifactRegrex = "snapshot-.*-.*-snapshot.tar.gz".toRegex()
+      val iceboxArtifactRegrex = "snapshot-.*-.*-snapshot.tar(.gz)?".toRegex()
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }

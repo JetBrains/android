@@ -177,6 +177,56 @@ class UtpTestResultAdapterTest {
   }
 
   @Test
+  fun importFailedTestResultsWithSnapshots() {
+    val testClass = "ExampleInstrumentedTest"
+    val testMethod1 = "useAppContext"
+    val testMethod2 = "useAppContext2"
+    val snapshotName1 = "snapshot-${testClass}-${testMethod1}-snapshot.tar"
+    val snapshotName2 = "snapshot-${testClass}-${testMethod2}-snapshot.tar.gz"
+    val failedSnapshot1 = temporaryFolder.newFile(snapshotName1)
+    val failedSnapshot2 = temporaryFolder.newFile(snapshotName2)
+    val protobuf = TestSuiteResultProto.TestSuiteResult.newBuilder()
+      .addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass(testClass)
+                         .setTestPackage(TEST_PACKAGE_NAME)
+                         .setTestMethod(testMethod1))
+          .setTestStatus(TestStatusProto.TestStatus.FAILED)
+          .addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().setSourcePath(PathProto.Path.newBuilder().setPath(snapshotName1))
+          )
+      ).addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass(testClass)
+                         .setTestPackage(TEST_PACKAGE_NAME)
+                         .setTestMethod(testMethod2))
+          .setTestStatus(TestStatusProto.TestStatus.FAILED)
+          .addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().setSourcePath(PathProto.Path.newBuilder().setPath(snapshotName2))
+          )
+      ).build()
+    protobuf.writeTo(utpProtoFile.outputStream())
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
+    val verifyInOrder = inOrder(mockListener)
+    verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
+    verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
+    verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
+    verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), Mockito.argThat {
+      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot?.canonicalPath == failedSnapshot1.canonicalPath
+    } ?: mockAndroidTestCase)
+    verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
+    verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), Mockito.argThat {
+      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot?.canonicalPath == failedSnapshot2.canonicalPath
+    } ?: mockAndroidTestCase)
+    verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), Mockito.argThat {
+      it!!.result == AndroidTestSuiteResult.FAILED
+    } ?: mockAndroidTestSuite)
+  }
+
+  @Test
   fun importFailedTestResultWithoutSnapshot() {
     val unrelatedArtifact = "foo"
     val protobuf = TestSuiteResultProto.TestSuiteResult.newBuilder()
