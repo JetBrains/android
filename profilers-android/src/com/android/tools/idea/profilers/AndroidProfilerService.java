@@ -131,7 +131,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
           .setSamplingRate(
             Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
           .build())
-      .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
+      .setCpuApiTracingEnabled(true)
       .setStartupProfilingEnabled(runConfig != null);
   }
 

@@ -38,7 +38,6 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
     }
 
     val knownDivergences = mapOf(
-      "isCpuApiTracingEnabled" to "b/162491774",
       "isCpuCaptureStageEnabled" to "b/162494041",
       "isCpuNewRecordingWorkflowEnabled" to "b/162493668",
       "isEnergyProfilerEnabled" to "b/162495674",

@@ -110,11 +110,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myStartupCpuProfilingEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myIsCpuApiTracingEnabled = false;
-
-  /**
    * Whether the new pipeline is used or the old one for devices / processes / sessions.
    */
   private boolean myEventsPipelineEnabled = false;
@@ -249,11 +244,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public boolean isCpuApiTracingEnabled() {
-        return myIsCpuApiTracingEnabled;
-      }
-
       @Override
       public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
 
@@ -434,10 +424,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableStartupCpuProfiling(boolean enabled) {
     myStartupCpuProfilingEnabled = enabled;
-  }
-
-  public void enableCpuApiTracing(boolean enabled) {
-    myIsCpuApiTracingEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {

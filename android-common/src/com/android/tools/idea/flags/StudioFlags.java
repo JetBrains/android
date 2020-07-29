@@ -121,11 +121,6 @@ public final class StudioFlags {
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
     true);
 
-  public static final Flag<Boolean> PROFILER_CPU_API_TRACING = Flag.create(
-    PROFILER, "cpu.api.tracing", "Enable CPU API Tracing",
-    "Support method tracing through APIs from android.os.Debug.",
-    true);
-
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
