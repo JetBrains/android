@@ -91,11 +91,8 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       .append(myProcessor.getCurrent()).append(" to version ").append(myProcessor.getNew()).append(":</p>");
     sb.append("<ul>");
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
-      if (p.isEnabled()) {
+      if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
         sb.append("<li>").append(p.getCommandName());
-        if (p.isAlwaysNoOpForProject()) {
-          sb.append(" (no effect on this project)");
-        }
         String url = p.getReadMoreUrl();
         if (url != null) {
           sb.append(" [<a href='").append(url).append("'>read more</a>]");
