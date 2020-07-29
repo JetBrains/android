@@ -46,6 +46,7 @@ import java.util.List;
 
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -186,6 +187,13 @@ public class ChooseSystemImagePanel extends JPanel
         if (image.getRevision() == null || image.getRevision().compareTo(new Revision(2, 0, 0)) <= 0) {
           return false;
         }
+      }
+    }
+
+    // hinge foldable device requires API30 and above
+    if (device.getId().equals(("7.3in Foldable"))) {
+      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
+        return false;
       }
     }
 
