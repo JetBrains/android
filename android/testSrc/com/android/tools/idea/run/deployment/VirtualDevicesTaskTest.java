@@ -46,7 +46,12 @@ public final class VirtualDevicesTaskTest {
   @Test
   public void get() throws InterruptedException, ExecutionException {
     // Arrange
-    Collection<AvdInfo> avds = Arrays.asList(mockAvd("Pixel 4 API 30", "Pixel_4_API_30"), mockAvd("Pixel 4 API 30", "Pixel_4_API_30"));
+    Collection<AvdInfo> avds = Arrays.asList(mockAvd("Pixel 4 API 30",
+                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
+                                                     "Pixel_4_API_30"),
+                                             mockAvd("Pixel 4 API 30",
+                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
+                                                     "Pixel_4_API_30"));
 
     AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
@@ -62,18 +67,21 @@ public final class VirtualDevicesTaskTest {
     // Assert
     Object device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new Key("Pixel_4_API_30"))
+      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(myAndroidDevice)
+      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
       .build();
 
     assertEquals(Collections.singletonList(device), future.get());
   }
 
   private static @NotNull AvdInfo mockAvd(@NotNull @SuppressWarnings("SameParameterValue") String displayName,
+                                          @NotNull @SuppressWarnings("SameParameterValue") String path,
                                           @NotNull @SuppressWarnings("SameParameterValue") String name) {
     AvdInfo avd = Mockito.mock(AvdInfo.class);
 
     Mockito.when(avd.getDisplayName()).thenReturn(displayName);
+    Mockito.when(avd.getDataFolderPath()).thenReturn(path);
     Mockito.when(avd.getName()).thenReturn(name);
 
     return avd;

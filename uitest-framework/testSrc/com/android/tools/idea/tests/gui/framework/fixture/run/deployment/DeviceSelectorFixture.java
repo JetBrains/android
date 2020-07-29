@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.deployment.Key;
 import com.android.tools.idea.run.deployment.SelectDeviceAction;
+import com.android.tools.idea.run.deployment.SerialNumber;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -115,7 +115,7 @@ public final class DeviceSelectorFixture {
       JList<ActionItem> target = list.target();
 
       ListModel<ActionItem> model = target.getModel();
-      Object key = new Key(device.getSerialNumber());
+      Object key = new SerialNumber(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
         ActionItem actionItem = model.getElementAt(i);
@@ -141,7 +141,7 @@ public final class DeviceSelectorFixture {
       JList<ActionItem> target = list.target();
 
       ListModel<ActionItem> model = target.getModel();
-      Key key = new Key(device.getSerialNumber());
+      Object key = new SerialNumber(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
         ActionItem actionItem = model.getElementAt(i);

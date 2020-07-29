@@ -67,7 +67,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private @NotNull Stream<@NotNull Device> filteredStream(@NotNull Collection<@NotNull Device> devices) {
-    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
+    return devices.stream().filter(device -> device.hasKeyContainedBy(myKeys));
   }
 
   @NotNull
@@ -111,7 +111,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private @NotNull List<@NotNull Device> filteredList(@NotNull Collection<@NotNull Device> devices) {
-    return ContainerUtil.filter(devices, device -> myKeys.contains(device.getKey()));
+    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(myKeys));
   }
 
   @Override

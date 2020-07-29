@@ -220,7 +220,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
     Collection<Key> keys = getSelectedDeviceKeys(project, devices);
 
-    return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
+    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(keys));
   }
 
   @NotNull Set<@NotNull Key> getSelectedDeviceKeys(@NotNull Project project) {

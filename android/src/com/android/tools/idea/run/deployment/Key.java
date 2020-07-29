@@ -15,67 +15,42 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * A device identifier. When the selected device is persisted in the {@link com.intellij.ide.util.PropertiesComponent PropertiesComponent,}
- * the output of the device key's {@link #toString} method is what actually gets persisted.
+ * A device identifier. The {@link #toString} output is what gets persisted in the
+ * {@link com.intellij.ide.util.PropertiesComponent PropertiesComponent.}
  */
-public final class Key implements Comparable<Key> {
-  @NotNull
-  private final String myDeviceKey;
-
-  @Nullable
-  private final String mySnapshotKey;
-
-  public Key(@NotNull String key) {
-    int index = key.indexOf('/');
-
-    if (index == -1) {
-      myDeviceKey = key;
-      mySnapshotKey = null;
-    }
-    else {
-      myDeviceKey = key.substring(0, index);
-      mySnapshotKey = key.substring(index + 1);
-    }
-  }
-
-  Key(@NotNull String deviceKey, @Nullable Snapshot snapshot) {
-    myDeviceKey = deviceKey;
-    mySnapshotKey = snapshot == null ? null : snapshot.getDirectory().toString();
-  }
-
-  @NotNull
-  String getDeviceKey() {
-    return myDeviceKey;
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof Key)) {
-      return false;
+public abstract class Key implements Comparable<Key> {
+  static @NotNull Key newKey(@NotNull String string) {
+    if (string.startsWith(VirtualDevicePath.PREFIX)) {
+      return new VirtualDevicePath(string.substring(VirtualDevicePath.PREFIX.length()));
     }
 
-    Key key = (Key)object;
-    return myDeviceKey.equals(key.myDeviceKey) && Objects.equals(mySnapshotKey, key.mySnapshotKey);
+    if (string.startsWith(VirtualDeviceName.PREFIX)) {
+      return new VirtualDeviceName(string.substring(VirtualDeviceName.PREFIX.length()));
+    }
+
+    if (string.startsWith(SerialNumber.PREFIX)) {
+      return new SerialNumber(string.substring(SerialNumber.PREFIX.length()));
+    }
+
+    return new NonprefixedKey(string);
   }
 
-  @Override
-  public int hashCode() {
-    return 31 * myDeviceKey.hashCode() + Objects.hashCode(mySnapshotKey);
+  boolean matches(@NotNull Key key) {
+    return key instanceof NonprefixedKey ? asNonprefixedKey().equals(key) : equals(key);
   }
 
-  @NotNull
-  @Override
-  public String toString() {
-    return mySnapshotKey == null ? myDeviceKey : myDeviceKey + '/' + mySnapshotKey;
-  }
+  abstract @NotNull NonprefixedKey asNonprefixedKey();
+
+  /**
+   * @return the device part of a key. Keys may refer to a device and snapshot pair.
+   */
+  abstract @NotNull String getDeviceKey();
 
   @Override
-  public int compareTo(@NotNull Key key) {
+  public final int compareTo(@NotNull Key key) {
     return toString().compareTo(key.toString());
   }
 }
