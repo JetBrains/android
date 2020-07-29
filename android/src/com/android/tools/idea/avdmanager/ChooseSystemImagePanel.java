@@ -170,6 +170,7 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     String deviceTagId = device.getTagId();
+    String deviceId = device.getId();
     IdDisplay imageTag = image.getTag();
 
     // Foldable device requires Q preview or API29 and above.
@@ -179,7 +180,7 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // Freeform display device requires R preview DP2 or API30 and above.
-    if (device.getId().equals("13.5in Freeform")) {
+    if (deviceId.equals("13.5in Freeform")) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_FREEFORM_DEVICE_API) {
         return false;
       }
@@ -191,7 +192,7 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // hinge foldable device requires API30 and above
-    if (device.getId().equals(("7.3in Foldable"))) {
+    if (deviceId.equals(("7.3in Foldable")) || deviceId.equals(("8in Foldable"))) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
         return false;
       }
