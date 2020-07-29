@@ -282,15 +282,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
-    DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
-    testFilterAndSorterActionGroup.addAll(
-      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
-      Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton);
-    myTestStatusFilterPanel.add(
-      ActionManager.getInstance().createActionToolbar(
-        ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-        testFilterAndSorterActionGroup, true).getComponent());
-
     TestArtifactSearchScopes testArtifactSearchScopes = null;
     if (module != null) {
       testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module);
@@ -362,6 +353,16 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDeviceFilterComboBox.addItemListener(tableUpdater);
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
+
+    DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
+    testFilterAndSorterActionGroup.addAll(
+      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
+      Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton,
+      Separator.getInstance(), myTable.createExpandAllAction(), myTable.createCollapseAllAction());
+    myTestStatusFilterPanel.add(
+      ActionManager.getInstance().createActionToolbar(
+        ActionPlaces.ANDROID_TEST_SUITE_TABLE,
+        testFilterAndSorterActionGroup, true).getComponent());
 
     myComponentsSplitter = new JBSplitter();
     myComponentsSplitter.setHonorComponentsMinimumSize(false);

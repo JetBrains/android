@@ -530,6 +530,42 @@ class AndroidTestResultsTableViewTest {
     verify(mockLogger).reportInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
   }
 
+  @Test
+  fun expandAllAndCollapseAllAction() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    table.addDevice(device1)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1"))
+
+    val expandAllAction = table.createExpandAllAction()
+    val collapseAllAction = table.createCollapseAllAction()
+
+    val tableView = table.getTableViewForTesting()
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
+
+    collapseAllAction.actionPerformed(mock())
+
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.")
+
+    expandAllAction.actionPerformed(mock())
+
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
+  }
+
   // Workaround for Kotlin nullability check.
   // ArgumentMatchers.argThat returns null for interface types.
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {

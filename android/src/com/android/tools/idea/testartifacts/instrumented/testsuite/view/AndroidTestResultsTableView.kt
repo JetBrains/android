@@ -36,9 +36,12 @@ import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
+import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DataManager
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.actions.EditSourceAction
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
@@ -172,6 +175,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    *
    * @param device a device to retrieve the time or null to hide the string.
    */
+  @UiThread
   fun showTestDuration(device: AndroidDevice?) {
     myTableView.showTestDuration(device)
   }
@@ -213,6 +217,30 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun getPreferredFocusableComponent(): JComponent = myTableView
+
+  /**
+   * Creates an action which expands all items in the test results tree table.
+   */
+  @UiThread
+  fun createExpandAllAction(): AnAction {
+    val treeExpander = object: DefaultTreeExpander(myTableView.tree) {
+      override fun canCollapse(): Boolean = true
+      override fun canExpand(): Boolean = true
+    }
+    return CommonActionsManager.getInstance().createExpandAllAction(treeExpander, myTableView.tree)
+  }
+
+  /**
+   * Creates an action which expands all items in the test results tree table.
+   */
+  @UiThread
+  fun createCollapseAllAction(): AnAction {
+    val treeExpander = object: DefaultTreeExpander(myTableView.tree) {
+      override fun canCollapse(): Boolean = true
+      override fun canExpand(): Boolean = true
+    }
+    return CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, myTableView.tree)
+  }
 
   /**
    * Returns an internal model class for testing.
