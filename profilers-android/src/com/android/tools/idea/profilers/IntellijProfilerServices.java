@@ -40,6 +40,7 @@ import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -227,78 +228,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull
   @Override
   public FeatureConfig getFeatureConfig() {
-    return new FeatureConfig() {
-      @Override
-      public boolean isCpuApiTracingEnabled() {
-        return StudioFlags.PROFILER_CPU_API_TRACING.get();
-      }
-
-      @Override
-      public boolean isCpuCaptureStageEnabled() { return StudioFlags.PROFILER_CPU_CAPTURE_STAGE.get(); }
-
-      @Override
-      public boolean isNativeMemorySampleEnabled() { return StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get(); }
-
-      @Override
-      public boolean isCpuNewRecordingWorkflowEnabled() {
-        return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
-      }
-
-      @Override
-      public boolean isEnergyProfilerEnabled() {
-        return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
-      }
-
-      @Override
-      public boolean isJniReferenceTrackingEnabled() {
-        return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
-      }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
-      }
-
-      @Override
-      public boolean isLiveAllocationsSamplingEnabled() {
-        return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
-      }
-
-      @Override
-      public boolean isMemorySnapshotEnabled() {
-        return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
-      }
-
-      @Override
-      public boolean isPerformanceMonitoringEnabled() {
-        return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
-      }
-
-      @Override
-      public boolean isStartupCpuProfilingEnabled() {
-        return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
-      }
-
-      @Override
-      public boolean isUnifiedPipelineEnabled() {
-        return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
-      }
-
-      @Override
-      public boolean isUseTraceProcessor() {
-        return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
-      }
-
-      @Override
-      public boolean isCustomEventVisualizationEnabled() {
-        return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
-      }
-
-      @Override
-      public boolean isSeparateHeapDumpUiEnabled() {
-        return StudioFlags.PROFILER_HEAPDUMP_SEPARATE.get();
-      }
-    };
+    return new FeatureConfigProd();
   }
 
   @NotNull
@@ -450,5 +380,86 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public TraceProcessorService getTraceProcessorService() {
     return TraceProcessorServiceImpl.getInstance();
+  }
+
+  /**
+   * Implementation of {@link FeatureConfig} with values used in production.
+   */
+  @VisibleForTesting
+  public static class FeatureConfigProd implements FeatureConfig {
+    @Override
+    public boolean isCpuApiTracingEnabled() {
+      return StudioFlags.PROFILER_CPU_API_TRACING.get();
+    }
+
+    @Override
+    public boolean isCpuCaptureStageEnabled() {
+      return StudioFlags.PROFILER_CPU_CAPTURE_STAGE.get();
+    }
+
+    @Override
+    public boolean isNativeMemorySampleEnabled() {
+      return StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get();
+    }
+
+    @Override
+    public boolean isCpuNewRecordingWorkflowEnabled() {
+      return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
+    }
+
+    @Override
+    public boolean isEnergyProfilerEnabled() {
+      return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
+    }
+
+    @Override
+    public boolean isJniReferenceTrackingEnabled() {
+      return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
+    }
+
+    @Override
+    public boolean isLiveAllocationsEnabled() {
+      return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+    }
+
+    @Override
+    public boolean isLiveAllocationsSamplingEnabled() {
+      return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
+    }
+
+    @Override
+    public boolean isMemorySnapshotEnabled() {
+      return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
+    }
+
+    @Override
+    public boolean isPerformanceMonitoringEnabled() {
+      return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
+    }
+
+    @Override
+    public boolean isStartupCpuProfilingEnabled() {
+      return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
+    }
+
+    @Override
+    public boolean isUnifiedPipelineEnabled() {
+      return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
+    }
+
+    @Override
+    public boolean isUseTraceProcessor() {
+      return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
+    }
+
+    @Override
+    public boolean isCustomEventVisualizationEnabled() {
+      return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
+    }
+
+    @Override
+    public boolean isSeparateHeapDumpUiEnabled() {
+      return StudioFlags.PROFILER_HEAPDUMP_SEPARATE.get();
+    }
   }
 }
