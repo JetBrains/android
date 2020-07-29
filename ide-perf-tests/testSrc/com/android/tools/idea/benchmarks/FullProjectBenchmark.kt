@@ -246,8 +246,9 @@ abstract class FullProjectBenchmark {
       })
 
     // Measure completion time, fast path
-    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
-      .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
+    // TODO: http://b/162400668
+    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+    //  .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
     val fastPathSample = Metric.MetricSample(
@@ -267,8 +268,9 @@ abstract class FullProjectBenchmark {
     fixture.openFileInEditor(layoutFile)
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
-    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
-      .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
+    // TODO: http://b/162400668
+    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+    //  .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
     val mediumPathSample = Metric.MetricSample(
       System.currentTimeMillis(),
       measureElapsedMillis {
