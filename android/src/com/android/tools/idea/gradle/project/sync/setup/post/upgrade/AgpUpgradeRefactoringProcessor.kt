@@ -78,10 +78,13 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiUtilCore
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
+import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import com.intellij.usageView.UsageViewUtil
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -94,9 +97,13 @@ import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.toArray
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import java.awt.event.ActionEvent
 import java.io.File
 import java.util.UUID
+import javax.swing.AbstractAction
 import javax.swing.Icon
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
@@ -246,6 +253,49 @@ class AgpUpgradeRefactoringProcessor(
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
     trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
     super.previewRefactoring(usages)
+  }
+
+  // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
+  // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
+  // in-place, which is fine until the base method changes, at which point this processor will not reflect those
+  // changes.
+  override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
+    fun ensureFilesWritable(project: Project, elements: Collection<PsiElement>): Boolean {
+      val psiElements = PsiUtilCore.toPsiElementArray(elements)
+      return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
+    }
+
+    fun ensureElementsWritable(usages: Array<out UsageInfo>, viewDescriptor: UsageViewDescriptor): Boolean {
+      val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
+
+      for (usage in usages) {
+        assert(usage != null) { "Found null element in usages array" }
+        if (skipNonCodeUsages() && usage!!.isNonCodeUsage()) continue
+        val element = usage!!.element
+        if (element != null) elements.add(element)
+      }
+      elements.addAll(getElementsToWrite(viewDescriptor))
+      return ensureFilesWritable(project, elements)
+
+    }
+
+    val refactoringRunnable = Runnable {
+      val usagesToRefactor = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+      val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
+      if (ensureElementsWritable(infos, viewDescriptor)) {
+        execute(infos)
+      }
+    }
+    // modified from RefactoringBundle.message("usageView.need.reRun")
+    val canNotMakeString = """Cannot perform upgrade.
+      There were changes in code after usages have been found.
+      Please perform usage search again.""".trimIndent()
+    val label = "Complete &Upgrade" // RefactoringBundle.message("usageView.doAction")
+    usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
+
+    usageView.setRerunAction(object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent) = doRun()
+    })
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
