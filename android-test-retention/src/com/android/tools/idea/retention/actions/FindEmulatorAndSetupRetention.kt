@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
@@ -303,6 +302,11 @@ private fun EmulatorController.loadSnapshotSync(snapshotId: String): Boolean {
 private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
   snapshotFile.inputStream().use { inputStream ->
     val fileSize = snapshotFile.length()
+    val format = if (snapshotFile.extension.toLowerCase() == "gz") {
+      SnapshotPackage.Format.TARGZ
+    } else {
+      SnapshotPackage.Format.TAR
+    }
     var totalBytesSent = 0L
     var succeeded = true
     val doneSignal = CountDownLatch(1)
@@ -327,7 +331,7 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
             return@setOnReadyHandler
           }
           if (!snapshotIdSent) {
-            clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build())
+            clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setSnapshotId(snapshotId).setFormat(format).build())
             snapshotIdSent = true;
           }
           var bytesRead = 0;
