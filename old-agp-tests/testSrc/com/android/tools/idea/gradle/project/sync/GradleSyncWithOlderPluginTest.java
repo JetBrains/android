@@ -149,7 +149,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
-    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30, myGradleVersion, myPluginVersion);
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30, myGradleVersion, myPluginVersion, null);
     Project project = getProject();
     BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
 

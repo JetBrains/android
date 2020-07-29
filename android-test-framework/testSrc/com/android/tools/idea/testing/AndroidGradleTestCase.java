@@ -263,7 +263,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String gradlePluginVersion,
                                    @Nullable String kotlinVersion,
                                    @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, kotlinVersion, gradlePluginVersion);
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
     importProject(issueFilter);
 
     prepareProjectForTest(getProject(), chosenModuleName);

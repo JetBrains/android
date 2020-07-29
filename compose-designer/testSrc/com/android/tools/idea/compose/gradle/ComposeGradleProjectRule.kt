@@ -31,16 +31,22 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
+ * Default Kotlin version used for Compose projects using this rule.
+ */
+const val DEFAULT_KOTLIN_VERSION = "1.4.0-rc"
+
+/**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
  */
 private class ComposeGradleProjectRuleImpl(private val projectPath: String,
+                                           private val kotlinVersion: String,
                                            private val projectRule: AndroidGradleProjectRule) : NamedExternalResource() {
   override fun before(description: Description) {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile(TEST_DATA_PATH).path
-    projectRule.load(projectPath)
+    projectRule.load(projectPath, kotlinVersion)
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
@@ -58,6 +64,7 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
  * Compose elements.
  */
 class ComposeGradleProjectRule(projectPath: String,
+                               kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
                                private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule()) : TestRule {
   val project: Project
     get() = projectRule.project
@@ -67,7 +74,7 @@ class ComposeGradleProjectRule(projectPath: String,
 
   private val delegate = RuleChain
     .outerRule(projectRule)
-    .around(ComposeGradleProjectRuleImpl(projectPath, projectRule))
+    .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
     .around(EdtRule())
 
   fun androidFacet(gradlePath: String) = projectRule.androidFacet(gradlePath)

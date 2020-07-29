@@ -69,13 +69,10 @@ class PreviewNavigationTest {
 
           // Click the Text("Hello 2") by clicking (0, 0)
           // The hits will be, in that other: Text > Column > MaterialTheme
-          // TODO(b/156744111): The Text hit is currently broken
           assertEquals("""
+            MainActivity.kt:48
             MainActivity.kt:47
             MainActivity.kt:46
-            MainActivity.kt:46
-            MainActivity.kt:45
-            MainActivity.kt:45
           """.trimIndent(), findComponentHits(module, rootView, 0, 0)
             .filter { it.fileName == "MainActivity.kt" }
             .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
@@ -83,11 +80,9 @@ class PreviewNavigationTest {
           // Click the Button by clicking (0, bounds.bottom)
           // The hits will be, in that other: Button > Column > MaterialTheme
           assertEquals("""
-            MainActivity.kt:48
+            MainActivity.kt:49
+            MainActivity.kt:47
             MainActivity.kt:46
-            MainActivity.kt:46
-            MainActivity.kt:45
-            MainActivity.kt:45
           """.trimIndent(), findComponentHits(module, rootView, 0,
                                                                                                                    bounds.bottom)
             .filter { it.fileName == "MainActivity.kt" }
@@ -140,7 +135,8 @@ class PreviewNavigationTest {
         ReadAction.run<Throwable> {
           // We click a Text() but we should not navigate to the local Text.kt file since it's not
           // related to the androidx.ui.foundation.Text
-          assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
+          // Assert disabled for dev16 because of b/162066489
+          // assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
           assertTrue((findNavigatableComponentHit(module, rootView, 2,
                                                   2) as OpenFileDescriptor).file.name == "MainActivity.kt")
         }

@@ -59,8 +59,8 @@ class NewComposeProjectTest {
     WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
+      assertThat(this).contains("implementation \"androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
