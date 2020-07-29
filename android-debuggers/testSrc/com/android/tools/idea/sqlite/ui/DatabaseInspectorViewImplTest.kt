@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -42,18 +43,19 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   private lateinit var view: DatabaseInspectorViewImpl
+  private lateinit var databaseId: SqliteDatabaseId
 
   override fun setUp() {
     super.setUp()
     view = DatabaseInspectorViewImpl(project, testRootDisposable)
     view.component.size = Dimension(600, 200)
+    databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
   }
 
   fun testUpdateDatabaseRemovesTableNode() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -71,7 +73,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -96,7 +97,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -117,7 +117,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -137,7 +136,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -162,7 +160,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -190,7 +187,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -212,7 +208,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -248,7 +243,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
 
     // Act
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
@@ -267,9 +261,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   }
 
   fun testRightPanelEmptyStateIsHiddenAfterOpeningATab() {
-    // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
-
     // Act
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
     view.openTab(TabId.AdHocQueryTab(1), "new tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
@@ -284,7 +275,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testRightPanelEmptyStateIsShownAfterAllTabsAreClosed() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val tabId = TabId.AdHocQueryTab(1)
 
     // Act
@@ -312,7 +302,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
 
     // Act
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
@@ -336,8 +325,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testTabsAreNotHiddenIfANewDatabaseIsAdded() {
     // Prepare
-    val databaseId1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
-    val databaseId2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
+    val databaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db1")))
+    val databaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db2")))
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, true), SqliteSchema(emptyList()), 0)))
 
     // Act

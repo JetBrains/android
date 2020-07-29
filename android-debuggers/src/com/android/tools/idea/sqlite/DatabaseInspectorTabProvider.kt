@@ -48,10 +48,12 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     return DatabaseInspectorFlagController.isFeatureEnabled
   }
 
-  override fun createTab(project: Project,
-                         ideServices: AppInspectionIdeServices,
-                         processDescriptor: ProcessDescriptor,
-                         messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messenger: AppInspectorClient.CommandMessenger
+  ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
       private val errorsSideChannel = createErrorSideChannel(project)
@@ -85,12 +87,12 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       init {
-        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
         databaseInspectorProjectService.projectScope.launch {
+          databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
           client.startTrackingDatabaseConnections()
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onDispose() {
-              savedState = databaseInspectorProjectService.stopAppInspectionSession()
+              savedState = databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
             }
           }, EdtExecutorService.getInstance())
         }

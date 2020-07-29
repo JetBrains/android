@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.FakeTableView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -1606,7 +1607,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -1667,7 +1668,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -1854,7 +1855,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -1906,7 +1907,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -1965,7 +1966,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -2237,7 +2238,7 @@ class TableControllerTest : LightPlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
     }
@@ -2338,7 +2339,7 @@ class TableControllerTest : LightPlatformTestCase() {
     )
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
 
-    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(databaseFile)
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(customDatabaseId, databaseConnectionWrapper)
     }

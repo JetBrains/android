@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
+import com.android.tools.idea.sqlite.OfflineDatabaseManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
@@ -73,6 +74,7 @@ class DatabaseInspectorControllerImpl(
   private val model: DatabaseInspectorModel,
   private val databaseRepository: DatabaseRepository,
   private val viewFactory: DatabaseInspectorViewsFactory,
+  private val offlineDatabaseManager: OfflineDatabaseManager,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController {
@@ -203,6 +205,12 @@ class DatabaseInspectorControllerImpl(
 
     model.removeDatabaseSchema(databaseId)
     databaseRepository.closeDatabase(databaseId)
+
+    // if the db is file-based we need to delete the files from the user's machine
+    if (databaseId is SqliteDatabaseId.FileSqliteDatabaseId) {
+      offlineDatabaseManager.cleanUp(databaseId)
+    }
+
     return@withContext
   }
 
