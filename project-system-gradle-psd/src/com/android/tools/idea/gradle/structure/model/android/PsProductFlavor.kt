@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.ProductFlavor
+import com.android.ide.common.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
@@ -63,15 +63,15 @@ open class PsProductFlavor(
   private val renamed: (PsProductFlavorKey, PsProductFlavorKey) -> Unit
 ) : PsChildModel() {
   override val descriptor by ProductFlavorDescriptors
-  var resolvedModel: ProductFlavor? = null
+  var resolvedModel: IdeProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
 
-  fun init(resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) {
+  fun init(resolvedModel: IdeProductFlavor?, parsedModel: ProductFlavorModel?) {
     this.resolvedModel = resolvedModel
     this.parsedModel = parsedModel
   }
 
-  override val name: String get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
+  override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
   override val path: PsProductFlavorNavigationPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
 
   /**
@@ -116,8 +116,8 @@ open class PsProductFlavor(
     renamed(PsProductFlavorKey(effectiveDimension.orEmpty(), oldName), PsProductFlavorKey(effectiveDimension.orEmpty(), newName))
   }
 
-  object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, ProductFlavor, ProductFlavorModel> {
-    override fun getResolved(model: PsProductFlavor): ProductFlavor? = model.resolvedModel
+  object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, IdeProductFlavor, ProductFlavorModel> {
+    override fun getResolved(model: PsProductFlavor): IdeProductFlavor? = model.resolvedModel
 
     override fun getParsed(model: PsProductFlavor): ProductFlavorModel? = model.parsedModel
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.ProductFlavor
+import com.android.ide.common.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
@@ -47,8 +47,8 @@ import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.property
 import java.io.File
 
-object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
-  override fun getResolved(model: PsAndroidModuleDefaultConfig): ProductFlavor? =
+object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, IdeProductFlavor, ProductFlavorModel> {
+  override fun getResolved(model: PsAndroidModuleDefaultConfig): IdeProductFlavor? =
     model.module.resolvedModel?.androidProject?.defaultConfig?.productFlavor
 
   override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
