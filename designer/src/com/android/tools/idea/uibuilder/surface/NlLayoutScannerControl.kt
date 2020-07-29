@@ -19,6 +19,7 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
 class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScannerControl {
@@ -50,27 +51,45 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
     }
   }
 
-  private val validatorListener = object : NlLayoutScanner.Listener {
+  private val scannerListener = object : NlLayoutScanner.Listener {
     override fun lintUpdated(result: ValidatorResult?) {
       if (result != null) {
-        surface.analyticsManager.trackShowIssuePanel()
-        surface.setShowIssuePanel(true)
-        scanner.removeListener(this)
+        try {
+          if (result.issues.isEmpty()) {
+            // Nothing to show
+            scannerResult?.complete(false)
+            return
+          }
+          // Has result to display
+          surface.analyticsManager.trackShowIssuePanel()
+          surface.setShowIssuePanel(true)
+          scannerResult?.complete(true)
+        } finally {
+          scanner.removeListener(this)
+          scannerResult = null
+        }
       }
     }
   }
+
+  private var scannerResult: CompletableFuture<Boolean>? = null
 
   init {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
     surface.issuePanel.expandListener = issueExpandListener
   }
 
-  override fun runLayoutScanner() {
-    scanner.addListener(validatorListener)
-    val manager = surface.sceneManager ?: return
+  override fun runLayoutScanner(): CompletableFuture<Boolean> {
+    scanner.addListener(scannerListener)
+    val manager = surface.sceneManager ?: return CompletableFuture.completedFuture(false)
+    // TODO: b/162528405 Fix this at some point. For now calling this function multiple times sequentially would cause
+    //  some events to be ignored. I need to invest in direct path from requestRender to scanner listener.
+    //  render complete does not guarentee error panel updated.
+    scannerResult = CompletableFuture()
     manager.layoutScannerConfig?.isLayoutScannerEnabled = true
     manager.forceReinflate()
     surface.requestRender()
+    return scannerResult!!
   }
 }
 

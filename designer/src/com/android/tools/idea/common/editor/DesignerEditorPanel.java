@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -75,7 +76,7 @@ import org.jetbrains.annotations.TestOnly;
  * The panel will start in the {@link State#DEACTIVATED}. Some heavy initialization might be deferred until the panel changes to one of the
  * other states.
  */
-public class DesignerEditorPanel extends JPanel implements Disposable {
+public class DesignerEditorPanel extends JPanel implements Disposable, DesignSurfaceNotificationManager {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
   private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
@@ -112,6 +113,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    */
   @NotNull private final AtomicBoolean myIsModelInitializated = new AtomicBoolean(false);
 
+  /** Notification panel to be used for the surface. */
+  private final EditorNotificationPanel myNotificationPanel = new EditorNotificationPanel();
+
   /**
    * Creates a new {@link DesignerEditorPanel}.
    *
@@ -142,7 +146,18 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     Disposer.register(this, mySurface);
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
-    myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
+
+    JComponent toolbar = createSurfaceToolbar(mySurface);
+    JPanel toolbarAndNotification = new JPanel();
+    toolbarAndNotification.setLayout(new BorderLayout());
+    toolbarAndNotification.add(toolbar, BorderLayout.NORTH);
+    // Make sure notification is not visible by default.
+    myNotificationPanel.setVisible(false);
+    myNotificationPanel.createActionLabel("Dismiss", () -> {
+      myNotificationPanel.setVisible(false);
+    });
+    toolbarAndNotification.add(myNotificationPanel, BorderLayout.SOUTH);
+    myContentPanel.add(toolbarAndNotification, BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Loading...");
 
@@ -352,6 +367,17 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       EdtExecutorService.getInstance());
   }
 
+  @Override
+  public void showNotification(String text) {
+    myNotificationPanel.setText(text);
+    myNotificationPanel.setVisible(true);
+  }
+
+  @Override
+  public void hideNotification() {
+    myNotificationPanel.setVisible(false);
+  }
+
   @Nullable
   public JComponent getPreferredFocusedComponent() {
     return mySurface.getPreferredFocusedComponent();
@@ -432,6 +458,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
             return surface;
           }
         }
+      }
+      else if (DesignerDataKeys.NOTIFICATION_KEY.is(dataId)) {
+        return DesignerEditorPanel.this;
       }
       return null;
     }
