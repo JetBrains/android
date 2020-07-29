@@ -226,7 +226,9 @@ class AgpUpgradeRefactoringProcessor(
     // TODO(xof): *something* needs to ensure that the buildModel has a fresh view of the Dsl files before
     //  looking for things (particularly since findUsages can be re-run by user action) but it's not clear that
     //  this is the right thing: it is a bit expensive, and sub-processors will have to also reparse() in case
-    //  they are run in isolation.
+    //  they are run in isolation.  We could be correct regarding the sub-processor issue by either keeping track
+    //  of which constructor was used (e.g. "do I have a parent processor?  If so, don't reparse") or by reparsing
+    //  in findUsages() but calling findComponentUsages() from here.
     buildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
