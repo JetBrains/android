@@ -29,6 +29,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
@@ -278,7 +279,7 @@ public class GradleTaskFinder {
       return;
     }
 
-    for (TestedTargetVariant testedTargetVariant : testAndroidModel.getSelectedVariant().getTestedTargetVariants()) {
+    for (IdeTestedTargetVariant testedTargetVariant : testAndroidModel.getSelectedVariant().getTestedTargetVariants()) {
       String targetProjectGradlePath = testedTargetVariant.getTargetProjectPath();
       Module targetModule = findModuleByGradlePath(testOnlyModule.getProject(), targetProjectGradlePath);
 

@@ -34,9 +34,9 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
-import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -244,7 +244,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getConfiguration().getProjectType());
     AndroidModel androidModel = AndroidModel.get(myAndroidFacet);
     assertInstanceOf(androidModel, AndroidModuleModel.class);
-    for (TestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {
+    for (IdeTestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {
       Module targetModule = findModuleByGradlePath(getProject(), testedTargetVariant.getTargetProjectPath());
       assertNotNull(targetModule);
       AndroidFacet facet = AndroidFacet.getInstance(targetModule);
