@@ -50,8 +50,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -92,7 +92,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
   protected void tearDown() throws Exception {
     try {
       if (myDefaultTestDialog != null) {
-        Messages.setTestDialog(myDefaultTestDialog);
+        TestDialogManager.setTestDialog(myDefaultTestDialog);
       }
     }
     catch (Throwable e) {
@@ -137,7 +137,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     @SuppressWarnings("MagicConstant") // Using custom button IDs
     TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
@@ -162,7 +162,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     @SuppressWarnings("MagicConstant") // Using custom button IDs
     TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
+    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());

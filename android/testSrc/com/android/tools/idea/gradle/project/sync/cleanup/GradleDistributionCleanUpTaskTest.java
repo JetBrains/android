@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class GradleDistributionCleanUpTaskTest extends GradleSyncIntegrationTest
   public void setUp() throws Exception {
     super.setUp();
     myTestDialog = new TestMessagesDialog(Messages.OK);
-    Messages.setTestDialog(myTestDialog);
+    TestDialogManager.setTestDialog(myTestDialog);
 
     myCleanUpTask = new GradleDistributionCleanUpTask();
   }
