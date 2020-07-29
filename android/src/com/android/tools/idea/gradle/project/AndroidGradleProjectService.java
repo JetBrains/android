@@ -18,12 +18,11 @@ package com.android.tools.idea.gradle.project;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: Bad class name. Don't rename it now in order to avoid complicated merge IJ<=>AOSP
-public class AndroidGradleProjectComponent {
+public class AndroidGradleProjectService {
   @NotNull
-  public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
-    AndroidGradleProjectComponent component = project.getService(AndroidGradleProjectComponent.class);
-    assert component != null;
-    return component;
+  public static AndroidGradleProjectService getInstance(@NotNull Project project) {
+    AndroidGradleProjectService service = project.getService(AndroidGradleProjectService.class);
+    assert service != null;
+    return service;
   }
 }
