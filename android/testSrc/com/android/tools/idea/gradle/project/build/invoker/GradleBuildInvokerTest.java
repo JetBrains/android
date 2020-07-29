@@ -37,6 +37,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.xdebugger.XDebugSession;
@@ -82,7 +83,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      Messages.setTestDialog(TestDialog.DEFAULT);
+      TestDialogManager.setTestDialog(TestDialog.DEFAULT);
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -110,7 +111,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
 
-    Messages.setTestDialog(TestDialog.OK);
+    TestDialogManager.setTestDialog(TestDialog.OK);
 
     myBuildInvoker.cleanProject();
 
@@ -123,7 +124,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
 
-    Messages.setTestDialog(TestDialog.NO);
+    TestDialogManager.setTestDialog(TestDialog.NO);
 
     myBuildInvoker.cleanProject();
 
@@ -136,7 +137,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
     when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
 
-    Messages.setTestDialog(new TestDialog() {
+    TestDialogManager.setTestDialog(new TestDialog() {
       @Override
       public int show(@NotNull String message) {
         return Messages.CANCEL;

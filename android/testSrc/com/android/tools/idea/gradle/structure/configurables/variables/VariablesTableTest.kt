@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
@@ -76,14 +77,14 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    defaultTestDialog = Messages.setTestDialog(object : TestDialog {
+    defaultTestDialog = TestDialogManager.setTestDialog(object : TestDialog {
       override fun show(message: String): Int = Messages.YES
     })
 
   }
 
   override fun tearDown() {
-    Messages.setTestDialog(defaultTestDialog);
+    TestDialogManager.setTestDialog(defaultTestDialog);
     super.tearDown()
   }
 
