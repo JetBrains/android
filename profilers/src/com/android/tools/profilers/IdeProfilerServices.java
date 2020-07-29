@@ -166,6 +166,11 @@ public interface IdeProfilerServices {
   boolean isNativeProfilingConfigurationPreferred();
 
   /**
+   * Get the native memory sampling rate based on the current configuration.
+   */
+  int getNativeMemorySamplingRateForCurrentConfig();
+
+  /**
    * Pops up a toast that contains information contained in the notification,
    * which should particularly draw attention to warning and error messages.
    */

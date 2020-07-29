@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,11 +250,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public int getNativeMemorySamplingRateForCurrentConfig() {
-        return 0;
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
@@ -395,6 +389,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     return myNativeProfilingConfigurationPreferred;
+  }
+
+  @Override
+  public int getNativeMemorySamplingRateForCurrentConfig() {
+    return 0;
   }
 
   @Override
