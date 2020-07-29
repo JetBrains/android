@@ -30,14 +30,14 @@ class SqliteFileTypeDetectorTest : PlatformTestCase() {
     mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     mySqliteUtil.setUp()
     myFeaturePreviousEnabled = DatabaseInspectorFlagController.enableFeature(true)
-    myFileSupportPreviousEnabled = DatabaseInspectorFlagController.enableFileSupport(true)
+    myFileSupportPreviousEnabled = DatabaseInspectorFlagController.enableOpenFile(true)
   }
 
   override fun tearDown() {
     try {
       mySqliteUtil.tearDown()
       DatabaseInspectorFlagController.enableFeature(myFeaturePreviousEnabled)
-      DatabaseInspectorFlagController.enableFileSupport(myFileSupportPreviousEnabled)
+      DatabaseInspectorFlagController.enableOpenFile(myFileSupportPreviousEnabled)
     }
     finally {
       super.tearDown()
@@ -46,7 +46,7 @@ class SqliteFileTypeDetectorTest : PlatformTestCase() {
 
   fun testSqliteFileDetectionDoesNotWorkWhenFlagIsOff() {
     // Prepare
-    DatabaseInspectorFlagController.enableFileSupport(false)
+    DatabaseInspectorFlagController.enableOpenFile(false)
     val file = mySqliteUtil.createTestSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     val byteSequence = mySqliteUtil.createByteSequence(file, 4096)

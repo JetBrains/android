@@ -570,12 +570,19 @@ public final class StudioFlags {
     "SQLite files opened from the Device Explorer will be opened in the inspector.",
     true
   );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
+  public static final Flag<Boolean> DATABASE_INSPECTOR_OPEN_FILES_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
-    "files.enabled",
-    "Enable file support in Database Inspector",
-    "If enabled, the Database Inspector tool will be able to open databases from files." +
-    "SQLite files opened from the Device Explorer will open in the inspector.",
+    "open.files.enabled",
+    "Enable support for opening SQLite files in Database Inspector",
+    "If enabled, the Database Inspector tool will be able to open SQLite files." +
+    "eg. SQLite files opened from the Device Explorer will open in the inspector.",
+    false
+  );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "offline.enabled",
+    "Enable offline mode in Database Inspector",
+    "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
     false
   );
   //endregion
