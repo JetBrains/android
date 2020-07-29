@@ -316,7 +316,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
