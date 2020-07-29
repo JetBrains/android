@@ -187,7 +187,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    TestedTargetVariant targetVariant = targetVariants.iterator().next();
+    IdeTestedTargetVariant targetVariant = targetVariants.iterator().next();
     Module targetModule = findModuleByGradlePath(myFacet.getModule().getProject(), targetVariant.getTargetProjectPath());
     if (targetModule == null) {
       return null;

@@ -36,6 +36,7 @@ import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -425,7 +426,7 @@ public class GradleApkProvider implements ApkProvider {
                                         @NotNull IDevice device) throws ApkProvisionException {
     List<ApkInfo> targetedApks = new ArrayList<>();
 
-    for (TestedTargetVariant testedVariant : selectedVariant.getTestedTargetVariants()) {
+    for (IdeTestedTargetVariant testedVariant : selectedVariant.getTestedTargetVariants()) {
       String targetGradlePath = testedVariant.getTargetProjectPath();
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
