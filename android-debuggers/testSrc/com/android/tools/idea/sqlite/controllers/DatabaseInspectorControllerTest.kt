@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
+import com.android.tools.idea.sqlite.OfflineDatabaseManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -35,6 +36,7 @@ import com.android.tools.idea.sqlite.mocks.FakeSchemaProvider
 import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -64,7 +66,6 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -104,6 +105,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var databaseId1: SqliteDatabaseId
   private lateinit var databaseId2: SqliteDatabaseId
   private lateinit var databaseId3: SqliteDatabaseId
+  private lateinit var databaseIdFile: SqliteDatabaseId.FileSqliteDatabaseId
 
   private lateinit var testSqliteSchema1: SqliteSchema
   private lateinit var testSqliteSchema2: SqliteSchema
@@ -111,7 +113,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var mockDatabaseConnection: DatabaseConnection
   private lateinit var realDatabaseConnection: DatabaseConnection
-  private lateinit var sqliteFile: VirtualFile
+  private lateinit var databaseFileData: DatabaseFileData
 
   private val testSqliteTable = SqliteTable("testTable", arrayListOf(), null, false)
   private lateinit var sqliteResultSet: SqliteResultSet
@@ -120,6 +122,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var databaseInspectorModel: OpenDatabaseInspectorModel
   private lateinit var databaseRepository: OpenDatabaseRepository
+  private lateinit var offlineDatabaseManager: OfflineDatabaseManager
 
   private lateinit var trackerService: DatabaseInspectorAnalyticsTracker
 
@@ -143,6 +146,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorModel = spy(OpenDatabaseInspectorModel())
     databaseRepository = spy(OpenDatabaseRepository(project, edtExecutor))
 
+    offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
+
     trackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
@@ -151,6 +156,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorModel,
       databaseRepository,
       viewsFactory,
+      offlineDatabaseManager,
       edtExecutor,
       edtExecutor
     )
@@ -167,21 +173,24 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     databaseId3 = SqliteDatabaseId.fromLiveDatabase("db", 3)
 
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+
+    val mainFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
+    databaseFileData = DatabaseFileData(mainFile)
+    databaseIdFile = SqliteDatabaseId.fromFileDatabase(databaseFileData) as SqliteDatabaseId.FileSqliteDatabaseId
+
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, mockDatabaseConnection)
       databaseRepository.addDatabaseConnection(databaseId2, mockDatabaseConnection)
       databaseRepository.addDatabaseConnection(databaseId3, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(databaseIdFile, mockDatabaseConnection)
     }
 
-    orderVerifier = inOrder(databaseInspectorView, databaseRepository, mockDatabaseConnection)
+    orderVerifier = inOrder(databaseInspectorView, databaseRepository, mockDatabaseConnection, offlineDatabaseManager)
 
-    sqliteUtil = SqliteTestUtil(
-      IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
-    sqliteUtil.setUp()
-
-    sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
+      getJdbcDatabaseConnection(testRootDisposable, databaseFileData.mainFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
   }
 
@@ -527,6 +536,23 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(evaluatorView).setDatabases(listOf(databaseId2), databaseId2)
   }
 
+  fun testRemoveFileDatabase() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(databaseIdFile))
+    }
+
+    // Act
+    runDispatching {
+      databaseInspectorController.closeDatabase(databaseIdFile)
+    }
+
+    // Assert
+    orderVerifier.verify(mockDatabaseConnection).close()
+    runDispatching { orderVerifier.verify(offlineDatabaseManager).cleanUp(databaseIdFile) }
+  }
+
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
@@ -621,7 +647,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testUpdateSchemaUpdatesModel() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -645,7 +671,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCreateTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -673,7 +699,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableRenameTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -700,7 +726,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableAddColumnUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -728,7 +754,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -778,7 +804,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDropTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -804,7 +830,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -921,7 +947,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testWhenSchemaDiffFailsViewIsRecreated() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     runDispatching {
@@ -1138,6 +1164,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorModel,
       databaseRepository,
       newFactory,
+      offlineDatabaseManager,
       edtExecutor,
       taskExecutor
     )

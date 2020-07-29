@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
@@ -331,7 +332,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           is ViewDatabase -> {
             append(userObject.databaseId.name)
             if (userObject.isOpen) {
-              icon = StudioIcons.DatabaseInspector.DATABASE
+              icon = if (userObject.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId) {
+                StudioIcons.DatabaseInspector.DATABASE
+              }
+              else {
+                StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+              }
             }
             else {
               append(" (closed)", colorTextAttributes)

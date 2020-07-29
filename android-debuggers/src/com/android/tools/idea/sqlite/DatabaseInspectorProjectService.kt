@@ -19,12 +19,14 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.openJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -33,13 +35,11 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
@@ -47,10 +47,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
+import java.io.IOException
 import java.util.concurrent.Executor
-import java.util.function.Consumer
 import javax.swing.JComponent
 
 /**
@@ -77,7 +78,7 @@ interface DatabaseInspectorProjectService {
    * Opens a connection to the database contained in the file passed as argument. The database is then shown in the Database Inspector.
    */
   @AnyThread
-  fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId>
+  fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<SqliteDatabaseId.FileSqliteDatabaseId>
 
   /**
    * Shows the given database in the inspector
@@ -133,18 +134,19 @@ interface DatabaseInspectorProjectService {
    * @param previousState state of UI from previous session if available
    */
   @UiThread
-  fun startAppInspectionSession(
+  suspend fun startAppInspectionSession(
     previousState: SavedUiState?,
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
   )
 
   /**
-   * Called when Database Inspector is disconnected from app.
+   * Called when Database Inspector is disconnected from app,
+   * takes as argument the [ProcessDescriptor] of the process that has been disconnected.
    * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
    */
   @UiThread
-  fun stopAppInspectionSession(): SavedUiState
+  fun stopAppInspectionSession(processDescriptor: ProcessDescriptor): SavedUiState
 
   @UiThread
   fun handleDatabaseClosed(databaseId: SqliteDatabaseId)
@@ -155,22 +157,25 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseRepository: DatabaseRepositoryImpl = DatabaseRepositoryImpl(project, taskExecutor),
-  private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
+  private val offlineDatabaseManager: OfflineDatabaseManager = OfflineDatabaseManagerImpl(project),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
-  private val createController: (DatabaseInspectorModel, DatabaseRepositoryImpl) -> DatabaseInspectorController = { myModel, myRepository ->
-    DatabaseInspectorControllerImpl(
-      project,
-      myModel,
-      myRepository,
-      viewFactory,
-      edtExecutor,
-      taskExecutor
-    ).also {
-      it.setUp()
-      Disposer.register(project, it)
+  private val createController: (DatabaseInspectorModel, DatabaseRepositoryImpl, OfflineDatabaseManager) -> DatabaseInspectorController =
+    { myModel, myRepository, myOfflineDatabaseManager ->
+      DatabaseInspectorControllerImpl(
+        project,
+        myModel,
+        myRepository,
+        viewFactory,
+        myOfflineDatabaseManager,
+        edtExecutor,
+        taskExecutor
+      ).also {
+        it.setUp()
+        Disposer.register(project, it)
+      }
     }
-  }) : DatabaseInspectorProjectService {
+) : DatabaseInspectorProjectService {
 
   @NonInjectable
   @TestOnly
@@ -179,15 +184,16 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     edtExecutor,
     taskExecutor,
     DatabaseRepositoryImpl(project, taskExecutor),
-    Consumer { OpenFileAction.openFile(it, project) },
     viewFactory,
+    OfflineDatabaseManagerImpl(project),
     DatabaseInspectorModelImpl(),
-    { myModel, myRepository ->
+    { myModel, myRepository, myOfflineDatabaseManager ->
       DatabaseInspectorControllerImpl(
         project,
         myModel,
         myRepository,
         viewFactory,
+        myOfflineDatabaseManager,
         edtExecutor,
         taskExecutor
       ).also {
@@ -200,7 +206,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   constructor(project: Project) : this (
     project,
     EdtExecutorService.getInstance(),
-    PooledThreadExecutor.INSTANCE, DatabaseInspectorViewsFactoryImpl()
+    PooledThreadExecutor.INSTANCE,
+    DatabaseInspectorViewsFactoryImpl()
   )
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
@@ -209,7 +216,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    createController(model, databaseRepository)
+    createController(model, databaseRepository, offlineDatabaseManager)
   }
 
   private var ideServices: AppInspectionIdeServices? = null
@@ -218,17 +225,19 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     @UiThread get() = controller.component
 
   @AnyThread
-  override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId> = projectScope.future {
+  override fun openSqliteDatabase(
+    databaseFileData: DatabaseFileData
+  ): ListenableFuture<SqliteDatabaseId.FileSqliteDatabaseId> = projectScope.future {
     val databaseId = async {
-      val databaseConnection = openJdbcDatabaseConnection(project, file, taskExecutor, workerThread)
-      val databaseId = SqliteDatabaseId.fromFileDatabase(file)
+      val databaseConnection = openJdbcDatabaseConnection(project, databaseFileData.mainFile, taskExecutor, workerThread)
+      val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
 
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
       databaseId
     }
 
     controller.addSqliteDatabase(databaseId)
-    databaseId.await()
+    databaseId.await() as SqliteDatabaseId.FileSqliteDatabaseId
   }
 
   @AnyThread
@@ -241,11 +250,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @UiThread
-  override fun startAppInspectionSession(
+  override suspend fun startAppInspectionSession(
     previousState: SavedUiState?,
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
-  ) {
+  ) = withContext(uiThread) {
+    // close all databases when a new session starts
+    model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
+    model.clearDatabases()
+
     ideServices = appInspectionIdeServices
     controller.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel)
     controller.setAppInspectionServices(appInspectionIdeServices)
@@ -253,17 +266,31 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @UiThread
-  override fun stopAppInspectionSession(): SavedUiState {
+  override fun stopAppInspectionSession(processDescriptor: ProcessDescriptor): SavedUiState {
     ideServices = null
     controller.setDatabaseInspectorClientCommandsChannel(null)
     controller.setAppInspectionServices(null)
+    // TODO(b/162403339) decide how state is going to be restored with offline dbs.
     val savedState = controller.saveState()
 
     projectScope.launch {
-      model.getOpenDatabaseIds().forEach {
+      val openDatabases = model.getOpenDatabaseIds()
+
+      openDatabases.forEach {
         controller.closeDatabase(it)
       }
       model.clearDatabases()
+
+      if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
+        for (liveSqliteDatabaseId in openDatabases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()) {
+          try {
+            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
+            openSqliteDatabase(databaseFileData)
+          } catch (e: IOException) {
+            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
+          }
+        }
+      }
     }
 
     return savedState

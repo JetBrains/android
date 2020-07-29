@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.fileType
 
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileTypes.INativeFileType
 import com.intellij.openapi.project.Project
@@ -43,8 +42,7 @@ object SqliteFileType : INativeFileType {
   override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
 
   override fun openFileInAssociatedApplication(project: Project, file: VirtualFile): Boolean {
-    val sqliteExplorerProjectService = DatabaseInspectorProjectService.getInstance(project)
-    sqliteExplorerProjectService.openSqliteDatabase(file)
+    // open file in Database Inspector
     return true
   }
 }

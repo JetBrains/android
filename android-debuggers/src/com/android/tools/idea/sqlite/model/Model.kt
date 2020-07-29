@@ -23,10 +23,11 @@ sealed class SqliteDatabaseId {
   abstract val name: String
 
   companion object {
-    fun fromFileDatabase(virtualFile: VirtualFile): SqliteDatabaseId {
-      val path = virtualFile.path
-      val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: virtualFile.path
-      return FileSqliteDatabaseId(path, name)
+    fun fromFileDatabase(databaseFileData: DatabaseFileData): SqliteDatabaseId {
+      val path = databaseFileData.mainFile.path
+      val name = databaseFileData.mainFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
+                 ?: databaseFileData.mainFile.path
+      return FileSqliteDatabaseId(path, name, databaseFileData)
     }
 
     fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
@@ -36,8 +37,26 @@ sealed class SqliteDatabaseId {
   }
 
   data class LiveSqliteDatabaseId(override val path: String, override val name: String, val connectionId: Int) : SqliteDatabaseId()
-  data class FileSqliteDatabaseId(override val path: String, override val name: String) : SqliteDatabaseId()
+  data class FileSqliteDatabaseId(override val path: String, override val name: String, val databaseFileData: DatabaseFileData) : SqliteDatabaseId()
 }
+
+/**
+ * Converts the path of the database from user/0 to the global user
+ * User 0 path looks like this: /data/user/0/com.example.package/databases/db-file
+ * Global user path looks like this: /data/data/com.example.package/databases/db-file
+ */
+fun SqliteDatabaseId.LiveSqliteDatabaseId.getGlobalUserPath() = "/data" + path.replace("user/0/", "")
+
+/**
+ * Groups together files necessary to open a file-based database.
+ * @param mainFile the actual database file
+ * @param walFiles additional files needed to open the database, in case the database is using write ahead log.
+ * If not the list is empty.
+ *
+ * Note: these files need to be in the same directory of [mainFile], and are not going to be accessed directly.
+ *
+ */
+data class DatabaseFileData(val mainFile: VirtualFile, val walFiles: List<VirtualFile> = emptyList())
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
