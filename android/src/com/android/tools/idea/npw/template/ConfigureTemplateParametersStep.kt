@@ -184,7 +184,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     invokeLater {
       // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
       // width calculation gets involved and can really stretch out some wizards if the label is
-      // particularly long (see Master/Detail Activity for example).
+      // particularly long (see Primary/Detail Activity for example).
       templateDescriptionLabel.text = WizardUtils.toHtmlString(newTemplate.description)
     }
 
