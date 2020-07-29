@@ -229,16 +229,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public int getNativeMemorySamplingRateForCurrentConfig() {
-        RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
-        if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
-          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
-          return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
-        }
-        return ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
@@ -415,6 +405,16 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         String extension = file.getExtension();
         return extension != null && nativeExtensions.contains(StringUtil.toLowerCase(extension));
       });
+  }
+
+  @Override
+  public int getNativeMemorySamplingRateForCurrentConfig() {
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
+    if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+      AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
+      return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+    }
+    return ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
   }
 
   @Override
