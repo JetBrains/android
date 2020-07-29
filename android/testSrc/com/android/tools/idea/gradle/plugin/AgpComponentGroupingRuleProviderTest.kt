@@ -131,7 +131,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
     assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
-      .containsExactly("Update default Java language level", "Update default Java language level")
+      .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
   }
 
   fun testJava8DefaultRefactoringProcessorAcceptNewDefault() {
@@ -151,7 +151,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
     assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
-      .containsExactly("Update default Java language level", "Update default Java language level")
+      .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {
