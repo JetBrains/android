@@ -15,25 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
-import static com.android.tools.idea.gradle.util.BuildMode.BUNDLE;
-import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
-import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
-import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static com.intellij.openapi.ui.Messages.CANCEL;
-import static com.intellij.openapi.ui.Messages.NO;
-import static com.intellij.openapi.ui.Messages.YES;
-import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
@@ -87,24 +68,26 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+
+import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.BuildMode.*;
+import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static com.intellij.openapi.ui.Messages.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 
 /**
@@ -243,8 +226,8 @@ public class GradleBuildInvoker {
                          "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
                          "and preserves your debug process.";
         MessageDialogBuilder.YesNoCancel dialogBuilder = MessageDialogBuilder.yesNoCancel("Terminate debugging", message);
-        int answer = dialogBuilder.project(myProject).yesText("Terminate").noText("Do not terminate").cancelText("Cancel").doNotAsk(
-          new DialogWrapper.DoNotAskOption.Adapter() {
+        int answer = dialogBuilder.yesText("Terminate").noText("Do not terminate").cancelText("Cancel")
+          .doNotAsk(new DialogWrapper.DoNotAskOption.Adapter() {
             @Override
             public void rememberChoice(boolean isSelected, int exitCode) {
               if (isSelected) {
@@ -252,7 +235,7 @@ public class GradleBuildInvoker {
               }
             }
           })
-          .show();
+          .show(myProject);
         yesNoCancelRef.set(answer);
       }, ModalityState.NON_MODAL);
       @YesNoCancelResult int answer = yesNoCancelRef.get();

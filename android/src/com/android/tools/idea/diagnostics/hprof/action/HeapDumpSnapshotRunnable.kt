@@ -199,15 +199,11 @@ class HeapDumpSnapshotRunnable(
     private fun confirmRestart() {
       val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
       val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message")
-      val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
-      val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
-      val result = MessageDialogBuilder.yesNo(title, message)
-        .yesText(yesString)
-        .noText(noString)
-        .show()
-      if (result == Messages.YES) {
-        val application = ApplicationManager.getApplication() as ApplicationEx
-        application.restart(true)
+      if (MessageDialogBuilder.yesNo(title, message)
+        .yesText(AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now"))
+        .noText(AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later"))
+        .guessWindowAndAsk()) {
+        (ApplicationManager.getApplication() as ApplicationEx).restart(true)
       }
     }
 
