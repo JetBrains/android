@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.model
 
-import com.android.builder.model.ApiVersion
+import com.android.ide.common.gradle.model.IdeApiVersion
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer
@@ -93,7 +93,7 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
 }
 
 /**
-  * Convert an [ApiVersion] to an [AndroidVersion]. The chief problem here is that the [ApiVersion],
+  * Convert an [IdeApiVersion] to an [AndroidVersion]. The chief problem here is that the [IdeApiVersion],
   * when using a codename, will not encode the corresponding API level (it just reflects the string
   * entered by the user in the gradle file) so we perform a search here (since lint really wants
   * to know the actual numeric API level)
@@ -104,7 +104,7 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
   * @return the corresponding version
   */
 fun convertVersion(
-  api: ApiVersion,
+  api: IdeApiVersion,
   targets: Array<IAndroidTarget>?
 ): AndroidVersion {
   val codename = api.codename

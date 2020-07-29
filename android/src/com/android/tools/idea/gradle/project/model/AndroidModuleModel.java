@@ -27,8 +27,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.builder.model.AaptOptions;
-import com.android.builder.model.ApiVersion;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
@@ -36,6 +34,7 @@ import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeApiVersion;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
@@ -295,9 +294,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getMinSdkVersion() {
     if (myMinSdkVersion == null) {
-      ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
-        ApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        IdeApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
         if (defaultConfigVersion != null) {
           minSdkVersion = defaultConfigVersion;
         }
@@ -306,7 +305,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         for (String flavor : flavors) {
           IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
           assert productFlavor != null;
-          ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
+          IdeApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
           if (flavorVersion != null) {
             minSdkVersion = flavorVersion;
             break;
@@ -322,14 +321,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
-    ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+    IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
     return minSdkVersion != null ? convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
-    ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+    IdeApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
     return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
   }
 
