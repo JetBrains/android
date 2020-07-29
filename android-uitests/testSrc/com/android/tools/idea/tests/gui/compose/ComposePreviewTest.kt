@@ -102,13 +102,21 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testOpenAndClosePreview() {
-    openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication"))
+    openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
+                                                                           null,
+                                                                           null,
+                                                                           "1.4.0-rc",
+                                                                           GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT))
   }
 
   @Test
   @Throws(Exception::class)
   fun testCopyPreviewImage() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
+                                                                     null,
+                                                                     null,
+                                                                     "1.4.0-rc",
+                                                                     GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     val composePreview = openComposePreview(fixture)
 
     composePreview

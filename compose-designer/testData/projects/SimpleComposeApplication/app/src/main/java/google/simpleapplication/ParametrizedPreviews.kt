@@ -15,7 +15,7 @@
  */
 package google.simpleapplication
 
-import androidx.compose.Composable
+import androidx.compose.runtime.Composable
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.tooling.preview.PreviewParameter
 import androidx.ui.tooling.preview.PreviewParameterProvider

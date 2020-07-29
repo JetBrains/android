@@ -86,6 +86,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
 public class GuiTestRule implements TestRule {
+  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(60);
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
@@ -345,12 +346,12 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, Wait.seconds(60));
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir) {
-    return openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(60));
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull

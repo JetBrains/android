@@ -15,11 +15,12 @@
  */
 package google.simpleapplication
 
+
+import androidx.compose.foundation.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.ui.tooling.preview.Preview
-import androidx.compose.Composable
-import androidx.ui.foundation.Text
-import androidx.ui.material.MaterialTheme
-import androidx.ui.layout.*
 
 @Preview
 @Composable
