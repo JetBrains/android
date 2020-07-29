@@ -123,25 +123,27 @@ public class AndroidGradleTests {
    */
   @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @Nullable String gradleVersion,
                                                    @Nullable String gradlePluginVersion,
+                                                   @Nullable String kotlinVersion,
                                                    File... localRepos)
     throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, localRepos);
+    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
                                                             boolean isRoot,
                                                             @Nullable String gradleVersion,
                                                             @Nullable String gradlePluginVersion,
+                                                            @Nullable String kotlinVersion,
                                                             File... localRepos)
     throws IOException {
     if (path.isDirectory()) {
@@ -159,7 +161,7 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, localRepos);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
@@ -173,7 +175,9 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
+      if (kotlinVersion == null) {
+        kotlinVersion = getKotlinVersionForTests();
+      }
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -563,10 +567,11 @@ public class AndroidGradleTests {
   public static void defaultPatchPreparedProject(@NotNull File projectRoot,
                                                  @Nullable String gradleVersion,
                                                  @Nullable String gradlePluginVersion,
+                                                 @Nullable String kotlinVersion,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   /**

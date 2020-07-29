@@ -966,7 +966,8 @@ fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
   gradleVersion: String? = null,
-  gradlePluginVersion: String? = null
+  gradlePluginVersion: String? = null,
+  kotlinVersion: String? = null
 ): File {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = resolveTestDataPath(testProjectPath)
@@ -976,6 +977,7 @@ fun GradleIntegrationTest.prepareGradleProject(
     srcPath, projectPath,
     ThrowableConsumer<File, IOException> { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
+                                                     kotlinVersion,
                                                      *getAdditionalRepos().toTypedArray())
     })
   return projectPath

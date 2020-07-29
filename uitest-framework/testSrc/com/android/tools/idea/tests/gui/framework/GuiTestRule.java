@@ -329,15 +329,23 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    File projectDir = setUpProject(projectDirName);
-    return openProjectAndWaitForProjectSyncToFinish(projectDir);
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
+                                                                    @Nullable String gradleVersion,
+                                                                    @Nullable String gradlePluginVersion,
+                                                                    @Nullable String kotlinVersion,
+                                                                    @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName);
-    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, Wait.seconds(60));
   }
 
   @NotNull
@@ -367,18 +375,46 @@ public class GuiTestRule implements TestRule {
    * </ul>
    *
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param gradleVersion              optional Gradle version to use or null to use the default.
+   * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
+   * @param kotlinVersion              optional Kotlin version to use or null to use the default.
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
-  public File setUpProject(@NotNull String projectDirName) throws IOException {
+  public File setUpProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
     return projectPath;
+  }
+
+  /**
+   * Sets up a project before using it in a UI test:
+   * <ul>
+   * <li>Makes a copy of the project in testData/guiTests/newProjects (deletes any existing copy of the project first.) This copy is
+   * the one the test will use.</li>
+   * <li>Creates a Gradle wrapper for the test project.</li>
+   * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
+   * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
+   * 'ANDROID_HOME'</li>
+   * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
+   * <p/>
+   * </ul>
+   *
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @throws IOException if an unexpected I/O error occurs.
+   */
+  @NotNull
+  public File setUpProject(@NotNull String projectDirName) throws IOException {
+    return setUpProject(projectDirName, null, null, null);
   }
 
   @NotNull
@@ -413,7 +449,14 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null);
+  }
+
+  protected void updateGradleVersions(@NotNull File projectPath,
+                                      @Nullable String gradleVersion,
+                                      @Nullable String gradlePluginVersion,
+                                      @Nullable String kotlinVersion) throws IOException {
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
   }
 
   @NotNull
