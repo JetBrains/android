@@ -29,11 +29,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -42,10 +38,9 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.ui.components.JBTextField
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItem
-import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import java.awt.Color
 import java.util.function.Consumer
@@ -76,14 +71,14 @@ class VariablesTableTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    defaultTestDialog = Messages.setTestDialog(object: TestDialog {
+    defaultTestDialog = TestDialogManager.setTestDialog(object: TestDialog {
       override fun show(message: String): Int = Messages.YES
     })
 
   }
 
   override fun tearDown() {
-    Messages.setTestDialog(defaultTestDialog);
+    TestDialogManager.setTestDialog(defaultTestDialog);
     super.tearDown()
   }
 
