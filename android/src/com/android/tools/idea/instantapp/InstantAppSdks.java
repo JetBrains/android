@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
@@ -25,18 +27,16 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.SdkLoader;
 import com.google.android.instantapps.sdk.api.TelemetryManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.FD_EXTRAS;
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 
 /**
  * Responsible for providing InstantApp SDK.
@@ -80,9 +80,7 @@ public class InstantAppSdks {
 
   private static @NotNull LocalPackage ensureSdkInstalled() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      int result = Messages.showYesNoDialog(
-        "Required Google Play Instant SDK not installed. Do you want to install it now?", "Google Play Instant", null);
-      if (result == Messages.OK) {
+      if (MessageDialogBuilder.yesNo("Google Play Instant", "Required Google Play Instant SDK not installed. Do you want to install it now?").show() == Messages.YES) {
         ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
         if (dialog != null) {
           dialog.show();
@@ -100,7 +98,7 @@ public class InstantAppSdks {
 
   private static void updateSdk() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      int result = Messages.showYesNoDialog(UPGRADE_PROMPT_TEXT, "Google Play Instant", null);
+      int result = MessageDialogBuilder.yesNo("Google Play Instant", UPGRADE_PROMPT_TEXT).show();
       if (result == Messages.OK) {
         ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
         if (dialog != null) {

@@ -151,11 +151,11 @@ public final class SdkSync {
         // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
         // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
         // showing a message, to ensure that the message shows in the IDE instance containing the project.
-        int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
+        boolean result = MessageDialogBuilder.yesNo("Android SDK Manager", msg)
+          .yesText("Use Android Studio's SDK")
           .noText("Use Project's SDK")
-          .project(project)
-          .show();
-        if (result == Messages.YES) {
+          .ask(project);
+        if (result) {
           // Use Android Studio's SDK
           setProjectSdk(localProperties, ideAndroidSdkPath);
         }
@@ -279,7 +279,7 @@ public final class SdkSync {
       dialog.setModal(true);
       if (!dialog.showAndGet()) {
         String msg = "An Android SDK is needed to continue. Would you like to try again?";
-        if (Messages.showYesNoDialog(msg, ERROR_DIALOG_TITLE, null) == Messages.YES) {
+        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, msg).show() == Messages.YES) {
           findValidSdkPath(pathRef);
         }
         return;
@@ -287,7 +287,7 @@ public final class SdkSync {
       File path = new File(dialog.getAndroidHome());
       if (!myIdeSdks.isValidAndroidSdkPath(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
-        if (Messages.showYesNoDialog(String.format(format, path.getPath()), ERROR_DIALOG_TITLE, null) == Messages.YES) {
+        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, String.format(format, path.getPath())).show() == Messages.YES) {
           findValidSdkPath(pathRef);
         }
         return;
