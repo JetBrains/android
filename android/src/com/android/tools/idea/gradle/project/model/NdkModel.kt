@@ -132,8 +132,7 @@ class V1NdkModel(
 
   val variants: Collection<NdkVariant> get() = ndkVariantsByVariantAbi.values
 
-  @Transient
-  override val symbolFolders: Map<VariantAbi, Set<File>> = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
+  override val symbolFolders: Map<VariantAbi, Set<File>> get() = ndkVariantsByVariantAbi.mapValues { (_, ndkVariant) ->
     ndkVariant.artifacts.mapNotNull { artifact ->
       artifact.outputFile?.takeIf { it.exists() }?.parentFile
     }.toSet()
