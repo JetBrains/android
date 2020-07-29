@@ -203,10 +203,10 @@ class HeapDumpSnapshotRunnable(
       val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
       val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
       val result = MessageDialogBuilder.yesNo(title, message)
+      if (MessageDialogBuilder.yesNo(title, message)
         .yesText(yesString)
         .noText(noString)
-        .show()
-      if (result == Messages.YES) {
+        .guessWindowAndAsk()) {
         val application = ApplicationManager.getApplication() as ApplicationEx
         application.restart(true)
       }
