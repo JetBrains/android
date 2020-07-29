@@ -51,6 +51,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.util.SystemProperties
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 
 private val LOG = Logger.getInstance(if (AGP_UPGRADE_ASSISTANT.get()) "Upgrade Assistant" else "AndroidGradlePluginUpdates")
@@ -160,8 +161,12 @@ fun performRecommendedPluginUpgrade(
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
       val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+      val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
+      if (java8Processor == null) {
+        LOG.error("no Java8Default processor found in AGP Upgrade Processor")
+      }
       val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
-        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
         dialog.showAndGet()
       }
       if (runProcessor) {
@@ -302,8 +307,12 @@ fun performForcedPluginUpgrade(
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
       val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
+      val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
+      if (java8Processor == null) {
+        LOG.error("no Java8Default processor found in AGP Upgrade Processor")
+      }
       val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
-        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor)
+        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
         dialog.showAndGet()
       }
       if (runProcessor) {
