@@ -225,6 +225,19 @@ class V1NdkModelTest {
   }
 
   @Test
+  fun `symbolFolders should reflect changes in filesystem`() {
+    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
+      VariantAbi("debug", "x86"), setOf(x86SoFolder),
+      VariantAbi("debug", "arm64-v8a"), setOf(arm64V8aSoFolder)
+    )
+    arm64V8aSoFolder.deleteRecursively()
+    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
+      VariantAbi("debug", "x86"), setOf(x86SoFolder),
+      VariantAbi("debug", "arm64-v8a"), emptySet<File>()
+    )
+  }
+
+  @Test
   fun `test serialization`() {
     assertSerializable(fullSyncV1NdkModel)
     assertSerializable(singleVariantSyncV1NdkModel)
