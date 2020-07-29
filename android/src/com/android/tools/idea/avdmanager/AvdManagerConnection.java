@@ -17,6 +17,15 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_AREAS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_COUNT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_DEFAULTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
@@ -59,6 +68,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.compiler.chainsSearch.ChainRelevance;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -918,6 +928,17 @@ public class AvdManagerConnection {
     }
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
+    }
+    if (device.getId().equals(("7.3in Foldable"))) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "768-0-1-2152");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
     }
 
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
