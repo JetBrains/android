@@ -53,7 +53,7 @@ final class ModifyDeviceSetDialogTable extends JBTable {
 
   void setSelectedDevices(@NotNull Collection<Key> keys) {
     IntStream.range(0, getRowCount())
-      .filter(viewRowIndex -> keys.contains(getDeviceAt(viewRowIndex).getKey()))
+      .filter(viewRowIndex -> getDeviceAt(viewRowIndex).hasKeyContainedBy(keys))
       .forEach(viewRowIndex -> setSelected(true, viewRowIndex));
   }
 

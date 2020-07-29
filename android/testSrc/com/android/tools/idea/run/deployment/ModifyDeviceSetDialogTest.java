@@ -93,7 +93,7 @@ public final class ModifyDeviceSetDialogTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
-      .setKey(new Key("Pixel_4_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -110,7 +110,7 @@ public final class ModifyDeviceSetDialogTest {
   @Test
   public void initTable() {
     // Arrange
-    Key key = new Key("Pixel_4_API_29");
+    Key key = new VirtualDeviceName("Pixel_4_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
@@ -152,7 +152,7 @@ public final class ModifyDeviceSetDialogTest {
   @Test
   public void initOkActionDoesntDisableActionAfterTableModelEventsAreHandled() {
     // Arrange
-    Key key = new Key("Pixel_4_API_30");
+    Key key = new VirtualDeviceName("Pixel_4_API_30");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")

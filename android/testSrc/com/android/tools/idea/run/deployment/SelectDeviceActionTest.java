@@ -68,13 +68,13 @@ public final class SelectDeviceActionTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
+      .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa602"))
+      .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -96,7 +96,7 @@ public final class SelectDeviceActionTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();
@@ -119,7 +119,7 @@ public final class SelectDeviceActionTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setValidityReason("Missing system image")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -139,7 +139,7 @@ public final class SelectDeviceActionTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("apiQ_64_Google")
-      .setKey(new Key("apiQ_64_Google"))
+      .setKey(new VirtualDeviceName("apiQ_64_Google"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

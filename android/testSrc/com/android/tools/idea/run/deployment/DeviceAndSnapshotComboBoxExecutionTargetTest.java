@@ -35,7 +35,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   @Test
   public void getDevices() {
     // Arrange
-    Key key = new Key("Pixel_3_API_29");
+    Key key = new VirtualDeviceName("Pixel_3_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -57,7 +57,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   @Test
   public void getDisplayNameCase1() {
     // Arrange
-    Key key = new Key("Pixel_3_API_29");
+    Key key = new VirtualDeviceName("Pixel_3_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
@@ -79,8 +79,8 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   @Test
   public void getDisplayNameDefault() {
     // Arrange
-    Key key1 = new Key("Pixel_2_API_29");
-    Key key2 = new Key("Pixel_3_API_29");
+    Key key1 = new VirtualDeviceName("Pixel_2_API_29");
+    Key key2 = new VirtualDeviceName("Pixel_3_API_29");
 
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")

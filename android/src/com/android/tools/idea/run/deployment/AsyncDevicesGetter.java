@@ -35,7 +35,6 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -128,11 +127,8 @@ final class AsyncDevicesGetter {
       .setChecker(myChecker)
       .build();
 
-    boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
-    AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
-
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(connectedDevicesTask);
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(bridge, myChecker));
 
     if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
       return Optional.empty();
@@ -173,11 +169,16 @@ final class AsyncDevicesGetter {
   @NotNull
   private Stream<VirtualDevice> connectedVirtualDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices,
                                                              @NotNull Collection<VirtualDevice> virtualDevices) {
-    Map<Key, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
-
     return connectedDevices.stream()
       .filter(ConnectedDevice::isVirtualDevice)
-      .map(device -> VirtualDevice.newConnectedDevice(device, myMap, keyToVirtualDeviceMap.get(device.getKey())));
+      .map(device -> VirtualDevice.newConnectedDevice(device, myMap, findFirst(virtualDevices, device.getKey()).orElse(null)));
+  }
+
+  private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
+                                                                     @NotNull Key key) {
+    return devices.stream()
+      .filter(device -> device.matches(key))
+      .findFirst();
   }
 
   @NotNull
@@ -195,7 +196,7 @@ final class AsyncDevicesGetter {
       .map(ConnectedDevice::getKey)
       .collect(Collectors.toSet());
 
-    return virtualDevices.stream().filter(device -> !connectedVirtualDeviceKeys.contains(device.getKey()));
+    return virtualDevices.stream().filter(device -> !device.hasKeyContainedBy(connectedVirtualDeviceKeys));
   }
 
   @VisibleForTesting

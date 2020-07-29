@@ -95,7 +95,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void modifyDeviceSet() {
     // Arrange
-    Key key = new Key("Pixel_4_API_29");
+    Key key = new VirtualDeviceName("Pixel_4_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
@@ -134,7 +134,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void modifyDeviceSetDialogSelectionEmpty() {
     // Arrange
-    Key key = new Key("Pixel_4_API_29");
+    Key key = new VirtualDeviceName("Pixel_4_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
@@ -213,13 +213,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Device pixel2XlApiQ = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API Q")
-      .setKey(new Key("Pixel_2_XL_API_Q"))
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_Q"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device pixel3XlApiQ = new VirtualDevice.Builder()
       .setName("Pixel 3 XL API Q")
-      .setKey(new Key("Pixel_3_XL_API_Q"))
+      .setKey(new VirtualDeviceName("Pixel_3_XL_API_Q"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -239,7 +239,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Arrange
     Device availableDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new Key("Pixel_4_API_30"))
+      .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -275,7 +275,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Device runningDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new Key("Pixel_4_API_30"))
+      .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(androidDevice)
       .build();
