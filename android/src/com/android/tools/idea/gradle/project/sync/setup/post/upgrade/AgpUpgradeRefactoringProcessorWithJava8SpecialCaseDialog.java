@@ -44,12 +44,25 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
   private JPanel myJava8SettingsPanel;
   private ComboBox<NoLanguageLevelAction> myNoLanguageLevelActionComboBox;
 
-  private AgpUpgradeRefactoringProcessor myProcessor;
-  private Java8DefaultRefactoringProcessor myJava8Processor;
+  @NotNull private AgpUpgradeRefactoringProcessor myProcessor;
+  @NotNull private Java8DefaultRefactoringProcessor myJava8Processor;
+  private NoLanguageLevelAction myNoLanguageLevelAction;
 
-  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(@NotNull AgpUpgradeRefactoringProcessor processor) {
+  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+    @NotNull AgpUpgradeRefactoringProcessor processor,
+    @NotNull Java8DefaultRefactoringProcessor java8Processor
+  ) {
+    this(processor, java8Processor, false);
+  }
+
+  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+    @NotNull AgpUpgradeRefactoringProcessor processor,
+    @NotNull Java8DefaultRefactoringProcessor java8Processor,
+    boolean processorAlreadyConfiguredForJava8Dialog
+  ) {
     super(processor.getProject());
     myProcessor = processor;
+    myJava8Processor = java8Processor;
 
     setTitle("Android Gradle Plugin Upgrade Assistant");
     init();
@@ -61,13 +74,23 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
         browse(e.getURL());
       }
     });
+
+    if (processorAlreadyConfiguredForJava8Dialog) {
+      myNoLanguageLevelAction = myJava8Processor.getNoLanguageLevelAction();
+    }
+    else {
+      myNoLanguageLevelAction = ACCEPT_NEW_DEFAULT;
+      for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
+        AgpUpgradeComponentNecessity necessity = p.necessity();
+        p.setEnabled(necessity == MANDATORY_CODEPENDENT || necessity == MANDATORY_INDEPENDENT);
+      }
+    }
+
     StringBuilder sb = new StringBuilder();
     sb.append("<p>The following commands will be executed to upgrade your project from Android Gradle Plugin version ")
       .append(myProcessor.getCurrent()).append(" to version ").append(myProcessor.getNew()).append(":</p>");
     sb.append("<ul>");
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
-      AgpUpgradeComponentNecessity necessity = p.necessity();
-      p.setEnabled(necessity == MANDATORY_CODEPENDENT || necessity == MANDATORY_INDEPENDENT);
       if (p.isEnabled()) {
         sb.append("<li>").append(p.getCommandName());
         if (p.isAlwaysNoOpForProject()) {
@@ -84,16 +107,11 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     sb.append("</ul>");
     myEditorPane.setText(sb.toString());
 
-    myProcessor.getComponentRefactoringProcessors()
-      .stream()
-      .filter((p) -> p instanceof Java8DefaultRefactoringProcessor)
-      .findFirst()
-      .ifPresent((p) -> myJava8Processor = (Java8DefaultRefactoringProcessor)p);
-
     if (myJava8Processor != null && myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
       JBLabel label = new JBLabel("Action on no explicit Java language level: ");
       myJava8SettingsPanel.add(label);
       myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[] {ACCEPT_NEW_DEFAULT, INSERT_OLD_DEFAULT});
+      myNoLanguageLevelActionComboBox.setSelectedItem(myNoLanguageLevelAction);
       myJava8SettingsPanel.add(myNoLanguageLevelActionComboBox);
       myJava8SettingsPanel.setVisible(true);
     }
