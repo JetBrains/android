@@ -16,7 +16,8 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_ENABLED
-import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED
+import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED
+import com.android.tools.idea.flags.StudioFlags.DATABASE_INSPECTOR_OPEN_FILES_ENABLED
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -24,7 +25,8 @@ import org.jetbrains.annotations.TestOnly
  */
 object DatabaseInspectorFlagController {
   val isFeatureEnabled get() = DATABASE_INSPECTOR_ENABLED.get()
-  val isFileSupportEnabled get() = DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED.get()
+  val isOpenFileEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()
+  val isOfflineModeEnabled get() = DATABASE_INSPECTOR_ENABLED.get() && DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()
 
   @TestOnly
   fun enableFeature(enabled: Boolean): Boolean {
@@ -37,11 +39,21 @@ object DatabaseInspectorFlagController {
   }
 
   @TestOnly
-  fun enableFileSupport(enabled: Boolean): Boolean {
-    val previous = isFileSupportEnabled
-    DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED.clearOverride()
-    if (enabled != DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED.get()) {
-      DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED.override(enabled)
+  fun enableOpenFile(enabled: Boolean): Boolean {
+    val previous = isOpenFileEnabled
+    DATABASE_INSPECTOR_OPEN_FILES_ENABLED.clearOverride()
+    if (enabled != DATABASE_INSPECTOR_OPEN_FILES_ENABLED.get()) {
+      DATABASE_INSPECTOR_OPEN_FILES_ENABLED.override(enabled)
+    }
+    return previous
+  }
+
+  @TestOnly
+  fun enableOfflineMode(enabled: Boolean): Boolean {
+    val previous = isOfflineModeEnabled
+    DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.clearOverride()
+    if (enabled != DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()) {
+      DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.override(enabled)
     }
     return previous
   }
