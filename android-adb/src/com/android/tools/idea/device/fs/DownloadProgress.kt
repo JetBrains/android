@@ -17,14 +17,13 @@ package com.android.tools.idea.device.fs
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import java.nio.file.Path
 
 /**
  * Progress indicator for downloading multiple entries from a device.
  */
 interface DownloadProgress {
-  @get:AnyThread
-  val isCancelled: Boolean
+  @AnyThread
+  fun isCancelled(): Boolean
 
   @UiThread
   fun onStarting(entryFullPath: String)
