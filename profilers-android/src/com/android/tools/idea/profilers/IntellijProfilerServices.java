@@ -388,11 +388,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
     @Override
-    public boolean isCpuApiTracingEnabled() {
-      return StudioFlags.PROFILER_CPU_API_TRACING.get();
-    }
-
-    @Override
     public boolean isCpuCaptureStageEnabled() {
       return StudioFlags.PROFILER_CPU_CAPTURE_STAGE.get();
     }

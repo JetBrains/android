@@ -839,8 +839,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void transitsToIdleWhenApiInitiatedTracingEnds() {
-    myServices.enableCpuApiTracing(true);
-
     // API-initiated tracing starts.
     Cpu.CpuTraceConfiguration apiTracingConfig = Cpu.CpuTraceConfiguration.newBuilder()
       .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
