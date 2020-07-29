@@ -178,7 +178,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
-  "Master/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+  "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
