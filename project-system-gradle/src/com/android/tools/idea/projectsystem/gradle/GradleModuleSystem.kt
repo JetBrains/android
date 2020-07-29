@@ -17,9 +17,9 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
-import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.level2.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -451,7 +451,7 @@ class GradleModuleSystem(
     )
   }
 
-  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: IdeBuildType): String? {
     val flavor = gradleModel.selectedVariant.mergedFlavor
     val versionName = flavor.versionName
     val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
