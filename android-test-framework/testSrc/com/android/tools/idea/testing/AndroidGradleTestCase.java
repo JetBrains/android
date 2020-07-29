@@ -33,7 +33,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -179,24 +178,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     myAndroidFacet = null;
     if (myFixture != null) {
       try {
-        Project project = myFixture.getProject();
-        // Since we don't really open the project, but we manually register listeners in the gradle importer
-        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-        // that here, otherwise the testsuite will leak
-        if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-          projectComponent.projectClosed();
-        }
+        myFixture.tearDown();
       }
-      finally {
-        try {
-          myFixture.tearDown();
-        }
-        catch (Throwable e) {
-          LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
-        }
-        myFixture = null;
+      catch (Throwable e) {
+        LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
       }
+      myFixture = null;
     }
   }
 
