@@ -36,6 +36,7 @@ import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
@@ -77,7 +78,7 @@ class DependencyManagerTest : AndroidTestCase() {
     }
     Disposer.register(disposable!!, dependencyManager!!)
     dependencyManager!!.addDependencyChangeListener { dependencyUpdateCount++ }
-    Messages.setTestDialog { message: String ->
+    TestDialogManager.setTestDialog { message: String ->
       dialogMessages.add(message.trim()) // Remove line break in the end of the message.
       Messages.OK
     }
@@ -87,7 +88,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun tearDown() {
     try {
       AndroidModuleInfo.setInstanceForTest(myFacet, null)
-      Messages.setTestDialog(TestDialog.DEFAULT)
+      TestDialogManager.setTestDialog(TestDialog.DEFAULT)
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       Disposer.dispose(disposable!!)
