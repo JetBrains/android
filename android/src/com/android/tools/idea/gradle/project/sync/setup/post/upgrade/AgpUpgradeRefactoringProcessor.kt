@@ -445,6 +445,9 @@ sealed class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactorin
 
   public abstract override fun getCommandName(): String
 
+  open val groupingName
+    get() = commandName
+
   open fun getReadMoreUrl(): String? = null
 
   /**
@@ -792,6 +795,8 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
   override fun getCommandName(): String = "Update default Java language level"
 
+  override val groupingName = "Add directives to keep using Java 7"
+
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
@@ -1116,7 +1121,7 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
     // TODO(xof): arguably we should have AgpComponentUsageInfo here
     val usageInfo = (usage as? UsageInfo2UsageAdapter)?.usageInfo as? GradleBuildModelUsageInfo ?: return null
     val wrappedElement = (usageInfo as? GradleBuildModelUsageInfo)?.element as? WrappedPsiElement ?: return null
-    return ComponentUsageGroup(wrappedElement.processor.commandName)
+    return ComponentUsageGroup(wrappedElement.processor.groupingName)
   }
 
   // The rank for this grouping rule is somewhat arbitrary.  It affects how the rule composes with other rules, but the
