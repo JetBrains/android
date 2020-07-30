@@ -268,7 +268,7 @@ public class RenderService implements Disposable {
    * in the nearby range too.
    *
    * @param view the {@link ViewInfo} to check
-   * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
+   * @return Normally the {@link ViewInfo} itself, but a placeholder 0-bound {@link ViewInfo} if
    * the view bounds are indeed invalid
    */
   @NotNull
