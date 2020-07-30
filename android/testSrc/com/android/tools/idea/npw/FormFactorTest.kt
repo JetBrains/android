@@ -33,14 +33,14 @@ class FormFactorTest {
   }
 
   @Test
-  fun mobileNotSupportedOnWhiteList() {
+  fun mobileNotSupportedOnAllowList() {
     assertFalse(MOBILE.isSupported(SystemImage.WEAR_TAG, LOLLIPOP))
     assertFalse(MOBILE.isSupported(null, LOLLIPOP))
   }
 
   @Test
   fun mobileNotSupportedOnWatchApi() {
-    // Tests that mobile is on the black-list for the watch API
+    // Tests that mobile is on the block-list for the watch API
     assertFalse(MOBILE.isSupported(SystemImage.DEFAULT_TAG, KITKAT_WATCH))
   }
 
@@ -50,7 +50,7 @@ class FormFactorTest {
   }
 
   @Test
-  fun automotiveNotSupportedOnWhiteList() {
+  fun automotiveNotSupportedOnAllowList() {
     assertFalse(AUTOMOTIVE.isSupported(SystemImage.WEAR_TAG, PIE))
     assertFalse(AUTOMOTIVE.isSupported(null, LOLLIPOP))
   }
