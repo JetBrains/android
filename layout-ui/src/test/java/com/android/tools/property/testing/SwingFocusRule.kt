@@ -79,7 +79,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
       }
       var value = _window
       if (value == null) {
-        value = DummyFrame()
+        value = FakeFrame()
         setSinglePeer(value)
         _window = value
       }
@@ -144,7 +144,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
   override fun before() {
     overrideGraphicsEnvironment(false)
-    _window = DummyFrame()
+    _window = FakeFrame()
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
     appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
@@ -253,7 +253,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
    * be visible. Override methods such that Swing thinks it
    * is visible without displaying a window on the screen.
    */
-  private class DummyFrame : Frame() {
+  private class FakeFrame : Frame() {
     override fun isShowing(): Boolean {
       return true
     }
