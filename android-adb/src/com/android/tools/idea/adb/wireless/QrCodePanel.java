@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.tools.adtui.ui.ImagePanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.JPanel;
