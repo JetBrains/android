@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -54,7 +54,7 @@ import java.util.List;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private SyncIssue mySyncIssue;
+  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -62,7 +62,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue = mock(IdeSyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
@@ -329,7 +329,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     Module appModule = TestModuleUtil.findAppModule(getProject());
     Module libModule = TestModuleUtil.findModule(getProject(), "lib");
 
-    List<SyncIssue> issues = ContainerUtil.map(ImmutableList.of(1, 2), (i) -> new SyncIssue() {
+    List<IdeSyncIssue> issues = ContainerUtil.map(ImmutableList.of(1, 2), (i) -> new IdeSyncIssue() {
       @Override
       public int hashCode() {
         return 7;
@@ -373,7 +373,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
       }
     });
 
-    IdentityHashMap<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    IdentityHashMap<IdeSyncIssue, Module> moduleMap = new IdentityHashMap<>();
     moduleMap.put(issues.get(0), appModule);
     moduleMap.put(issues.get(1), libModule);
     myReporter
@@ -403,7 +403,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
-    List<SyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
+    List<IdeSyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
     OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
     assertThat(link.getLineNumber()).isEqualTo(-1);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -55,17 +54,17 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
 
   @Override
   int getSupportedIssueType() {
-    return TYPE_UNRESOLVED_DEPENDENCY;
+    return IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
   }
 
   @NotNull
   @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty() && !affectedModules.isEmpty();
-    SyncIssue issue = syncIssues.get(0);
+    IdeSyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
     List<NotificationHyperlink> quickFixes = Lists.newArrayList();
@@ -78,7 +77,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
       catch (UnsupportedOperationException ex) {
-        // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+        // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
       }
 
       if (!extraInfo.isEmpty()) {
@@ -116,7 +115,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   @NotNull
   @Override
   protected NotificationData setupNotificationData(@NotNull Project project,
-                                                   @NotNull List<SyncIssue> syncIssues,
+                                                   @NotNull List<IdeSyncIssue> syncIssues,
                                                    @NotNull List<Module> affectedModules,
                                                    @NotNull Map<Module, VirtualFile> buildFileMap,
                                                    @NotNull MessageType type) {
@@ -141,7 +140,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       return;
     }
     VirtualFile buildFile = getGradleBuildFile(module);
-    List<SyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new SyncIssue() {
+    List<IdeSyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new IdeSyncIssue() {
       @Override
       public int getSeverity() {
         return SEVERITY_ERROR;

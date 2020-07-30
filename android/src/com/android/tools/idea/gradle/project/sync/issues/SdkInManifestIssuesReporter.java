@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -97,7 +96,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
   @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
-                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull List<IdeSyncIssue> syncIssues,
                                                @NotNull VirtualFile buildFile) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
@@ -125,7 +124,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
   @NotNull
   @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     if (affectedModules.isEmpty()) {

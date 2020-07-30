@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePluginInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile
 class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getCustomLinks(
     project: Project,
-    syncIssues: List<SyncIssue>,
+    syncIssues: List<IdeSyncIssue>,
     affectedModules: List<Module>,
     buildFileMap: Map<Module, VirtualFile>
   ): List<NotificationHyperlink> {
@@ -41,7 +41,7 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
 
   override fun setupNotificationData(
     project: Project,
-    syncIssues: List<SyncIssue>,
+    syncIssues: List<IdeSyncIssue>,
     affectedModules: List<Module>,
     buildFileMap: Map<Module, VirtualFile>,
     type: MessageType
@@ -50,8 +50,8 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
 
     if (syncIssues.isEmpty()) return notificationData
 
-    val syncIssue = syncIssues[0]
-    val messageParts = syncIssue.message.split(":", limit = 2)
+    val IdeSyncIssue = syncIssues[0]
+    val messageParts = IdeSyncIssue.message.split(":", limit = 2)
     val messageStem = if (messageParts.isEmpty()) "Some plugins require updates" else messageParts[0]
 
     val paths = syncIssues.flatMap { issue -> issue.issueData()?.violatingPaths ?: listOf() }
@@ -61,9 +61,9 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
     return notificationData
   }
 
-  override fun getSupportedIssueType(): Int = SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+  override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
-  override fun getDeduplicationKey(issue: SyncIssue): Any = issue.issueData()?.displayName ?: issue
+  override fun getDeduplicationKey(issue: IdeSyncIssue): Any = issue.issueData()?.displayName ?: issue
 
   /**
    * Creates a IssueData object by splitting up the payload of the SyncIssues data field,
@@ -72,7 +72,7 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
    * Add parts are string apart from violatingPaths which is a list in the form of:
    *   [path1, path2, path3]
    */
-  private fun SyncIssue.issueData(): IssueData? {
+  private fun IdeSyncIssue.issueData(): IssueData? {
     val fields = data?.split(";", limit = 5)?.takeUnless { it.size < 5 } ?: return null
     val paths = if (fields[4].length < 2) listOf() else fields[4].substring(1, fields[4].length - 1).split(",")
 
