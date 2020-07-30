@@ -51,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
  * </pre>
  */
 public class GradleAndroidModuleTemplate {
-  public static NamedModuleTemplate createDummyTemplate() {
+  public static NamedModuleTemplate createSampleTemplate() {
     return createDefaultTemplateAt("", "");
   }
 

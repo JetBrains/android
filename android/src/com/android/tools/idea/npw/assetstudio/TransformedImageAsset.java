@@ -200,7 +200,7 @@ public final class TransformedImageAsset {
    */
   @NotNull
   public BufferedImage createErrorImage(@NotNull Dimension imageSize) {
-    return applyScaleShiftTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
+    return applyScaleShiftTintAndOpacity(imageSize, AssetStudioUtils.createPlaceholderImage());
   }
 
   @NotNull

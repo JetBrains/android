@@ -30,12 +30,12 @@ import java.util.Set;
  * Tests for {@link DynamicWizardStep}
  */
 public class DynamicWizardStepTest extends TestCase {
-  private DummyDynamicWizardStep myStep;
+  private SampleDynamicWizardStep myStep;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myStep = new DummyDynamicWizardStep("TestStep");
+    myStep = new SampleDynamicWizardStep("TestStep");
     myStep.onEnterStep();
   }
 
@@ -81,7 +81,7 @@ public class DynamicWizardStepTest extends TestCase {
     assertEquals("<html><h1>Testing</h1></html>", myStep.getMessageLabel().getText());
   }
 
-  public static class DummyDynamicWizardStep extends DynamicWizardStep {
+  public static class SampleDynamicWizardStep extends DynamicWizardStep {
 
     protected final ScopedStateStore.Key<String> INPUT_KEY;
     protected final ScopedStateStore.Key<Boolean> VISIBLE_KEY;
@@ -94,7 +94,7 @@ public class DynamicWizardStepTest extends TestCase {
     private String myName;
     private JTextField myDerivedField = new JTextField();
 
-    public DummyDynamicWizardStep(@NotNull String name) {
+    public SampleDynamicWizardStep(@NotNull String name) {
       myName = name;
       INPUT_KEY = myState.createKey(getStepName() + ":inputValue", String.class);
       DERIVED_KEY = myState.createKey(getStepName() + ":derivedValue", String.class);

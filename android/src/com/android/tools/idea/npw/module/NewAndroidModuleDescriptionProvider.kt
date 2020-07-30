@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -50,7 +50,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString(): String = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createSampleTemplate(), isLibrary)
       return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
@@ -97,7 +97,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createSampleTemplate(), true)
       return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
     }
   }

@@ -293,7 +293,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name
 
     /**
-     * Loads saved company domain, or generates a dummy one if no domain has been saved.
+     * Loads saved company domain, or generates a placeholder one if no domain has been saved.
      */
     @JvmStatic
     fun getInitialDomain(): String =

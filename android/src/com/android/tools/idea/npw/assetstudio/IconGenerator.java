@@ -94,7 +94,7 @@ public abstract class IconGenerator implements Disposable {
     DENSITY_PATTERNS = builder.build();
   }
 
-  protected static final AnnotatedImage PLACEHOLDER_IMAGE = new AnnotatedImage(AssetStudioUtils.createDummyImage());
+  protected static final AnnotatedImage PLACEHOLDER_IMAGE = new AnnotatedImage(AssetStudioUtils.createPlaceholderImage());
 
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myOutputName = new StringValueProperty();
