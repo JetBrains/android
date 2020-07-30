@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * Dummy LightToolWindowManager because the framework requires two managers at the same time.
+ * Empty LightToolWindowManager because the framework requires two managers at the same time.
  */
 public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull private JPanel myEmptyPanel = new JPanel();

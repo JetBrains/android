@@ -81,7 +81,7 @@ public class MemoryInstanceDetailsViewTest {
       new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer),
                               loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents, myStage.getTimeline());
-    myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
+    myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE").build();
   }
 
   @Test
@@ -96,7 +96,7 @@ public class MemoryInstanceDetailsViewTest {
   public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
     Component component = myDetailsView.getComponent();
-    FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").build();
+    FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstanceObject));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
@@ -130,7 +130,7 @@ public class MemoryInstanceDetailsViewTest {
       Memory.AllocationStack.StackFrameWrapper.newBuilder().addFrames(
         Memory.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1)))
       .build();
-    FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setAllocationStack(stack).build();
+    FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setAllocationStack(stack).build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
@@ -156,22 +156,22 @@ public class MemoryInstanceDetailsViewTest {
     // ---> Ref4
     // -> Ref5
     FakeInstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake1").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setName("fake1").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance2 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake2").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setName("fake2").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance3 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake3").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setName("fake3").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance4 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake4").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setName("fake4").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance5 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake5").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "SAMPLE_CLASS").setName("fake5").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeRootObject =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "DUMMY_ROOT").setName("FakeRoot").build();
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "SAMPLE_ROOT").setName("FakeRoot").build();
 
     fakeInstance1.setFieldValue("mField", OBJECT, fakeRootObject);
     fakeInstance2.setFieldValue("mField", OBJECT, fakeInstance1);

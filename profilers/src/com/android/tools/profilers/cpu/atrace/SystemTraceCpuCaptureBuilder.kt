@@ -142,7 +142,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       var lastSliceEnd = cpu.schedulingEvents.firstOrNull()?.endTimestampUs ?: startUserTimeUs
       for (sched in cpu.schedulingEvents) {
 
-        // If we have a gap, add a dummy entry representing no threads using this cpu.
+        // If we have a gap, add a placeholder entry representing no threads using this cpu.
         if (sched.startTimestampUs > lastSliceEnd) {
           processList.add(SeriesData(lastSliceEnd, CpuThreadSliceInfo.NULL_THREAD))
         }
