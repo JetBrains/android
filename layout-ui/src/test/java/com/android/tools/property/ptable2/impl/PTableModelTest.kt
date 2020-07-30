@@ -16,7 +16,7 @@
 package com.android.tools.property.ptable2.impl
 
 import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.item.DummyPTableCellEditorProvider
+import com.android.tools.property.ptable2.item.EmptyPTableCellEditorProvider
 import com.android.tools.property.ptable2.item.Group
 import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.addModelListener
@@ -106,7 +106,7 @@ class PTableModelTest {
   @Test
   fun testUpdateMovesActiveItem() {
     val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
-    val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), DummyPTableCellEditorProvider())
+    val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), EmptyPTableCellEditorProvider())
     val item = table.item(3)
     tableModel.updateTo(true, Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item5"), Item("item4"))
     val rowIndex = tableModel.items.indexOf(item)

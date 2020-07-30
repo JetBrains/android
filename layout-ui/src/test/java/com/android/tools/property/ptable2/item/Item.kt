@@ -97,12 +97,12 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   }
 }
 
-class DummyPTableCellEditor : DefaultPTableCellEditor() {
+class EmptyPTableCellEditor : DefaultPTableCellEditor() {
   override val editorComponent = JPanel()
 }
 
-class DummyPTableCellEditorProvider : PTableCellEditorProvider {
-  val editor = DummyPTableCellEditor()
+class EmptyPTableCellEditorProvider : PTableCellEditorProvider {
+  val editor = EmptyPTableCellEditor()
 
   override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
     return editor
