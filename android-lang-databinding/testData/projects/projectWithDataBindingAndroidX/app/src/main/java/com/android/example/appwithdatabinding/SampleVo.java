@@ -1,10 +1,10 @@
 package com.android.example.appwithdatabinding;
 
 import android.view.View;
-import android.arch.lifecycle.LiveData;
-import android.databinding.ObservableField;
+import androidx.lifecycle.LiveData;
+import androidx.databinding.ObservableField;
 
-public class DummyVo {
+public class SampleVo {
     public String name;
 
     public String getLiveDataString() {
@@ -15,11 +15,11 @@ public class DummyVo {
         return null;
     }
 
-    public LiveData<DummyVo> getLiveData() {
+    public LiveData<SampleVo> getLiveData() {
         return null;
     }
 
-    public ObservableField<DummyVo> getObservableField() {
+    public ObservableField<SampleVo> getObservableField() {
         return null;
     }
 

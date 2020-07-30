@@ -621,8 +621,8 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
       import ${dataBindingMode.bindingAdapter};
 
       public class Model {
-        @BindingAdapter("dummyValue")
-        public void bindDummyValue(View view, String s) {}
+        @BindingAdapter("sampleValue")
+        public void bindSampleValue(View view, String s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -640,7 +640,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            app:dummyValue="@{model.getString()}"/>
+            app:sampleValue="@{model.getString()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -658,8 +658,8 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
       import ${dataBindingMode.bindingAdapter};
 
       public class Model {
-        @BindingAdapter("dummyValue")
-        public void bindDummyValue(View view, String s) {}
+        @BindingAdapter("sampleValue")
+        public void bindSampleValue(View view, String s) {}
         public int getString() {}
       }
       """.trimIndent())
@@ -677,7 +677,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            app:dummyValue="@{<error descr="Cannot find a setter for <TextView app:dummyValue> that accepts parameter type 'int'">model.getString()</error>}"/>
+            app:sampleValue="@{<error descr="Cannot find a setter for <TextView app:sampleValue> that accepts parameter type 'int'">model.getString()</error>}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -696,7 +696,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -733,7 +733,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -770,7 +770,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -842,7 +842,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public void testClick(View view) {}
       }
     """.trimIndent())
@@ -879,7 +879,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public void testClick(String str) {}
       }
     """.trimIndent())
@@ -917,7 +917,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         @BindingConversion
         public static View.OnClickListener convertColorToOnClickListener(int num) {}
         public int getNumber() {}
@@ -956,7 +956,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class Model {
         @BindingAdapter("android:text")
-        public void bindDummyText(View view, String s) {}
+        public void bindSampleText(View view, String s) {}
         public int getNumber() {}
       }
     """.trimIndent())
@@ -995,7 +995,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
 
       public class GenericConverter {
         @BindingAdapter("android:text")
-        public void bindDummyValue(View view, String str) {}
+        public void bindSampleValue(View view, String str) {}
         @BindingConversion
         public static <T> String convertArrayList(ArrayList<T> values) {}
       }

@@ -49,7 +49,7 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class AndroidDataBindingTest {
-  private static final String DUMMY_CLASS_QNAME = "p1.p2.DummyClass";
+  private static final String SAMPLE_CLASS_QNAME = "p1.p2.SampleClass";
 
   @NotNull
   @Rule
@@ -127,15 +127,15 @@ public class AndroidDataBindingTest {
   @RunsInEdt
   public void testSimpleVariableResolution() {
     copyLayout("basic_binding");
-    copyClass(DUMMY_CLASS_QNAME);
+    copyClass(SAMPLE_CLASS_QNAME);
 
-    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass context = getFixture().findClass(SAMPLE_CLASS_QNAME);
     PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.BasicBindingBinding", context);
     assertNotNull(aClass);
 
     assertNotNull(aClass.findFieldByName("view1", false));
-    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "setSample", "void", SAMPLE_CLASS_QNAME);
+    assertMethod(aClass, "getSample", SAMPLE_CLASS_QNAME);
   }
 
   /**
@@ -160,63 +160,63 @@ public class AndroidDataBindingTest {
   @RunsInEdt
   public void testImportResolution() {
     copyLayout("import_variable");
-    copyClass(DUMMY_CLASS_QNAME);
+    copyClass(SAMPLE_CLASS_QNAME);
 
-    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass context = getFixture().findClass(SAMPLE_CLASS_QNAME);
     PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportVariableBinding", context);
     assertNotNull(aClass);
 
-    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "setSample", "void", SAMPLE_CLASS_QNAME);
+    assertMethod(aClass, "getSample", SAMPLE_CLASS_QNAME);
 
-    assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
-    assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setSampleList", "void", "java.util.List<" + SAMPLE_CLASS_QNAME + ">");
+    assertMethod(aClass, "getSampleList", "java.util.List<" + SAMPLE_CLASS_QNAME + ">");
 
-    assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
-    assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setSampleMap", "void", "java.util.Map<java.lang.String," + SAMPLE_CLASS_QNAME + ">");
+    assertMethod(aClass, "getSampleMap", "java.util.Map<java.lang.String," + SAMPLE_CLASS_QNAME + ">");
 
-    assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
-    assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "setSampleArray", "void", SAMPLE_CLASS_QNAME + "[]");
+    assertMethod(aClass, "getSampleArray", SAMPLE_CLASS_QNAME + "[]");
 
-    assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
-    assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "setSampleMultiDimArray", "void", SAMPLE_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "getSampleMultiDimArray", SAMPLE_CLASS_QNAME + "[][][]");
   }
 
   @Test
   @RunsInEdt
   public void testImportAliasResolution() {
     copyLayout("import_via_alias");
-    copyClass(DUMMY_CLASS_QNAME);
+    copyClass(SAMPLE_CLASS_QNAME);
 
-    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass context = getFixture().findClass(SAMPLE_CLASS_QNAME);
     PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportViaAliasBinding", context);
     assertNotNull(aClass);
 
-    assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
-    assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
+    assertMethod(aClass, "setSample", "void", SAMPLE_CLASS_QNAME);
+    assertMethod(aClass, "getSample", SAMPLE_CLASS_QNAME);
 
-    assertMethod(aClass, "setDummyList", "void", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
-    assertMethod(aClass, "getDummyList", "java.util.List<" + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setSampleList", "void", "java.util.List<" + SAMPLE_CLASS_QNAME + ">");
+    assertMethod(aClass, "getSampleList", "java.util.List<" + SAMPLE_CLASS_QNAME + ">");
 
-    assertMethod(aClass, "setDummyMap", "void", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
-    assertMethod(aClass, "getDummyMap", "java.util.Map<java.lang.String," + DUMMY_CLASS_QNAME + ">");
+    assertMethod(aClass, "setSampleMap", "void", "java.util.Map<java.lang.String," + SAMPLE_CLASS_QNAME + ">");
+    assertMethod(aClass, "getSampleMap", "java.util.Map<java.lang.String," + SAMPLE_CLASS_QNAME + ">");
 
-    assertMethod(aClass, "setDummyMap2", "void", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
-    assertMethod(aClass, "getDummyMap2", "java.util.Map<" + DUMMY_CLASS_QNAME + ",java.lang.String>");
+    assertMethod(aClass, "setSampleMap2", "void", "java.util.Map<" + SAMPLE_CLASS_QNAME + ",java.lang.String>");
+    assertMethod(aClass, "getSampleMap2", "java.util.Map<" + SAMPLE_CLASS_QNAME + ",java.lang.String>");
 
-    assertMethod(aClass, "setDummyArray", "void", DUMMY_CLASS_QNAME + "[]");
-    assertMethod(aClass, "getDummyArray", DUMMY_CLASS_QNAME + "[]");
+    assertMethod(aClass, "setSampleArray", "void", SAMPLE_CLASS_QNAME + "[]");
+    assertMethod(aClass, "getSampleArray", SAMPLE_CLASS_QNAME + "[]");
 
-    assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
-    assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "setSampleMultiDimArray", "void", SAMPLE_CLASS_QNAME + "[][][]");
+    assertMethod(aClass, "getSampleMultiDimArray", SAMPLE_CLASS_QNAME + "[][][]");
   }
 
   @Test
   @RunsInEdt
   public void testDataBindingComponentContainingFileIsNotNull() {
-    copyClass(DUMMY_CLASS_QNAME);
+    copyClass(SAMPLE_CLASS_QNAME);
 
-    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass context = getFixture().findClass(SAMPLE_CLASS_QNAME);
 
     String dataBindingPrefix = (myDataBindingMode == DataBindingMode.SUPPORT) ? "android.databinding." : "androidx.databinding.";
     PsiClass foundClass = AndroidTestUtils.findClass(getFixture(), dataBindingPrefix + "DataBindingComponent", context);

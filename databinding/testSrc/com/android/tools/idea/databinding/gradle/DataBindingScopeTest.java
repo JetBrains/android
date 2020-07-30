@@ -69,8 +69,8 @@ public class DataBindingScopeTest {
     assertTrue(TestModuleUtil.hasModule(project, "lib2"));
 
     GlobalSearchScope appScope = fixture.findClass("com.android.example.appwithdatabinding.MainActivity").getResolveScope();
-    GlobalSearchScope libScope = fixture.findClass("lib.Dummy").getResolveScope();
-    GlobalSearchScope lib2Scope = fixture.findClass("lib2.Dummy").getResolveScope();
+    GlobalSearchScope libScope = fixture.findClass("lib.ContextPlaceholder").getResolveScope();
+    GlobalSearchScope lib2Scope = fixture.findClass("lib2.ContextPlaceholder").getResolveScope();
 
     // trigger initialization
     ResourceRepositoryManager.getModuleResources(facet);

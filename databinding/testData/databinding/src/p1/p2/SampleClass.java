@@ -16,6 +16,6 @@
 
 package p1.p2;
 
-public class DummyClass {
+public class SampleClass {
   public int a,b;
 }

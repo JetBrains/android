@@ -1,5 +1,5 @@
 package com.android.example.appwithdatabinding;
 
-public class DummyVo {
+public class SampleVo {
     public String name;
 }

@@ -215,7 +215,7 @@ class ViewBindingCompletionTest {
 
           import test.vb.databinding.ActivityMainBinding
 
-          fun dummy() {
+          fun sample() {
             lateinit var binding: ActivityMainBinding
             binding.test${caret}
           }
@@ -232,7 +232,7 @@ class ViewBindingCompletionTest {
 
           import test.vb.databinding.ActivityMainBinding
 
-          fun dummy() {
+          fun sample() {
             lateinit var binding: ActivityMainBinding
             binding.testId
           }
