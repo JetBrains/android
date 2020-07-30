@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -29,16 +29,16 @@ import java.io.File
 
 class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
   override fun getSupportedIssueType(): Int {
-    return SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
+    return IdeSyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
   }
 
   override fun shouldIncludeModuleLinks(): Boolean = true
 
   // All issues of this type should be grouped together
-  override fun getDeduplicationKey(issue: SyncIssue): Any = supportedIssueType
+  override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
   override fun getCustomLinks(project: Project,
-                              syncIssues: MutableList<SyncIssue>,
+                              syncIssues: MutableList<IdeSyncIssue>,
                               affectedModules: MutableList<Module>,
                               buildFileMap: MutableMap<Module, VirtualFile>): MutableList<NotificationHyperlink> {
     return createQuickFixes(GradleProperties(project).path)

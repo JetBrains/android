@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import org.junit.Test;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_WARNING;
 import static com.android.tools.idea.project.messages.MessageType.findFromSyncIssue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -70,14 +70,14 @@ public class MessageTypeTest {
 
   @Test
   public void findFromSyncIssueWithWarning() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
+    IdeSyncIssue syncIssue = mock(IdeSyncIssue.class);
     when(syncIssue.getSeverity()).thenReturn(SEVERITY_WARNING);
     assertSame(MessageType.WARNING, findFromSyncIssue(syncIssue));
   }
 
   @Test
   public void findFromSyncIssueWithERROR() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
+    IdeSyncIssue syncIssue = mock(IdeSyncIssue.class);
     when(syncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
     assertSame(MessageType.ERROR, findFromSyncIssue(syncIssue));
   }

@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
@@ -70,17 +69,17 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
 
   @Override
   int getSupportedIssueType() {
-    return TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
+    return IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
   }
 
   @Override
-  void report(@NotNull SyncIssue syncIssue,
+  void report(@NotNull IdeSyncIssue IdeSyncIssue,
               @NotNull Module module,
               @Nullable VirtualFile buildFile,
               @NotNull SyncIssueUsageReporter usageReporter) {
     String group = "External Native Build Issues";
 
-    String nativeToolOutput = syncIssue.getData();
+    String nativeToolOutput = IdeSyncIssue.getData();
     if (nativeToolOutput != null) {
       GradleSyncMessages messages = getSyncMessages(module);
 

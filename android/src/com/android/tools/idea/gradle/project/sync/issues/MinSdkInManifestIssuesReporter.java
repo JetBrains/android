@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.builder.model.SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST;
 import static com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty.MIN;
 
 public final class MinSdkInManifestIssuesReporter extends SdkInManifestIssuesReporter {

@@ -16,7 +16,7 @@
 @file:JvmName("SyncIssues")
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -56,11 +56,11 @@ class SyncIssueDataService : AbstractProjectDataService<SyncIssueData, Void>() {
                           projectData: ProjectData?,
                           project: Project,
                           modelsProvider: IdeModifiableModelsProvider) {
-    val moduleToSyncIssueMap : MutableMap<Module, List<SyncIssue>> = mutableMapOf()
+    val moduleToSyncIssueMap : MutableMap<Module, List<IdeSyncIssue>> = mutableMapOf()
     ExternalSystemApiUtil.groupBy(toImport, ModuleData::class.java).entrySet().forEach { (moduleNode, syncIssues) ->
       val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach
       // TODO: Make the reporter handle SyncIssueData instead, but for now to just use an adapter.
-      val mappedSyncIssues : List<SyncIssue> = syncIssues.map { node -> object : SyncIssue {
+      val mappedSyncIssues : List<IdeSyncIssue> = syncIssues.map { node -> object : IdeSyncIssue {
         override val severity: Int = node.data.severity
         override val type: Int = node.data.type
         override val data: String? = node.data.data

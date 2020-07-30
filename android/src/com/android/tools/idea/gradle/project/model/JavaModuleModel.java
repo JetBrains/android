@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -49,7 +50,7 @@ public class JavaModuleModel implements ModuleModel {
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
   @NotNull private final Collection<JavaModuleDependency> myJavaModuleDependencies;
   @NotNull private final Collection<JarLibraryDependency> myJarLibraryDependencies;
-  @NotNull private final Collection<SyncIssue> mySyncIssues;
+  @NotNull private final Collection<IdeSyncIssue> mySyncIssues;
   @NotNull private final Map<String, Set<File>> myArtifactsByConfiguration;
   @NotNull private final List<String> myConfigurations;
 
@@ -80,7 +81,7 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
                                        boolean buildable) {
-    Collection<SyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> new IdeSyncIssueImpl(issue));
+    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> new IdeSyncIssueImpl(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 
@@ -105,7 +106,7 @@ public class JavaModuleModel implements ModuleModel {
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                          @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
                          @NotNull Map<String, Set<File>> artifactsByConfiguration,
-                         @NotNull Collection<SyncIssue> syncIssues,
+                         @NotNull Collection<IdeSyncIssue> syncIssues,
                          @NotNull List<String> configurations,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
@@ -197,7 +198,7 @@ public class JavaModuleModel implements ModuleModel {
   }
 
   @NotNull
-  public Collection<SyncIssue> getSyncIssues() {
+  public Collection<IdeSyncIssue> getSyncIssues() {
     return mySyncIssues;
   }
 

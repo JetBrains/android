@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +43,7 @@ abstract class BaseSyncIssuesReporter {
   /**
    * @return the type of messages this reporter should be run against. This reporter will only be invoked for sync issues of this type.
    */
-  @MagicConstant(valuesFromClass = SyncIssue.class)
+  @MagicConstant(valuesFromClass = IdeSyncIssue.class)
   abstract int getSupportedIssueType();
 
   /**
@@ -54,7 +51,7 @@ abstract class BaseSyncIssuesReporter {
    * in favor of {@link #reportAll(List, Map, Map, SyncIssueUsageReporter)} which gives more context for reporters to provide enhanced
    * features (e.g deduplication of notifications across modules).
    */
-  abstract void report(@NotNull SyncIssue syncIssue,
+  abstract void report(@NotNull IdeSyncIssue syncIssue,
                        @NotNull Module module,
                        @Nullable VirtualFile buildFile,
                        @NotNull SyncIssueUsageReporter usageReporter);
@@ -66,18 +63,18 @@ abstract class BaseSyncIssuesReporter {
    *                      the build.gradle files, entries in this map are optional.
    * @param usageReporter an object to report final rendered issues to.
    */
-  void reportAll(@NotNull List<SyncIssue> syncIssues,
-                 @NotNull Map<SyncIssue, Module> moduleMap,
+  void reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                 @NotNull Map<IdeSyncIssue, Module> moduleMap,
                  @NotNull Map<Module, VirtualFile> buildFileMap,
                  @NotNull SyncIssueUsageReporter usageReporter) {
     // Fall back to individual reporting.
-    for (SyncIssue issue : syncIssues) {
+    for (IdeSyncIssue issue : syncIssues) {
       report(issue, moduleMap.get(issue), buildFileMap.get(moduleMap.get(issue)), usageReporter);
     }
   }
 
   @NotNull
-  static MessageType getMessageType(@NotNull SyncIssue syncIssue) {
+  static MessageType getMessageType(@NotNull IdeSyncIssue syncIssue) {
     return syncIssue.getSeverity() == SEVERITY_ERROR ? WARNING : INFO;
   }
 }
