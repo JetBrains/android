@@ -120,7 +120,7 @@ public class ConnectionDetailsViewTest {
   public void viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
     myView = new ConnectionDetailsView(myStageView);
 
-    myTransportService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+    myTransportService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Sample Content"));
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
@@ -188,7 +188,7 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void viewerExistsWhenPayloadIsPresent() {
-    myTransportService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+    myTransportService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Sample Content"));
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA)
       .setResponseFields(RESPONSE_HEADERS)

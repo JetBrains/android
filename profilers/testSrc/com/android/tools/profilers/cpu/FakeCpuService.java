@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
+ * Fake implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
  * This class is used by the tests of the {@link com.android.tools.profilers.cpu} package.
  */
 public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
