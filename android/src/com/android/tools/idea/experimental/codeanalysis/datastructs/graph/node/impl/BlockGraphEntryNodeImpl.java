@@ -18,7 +18,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BlockGraphEntryNode;
 
-public class BlockGraphEntryNodeImpl extends DummyNodeImpl implements BlockGraphEntryNode {
+public class BlockGraphEntryNodeImpl extends PlaceholderNodeImpl implements BlockGraphEntryNode {
   protected String mTag;
 
   public BlockGraphEntryNodeImpl(BlockGraph parentGraph) {

@@ -18,5 +18,5 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 /**
  * Base interface for all GraphNode that do not represent a statement
  */
-public interface DummyNode extends GraphNode {
+public interface PlaceholderNode extends GraphNode {
 }

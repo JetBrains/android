@@ -18,7 +18,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BlockGraphExitNode;
 
-public class BlockGraphExitNodeImpl extends DummyNodeImpl implements BlockGraphExitNode {
+public class BlockGraphExitNodeImpl extends PlaceholderNodeImpl implements BlockGraphExitNode {
   protected String mTag;
 
   public BlockGraphExitNodeImpl(BlockGraph parentGraph) {

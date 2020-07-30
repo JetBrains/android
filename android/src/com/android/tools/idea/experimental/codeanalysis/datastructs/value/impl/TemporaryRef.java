@@ -23,7 +23,7 @@ import com.intellij.psi.PsiType;
  * A Temporary place holder for the hard
  * to solve issue of ReferenceExpression in the PsiTree
  */
-public class DummyRef implements Ref {
+public class TemporaryRef implements Ref {
   private PsiType mType;
   private PsiElement mPsiRef;
 
@@ -40,14 +40,14 @@ public class DummyRef implements Ref {
   @Override
   public String getSimpleName() {
     if (mPsiRef != null) {
-      return "DummyRef " + mPsiRef.getText();
+      return "TemporaryRef " + mPsiRef.getText();
     }
     else {
-      return "DummyRef";
+      return "TemporaryRef";
     }
   }
 
-  public DummyRef(PsiType type, PsiElement psiRef) {
+  public TemporaryRef(PsiType type, PsiElement psiRef) {
     this.mPsiRef = psiRef;
     this.mType = type;
   }
