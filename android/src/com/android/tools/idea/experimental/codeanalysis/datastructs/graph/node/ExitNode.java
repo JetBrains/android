@@ -18,5 +18,5 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 /**
  * Base interface for the exit node in a graph
  */
-public interface ExitNode extends DummyNode {
+public interface ExitNode extends PlaceholderNode {
 }

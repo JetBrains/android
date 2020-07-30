@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public interface Graph {
 
   /**
-   * Return the dummy entry node of
+   * Return the placeholder entry node of
    * this graph.
    * @return Return the Entry Node
    */
@@ -35,7 +35,7 @@ public interface Graph {
   GraphNode getEntryNode();
 
   /**
-   * Return the dummy exit node of
+   * Return the placeholder exit node of
    * this graph.
    * @return Return the Exit Node.
    */
