@@ -358,7 +358,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     testFilterAndSorterActionGroup.addAll(
       myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
       Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton,
-      Separator.getInstance(), myTable.createExpandAllAction(), myTable.createCollapseAllAction());
+      Separator.getInstance(), myTable.createExpandAllAction(), myTable.createCollapseAllAction(),
+      Separator.getInstance(), myTable.createNavigateToPreviousFailedTestAction(), myTable.createNavigateToNextFailedTestAction());
     myTestStatusFilterPanel.add(
       ActionManager.getInstance().createActionToolbar(
         ActionPlaces.ANDROID_TEST_SUITE_TABLE,
