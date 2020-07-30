@@ -21,7 +21,7 @@ import io.grpc.stub.StreamObserver
 /**
  * A [StreamObserver] that ignores outcome of the gRPC call.
  */
-open class DummyStreamObserver<T> : StreamObserver<T> {
+open class EmptyStreamObserver<T> : StreamObserver<T> {
   @AnyThread
   override fun onNext(response: T) {
   }

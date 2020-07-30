@@ -21,7 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
@@ -268,7 +268,7 @@ private fun EmulatorController.pushAndLoadSync(snapshotId: String, snapshotFile:
 private fun EmulatorController.loadSnapshotSync(snapshotId: String): Boolean {
   val doneSignal = CountDownLatch(1)
   var succeeded = true
-  loadSnapshot(snapshotId, object : DummyStreamObserver<SnapshotPackage>() {
+  loadSnapshot(snapshotId, object : EmptyStreamObserver<SnapshotPackage>() {
     override fun onCompleted() {
       doneSignal.countDown()
     }

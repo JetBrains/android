@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
@@ -52,7 +52,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     emulatorController.getScreenshot(imageFormat, ScreenshotReceiver(project))
   }
 
-  private class ScreenshotReceiver(val project: Project) : DummyStreamObserver<Image>() {
+  private class ScreenshotReceiver(val project: Project) : EmptyStreamObserver<Image>() {
 
     override fun onNext(response: Image) {
       val timestamp = Date()

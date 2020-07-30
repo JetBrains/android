@@ -17,7 +17,7 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorId
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.actions.dialogs.CreateSnapshotDialog
@@ -62,7 +62,7 @@ class EmulatorCreateSnapshotAction : AbstractEmulatorAction() {
     val emulatorId: EmulatorId,
     val emulatorView: EmulatorView,
     val bootSnapshotUpdater: () -> Unit
-  ) : DummyStreamObserver<SnapshotPackage>() {
+  ) : EmptyStreamObserver<SnapshotPackage>() {
 
     init {
       inProgress.add(emulatorId)

@@ -19,7 +19,7 @@ import com.android.emulator.control.EmulatorStatus
 import com.android.prefs.AndroidLocation
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getSdk
-import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
@@ -179,7 +179,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
     val bootTimeout = deadline - System.currentTimeMillis()
     val controller = emulatorController
     val completion = SettableFuture.create<Boolean>()
-    val statusReceiver = object : DummyStreamObserver<EmulatorStatus>() {
+    val statusReceiver = object : EmptyStreamObserver<EmulatorStatus>() {
       override fun onNext(response: EmulatorStatus) {
         if (response.booted) {
           completion.set(true)
