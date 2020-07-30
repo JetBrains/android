@@ -45,8 +45,7 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
       "isNativeMemorySampleEnabled" to "b/162494071",
       "isSeparateHeapDumpUiEnabled" to "b/162493985",
       "isStartupCpuProfilingEnabled" to "b/162493986",
-      "isUnifiedPipelineEnabled" to "b/162494995",
-      "isUseTraceProcessor" to "b/162495274")
+      "isUnifiedPipelineEnabled" to "b/162494995")
   }
 
   @Test
