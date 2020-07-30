@@ -185,7 +185,7 @@ class InspectorModelDescriptor(val project: Project) {
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationBuilder(strings)
-      model.resourceLookup.updateConfiguration(config.makeDummyConfiguration(project), strings)
+      model.resourceLookup.updateConfiguration(config.makeSampleConfiguration(project), strings)
     }
     return model
   }

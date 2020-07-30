@@ -394,7 +394,7 @@ class LayoutInspectorTransportRule(
       groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
       layoutInspectorEventBuilder.treeBuilder.apply {
         root = tree.makeViewTree(rootView)
-        resources = config.makeDummyConfiguration(project)
+        resources = config.makeSampleConfiguration(project)
         addAllString(strings.asEntryList())
         addAllWindowIds(rootView.drawId)
       }
