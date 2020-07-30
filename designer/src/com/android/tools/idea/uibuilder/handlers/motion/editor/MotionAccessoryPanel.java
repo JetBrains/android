@@ -356,7 +356,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       if ("alpha".equals(v.getPreviewType())) {
         return error;
       }
-      if (v.getPreview() < 3) {
+      if ("beta".equals(v.getPreviewType()) && v.getPreview() < 3) {
         return error;
       }
     }
