@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
@@ -70,6 +71,7 @@ import com.intellij.navigation.PsiElementNavigationItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
@@ -249,6 +251,19 @@ class AgpUpgradeRefactoringProcessor(
     foundUsages = usages.size > 0
     trackProcessorUsage(FIND_USAGES, usages.size)
     return usages.toTypedArray()
+  }
+
+  override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
+    val filtered = refUsages.get().filter {
+      when (it) {
+        is KotlinLanguageLevelUsageInfo, is JavaLanguageLevelUsageInfo ->
+          (it.element as? WrappedPsiElement)?.usageType == INSERT_OLD_USAGE_TYPE
+        else -> true
+      }
+    }
+    refUsages.set(filtered.toTypedArray())
+    prepareSuccessful()
+    return true
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
