@@ -32,6 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
@@ -39,6 +40,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DataManager
 import com.intellij.ide.DefaultTreeExpander
+import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.openapi.actionSystem.AnAction
@@ -48,6 +50,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.ui.AnimatedIcon
@@ -94,6 +97,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 import kotlin.math.max
 
 /**
@@ -107,6 +111,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   private val myModel = AndroidTestResultsTableModel()
   private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
   private val myTableViewContainer = JBScrollPane(myTableView)
+  private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
   /**
    * Adds a device to the table.
@@ -242,6 +247,16 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     return CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, myTableView.tree)
   }
 
+  @UiThread
+  fun createNavigateToPreviousFailedTestAction(): AnAction {
+    return CommonActionsManager.getInstance().createPrevOccurenceAction(failedTestsNavigator)
+  }
+
+  @UiThread
+  fun createNavigateToNextFailedTestAction(): AnAction {
+    return CommonActionsManager.getInstance().createNextOccurenceAction(failedTestsNavigator)
+  }
+
   /**
    * Returns an internal model class for testing.
    */
@@ -270,6 +285,56 @@ interface AndroidTestResultsTableListener {
    */
   fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,
                                       selectedDevice: AndroidDevice?)
+}
+
+private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
+  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.faled.test.action.name")
+  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.faled.test.action.name")
+
+  override fun hasNextOccurence(): Boolean {
+    return getNextFailedTestNode() != null
+  }
+
+  override fun goNextOccurence(): OccurenceNavigator.OccurenceInfo? {
+    val nextNode = getNextFailedTestNode() ?: return null
+    treetableView.tree.selectionPath = TreePath(nextNode.path)
+    treetableView.addSelection(nextNode)
+    return OccurenceNavigator.OccurenceInfo(treetableView.getPsiElement(nextNode) as? Navigatable, -1, -1)
+  }
+
+  override fun hasPreviousOccurence(): Boolean {
+    return getPreviousFailedTestNode() != null
+  }
+
+  override fun goPreviousOccurence(): OccurenceNavigator.OccurenceInfo? {
+    val prevNode = getPreviousFailedTestNode() ?: return null
+    treetableView.addSelection(prevNode)
+    return OccurenceNavigator.OccurenceInfo(treetableView.getPsiElement(prevNode) as? Navigatable, -1, -1)
+  }
+
+  private fun getNextFailedTestNode(): AndroidTestResultsRow? {
+    return getSequence(DefaultMutableTreeNode::getNextNode).firstOrNull()
+  }
+
+  private fun getPreviousFailedTestNode(): AndroidTestResultsRow? {
+    return getSequence(DefaultMutableTreeNode::getPreviousNode).firstOrNull()
+  }
+
+  private fun getSequence(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): Sequence<AndroidTestResultsRow> {
+    return sequence<AndroidTestResultsRow> {
+      if (treetableView.rowCount == 0) {
+        return@sequence
+      }
+      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@sequence
+      var node = selectedNode.next()
+      while (node != null) {
+        if (node is AndroidTestResultsRow && node.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
+          yield(node)
+        }
+        node = node.next()
+      }
+    }
+  }
 }
 
 /**
@@ -462,14 +527,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
         val selectedTestResults = selectedObject ?: return null
-        val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-        val testClasses = selectedTestResults.getFullTestClassName().let {
-          javaPsiFacade.findClasses(it, androidTestSourceScope)
-        }
-        testClasses.mapNotNull {
-          it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
-        }.firstOrNull()?.let { return it }
-        testClasses.firstOrNull()?.let { return it }
+        return getPsiElement(selectedTestResults)
       }
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
@@ -482,6 +540,17 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       else -> null
     }
+  }
+
+  fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
+    val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
+    val testClasses = androidTestResults.getFullTestClassName().let {
+      javaPsiFacade.findClasses(it, androidTestSourceScope)
+    }
+    testClasses.mapNotNull {
+      it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+    }.firstOrNull()?.let { return it }
+    return testClasses.firstOrNull()
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {

@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.lang.jvm.JvmMethod
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.psi.JavaPsiFacade
@@ -52,6 +53,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
@@ -466,8 +468,8 @@ class AndroidTestResultsTableViewTest {
     val mockPsiMethod = mock<PsiMethod>()
     `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
     `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
-    `when`(mockPsiClass.findMethodsByName(any())).thenReturn(arrayOf())
-    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"))).thenReturn(arrayOf(mockPsiMethod))
+    `when`(mockPsiClass.findMethodsByName(any(), anyBoolean())).thenReturn(arrayOf())
+    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"), anyBoolean())).thenReturn(arrayOf(mockPsiMethod))
     `when`(mockPsiClass.name).thenReturn("myTestClassName")
     `when`(mockPsiClass.isValid).thenReturn(true)
     `when`(mockPsiClass.project).thenReturn(projectRule.project)
@@ -564,6 +566,34 @@ class AndroidTestResultsTableViewTest {
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
     assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
+  }
+
+  @Test
+  fun navigateToPrevAndNextFailedTestAction() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    table.addDevice(device1)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.FAILED))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", AndroidTestCaseResult.FAILED))
+
+    val prevFailedTestAction = table.createNavigateToPreviousFailedTestAction()
+    val nextFailedTestAction = table.createNavigateToNextFailedTestAction()
+    val tableView = table.getTableViewForTesting()
+    val mockActionEvent = mock<AnActionEvent>()
+    `when`(mockActionEvent.project).thenReturn(projectRule.project)
+
+    assertThat(tableView.selectedObject).isNull()
+    nextFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    nextFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
+    nextFailedTestAction.actionPerformed(mockActionEvent)  // No more next failed tests so nothing happens.
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
+    prevFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    prevFailedTestAction.actionPerformed(mockActionEvent)  // No more prev failed tests so nothing happens.
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
   }
 
   // Workaround for Kotlin nullability check.
