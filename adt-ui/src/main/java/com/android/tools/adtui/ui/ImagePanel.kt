@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adb.wireless
+package com.android.tools.adtui.ui
 
 import com.intellij.ui.components.JBPanel
 import java.awt.Graphics
 import java.awt.Image
 import java.awt.Rectangle
+import kotlin.math.roundToInt
 
 /**
- * A [JBPanel] that shows an [Image] as background, scaled with no interpolation, and preserving aspect ratio
+ * A [JBPanel] that shows an [Image] as background, scaled with no interpolation, and preserving aspect ratio.
  */
 class ImagePanel : JBPanel<ImagePanel>(true) {
   var image: Image? = null
@@ -35,20 +36,22 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
     val insets = this.insets
     val rect = Rectangle(insets.left, insets.top, width - insets.left - insets.right, height - insets.bottom - insets.top)
 
-    // Paint background
+    // Paint background.
     g.color = background
     g.fillRect(rect.x, rect.y, rect.width, rect.height)
 
-    // Draw image, centered, keeping aspect ratio
+    // Draw image, centered, preserving the aspect ratio.
     image?.let { img ->
-      val size = rect.width.coerceAtMost(rect.height) // min(width, height)
-      if (size > 0) {
-        val xOffset = rect.x + offsetFor(rect.width, rect.height)
-        val yOffset = rect.y + offsetFor(rect.height, rect.width)
-        g.drawImage(img, xOffset, yOffset, size, size, null)
+      val imageWidth = img.getWidth(this)
+      val imageHeight = img.getHeight(this)
+      if (imageWidth > 0 && imageHeight > 0) {
+        val scale = (rect.getWidth() / imageWidth).coerceAtMost(rect.getHeight() / imageHeight)
+        val w = (imageWidth * scale).roundToInt()
+        val h = (imageHeight * scale).roundToInt()
+        val xOffset = rect.x + (rect.width - w) / 2
+        val yOffset = rect.y + (rect.height - h) / 2
+        g.drawImage(img, xOffset, yOffset, w, h, null)
       }
     }
   }
-
-  private fun offsetFor(a: Int, b: Int) = if (a > b) { (a - b) / 2 } else { 0 }
 }
