@@ -19,17 +19,17 @@ import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.Projects;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
@@ -129,11 +129,11 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     File projectPath = Projects.getBaseDirPath(getProject());
     File wrapperPath = GradleWrapper.getDefaultPropertiesFilePath(projectPath);
 
-    List<String> expected = Lists.newArrayList(splitPath(projectPath.getPath()));
-    expected.addAll(splitPath(FD_GRADLE_WRAPPER));
+    List<String> expected = new ArrayList<>(FileUtil.splitPath(projectPath.getPath()));
+    expected.addAll(FileUtil.splitPath(FD_GRADLE_WRAPPER));
     expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
-    assertEquals(expected, splitPath(wrapperPath.getPath()));
+    assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
   }
 
   public void testCreateWithSpecificGradleVersion() throws IOException {

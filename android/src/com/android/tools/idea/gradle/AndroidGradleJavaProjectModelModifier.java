@@ -26,7 +26,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_LANGUAGE_LEVEL_CHANGED;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.builder.model.BaseArtifact;
@@ -78,6 +77,7 @@ import com.intellij.openapi.roots.ExternalLibraryDescriptor;
 import com.intellij.openapi.roots.JavaProjectModelModifier;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
@@ -468,8 +468,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    List<String> pathSegments = splitPath(file.getPath());
-
+    List<String> pathSegments = FileUtil.splitPath(file.getPath());
     for (int i = 1; i < pathSegments.size() - 2; i++) {
       if (libraryName.startsWith(pathSegments.get(i))) {
         String groupId = pathSegments.get(i - 1);
