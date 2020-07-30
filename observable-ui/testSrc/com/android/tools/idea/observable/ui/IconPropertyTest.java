@@ -27,7 +27,7 @@ public final class IconPropertyTest {
   @Test
   public void iconPropertyCanWrapLabel() throws Exception {
     JLabel label = new JLabel();
-    Icon dummyIcon = new DummyIcon();
+    Icon placeholderIcon = new FakeIcon();
 
     IconProperty iconProperty = new IconProperty(label);
     CountListener listener = new CountListener();
@@ -36,9 +36,9 @@ public final class IconPropertyTest {
     assertThat(iconProperty.get().isPresent()).isFalse();
     assertThat(listener.getCount()).isEqualTo(0);
 
-    label.setIcon(dummyIcon);
+    label.setIcon(placeholderIcon);
     assertThat(iconProperty.get().isPresent()).isTrue();
-    assertThat(iconProperty.getValue()).isEqualTo(dummyIcon);
+    assertThat(iconProperty.getValue()).isEqualTo(placeholderIcon);
     assertThat(listener.getCount()).isEqualTo(1);
 
     label.setIcon(null);
@@ -49,7 +49,7 @@ public final class IconPropertyTest {
   @Test
   public void iconPropertyCanWrapButton() throws Exception {
     JButton button = new JButton();
-    Icon dummyIcon = new DummyIcon();
+    Icon placeholderIcon = new FakeIcon();
 
     IconProperty iconProperty = new IconProperty(button);
     CountListener listener = new CountListener();
@@ -58,9 +58,9 @@ public final class IconPropertyTest {
     assertThat(iconProperty.get().isPresent()).isFalse();
     assertThat(listener.getCount()).isEqualTo(0);
 
-    button.setIcon(dummyIcon);
+    button.setIcon(placeholderIcon);
     assertThat(iconProperty.get().isPresent()).isTrue();
-    assertThat(iconProperty.getValue()).isEqualTo(dummyIcon);
+    assertThat(iconProperty.getValue()).isEqualTo(placeholderIcon);
     assertThat(listener.getCount()).isEqualTo(1);
 
     button.setIcon(null);
@@ -68,11 +68,9 @@ public final class IconPropertyTest {
     assertThat(listener.getCount()).isEqualTo(2);
   }
 
-  private static class DummyIcon implements Icon {
+  private static class FakeIcon implements Icon {
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-
-    }
+    public void paintIcon(Component c, Graphics g, int x, int y) {}
 
     @Override
     public int getIconWidth() {
