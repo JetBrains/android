@@ -20,17 +20,17 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,7 +54,6 @@ import java.awt.event.HierarchyListener;
 import java.util.Arrays;
 import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * The visualization tool use {@link NlDesignSurface} for rendering previews.
  */
-public class VisualizationManager implements ProjectComponent {
+public class VisualizationManager implements Disposable {
   /**
    * The default width for first time open.
    */
@@ -80,6 +79,13 @@ public class VisualizationManager implements ProjectComponent {
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
 
+  public static class VisualizationManagerPostStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      getInstance(project).onToolWindowReady();
+    }
+  }
+
   public VisualizationManager(final Project project) {
     myProject = project;
 
@@ -92,12 +98,9 @@ public class VisualizationManager implements ProjectComponent {
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
   }
 
-  @Override
-  public void projectOpened() {
-    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
-      myToolWindowReady = true;
-      processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
-    });
+  private void onToolWindowReady() {
+    myToolWindowReady = true;
+    processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
   }
 
   public boolean isWindowVisible() {
@@ -177,23 +180,6 @@ public class VisualizationManager implements ProjectComponent {
     if (isWindowVisible()) {
       myToolWindowForm.activate();
     }
-  }
-
-  @Override
-  public void projectClosed() {
-    if (myToolWindowForm != null) {
-      Disposer.dispose(myToolWindowForm);
-      myToolWindowForm = null;
-      myToolWindow = null;
-      myToolWindowDisposed = true;
-    }
-  }
-
-  @Override
-  @NotNull
-  @NonNls
-  public String getComponentName() {
-    return "VisualizationManager";
   }
 
   /**
@@ -308,6 +294,16 @@ public class VisualizationManager implements ProjectComponent {
     });
   }
 
+  @Override
+  public void dispose() {
+    if (myToolWindowForm != null) {
+      Disposer.dispose(myToolWindowForm);
+      myToolWindowForm = null;
+      myToolWindow = null;
+      myToolWindowDisposed = true;
+    }
+  }
+
   private static void restoreFocusToEditor(@NotNull FileEditor newEditor) {
     ApplicationManager.getApplication().invokeLater(() -> newEditor.getComponent().requestFocus());
   }
@@ -355,7 +351,7 @@ public class VisualizationManager implements ProjectComponent {
   }
 
   public static VisualizationManager getInstance(Project project) {
-    return project.getComponent(VisualizationManager.class);
+    return project.getService(VisualizationManager.class);
   }
 
   @NotNull
