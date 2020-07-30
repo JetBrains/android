@@ -63,7 +63,7 @@ class DirectionsClassKtDescriptorsTest {
                 android:id="@+id/action_Fragment1_to_Main"
                 app:popUpTo="@id/main" />
                 
-            <!-- Dummy action -->
+            <!-- Sample action -->
             <action android:id="@+id/action_without_destination" />
           </fragment>
           <fragment

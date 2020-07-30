@@ -60,7 +60,7 @@ class SafeArgsIconsRenderingTest {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.SIMPLE_KOTLIN_PROJECT) { projectRoot ->
-      // Create a dummy, placeholder class that we can use as a hook to replace with various
+      // Create a placeholder class that we can use as a hook to replace with various
       // versions throughout these tests.
       File(projectRoot, "app/src/main/java/com/example/myapplication/FooClass.kt").apply {
         parentFile.mkdirs()
