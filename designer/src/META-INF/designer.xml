@@ -18,13 +18,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
-    </component>
-  </project-components>
 
   <!-- Extension points -->
   <extensionPoints>
@@ -38,6 +33,13 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
     <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewNotificationForwarder" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
+    <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
   </extensions>
 
   <!-- Collects all the providers for source code preview representations -->
@@ -58,19 +60,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
-    </component>
-  </project-components>
 
   <module-components>
     <component>
