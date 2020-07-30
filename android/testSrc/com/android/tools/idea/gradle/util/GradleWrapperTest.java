@@ -15,18 +15,6 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.Projects;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
@@ -35,6 +23,17 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+
+import com.android.SdkConstants;
+import com.android.tools.idea.Projects;
+import com.google.common.base.Charsets;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleWrapperTest extends PlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
@@ -394,7 +393,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     File projectPath = Projects.getBaseDirPath(myProject);
     File wrapperPath = GradleWrapper.getDefaultPropertiesFilePath(projectPath);
 
-    List<String> expected = Lists.newArrayList(splitPath(projectPath.getPath()));
+    List<String> expected = new ArrayList<>(splitPath(projectPath.getPath()));
     expected.addAll(splitPath(FD_GRADLE_WRAPPER));
     expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
