@@ -30,25 +30,25 @@ public class AbstractPropertyTest {
     TestInvokeStrategy testStrategy = new TestInvokeStrategy();
     ListenerManager listeners = new ListenerManager(testStrategy);
 
-    ObjectWithObservableProperties dummy = new ObjectWithObservableProperties();
+    ObjectWithObservableProperties sample = new ObjectWithObservableProperties();
     CountingRunnable counter = new CountingRunnable();
 
-    List<AbstractProperty<?>> dummyProperties = AbstractProperty.getAll(dummy);
-    assert !dummyProperties.isEmpty();
+    List<AbstractProperty<?>> sampleProperties = AbstractProperty.getAll(sample);
+    assert !sampleProperties.isEmpty();
 
-    listeners.listenAll(dummyProperties).with(counter);
+    listeners.listenAll(sampleProperties).with(counter);
 
     assertThat(counter.myRunCount).isEqualTo(0);
-    dummy.bool().set(true);
+    sample.bool().set(true);
     testStrategy.updateOneStep();
     assertThat(counter.myRunCount).isEqualTo(1);
-    dummy.integer().set(1);
+    sample.integer().set(1);
     testStrategy.updateOneStep();
     assertThat(counter.myRunCount).isEqualTo(2);
-    dummy._double().set(1.0);
+    sample._double().set(1.0);
     testStrategy.updateOneStep();
     assertThat(counter.myRunCount).isEqualTo(3);
-    dummy.string.set("test");
+    sample.string.set("test");
     testStrategy.updateOneStep();
     assertThat(counter.myRunCount).isEqualTo(4);
   }
