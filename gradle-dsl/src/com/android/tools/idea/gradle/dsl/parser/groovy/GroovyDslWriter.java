@@ -64,7 +64,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
-    // 2. Create a dummy element that we can move the element to.
+    // 2. Create a placeholder element that we can move the element to.
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement toReplace = parentPsiElement.addAfter(lineTerminator, anchor);

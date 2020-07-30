@@ -758,7 +758,7 @@ public final class GroovyDslUtil {
     PsiElement added;
     if (parentPsiElement instanceof GrArgumentList) {
       GrArgumentList argList = (GrArgumentList)parentPsiElement;
-      // This call can return a dummy PsiElement. We can't use its return value.
+      // This call can return a placeholder PsiElement. We can't use its return value.
       argList.addNamedArgument(namedArgument);
 
       GrNamedArgument[] args = argList.getNamedArguments();
