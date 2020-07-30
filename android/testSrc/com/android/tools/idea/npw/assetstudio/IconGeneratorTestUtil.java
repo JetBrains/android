@@ -146,7 +146,7 @@ public final class IconGeneratorTestUtil {
         VirtualFile inputFile = VfsUtil.findFileByIoFile(getTestIconFile(), false);
         File file = FileUtil.createTempFile("clipart", ".xml");
         try (InputStream input = inputFile.getInputStream(); OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-          StreamUtil.copyStreamContent(input, output);
+          StreamUtil.copy(input, output);
         }
         return file;
 
