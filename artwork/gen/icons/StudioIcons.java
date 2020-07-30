@@ -112,6 +112,7 @@ public class StudioIcons {
   public static class DatabaseInspector {
     public static final Icon ALLOW_DATABASES_TO_CLOSE = load("/studio/icons/database-inspector/allow-databases-to-close.svg"); // 16x16
     public static final Icon COLUMN = load("/studio/icons/database-inspector/column.svg"); // 16x16
+    public static final Icon DATABASE_OFFLINE = load("/studio/icons/database-inspector/database-offline.svg"); // 16x16
     public static final Icon DATABASE_UNAVAILABLE = load("/studio/icons/database-inspector/database-unavailable.svg"); // 16x16
     public static final Icon DATABASE = load("/studio/icons/database-inspector/database.svg"); // 16x16
     public static final Icon KEEP_DATABASES_OPEN = load("/studio/icons/database-inspector/keep-databases-open.svg"); // 16x16
