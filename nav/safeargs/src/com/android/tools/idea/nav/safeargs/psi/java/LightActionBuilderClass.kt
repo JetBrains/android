@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavActionData
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
+import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
@@ -27,6 +30,7 @@ import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -51,6 +55,9 @@ class LightActionBuilderClass(
   private val _fields by lazy { computeFields() }
   private val navDirectionsType by lazy { PsiType.getTypeByName(NAV_DIRECTIONS_FQCN, project, this.resolveScope) }
   private val navDirectionsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_DIRECTIONS_FQCN, this.resolveScope) }
+  private val _navigationElement by lazy {
+    (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
+  }
 
   override fun getName() = name
   override fun getQualifiedName() = qualifiedName
@@ -58,7 +65,7 @@ class LightActionBuilderClass(
   override fun getContainingClass() = directionsClass
   override fun getParent() = directionsClass
   override fun isValid() = true
-  override fun getNavigationElement() = directionsClass.navigationElement
+  override fun getNavigationElement() = _navigationElement ?: directionsClass.navigationElement
   override fun getConstructors() = _constructors
 
   override fun getImplementsListTypes() = arrayOf(navDirectionsType)
@@ -107,11 +114,15 @@ class LightActionBuilderClass(
   private fun computeFields(): Array<PsiField> {
     val destinationId = action.resolveDestination() ?: return emptyArray()
     val targetDestinationTag = backingResourceFile?.findXmlTagById(destinationId)
-    // TODO(b/161369564): It can be overridden arguments, so corresponding parent tag is the targetDestinationTag. This can be
-    //  implemented after we support 'getParent'.
     return action.arguments
       .asSequence()
-      .map { createField(it, modulePackage, targetDestinationTag) }
+      .map { arg ->
+        // Since we support args overrides, we first try to locate argument tag within current action. If not found,
+        // we search in the target destination tag.
+        val targetArgumentTag = _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+                                ?: targetDestinationTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+        createField(arg, modulePackage, targetArgumentTag)
+      }
       .toList()
       .toTypedArray()
   }
