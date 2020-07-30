@@ -50,7 +50,7 @@ class InspectorModel(val project: Project) {
   }
 
   private val roots = mutableMapOf<Any, ViewNode>()
-  // dummy node to hold the roots of the current windows.
+  // placeholder node to hold the roots of the current windows.
   val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, "", 0)
 
   var hasSubImages = false
