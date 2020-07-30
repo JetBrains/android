@@ -142,7 +142,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we use TraceProcessor to parse Perfetto traces.
    */
-  private boolean myUseTraceProcessor = false;
+  private boolean myUseTraceProcessor = true;
 
   /**
    * Whether separate heap-dump view is enabled
