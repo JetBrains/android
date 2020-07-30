@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -23,6 +22,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromModuleModel
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.npw.validator.ProjectNameValidator
 import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
@@ -39,11 +39,10 @@ import javax.swing.JTextField
 
 class ConfigureAndroidModuleStep(
   model: NewAndroidModuleModel,
-  private val formFactor: FormFactor,
   minSdkLevel: Int,
   basePackage: String?,
   title: String
-) : ConfigureModuleStep<NewAndroidModuleModel>(model, formFactor, minSdkLevel, basePackage, title) {
+) : ConfigureModuleStep<NewAndroidModuleModel>(model, model.formFactor.get().toWizardFormFactor(), minSdkLevel, basePackage, title) {
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
