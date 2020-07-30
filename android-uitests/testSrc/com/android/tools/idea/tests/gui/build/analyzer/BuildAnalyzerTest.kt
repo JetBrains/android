@@ -90,8 +90,8 @@ class BuildAnalyzerTest {
 
   private fun verifyTasksPage(view: BuildAnalyzerViewFixture, tasksPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
     tasksPage.tree.requireSelection(0)
-    tasksPage.tree.selectPath(":app:dummy1")
-    tasksPage.findDetailsPanel(":app:dummy1").also { detailsPanel ->
+    tasksPage.tree.selectPath(":app:sample1")
+    tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
       detailsPanel.findWarningPanel("ALWAYS_RUN_TASKS").requireVisible()
       detailsPanel.clickGenerateReport()
@@ -102,24 +102,24 @@ class BuildAnalyzerTest {
       }
     }
 
-    tasksPage.tree.selectPath(":app:dummy2")
-    tasksPage.findDetailsPanel(":app:dummy2").requireVisible()
+    tasksPage.tree.selectPath(":app:sample2")
+    tasksPage.findDetailsPanel(":app:sample2").requireVisible()
 
     // Switch to plugins
     view.tasksGroupingCheckbox.click()
     // Selected task should stay the same under plugin
-    tasksPage.tree.requireSelection("DummyPlugin/:app:dummy2")
-    tasksPage.findDetailsPanel(":app:dummy2").requireVisible()
+    tasksPage.tree.requireSelection("SamplePlugin/:app:sample2")
+    tasksPage.findDetailsPanel(":app:sample2").requireVisible()
     // Select plugin page with keyboard left key
     tasksPage.pressKeyboardLeftOnTree()
-    tasksPage.tree.requireSelection("DummyPlugin")
-    tasksPage.findDetailsPanel("DummyPlugin").also { detailsPanel ->
+    tasksPage.tree.requireSelection("SamplePlugin")
+    tasksPage.findDetailsPanel("SamplePlugin").also { detailsPanel ->
       detailsPanel.requireVisible()
-      detailsPanel.clickNavigationLink(":app:dummy1")
+      detailsPanel.clickNavigationLink(":app:sample1")
     }
 
-    tasksPage.tree.requireSelection("DummyPlugin/:app:dummy1")
-    tasksPage.findDetailsPanel(":app:dummy1").requireVisible()
+    tasksPage.tree.requireSelection("SamplePlugin/:app:sample1")
+    tasksPage.findDetailsPanel(":app:sample1").requireVisible()
   }
 
   private fun verifyWarningsPage(warningsPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
@@ -133,10 +133,10 @@ class BuildAnalyzerTest {
     warningsPage.pressKeyboardDownOnTree()
     warningsPage.tree.requireSelection(2)
 
-    warningsPage.tree.selectPath("Always-Run Tasks/:app:dummy1")
-    warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS-:app:dummy1").requireVisible()
+    warningsPage.tree.selectPath("Always-Run Tasks/:app:sample1")
+    warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS-:app:sample1").requireVisible()
 
-    warningsPage.tree.selectPath("Always-Run Tasks/:app:dummy2")
-    warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS-:app:dummy2").requireVisible()
+    warningsPage.tree.selectPath("Always-Run Tasks/:app:sample2")
+    warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS-:app:sample2").requireVisible()
   }
 }

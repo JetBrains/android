@@ -61,11 +61,11 @@ class BuildAttributionAnalyticsManagerTest {
   private val pluginA = PluginData(createBinaryPluginIdentifierStub("pluginA"), ":buildSrc").apply { markAsBuildSrcPlugin() }
   private val buildScript = PluginData(createScriptPluginIdentifierStub("build.gradle"), ":app")
 
-  val pluginATask = TaskData("dummyTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-    setTaskType("com.example.test.DummyTask")
+  val pluginATask = TaskData("sampleTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+    setTaskType("com.example.test.SampleTask")
   }
-  val buildScriptTask = TaskData("dummyTask2", "", buildScript, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
-    setTaskType("com.example.test.DummyTask")
+  val buildScriptTask = TaskData("sampleTask2", "", buildScript, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+    setTaskType("com.example.test.SampleTask")
   }
 
   @Before
@@ -210,6 +210,6 @@ class BuildAttributionAnalyticsManagerTest {
   }
 
   private fun isTheSameTask(taskIdentifier: BuildAttribuitionTaskIdentifier, taskData: TaskData): Boolean {
-    return isTheSamePlugin(taskIdentifier.originPlugin, taskData.originPlugin) && taskIdentifier.taskClassName == "DummyTask"
+    return isTheSamePlugin(taskIdentifier.originPlugin, taskData.originPlugin) && taskIdentifier.taskClassName == "SampleTask"
   }
 }
