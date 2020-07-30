@@ -52,9 +52,9 @@ import com.intellij.util.ProcessingContext
 class ProguardR8CompletionContributor : CompletionContributor() {
   companion object {
 
-    private const val lowerCaseDummy = "lowercasedummy"
+    private const val lowerCaseIdentifier = "lowercaseidentifier"
 
-    private const val beforeInnerClass = "\$$lowerCaseDummy"
+    private const val beforeInnerClass = "\$$lowerCaseIdentifier"
 
     private val FIELD_METHOD_MODIFIERS = setOf(
       "abstract",
@@ -308,8 +308,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
 
   override fun beforeCompletion(context: CompletionInitializationContext) {
     if (context.file is ProguardR8PsiFile) {
-      // We need lower case dummy because original ("IntellijIdeaRulezzz") breaks lexer for flags (flags can be only lowercase).
-      context.dummyIdentifier = lowerCaseDummy
+      // We need lower case identifier because original ("IntellijIdeaRulezzz") breaks lexer for flags (flags can be only lowercase).
+      context.dummyIdentifier = lowerCaseIdentifier
     }
     super.beforeCompletion(context)
   }
