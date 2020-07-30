@@ -55,39 +55,59 @@ def _module_deps(ctx, jar_names, modules):
         res_files += [(j, jar_file)]
     return res_files
 
-def _resource_deps(res_dirs, res):
-    files = []
-    linux = []
-    mac = []
-    win = []
+def _get_linux(dep): return dep.files.to_list() + dep.files_linux.to_list()
+LINUX = struct(
+    name = "linux",
+    jre = "jre/",
+    get = _get_linux,
+    base_path = "android-studio/",
+)
 
+def _get_mac(dep): return dep.files.to_list() + dep.files_mac.to_list()
+MAC = struct(
+    name = "mac",
+    jre = "jre/jdk/",
+    get = _get_mac,
+    base_path = "Android Studio.app/Contents/",
+)
+
+def _get_win(dep): return dep.files.to_list() + dep.files_win.to_list()
+WIN = struct(
+    name = "win",
+    jre = "jre/",
+    get = _get_win,
+    base_path = "android-studio/",
+)
+
+def _resource_deps(res_dirs, res, platform):
+    files = []
     for dir, dep in zip(res_dirs, res):
         if hasattr(dep, "mappings"):
-            files += [(dir + "/" + dep.mappings[f], f) for f in dep.files.to_list()]
-            linux += [(dir + "/" + dep.mappings[f], f) for f in dep.files_linux.to_list()]
-            mac += [(dir + "/" + dep.mappings[f], f) for f in dep.files_mac.to_list()]
-            win += [(dir + "/" + dep.mappings[f], f) for f in dep.files_win.to_list()]
+            files += [(dir + "/" + dep.mappings[f], f) for f in platform.get(dep)]
         else:
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
-    return (files, linux, mac, win)
+    return files
+
+def _studio_plugin_os(ctx, platform, out):
+    plugin_dir = "plugins/" + ctx.attr.directory
+    deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    files = [(plugin_dir + "/lib/" + d, f) for (d, f) in deps]
+   
+    res  = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
+    files += [(plugin_dir + "/" + d, f) for (d, f) in res]
+
+    _zipper(ctx, "%s plugin" % platform.name, files, out)
 
 def _studio_plugin_impl(ctx):
-    plugin_dir = "plugins/" + ctx.attr.directory
-    files = [(plugin_dir + "/lib/" + d, f) for (d, f) in _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)]
+    _studio_plugin_os(ctx, LINUX, ctx.outputs.plugin_linux)
+    _studio_plugin_os(ctx, MAC, ctx.outputs.plugin_mac)
+    _studio_plugin_os(ctx, WIN, ctx.outputs.plugin_win)
 
-    res, res_linux, res_mac, res_win = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources)
-    files += [(plugin_dir + "/" + d, f) for (d, f) in res]
-    res_linux = [(plugin_dir + "/" + d, f) for (d, f) in res_linux]
-    res_mac = [(plugin_dir + "/" + d, f) for (d, f) in res_mac]
-    res_win = [(plugin_dir + "/" + d, f) for (d, f) in res_win]
-
-    _zipper(ctx, "linux plugin", files + res_linux, ctx.outputs.plugin_linux)
-    _zipper(ctx, "mac plugin", files + res_mac, ctx.outputs.plugin_mac)
-    _zipper(ctx, "win plugin", files + res_win, ctx.outputs.plugin_win)
     return struct(
-        linux = ctx.outputs.plugin_linux,
-        mac = ctx.outputs.plugin_mac,
-        win = ctx.outputs.plugin_win,
+        files = depset(),
+        files_linux = depset([ctx.outputs.plugin_linux]),
+        files_mac = depset([ctx.outputs.plugin_mac]),
+        files_win = depset([ctx.outputs.plugin_win]),
     )
 
 _studio_plugin = rule(
@@ -238,68 +258,36 @@ def _zip_merger(ctx, zips, files, out):
         mnemonic = "zipmerger",
     )
 
-def _android_studio_impl(ctx):
-    zips_linux = []
-    zips_mac = []
-    zips_win = []
+def _android_studio_os(ctx, platform, out):
+    zips = []
+    files = []
 
-    files_linux = []
-    files_mac = []
-    files_win = []
+    platform_zip = ctx.actions.declare_file(ctx.attr.name + ".platform.%s.zip" % platform.name)
+    platform_files = [(ctx.attr.platform.mappings[f], f) for f in platform.get(ctx.attr.platform)]
 
-    platform_zip_linux = ctx.actions.declare_file(ctx.attr.name + ".platform.linux.zip")
-    platform_zip_mac = ctx.actions.declare_file(ctx.attr.name + ".platform.mac.zip")
-    platform_zip_win = ctx.actions.declare_file(ctx.attr.name + ".platform.win.zip")
+    _zipper(ctx, "%s platform" % platform.name, platform_files, platform_zip)
 
-    platform_files = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files.to_list()]
-    platform_files_linux = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_linux.to_list()]
-    platform_files_mac = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_mac.to_list()]
-    platform_files_win = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_win.to_list()]
-
-    _zipper(ctx, "linux platform", platform_files + platform_files_linux, platform_zip_linux)
-    _zipper(ctx, "mac platform", platform_files + platform_files_mac, platform_zip_mac)
-    _zipper(ctx, "win platform", platform_files + platform_files_win, platform_zip_win)
-
-    zips_linux += [("", platform_zip_linux)]
-    zips_mac += [("", platform_zip_mac)]
-    zips_win += [("", platform_zip_win)]
-
+    zips += [("", platform_zip)]
     if ctx.attr.jre:
-        jre_zip_linux = ctx.actions.declare_file(ctx.attr.name + ".jre.linux.zip")
-        jre_zip_mac = ctx.actions.declare_file(ctx.attr.name + ".jre.mac.zip")
-        jre_zip_win = ctx.actions.declare_file(ctx.attr.name + ".jre.win.zip")
+        jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
+        jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
+        _zipper(ctx, "%s jre" % platform.name , jre_files, jre_zip)
+        zips += [(platform.base_path + platform.jre, jre_zip)]
 
-        jre_files = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files.to_list()]
-        jre_files_linux = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_linux.to_list()]
-        jre_files_mac = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_mac.to_list()]
-        jre_files_win = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_win.to_list()]
+    zips += [(platform.base_path, platform.get(p)[0]) for p in ctx.attr.plugins]
 
-        _zipper(ctx, "linux jre", jre_files + jre_files_linux, jre_zip_linux)
-        _zipper(ctx, "mac jre", jre_files + jre_files_mac, jre_zip_mac)
-        _zipper(ctx, "win jre", jre_files + jre_files_win, jre_zip_win)
-
-        zips_linux += [("android-studio/jre/", jre_zip_linux)]
-        zips_mac += [("Android Studio.app/Contents/jre/jdk/", jre_zip_mac)]
-        zips_win += [("android-studio/jre/", jre_zip_win)]
-
-    for p in ctx.attr.plugins:
-        zips_linux += [("android-studio/", p.linux)]
-        zips_mac += [("Android Studio.app/Contents/", p.mac)]
-        zips_win += [("android-studio/", p.win)]
-
-    res, res_linux, res_mac, res_win = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources)
-    files_linux += [("android-studio/" + d, f) for (d, f) in res + res_linux]
-    files_mac += [("Android Studio.app/Contents/" + d, f) for (d, f) in res + res_mac]
-    files_win += [("android-studio/" + d, f) for (d, f) in res + res_win]
+    res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
+    files += [(platform.base_path + d, f) for (d, f) in res]
 
     module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    files_linux += [("android-studio/lib/" + d, f) for (d, f) in module_deps]
-    files_mac += [("Android Studio.app/Contents/lib/" + d, f) for (d, f) in module_deps]
-    files_win += [("android-studio/lib/" + d, f) for (d, f) in module_deps]
+    files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
-    _zip_merger(ctx, zips_linux, files_linux, ctx.outputs.linux)
-    _zip_merger(ctx, zips_mac, files_mac, ctx.outputs.mac)
-    _zip_merger(ctx, zips_win, files_win, ctx.outputs.win)
+    _zip_merger(ctx, zips, files, out)
+
+def _android_studio_impl(ctx):
+    _android_studio_os(ctx, LINUX, ctx.outputs.linux)
+    _android_studio_os(ctx, MAC, ctx.outputs.mac)
+    _android_studio_os(ctx, WIN, ctx.outputs.win)
 
 _android_studio = rule(
     attrs = {
@@ -319,7 +307,7 @@ _android_studio = rule(
             default = Label("//tools/base/bazel:zip_merger"),
             cfg = "host",
             executable = True,
-        ),
+        ), 
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
