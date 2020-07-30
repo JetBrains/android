@@ -53,7 +53,7 @@ abstract class SafeArgsLightBaseClass(facet: AndroidFacet,
     }
     name = qualifiedName.substringAfterLast('.')
 
-    // Create a dummy, backing file to represent this light class
+    // Create a placeholder backing file to represent this light class
     backingFile = fileFactory.createFileFromText("${name}.java", JavaFileType.INSTANCE,
                                                  "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
     backingFile.packageName = (qualifiedName.substringBeforeLast('.'))

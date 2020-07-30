@@ -66,7 +66,7 @@ class LightDirectionsClassTest {
               android:id="@+id/action_main_to_fragment1"
               app:destination="@id/fragment1" />
 
-          <!-- Dummy action -->
+          <!-- Sample action -->
           <action android:id="@+id/action_without_destination" />
         </navigation>
       """.trimIndent())
