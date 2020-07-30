@@ -104,6 +104,7 @@ import java.awt.event.ActionEvent
 import java.io.File
 import java.util.UUID
 import javax.swing.AbstractAction
+import javax.swing.Action
 import javax.swing.Icon
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
@@ -255,6 +256,10 @@ class AgpUpgradeRefactoringProcessor(
     super.previewRefactoring(usages)
   }
 
+  var additionalPreviewActions : List<Action> = listOf()
+
+  var usageView: UsageView? = null
+
   // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
   // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
   // in-place, which is fine until the base method changes, at which point this processor will not reflect those
@@ -296,6 +301,12 @@ class AgpUpgradeRefactoringProcessor(
     usageView.setRerunAction(object : AbstractAction() {
       override fun actionPerformed(e: ActionEvent) = doRun()
     })
+
+    this.usageView = usageView
+
+    additionalPreviewActions.forEach {
+      usageView.addButtonToLowerPane(it)
+    }
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
