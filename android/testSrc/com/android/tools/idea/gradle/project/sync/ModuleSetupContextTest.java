@@ -80,8 +80,6 @@ public class ModuleSetupContextTest extends HeavyPlatformTestCase {
     ModifiableFacetModel facetModel = myModelsProvider.getModifiableFacetModel(module);
     facetModel.addFacet(facet);
 
-    ApplicationManager.getApplication().runWriteAction(facetModel::commit);
-
     return module;
   }
 }
