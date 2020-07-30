@@ -931,7 +931,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -970,7 +970,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
       public class Model {
         @BindingAdapter("android:onClick2")
-        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public void bindSampleValue(View view, View.OnClickListener s) {}
         public String getString() {}
       }
     """.trimIndent())
@@ -1009,9 +1009,9 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
       public class Model {
         @BindingAdapter("text2")
-        public void bindDummyValue(View view, String s) {}
+        public void bindSampleValue(View view, String s) {}
         @InverseBindingAdapter(attribute = "text2")
-        public static String getDummyValue(View view) {}
+        public static String getSampleValue(View view) {}
         public String getString()
         public void setString(String s)
       }
@@ -1036,7 +1036,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
-    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getDummyValue" }).isTrue()
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getSampleValue" }).isTrue()
   }
 
   @Test
@@ -1057,7 +1057,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         attribute = "android:text")})
       public class Model {
         @BindingAdapter("android:text")
-        public void bindDummyValue(TextView view, String s) {}
+        public void bindSampleValue(TextView view, String s) {}
         public String setString(String s) {}
         public String getString() {}
       }
@@ -1103,7 +1103,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       })
       public class Model {
         @BindingAdapter("android:checked")
-        public void bindDummyValue(View view, boolean s) {}
+        public void bindSampleValue(View view, boolean s) {}
         public String setBoolean(String s) {}
         public String getBoolean() {}
       }
@@ -1149,7 +1149,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         method = "getText")})
       public class Model {
         @BindingAdapter("android:text2")
-        public void bindDummyValue(TextView view, String s) {}
+        public void bindSampleValue(TextView view, String s) {}
         public String setString(String s) {}
         public String getString() {}
       }

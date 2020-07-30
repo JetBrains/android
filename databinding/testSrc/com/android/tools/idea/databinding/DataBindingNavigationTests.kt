@@ -171,7 +171,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       <layout>
         <data>
           <import type='java.util.Map' alias='MyMap'/>
-          <variable name='dummy' type='MyMap.En${caret}try'/>
+          <variable name='sample' type='MyMap.En${caret}try'/>
         </data>
       </layout>
     """.trimIndent())
@@ -207,7 +207,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       <?xml version="1.0" encoding="utf-8"?>
       <layout>
         <data>
-          <variable name='dummy' type='Int${caret}eger'/>
+          <variable name='sample' type='Int${caret}eger'/>
         </data>
       </layout>
     """.trimIndent())
@@ -222,7 +222,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       // language=JAVA
     """
       package a.b.c;
-      class Dummy {}
+      class Sample {}
     """.trimIndent())
 
     val file = fixture.addFileToProject(
@@ -232,13 +232,13 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       <?xml version="1.0" encoding="utf-8"?>
       <layout>
         <data>
-          <variable name='dummy' type='a.b.c.Dumm${caret}y'/>
+          <variable name='sample' type='a.b.c.Samp${caret}le'/>
         </data>
       </layout>
     """.trimIndent())
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
-    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("a.b.c.Dummy")
+    assertThat((fixture.elementAtCaret as PsiClass).qualifiedName).isEqualTo("a.b.c.Sample")
 
   }
 }

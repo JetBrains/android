@@ -121,7 +121,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myConfig = config;
 
-    // Create a dummy, backing file to represent this binding class
+    // Create a fake backing file to represent this binding class
     PsiFileFactory fileFactory = PsiFileFactory.getInstance(getProject());
     myBackingFile = (PsiJavaFile)fileFactory.createFileFromText(myConfig.getClassName() + ".java", StdFileTypes.JAVA,
                                                             "// This class is generated on-the-fly by the IDE.");
