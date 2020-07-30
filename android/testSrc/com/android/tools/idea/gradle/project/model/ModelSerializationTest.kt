@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.builder.model.Dependencies
 import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
@@ -38,7 +37,6 @@ import com.android.ide.common.gradle.model.impl.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.impl.IdeOutputFileImpl
 import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
-import com.android.ide.common.gradle.model.impl.IdeProjectIdentifierImpl
 import com.android.ide.common.gradle.model.impl.IdeSigningConfigImpl
 import com.android.ide.common.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
@@ -61,7 +59,6 @@ import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeStub
 import com.android.ide.common.gradle.model.stubs.ClassFieldStub
 import com.android.ide.common.gradle.model.stubs.FilterDataStub
-import com.android.ide.common.gradle.model.stubs.InstantRunStub
 import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
@@ -331,16 +328,6 @@ class ModelSerializationTest {
   fun productFlavorContainer() =
     assertSerializable {
       IdeProductFlavorContainerImpl(ProductFlavorContainerStub(), modelCache)
-    }
-
-  @Test
-  fun projectIdentifier() =
-    assertSerializable {
-      IdeProjectIdentifierImpl(object : Dependencies.ProjectIdentifier {
-        override fun getBuildId() = "/root/project1"
-
-        override fun getProjectPath() = ":"
-      })
     }
 
   @Test
