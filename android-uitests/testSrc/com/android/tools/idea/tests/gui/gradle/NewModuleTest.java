@@ -188,5 +188,28 @@ public class NewModuleTest {
     assertThat(gradleFileContents).doesNotContain("consumerProguardFiles");
     assertThat(gradleFileContents).contains("androidx.wear:wear");
     assertAbout(file()).that(guiTest.getProjectPath(moduleName + "/.gitignore")).isFile();
+
+    String manifestContents = guiTest.getProjectFileText(moduleName + "/src/main/AndroidManifest.xml");
+    assertThat(manifestContents).contains("android:name=\"android.hardware.type.watch\"");
+  }
+
+  @Test
+  public void addNewAutomotiveModule() {
+    WizardUtils.createNewProject(guiTest); // Use androidx
+    final String moduleName = "automotiveModule";
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNextAutomotiveModule()
+      .enterModuleName(moduleName)
+      .wizard()
+      .clickNext()
+      .clickNext()
+      .clickFinishAndWaitForSyncToFinish();
+
+    String gradleFileContents = guiTest.getProjectFileText(moduleName + "/build.gradle");
+    assertThat(gradleFileContents).contains("id 'com.android.application'");
+
+    String manifestContents = guiTest.getProjectFileText(moduleName + "/src/main/AndroidManifest.xml");
+    assertThat(manifestContents).contains("android:name=\"android.hardware.type.automotive\"");
   }
 }

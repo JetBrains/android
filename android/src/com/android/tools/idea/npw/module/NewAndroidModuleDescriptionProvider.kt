@@ -16,13 +16,12 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
-import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import icons.StudioIcons
@@ -50,8 +49,8 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString(): String = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createSampleTemplate(), isLibrary)
-      return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, isLibrary)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 
@@ -59,35 +58,35 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_MOBILE else AndroidIcons.Wizards.MobileModule,
-    FormFactor.MOBILE
+    FormFactor.Mobile
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
-    FormFactor.AUTOMOTIVE
+    FormFactor.Automotive
   )
 
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Shell.Filetree.ANDROID_PROJECT else AndroidIcons.Wizards.ThingsModule,
-    FormFactor.THINGS
+    FormFactor.Things
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_TV else AndroidIcons.Wizards.TvModule,
-    FormFactor.TV
+    FormFactor.Tv
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_WEAR else AndroidIcons.Wizards.WearModule,
-    FormFactor.WEAR
+    FormFactor.Wear
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry: ModuleGalleryEntry {
@@ -97,8 +96,8 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, createSampleTemplate(), true)
-      return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, FormFactor.Mobile, true)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 }

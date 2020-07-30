@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -31,6 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.wizard.template.FormFactor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
@@ -73,8 +72,8 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val basePackage = "com.example"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -99,8 +98,8 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ":libs"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -129,8 +128,8 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ""
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -158,8 +157,8 @@ class ConfigureAndroidModuleStepTest {
     val disposable = projectRule.fixture.projectDisposable
     val project = projectRule.project
 
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)

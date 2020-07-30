@@ -62,7 +62,7 @@ import javax.swing.JTextField
 
 abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   model: ModuleModelKind,
-  private val formFactor: FormFactor,
+  val formFactor: FormFactor,
   private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
   basePackage: String? = getSuggestedProjectPackage(),
   title: String
