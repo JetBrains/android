@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -73,7 +73,7 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val basePackage = "com.example"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -99,7 +99,7 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ":libs"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -129,7 +129,7 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ""
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -158,7 +158,7 @@ class ConfigureAndroidModuleStepTest {
     val disposable = projectRule.fixture.projectDisposable
     val project = projectRule.project
 
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), createSampleTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)

@@ -108,10 +108,10 @@ public class ModelWizardTest {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
     PersonModel personModel = new PersonModel();
-    DummyModel dummyModel = new DummyModel();
+    SampleModel sampleModel = new SampleModel();
     OccupationModel occupationModel = new OccupationModel();
     wizardBuilder.addStep(new NameStep(personModel, "John Doe"));
-    wizardBuilder.addStep(new ShouldSkipStep(dummyModel));
+    wizardBuilder.addStep(new ShouldSkipStep(sampleModel));
     wizardBuilder.addStep(new AgeStep(personModel, 25));
     wizardBuilder.addStep(new TitleStep(occupationModel, "Code Monkey"));
 
@@ -133,8 +133,8 @@ public class ModelWizardTest {
   public void wizardCanBeCancelled() {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-    DummyModel model = new DummyModel();
-    wizardBuilder.addStep(new DummyStep(model));
+    SampleModel model = new SampleModel();
+    wizardBuilder.addStep(new SampleStep(model));
 
     ModelWizard wizard = wizardBuilder.build();
     final ModelWizard.WizardResult[] wizardResult = new ModelWizard.WizardResult[1];
@@ -185,22 +185,22 @@ public class ModelWizardTest {
 
   @Test
   public void wizardInformsModelsTheyWereSkipped() {
-    DummyModel modelFinished1 = new DummyModel();
-    DummyModel modelFinished2 = new DummyModel();
-    DummyModel modelFinished3 = new DummyModel();
-    DummyModel modelSkipped1 = new DummyModel();
-    DummyModel modelSkipped2 = new DummyModel();
+    SampleModel modelFinished1 = new SampleModel();
+    SampleModel modelFinished2 = new SampleModel();
+    SampleModel modelFinished3 = new SampleModel();
+    SampleModel modelSkipped1 = new SampleModel();
+    SampleModel modelSkipped2 = new SampleModel();
 
-    DummyStep step1 = new DummyStep(modelFinished1);
+    SampleStep step1 = new SampleStep(modelFinished1);
     ShouldSkipStep step2 = new ShouldSkipStep(modelSkipped1);
-    DummyStep step3 = new DummyStep(modelFinished2);
+    SampleStep step3 = new SampleStep(modelFinished2);
     ShouldSkipStep step4 = new ShouldSkipStep(modelSkipped2);
     ShouldSkipStep step5 = new ShouldSkipStep(modelSkipped2);
 
     // If a model is associated with two steps, one which is skipped and one which isn't, it will
     // still be marked as finished.
     ShouldSkipStep step6 = new ShouldSkipStep(modelFinished3);
-    DummyStep step7 = new DummyStep(modelFinished3);
+    SampleStep step7 = new SampleStep(modelFinished3);
 
     ModelWizard wizard = new ModelWizard.Builder(step1, step2, step3, step4, step5, step6, step7).build();
 
@@ -233,7 +233,7 @@ public class ModelWizardTest {
 
   @Test(expected = IllegalStateException.class)
   public void cantCreateWizardWithoutAtLeastOneVisibleStep() {
-    DummyModel model = new DummyModel();
+    SampleModel model = new SampleModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
     GrandparentStep grandparentStep = new GrandparentStep(model);
@@ -245,7 +245,7 @@ public class ModelWizardTest {
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoForwardAfterFinishing() {
-    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    ModelWizard wizard = new ModelWizard.Builder(new SampleStep(new SampleModel())).build();
     try {
       runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
@@ -258,7 +258,7 @@ public class ModelWizardTest {
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackAfterFinishing() {
-    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    ModelWizard wizard = new ModelWizard.Builder(new SampleStep(new SampleModel())).build();
     try {
       runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
@@ -271,7 +271,7 @@ public class ModelWizardTest {
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantCancelAfterFinishing() {
-    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    ModelWizard wizard = new ModelWizard.Builder(new SampleStep(new SampleModel())).build();
     try {
       runInvokerAndGoForward(wizard);
       assertThat(wizard.isFinished()).isTrue();
@@ -284,8 +284,8 @@ public class ModelWizardTest {
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackIfNoPreviousSteps() {
-    DummyModel model = new DummyModel();
-    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
+    SampleModel model = new SampleModel();
+    ModelWizard wizard = new ModelWizard.Builder(new SampleStep(model), new SampleStep(model)).build();
     try {
       runInvokerAndGoForward(wizard);
       runInvokerAndGoBack(wizard);
@@ -298,13 +298,13 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCanSkipOverSteps() {
-    DummyModel dummyModel = new DummyModel();
-    ShouldSkipStep shouldSkipStep = new ShouldSkipStep(dummyModel);
+    SampleModel sampleModel = new SampleModel();
+    ShouldSkipStep shouldSkipStep = new ShouldSkipStep(sampleModel);
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new DummyStep(dummyModel));
+    wizardBuilder.addStep(new SampleStep(sampleModel));
     wizardBuilder.addStep(shouldSkipStep);
-    wizardBuilder.addStep(new DummyStep(dummyModel));
+    wizardBuilder.addStep(new SampleStep(sampleModel));
 
     ModelWizard wizard = wizardBuilder.build();
     runInvokerAndGoForward(wizard);
@@ -318,11 +318,11 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCantContinueIfStepPreventsIt() {
-    DummyModel dummyModel = new DummyModel();
+    SampleModel sampleModel = new SampleModel();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new PreventNavigatingForwardStep(dummyModel));
-    wizardBuilder.addStep(new DummyStep(dummyModel));
+    wizardBuilder.addStep(new PreventNavigatingForwardStep(sampleModel));
+    wizardBuilder.addStep(new SampleStep(sampleModel));
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(runInvokerAndGoForward(wizard)).isFalse();
@@ -332,11 +332,11 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCantGoBackIfStepPreventsIt() {
-    DummyModel dummyModel = new DummyModel();
+    SampleModel sampleModel = new SampleModel();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new DummyStep(dummyModel));
-    wizardBuilder.addStep(new PreventNavigatingBackwardStep(dummyModel));
+    wizardBuilder.addStep(new SampleStep(sampleModel));
+    wizardBuilder.addStep(new PreventNavigatingBackwardStep(sampleModel));
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(runInvokerAndGoForward(wizard)).isTrue();
@@ -347,7 +347,7 @@ public class ModelWizardTest {
 
   @Test
   public void stepCanCreateSubSteps() {
-    DummyModel model = new DummyModel();
+    SampleModel model = new SampleModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
     wizardBuilder.addStep(new GrandparentStep(model));
@@ -364,14 +364,14 @@ public class ModelWizardTest {
 
   @Test
   public void hidingAStepHidesItsSubStepsRecursively() {
-    DummyModel model = new DummyModel();
+    SampleModel model = new SampleModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
     GrandparentStep grandparentStep = new GrandparentStep(model);
     grandparentStep.setShouldSkip();
 
     // Add at least one visible step or the wizard will be fail to start
-    wizardBuilder.addStep(new DummyStep(model));
+    wizardBuilder.addStep(new SampleStep(model));
     wizardBuilder.addStep(grandparentStep);
 
     ModelWizard wizard = wizardBuilder.build();
@@ -389,7 +389,7 @@ public class ModelWizardTest {
     recordStep.setShouldSkip();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(recordStep);
-    wizardBuilder.addStep(new DummyStep(new DummyModel())); // Ensure we have at least one shown step
+    wizardBuilder.addStep(new SampleStep(new SampleModel())); // Ensure we have at least one shown step
 
     ModelWizard wizard = wizardBuilder.build();
     runInvokerAndGoForward(wizard);
@@ -403,7 +403,7 @@ public class ModelWizardTest {
 
   @Test
   public void stepGetsDisposedWhenWizardGetsDisposed() {
-    DisposedStep disposedStep = new DisposedStep(new DummyModel());
+    DisposedStep disposedStep = new DisposedStep(new SampleModel());
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(disposedStep);
 
@@ -419,15 +419,15 @@ public class ModelWizardTest {
 
   @Test
   public void allModelsGetDisposedWhenWizardGetsDisposed() {
-    DummyModel modelA = new DummyModel();
-    DummyModel modelB = new DummyModel();
-    DummyModel modelC = new DummyModel();
+    SampleModel modelA = new SampleModel();
+    SampleModel modelB = new SampleModel();
+    SampleModel modelC = new SampleModel();
 
-    DummyStep step1A = new DummyStep(modelA);
-    DummyStep step2A = new DummyStep(modelA);
+    SampleStep step1A = new SampleStep(modelA);
+    SampleStep step2A = new SampleStep(modelA);
     ShouldSkipStep step3B = new ShouldSkipStep(modelB);
     ShouldSkipStep step4C = new ShouldSkipStep(modelC);
-    DummyStep step5C = new DummyStep(modelC);
+    SampleStep step5C = new SampleStep(modelC);
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1A, step2A, step3B, step4C, step5C);
     ModelWizard wizard = wizardBuilder.build();
@@ -448,13 +448,13 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCanRecoverFromOnProceedingThrowingException() {
-    DummyModel modelA = new DummyModel();
-    DummyModel modelB = new DummyModel();
-    DummyModel modelC = new DummyModel();
+    SampleModel modelA = new SampleModel();
+    SampleModel modelB = new SampleModel();
+    SampleModel modelC = new SampleModel();
 
-    DummyStep step1 = new DummyStep(modelA);
+    SampleStep step1 = new SampleStep(modelA);
     ExceptionThrowingStep step2 = new ExceptionThrowingStep(modelB).throwOnProceeding(true);
-    DummyStep step3 = new DummyStep(modelC);
+    SampleStep step3 = new SampleStep(modelC);
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
     ModelWizard wizard = wizardBuilder.build();
@@ -488,13 +488,13 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCanRecoverFromOnEnteringThrowingException() {
-    DummyModel modelA = new DummyModel();
-    DummyModel modelB = new DummyModel();
-    DummyModel modelC = new DummyModel();
+    SampleModel modelA = new SampleModel();
+    SampleModel modelB = new SampleModel();
+    SampleModel modelC = new SampleModel();
 
-    DummyStep step1 = new DummyStep(modelA);
+    SampleStep step1 = new SampleStep(modelA);
     ExceptionThrowingStep step2 = new ExceptionThrowingStep(modelB).throwOnEntering(true);
-    DummyStep step3 = new DummyStep(modelC);
+    SampleStep step3 = new SampleStep(modelC);
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
     ModelWizard wizard = wizardBuilder.build();
@@ -526,13 +526,13 @@ public class ModelWizardTest {
 
   @Test
   public void wizardStaysClosedEvenIfModelThrowsException() {
-    DummyModel modelA = new DummyModel();
-    DummyExceptionModel modelB = new DummyExceptionModel();
-    DummyModel modelC = new DummyModel();
+    SampleModel modelA = new SampleModel();
+    SampleExceptionModel modelB = new SampleExceptionModel();
+    SampleModel modelC = new SampleModel();
 
-    DummyStep step1 = new DummyStep(modelA);
-    DummyStep step2 = new DummyStep(modelB);
-    DummyStep step3 = new DummyStep(modelC);
+    SampleStep step1 = new SampleStep(modelA);
+    SampleStep step2 = new SampleStep(modelB);
+    SampleStep step3 = new SampleStep(modelC);
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
     ModelWizard wizard = wizardBuilder.build();
@@ -578,7 +578,7 @@ public class ModelWizardTest {
     return wizard.goBack();
   }
 
-  private static class DummyModel extends WizardModel {
+  private static class SampleModel extends WizardModel {
     private boolean myIsFinished;
     private boolean myIsSkipped;
     private boolean myIsDisposed;
@@ -616,9 +616,9 @@ public class ModelWizardTest {
 
 
   /**
-   * Extends {@link DummyModel} so it can be used with {@link DummyStep}
+   * Extends {@link SampleModel} so it can be used with {@link SampleStep}
    */
-  private static class DummyExceptionModel extends DummyModel {
+  private static class SampleExceptionModel extends SampleModel {
     @Override
     public void handleFinished() {
       super.handleFinished();
@@ -642,16 +642,16 @@ public class ModelWizardTest {
     }
   }
 
-  private static class DummyStep extends NoUiStep<DummyModel> {
-    DummyStep(@NotNull DummyModel model) {
+  private static class SampleStep extends NoUiStep<SampleModel> {
+    SampleStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
   }
 
-  private static class ShouldSkipStep extends NoUiStep<DummyModel> {
+  private static class ShouldSkipStep extends NoUiStep<SampleModel> {
     private boolean myEntered;
 
-    ShouldSkipStep(@NotNull DummyModel model) {
+    ShouldSkipStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -670,8 +670,8 @@ public class ModelWizardTest {
     }
   }
 
-  private static class PreventNavigatingForwardStep extends NoUiStep<DummyModel> {
-    PreventNavigatingForwardStep(@NotNull DummyModel model) {
+  private static class PreventNavigatingForwardStep extends NoUiStep<SampleModel> {
+    PreventNavigatingForwardStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -682,8 +682,8 @@ public class ModelWizardTest {
     }
   }
 
-  private static class PreventNavigatingBackwardStep extends NoUiStep<DummyModel> {
-    PreventNavigatingBackwardStep(@NotNull DummyModel model) {
+  private static class PreventNavigatingBackwardStep extends NoUiStep<SampleModel> {
+    PreventNavigatingBackwardStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -693,10 +693,10 @@ public class ModelWizardTest {
     }
   }
 
-  private static class DisposedStep extends NoUiStep<DummyModel> {
+  private static class DisposedStep extends NoUiStep<SampleModel> {
     private boolean myDisposed;
 
-    DisposedStep(@NotNull DummyModel model) {
+    DisposedStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -835,14 +835,14 @@ public class ModelWizardTest {
     }
   }
 
-  private static class ChildStep extends NoUiStep<DummyModel> {
-    protected ChildStep(@NotNull DummyModel model) {
+  private static class ChildStep extends NoUiStep<SampleModel> {
+    protected ChildStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
   }
 
-  private static class ParentStep extends NoUiStep<DummyModel> {
-    protected ParentStep(@NotNull DummyModel model) {
+  private static class ParentStep extends NoUiStep<SampleModel> {
+    protected ParentStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -853,10 +853,10 @@ public class ModelWizardTest {
     }
   }
 
-  private static class GrandparentStep extends NoUiStep<DummyModel> {
+  private static class GrandparentStep extends NoUiStep<SampleModel> {
     private boolean myShouldShow = true;
 
-    protected GrandparentStep(@NotNull DummyModel model) {
+    protected GrandparentStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
@@ -888,11 +888,11 @@ public class ModelWizardTest {
     }
   }
 
-  private static class ExceptionThrowingStep extends NoUiStep<DummyModel> {
+  private static class ExceptionThrowingStep extends NoUiStep<SampleModel> {
     private boolean myThrowOnProceeding;
     private boolean myThrowOnEntering;
 
-    protected ExceptionThrowingStep(@NotNull DummyModel model) {
+    protected ExceptionThrowingStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
     }
 
