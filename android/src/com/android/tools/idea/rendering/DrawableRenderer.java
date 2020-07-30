@@ -121,7 +121,7 @@ public class DrawableRenderer implements Disposable {
 
     return myRenderTaskFuture.thenCompose(renderTask -> {
       if (renderTask == null) {
-        // Return a dummy image.
+        // Return a sample image.
         return CompletableFuture.completedFuture(new BufferedImage(1, 1, TYPE_INT_ARGB));
       }
 

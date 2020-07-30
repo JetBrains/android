@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * a single summary at the end.
  */
 public interface IRenderLogger extends ILayoutLog {
-  /** Dummy logger producing no side effects. */
+  /** Empty logger producing no side effects. */
   public static final IRenderLogger NULL_LOGGER = new IRenderLogger() {
     private final HtmlLinkManager myLinkManager = new HtmlLinkManager();
 

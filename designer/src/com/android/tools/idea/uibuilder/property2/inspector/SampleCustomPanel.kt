@@ -22,14 +22,14 @@ import com.android.tools.idea.uibuilder.api.CustomPanel
 import javax.swing.JPanel
 
 /**
- * Dummy [CustomPanel] used in the Nele [InspectorBuilder]s.
+ * Sample [CustomPanel] used in the Nele [InspectorBuilder]s.
  *
  * The [InspectorBuilder] can lazily generate a [CustomPanel].
  * Use the [INSTANCE] to identify a non existing [CustomPanel] such
  * that the [InspectorBuilder] only have to attempt to generate
  * it once. See [LayoutInspectorBuilder].
  */
-class DummyCustomPanel private constructor() : CustomPanel {
+class SampleCustomPanel private constructor() : CustomPanel {
 
   override fun getPanel(): JPanel {
     throw NotImplementedError()
@@ -45,6 +45,6 @@ class DummyCustomPanel private constructor() : CustomPanel {
 
   companion object {
     @JvmField
-    val INSTANCE = DummyCustomPanel()
+    val INSTANCE = SampleCustomPanel()
   }
 }

@@ -106,7 +106,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
   private fun setupCustomPanel(tagName: String, properties: PropertiesTable<NelePropertyItem>): JPanel? {
     val panel = cachedCustomPanels[tagName] ?: createCustomPanel(tagName)
-    if (panel == DummyCustomPanel.INSTANCE) return null
+    if (panel == SampleCustomPanel.INSTANCE) return null
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
@@ -116,7 +116,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
 
   private fun createCustomPanel(tagName: String): CustomPanel {
     val handler = viewHandlerManager.getHandler(tagName)
-    val panel = handler?.customPanel ?: DummyCustomPanel.INSTANCE
+    val panel = handler?.customPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[tagName] = panel
     return panel
   }

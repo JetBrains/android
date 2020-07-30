@@ -33,7 +33,6 @@ import java.awt.Graphics2D;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class METimelineRenderingTest extends BaseMotionEditorTest {
@@ -57,8 +56,8 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
     assertTrue(time < 1E9);
   }
 
-  class DummyPanel extends JPanel {
-    DummyPanel() {
+  class SamplePanel extends JPanel {
+    SamplePanel() {
       super(new BorderLayout());
     }
 
@@ -85,7 +84,7 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
   }
 
   public void testTimeLinePanel() {
-    DummyPanel dummyPanel = new DummyPanel();
+    SamplePanel samplePanel = new SamplePanel();
     TimeLinePanel timeLinePanel = new TimeLinePanel();
     int[] selectionChanges = new int[]{0};
     MotionEditorSelector selector = new MotionEditorSelector();
@@ -100,9 +99,9 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
 
     MeModel model = getModel();
     MTag[] trans = model.motionScene.getChildTags("Transition");
-    dummyPanel.add(timeLinePanel);
+    samplePanel.add(timeLinePanel);
     int size = 512;
-    dummyPanel.setBounds(0,0,size,size);
+    samplePanel.setBounds(0, 0, size, size);
     TimeLineTopLeft topLeft = (TimeLineTopLeft)find(timeLinePanel, e -> {
       return e instanceof TimeLineTopLeft;
     });
@@ -110,34 +109,34 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       return e instanceof TimeLinePanel.METimeLine;
     });
 
-    dummyPanel.setBounds(0, 0, size, size);
+    samplePanel.setBounds(0, 0, size, size);
 
     for (int i = 0; i < trans.length; i++) {
       MTag tran = trans[i];
       size /= 2;
-      dummyPanel.setBounds(0, 0, size, size);
+      samplePanel.setBounds(0, 0, size, size);
 
-      dummyPanel.revalidate();
+      samplePanel.revalidate();
 
-      dummyPanel.doLayout();
-      dummyPanel.validate();
+      samplePanel.doLayout();
+      samplePanel.validate();
       BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
       Graphics2D g2d = bufferedImage.createGraphics();
       long time = System.nanoTime();
-      dummyPanel.paint(g2d);
-      dummyPanel.setSize(size-1,size);
-      dummyPanel.myResize();
+      samplePanel.paint(g2d);
+      samplePanel.setSize(size - 1, size);
+      samplePanel.myResize();
       timeLinePanel.paint(g2d);
       timeLinePanel.getLayout().layoutContainer(timeLinePanel);
-      dummyPanel.paint(g2d);
+      samplePanel.paint(g2d);
 
       time = System.nanoTime() - time;
       timeLinePanel.setMTag(trans[i], model);
-      for (int j = 0; j < dummyPanel.getHeight(); j += 10) {
-        for (int k = 0; k < dummyPanel.getWidth(); k += 10) {
-          dummyPanel.down(k, j);
-          dummyPanel.up(k, j);
-          dummyPanel.click(k, j);
+      for (int j = 0; j < samplePanel.getHeight(); j += 10) {
+        for (int k = 0; k < samplePanel.getWidth(); k += 10) {
+          samplePanel.down(k, j);
+          samplePanel.up(k, j);
+          samplePanel.click(k, j);
         }
       }
 

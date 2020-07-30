@@ -60,26 +60,26 @@ public class NlDropInsertionPickerTest {
   @Mock
   private NlModel myModel;
 
-  private DummyComponentGroup ourRoot;
-  private DummyTreePath[] myTreePaths;
+  private FakeNlComponentGroup ourRoot;
+  private FakeTreePath[] myTreePaths;
   private ImmutableList<NlComponent> myDragged;
   private NlDropInsertionPicker myPicker;
 
   @NotNull
-  private DummyComponentGroup buildDummyComponentHierarchy() {
-    return new DummyComponentGroup(0, myModel, false)
+  private NlDropInsertionPickerTest.FakeNlComponentGroup buildFakeComponentHierarchy() {
+    return new FakeNlComponentGroup(0, myModel, false)
       .setChildren(
-        new DummyComponent(1, myModel, true),
-        new DummyComponent(2, myModel, true),
-        new DummyComponentGroup(3, myModel, true)
+        new FakeNlComponent(1, myModel, true),
+        new FakeNlComponent(2, myModel, true),
+        new FakeNlComponentGroup(3, myModel, true)
           .setChildren(
-            new DummyComponent(4, myModel, true),
-            new DummyComponent(5, myModel, false)),
-        new DummyComponentGroup(6, myModel, false)
+            new FakeNlComponent(4, myModel, true),
+            new FakeNlComponent(5, myModel, false)),
+        new FakeNlComponentGroup(6, myModel, false)
           .setChildren(
-            new DummyComponent(7, myModel, true),
-            new DummyComponentGroup(8, myModel, true),
-            new DummyComponent(9, myModel, false))
+            new FakeNlComponent(7, myModel, true),
+            new FakeNlComponentGroup(8, myModel, true),
+            new FakeNlComponent(9, myModel, false))
       );
   }
 
@@ -87,12 +87,12 @@ public class NlDropInsertionPickerTest {
    * Build a list of tree path with mock coordinates using from the given component hierarchy as they would be in the {@link NlComponentTree}
    */
   @NotNull
-  private static DummyTreePath[] buildDummyTreePathArray(@NotNull DummyComponent root) {
+  private static FakeTreePath[] buildFakeTreePathArray(@NotNull NlDropInsertionPickerTest.FakeNlComponent root) {
 
-    ImmutableList.Builder<DummyTreePath> builder = ImmutableList.builder();
-    buildDummyTreePathArray(builder, root, null, 0, 0);
-    ImmutableList<DummyTreePath> pathsList = builder.build();
-    return pathsList.toArray(new DummyTreePath[0]);
+    ImmutableList.Builder<FakeTreePath> builder = ImmutableList.builder();
+    buildFakeTreePathArray(builder, root, null, 0, 0);
+    ImmutableList<FakeTreePath> pathsList = builder.build();
+    return pathsList.toArray(new FakeTreePath[0]);
   }
 
   /**
@@ -100,23 +100,23 @@ public class NlDropInsertionPickerTest {
    *
    * @param parent       This component's parent's
    * @param builder      The builder used to build the list
-   * @param current      The current {@link DummyComponent} to add to the list
+   * @param current      The current {@link FakeNlComponent} to add to the list
    * @param currentRow   The row of the current component in the Tree
    * @param currentDepth The current depth of the component (used to compute the x coordinate of the component)
-   * @return The row of the previously inserted {@link DummyTreePath}
+   * @return The row of the previously inserted {@link FakeTreePath}
    */
-  private static int buildDummyTreePathArray(@NotNull ImmutableList.Builder<DummyTreePath> builder,
-                                             @NotNull DummyComponent current,
-                                             @Nullable TreePath parent,
-                                             int currentRow,
-                                             int currentDepth) {
-    DummyTreePath path = new DummyTreePath(current, parent, currentDepth * NODE_SIZE);
+  private static int buildFakeTreePathArray(@NotNull ImmutableList.Builder<FakeTreePath> builder,
+                                            @NotNull NlDropInsertionPickerTest.FakeNlComponent current,
+                                            @Nullable TreePath parent,
+                                            int currentRow,
+                                            int currentDepth) {
+    FakeTreePath path = new FakeTreePath(current, parent, currentDepth * NODE_SIZE);
     builder.add(path);
     int childRow = currentRow + 1;
-    if (current instanceof DummyComponentGroup) {
+    if (current instanceof FakeNlComponentGroup) {
       for (int i = 0; i < current.getChildCount(); i++) {
         childRow =
-          buildDummyTreePathArray(builder, (DummyComponent)current.getChildren().get(i), path, childRow, currentDepth + 1);
+          buildFakeTreePathArray(builder, (FakeNlComponent)current.getChildren().get(i), path, childRow, currentDepth + 1);
       }
     }
     return childRow;
@@ -125,23 +125,23 @@ public class NlDropInsertionPickerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    when(myModel.canAddComponents(anyList(), any(DummyComponent.class), any())).thenReturn(false);
-    when(myModel.canAddComponents(anyList(), any(DummyComponent.class), any(), anyBoolean())).thenReturn(false);
-    when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any())).thenReturn(true);
-    when(myModel.canAddComponents(anyList(), any(DummyComponentGroup.class), any(), anyBoolean())).thenReturn(true);
+    when(myModel.canAddComponents(anyList(), any(FakeNlComponent.class), any())).thenReturn(false);
+    when(myModel.canAddComponents(anyList(), any(FakeNlComponent.class), any(), anyBoolean())).thenReturn(false);
+    when(myModel.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any())).thenReturn(true);
+    when(myModel.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any(), anyBoolean())).thenReturn(true);
     when(myModel.getProject()).thenReturn(myRule.getProject());
 
-    ourRoot = buildDummyComponentHierarchy();
-    myTreePaths = buildDummyTreePathArray(ourRoot);
+    ourRoot = buildFakeComponentHierarchy();
+    myTreePaths = buildFakeTreePathArray(ourRoot);
     when(myModel.getComponents()).thenReturn(ImmutableList.of(ourRoot));
 
     myPicker = getDefaultPicker();
-    myDragged = ImmutableList.of(new DummyComponent(-1, myModel, false));
+    myDragged = ImmutableList.of(new FakeNlComponent(-1, myModel, false));
   }
 
   @Test
-  public void testDummyTree() {
-    DummyTree tree = new DummyTree();
+  public void testFakeTree() {
+    FakeTree tree = new FakeTree();
     assertEquals(myTreePaths[0], tree.getClosestPathForLocation(0, 0));
     assertEquals(ourRoot, tree.getClosestPathForLocation(0, 0).getLastPathComponent());
     assertEquals(myTreePaths[1], tree.getClosestPathForLocation(0, 10));
@@ -149,8 +149,8 @@ public class NlDropInsertionPickerTest {
     assertEquals(ourRoot.getChild(1), tree.getClosestPathForLocation(0, 20).getLastPathComponent());
     assertEquals(ourRoot.getChild(3).getChild(2), tree.getClosestPathForLocation(0, 90).getLastPathComponent());
     assertEquals(myTreePaths[3], myTreePaths[4].getParentPath());
-    assertTrue(myTreePaths[myTreePaths.length - 1].getLastPathComponent() instanceof DummyComponent);
-    assertEquals(((DummyComponent)myTreePaths[myTreePaths.length - 1].getLastPathComponent()).myId, myTreePaths.length - 1);
+    assertTrue(myTreePaths[myTreePaths.length - 1].getLastPathComponent() instanceof FakeNlComponent);
+    assertEquals(((FakeNlComponent)myTreePaths[myTreePaths.length - 1].getLastPathComponent()).myId, myTreePaths.length - 1);
   }
 
   @Test
@@ -210,13 +210,13 @@ public class NlDropInsertionPickerTest {
 
   @Test
   public void testInsertInParentIfLastIsViewGroup() {
-    DummyComponentGroup root =
-      new DummyComponentGroup(0, myModel, false).setChildren(
-        new DummyComponent(1, myModel, true),
-        new DummyComponentGroup(2, myModel, false));
+    FakeNlComponentGroup root =
+      new FakeNlComponentGroup(0, myModel, false).setChildren(
+        new FakeNlComponent(1, myModel, true),
+        new FakeNlComponentGroup(2, myModel, false));
 
-    myTreePaths = buildDummyTreePathArray(root);
-    DummyTree tree = new DummyTree();
+    myTreePaths = buildFakeTreePathArray(root);
+    FakeTree tree = new FakeTree();
     tree.collapsePath(myTreePaths[myTreePaths.length - 1]);
     NlDropInsertionPicker picker = new NlDropInsertionPicker(tree);
     NlDropInsertionPicker.Result result = picker.findInsertionPointAt(new Point(5, 25), myDragged);
@@ -241,15 +241,15 @@ public class NlDropInsertionPickerTest {
 
   @Test
   public void testInsertRowIsAfterGrandChildren() {
-    DummyComponentGroup root =
-      new DummyComponentGroup(0, myModel, false).setChildren(
-        new DummyComponentGroup(1, myModel, false).setChildren(
-          new DummyComponentGroup(2, myModel, false).setChildren(
-            new DummyComponent(3, myModel, true),
-            new DummyComponent(4, myModel, false))));
+    FakeNlComponentGroup root =
+      new FakeNlComponentGroup(0, myModel, false).setChildren(
+        new FakeNlComponentGroup(1, myModel, false).setChildren(
+          new FakeNlComponentGroup(2, myModel, false).setChildren(
+            new FakeNlComponent(3, myModel, true),
+            new FakeNlComponent(4, myModel, false))));
 
-    myTreePaths = buildDummyTreePathArray(root);
-    DummyTree tree = new DummyTree();
+    myTreePaths = buildFakeTreePathArray(root);
+    FakeTree tree = new FakeTree();
     NlComponent receiver = root.getChild(0);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
     when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
@@ -264,20 +264,20 @@ public class NlDropInsertionPickerTest {
 
   @NotNull
   private NlDropInsertionPicker getDefaultPicker() {
-    DummyTree tree = new DummyTree();
+    FakeTree tree = new FakeTree();
     return new NlDropInsertionPicker(tree);
   }
 
   /* ***********************************************************************/
-  /* ************************ DUMMY CLASSES ********************************/
+  /* ********************** STUB/FAKE CLASSES ******************************/
   /* ***********************************************************************/
 
   /**
-   * Dummy JTree
+   * Fake JTree
    */
-  private class DummyTree extends JTree {
+  private class FakeTree extends JTree {
 
-    private DummyTree() {
+    private FakeTree() {
       super(new NlComponentTreeModel(myModel));
       expandAllNodes(0, getRowCount());
     }
@@ -334,14 +334,14 @@ public class NlDropInsertionPickerTest {
   }
 
   /**
-   * Dummy NlComponent
+   * Placeholder/fake NlComponent
    */
-  private static class DummyComponent extends NlComponent {
+  private static class FakeNlComponent extends NlComponent {
     private final boolean mySibling;
     private final int myId;
-    @Nullable private DummyComponentGroup myDummyParent = null;
+    @Nullable private NlDropInsertionPickerTest.FakeNlComponentGroup myFakeParent = null;
 
-    private DummyComponent(int id, @NotNull NlModel model, boolean hasSibling) {
+    private FakeNlComponent(int id, @NotNull NlModel model, boolean hasSibling) {
       //noinspection unchecked
       super(model, EmptyXmlTag.INSTANCE, mock(SmartPsiElementPointer.class));
       mySibling = hasSibling;
@@ -363,21 +363,21 @@ public class NlDropInsertionPickerTest {
         return null;
       }
 
-      int indexInParent = myDummyParent.getChildren().indexOf(this);
-      if (indexInParent < 0 || indexInParent + 1 > myDummyParent.getChildCount() - 1) {
+      int indexInParent = myFakeParent.getChildren().indexOf(this);
+      if (indexInParent < 0 || indexInParent + 1 > myFakeParent.getChildCount() - 1) {
         return null;
       }
-      return myDummyParent.getChildren().get(indexInParent + 1);
+      return myFakeParent.getChildren().get(indexInParent + 1);
     }
 
     @Nullable
     @Override
     public NlComponent getParent() {
-      return myDummyParent;
+      return myFakeParent;
     }
 
-    public void setDummyParent(@Nullable DummyComponentGroup parent) {
-      myDummyParent = parent;
+    public void setFakeParent(@Nullable NlDropInsertionPickerTest.FakeNlComponentGroup parent) {
+      myFakeParent = parent;
     }
 
     @NotNull
@@ -388,21 +388,21 @@ public class NlDropInsertionPickerTest {
   }
 
   /**
-   * Dummy component to mock a ViewGroup
+   * Placeholder/fake component to mock a ViewGroup
    */
-  private static class DummyComponentGroup extends DummyComponent {
-    private static final DummyComponent[] EMPTY_COMPONENTS = new DummyComponent[0];
-    @NotNull private DummyComponent[] myChildren = EMPTY_COMPONENTS;
+  private static class FakeNlComponentGroup extends FakeNlComponent {
+    private static final FakeNlComponent[] EMPTY_COMPONENTS = new FakeNlComponent[0];
+    @NotNull private FakeNlComponent[] myChildren = EMPTY_COMPONENTS;
 
-    private DummyComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
+    private FakeNlComponentGroup(int i, @NotNull NlModel model, boolean hasSibling) {
       super(i, model, hasSibling);
     }
 
     @NotNull
-    public DummyComponentGroup setChildren(@NotNull DummyComponent... children) {
+    public NlDropInsertionPickerTest.FakeNlComponentGroup setChildren(@NotNull FakeNlComponent... children) {
       myChildren = children;
-      for (DummyComponent aMyChildren : myChildren) {
-        aMyChildren.setDummyParent(this);
+      for (FakeNlComponent aMyChildren : myChildren) {
+        aMyChildren.setFakeParent(this);
       }
       return this;
     }
@@ -426,18 +426,18 @@ public class NlDropInsertionPickerTest {
   }
 
   /**
-   * Dummy TreePath
+   * Placeholder/fake TreePath
    */
-  private static class DummyTreePath extends TreePath {
+  private static class FakeTreePath extends TreePath {
 
     private final int myPosition;
 
     /**
-     * @param parent    the parent of the this {@link DummyTreePath}
+     * @param parent    the parent of the this {@link FakeTreePath}
      * @param xPosition Mock x coordinate of the node in the tree.
      *                  0 is the root, and we increment by 10 for each deeper level
      */
-    private DummyTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
+    private FakeTreePath(@NotNull NlComponent lastComponent, TreePath parent, int xPosition) {
       super(parent, lastComponent);
       myPosition = xPosition;
     }
