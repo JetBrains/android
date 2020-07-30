@@ -424,7 +424,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     override fun pushSnapshot(responseObserver: StreamObserver<SnapshotPackage>): StreamObserver<SnapshotPackage> {
-      return object : DummyStreamObserver<SnapshotPackage>() {
+      return object : EmptyStreamObserver<SnapshotPackage>() {
         override fun onCompleted() {
           sendDefaultSnapshotPackage(responseObserver)
         }

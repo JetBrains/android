@@ -467,7 +467,7 @@ class EmulatorView(
       requestClipboardFeed()
     }
     else {
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object: DummyStreamObserver<Empty>() {
+      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object: EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
           requestClipboardFeed()
         }
@@ -648,7 +648,7 @@ class EmulatorView(
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  private inner class ClipboardReceiver : DummyStreamObserver<ClipData>() {
+  private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
     var responseCount = 0
 
     override fun onNext(response: ClipData) {
@@ -670,7 +670,7 @@ class EmulatorView(
   private inner class ScreenshotReceiver(
     val rotation: SkinRotation,
     val currentScreenshotShape: DisplayShape
-  ) : DummyStreamObserver<ImageMessage>() {
+  ) : EmptyStreamObserver<ImageMessage>() {
     private var cachedImageSource: MemoryImageSource? = null
     private val screenshotForSkinUpdate = AtomicReference<Screenshot>()
     private val screenshotForDisplay = AtomicReference<Screenshot>()

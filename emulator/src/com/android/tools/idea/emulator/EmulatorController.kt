@@ -217,7 +217,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets contents of the clipboard.
    */
-  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setClipboard(${shortDebugString(clipData)})")
     }
@@ -244,7 +244,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sends a [KeyboardEvent] to the Emulator.
    */
-  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
     }
@@ -254,7 +254,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sends a [MouseEvent] to the Emulator.
    */
-  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
       LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
     }
@@ -276,7 +276,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets a physical model value.
    */
-  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setPhysicalModel(${shortDebugString(modelValue)})")
     }
@@ -325,7 +325,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets a virtual machine state.
    */
-  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setVmModel(${shortDebugString(vmState)})")
     }
@@ -333,7 +333,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private fun sendKeepAlive() {
-    val responseObserver = object : DummyStreamObserver<VmRunState>() {
+    val responseObserver = object : EmptyStreamObserver<VmRunState>() {
       override fun onNext(response: VmRunState) {
         connectionState = ConnectionState.CONNECTED
         if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
@@ -356,7 +356,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
-  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
@@ -370,7 +370,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * @param snapshotId a snapshot ID in the emulator.
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
    */
-  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
@@ -504,9 +504,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
 private val LOG = Logger.getInstance(EmulatorController::class.java)
-private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
+private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
 
 @Suppress("UNCHECKED_CAST")
-fun <T> getDummyObserver(): StreamObserver<T> {
-  return DUMMY_OBSERVER as StreamObserver<T>
+fun <T> getEmptyObserver(): StreamObserver<T> {
+  return EMPTY_OBSERVER as StreamObserver<T>
 }
