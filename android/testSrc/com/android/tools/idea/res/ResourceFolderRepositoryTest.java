@@ -81,6 +81,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
@@ -4499,9 +4500,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testInvalidFilenames() throws Exception {
-    WolfTheProblemSolver wolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
-    ((MockWolfTheProblemSolver)wolfTheProblemSolver).setDelegate(new MockWolfTheProblemSolver() {
-      Set<VirtualFile> problemFiles = Sets.newConcurrentHashSet();
+    MockWolfTheProblemSolver wolfTheProblemSolver = new MockWolfTheProblemSolver() {
+      final Set<VirtualFile> problemFiles = Sets.newConcurrentHashSet();
 
       @Override
       public void reportProblemsFromExternalSource(@NotNull VirtualFile file, @NotNull Object source) {
@@ -4514,10 +4514,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
 
       @Override
-      public boolean isProblemFile(VirtualFile virtualFile) {
+      public boolean isProblemFile(@NotNull VirtualFile virtualFile) {
         return problemFiles.contains(virtualFile);
       }
-    });
+    };
+    ServiceContainerUtil.registerComponentInstance(getProject(), WolfTheProblemSolver.class, wolfTheProblemSolver, getTestRootDisposable());
 
     VirtualFile valid = VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()),
                                                "res/drawable/valid.png",
