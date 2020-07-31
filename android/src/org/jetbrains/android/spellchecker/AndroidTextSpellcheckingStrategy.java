@@ -15,26 +15,20 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_WIN;
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.FN_RESOURCE_TEXT;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
-
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
 
 /**
  * Spelling strategy for text and property files which is used to mask out typos in
@@ -68,19 +62,19 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
 
           if (fileType == FileTypes.PLAIN_TEXT) {
             String name = virtualFile.getName();
-            if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, IMPORT_SUMMARY_TXT, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
+            if (Comparing.equal(name, FN_RESOURCE_TEXT, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, IMPORT_SUMMARY_TXT, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, ".gitignore", virtualFile.isCaseSensitive())) {
               lastIgnore = true;
             }
           }
           else if (fileType == PropertiesFileType.INSTANCE) {
             String name = virtualFile.getName();
-            if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
-                Comparing.equal(name, FN_GRADLE_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
+            if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, FN_LOCAL_PROPERTIES, virtualFile.isCaseSensitive()) ||
+                Comparing.equal(name, FN_GRADLE_PROPERTIES, virtualFile.isCaseSensitive())) {
               lastIgnore = true;
             }
           }
