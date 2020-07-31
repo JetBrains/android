@@ -18,9 +18,13 @@ package com.android.tools.idea.lang.contentAccess
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInspection.AbstractBaseJavaLocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaElementVisitor
 import com.intellij.psi.PsiAnnotation
@@ -33,10 +37,12 @@ import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.idea.quickfix.AddAnnotationFix as AddAnnotationFixKotlin
 
 
 /**
@@ -66,7 +72,8 @@ class ContentEntityInspectionKotlin : AbstractKotlinInspection() {
             // @ContentPrimaryKey or @ContentColumn are not in a class annotated with @ContentEntity.
             holder.registerProblem(
               annotationEntry,
-              ContentAccessBundle.message("not.in.content.entity", StringUtil.getShortName(annotationEntry.getQualifiedName()!!))
+              ContentAccessBundle.message("not.in.content.entity", StringUtil.getShortName(annotationEntry.getQualifiedName()!!)),
+              entity?.let { AddContentEntityAnnotationQuickFixKotlin(it) }
             )
             return
           }
@@ -127,7 +134,8 @@ class ContentEntityInspection : AbstractBaseJavaLocalInspectionTool() {
             // @ContentPrimaryKey or @ContentColumn are not in a class annotated with @ContentEntity.
             holder.registerProblem(
               annotation,
-              ContentAccessBundle.message("not.in.content.entity", StringUtil.getShortName(qualifiedName))
+              ContentAccessBundle.message("not.in.content.entity", StringUtil.getShortName(qualifiedName)),
+              entity?.let { AddContentEntityAnnotationQuickFix(it) }
             )
             return
           }
@@ -165,5 +173,15 @@ class ContentEntityInspection : AbstractBaseJavaLocalInspectionTool() {
     }
   }
 }
+
+private class AddContentEntityAnnotationQuickFixKotlin(aClass: KtClass) :
+  AddAnnotationFixKotlin(aClass, FqName(CONTENT_ENTITY_ANNOTATION)), LocalQuickFix {
+  override fun startInWriteAction(): Boolean = true
+  override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
+    element?.containingKtFile?.let { this.invoke(project, null, it) }
+  }
+}
+
+private class AddContentEntityAnnotationQuickFix(psiClass: PsiClass) : AddAnnotationFix(CONTENT_ENTITY_ANNOTATION, psiClass)
 
 private fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
