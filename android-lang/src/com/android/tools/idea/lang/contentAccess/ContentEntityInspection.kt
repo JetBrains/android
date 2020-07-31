@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.contentAccess
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInspection.AbstractBaseJavaLocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
@@ -234,5 +235,3 @@ private class AddContentEntityAnnotationQuickFixKotlin(aClass: KtClass) :
 }
 
 private class AddContentEntityAnnotationQuickFix(psiClass: PsiClass) : AddAnnotationFix(CONTENT_ENTITY_ANNOTATION, psiClass)
-
-private fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
