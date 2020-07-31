@@ -279,4 +279,82 @@ class ContentEntityInspectionTest : ContentAccessTestCase() {
       "@ContentEntity must include only one @ContentPrimaryKey"
     )
   }
+
+  fun testInvalidColumnType() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+      package test
+
+      import androidx.contentaccess.ContentPrimaryKey
+      import androidx.contentaccess.ContentEntity
+      import androidx.contentaccess.ContentColumn
+
+      @ContentEntity
+      data class EntityKt (
+        @ContentPrimaryKey("key")
+        var key: String?,
+
+        @ContentColumn("valid1")
+        var valid1: Int,
+        @ContentColumn("valid2")
+        var valid2: ByteArray,
+        @ContentColumn("valid3")
+        var valid3: String?,
+        @ContentColumn("valid4")
+        var valid4: Array<Byte>,
+        @ContentColumn("valid5")
+        var valid5: Long,
+
+        <error descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn("invalid1")
+        var invalid1: EntityKt</error>,
+        <error descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn("invalid2")
+        var invalid2: Array<String></error>,
+        <error descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn("invalid3")
+        var invalid3: Byte</error>
+      )
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testInvalidColumnType_java() {
+    myFixture.configureByText(
+      "test/Entity.java",
+      //language=JAVA
+      """
+      package test;
+
+      import androidx.contentaccess.ContentPrimaryKey;
+      import androidx.contentaccess.ContentEntity;
+      import androidx.contentaccess.ContentColumn;
+
+      @ContentEntity
+      public class Entity {
+        @ContentPrimaryKey(columnName = "key")
+        public Long extraKey;
+
+        @ContentColumn(columnName = "valid1")
+        public Long valid1;
+        @ContentColumn(columnName = "valid2")
+        public Byte[] valid2;
+        @ContentColumn(columnName = "valid3")
+        public int valid3;
+        @ContentColumn(columnName = "valid4")
+        public String valid4;
+        @ContentColumn(columnName = "valid5")
+        public byte[] valid5;
+
+        <warning descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn(columnName = "invalid1")
+        public String[] invalid1;</warning>
+        <warning descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn(columnName = "invalid2")
+        public Byte invalid2;</warning>
+        <warning descr="Field annotated with @ContentColumn is not of a valid type">@ContentColumn(columnName = "invalid3")
+        public Entity invalid3;</warning>
+      }
+    """.trimIndent())
+
+   myFixture.checkHighlighting()
+  }
 }

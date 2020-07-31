@@ -26,15 +26,29 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.CommonClassNames.JAVA_LANG_STRING
 import com.intellij.psi.JavaElementVisitor
 import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isByte
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isDouble
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isFloat
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isInt
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isLong
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isShort
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isString
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -42,6 +56,9 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.builtIns
+import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.idea.quickfix.AddAnnotationFix as AddAnnotationFixKotlin
 
 
@@ -106,6 +123,22 @@ class ContentEntityInspectionKotlin : AbstractKotlinInspection() {
             holder.registerProblem(parameter, ContentAccessBundle.message("every.field.should.be.annotated"))
           }
         }
+        if (parameter.hasAnnotation(CONTENT_COLUMN_ANNOTATION)) {
+          val type = parameter.type()
+
+          if (type == null || !isValidType(type)) {
+            holder.registerProblem(parameter, ContentAccessBundle.message("invalid.column.type"))
+          }
+        }
+      }
+
+      private fun isValidType(type: KotlinType): Boolean {
+        if (KotlinBuiltIns.isArray(type) || KotlinBuiltIns.isPrimitiveArray(type)) {
+          return isByte(type.builtIns.getArrayElementType(type))
+        }
+        val notNullableType = type.makeNotNullable()
+        return isShort(notNullableType) || isInt(notNullableType) || isLong(notNullableType) ||
+               isFloat(notNullableType) || isDouble(notNullableType) || isString(notNullableType)
       }
     }
   }
@@ -169,6 +202,24 @@ class ContentEntityInspection : AbstractBaseJavaLocalInspectionTool() {
           // An object annotated with @ContentEntity has a field that is not annotated with @ContentColumn or @ContentPrimaryKey.
           holder.registerProblem(field, ContentAccessBundle.message("every.field.should.be.annotated"))
         }
+        if (field.hasAnnotation(CONTENT_COLUMN_ANNOTATION)) {
+          val type = PsiPrimitiveType.getUnboxedType(field.type) ?: field.type
+          if (!isValidType(type)) {
+            holder.registerProblem(field, ContentAccessBundle.message("invalid.column.type"))
+          }
+        }
+      }
+
+      private fun isValidType(psiType: PsiType): Boolean {
+        if (psiType is PsiArrayType) {
+          val unboxedComponent = PsiPrimitiveType.getUnboxedType(psiType.componentType) ?: psiType.componentType
+          return unboxedComponent == PsiType.BYTE
+        }
+
+        val type = PsiPrimitiveType.getUnboxedType(psiType) ?: psiType
+
+        return type == PsiType.SHORT || type == PsiType.INT || type == PsiType.LONG || type == PsiType.DOUBLE || type == PsiType.FLOAT ||
+               (type as? PsiClassType)?.resolve()?.qualifiedName == JAVA_LANG_STRING
       }
     }
   }
