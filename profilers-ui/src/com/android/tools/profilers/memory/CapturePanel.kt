@@ -229,9 +229,8 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     }
   }
 
-  // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
-  private fun buildToolbarPanel(toolbar: JPanel) = JPanel(TabularLayout("Fit,*,Fit")).apply {
-    add(toolbar, TabularLayout.Constraint(0, 0))
+  private fun buildToolbarPanel(toolbar: JPanel) = JPanel(BorderLayout()).apply {
+    add(toolbar, BorderLayout.LINE_START)
     alignmentX = Component.LEFT_ALIGNMENT
   }
 
