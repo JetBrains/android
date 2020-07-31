@@ -1,5 +1,5 @@
 PROJECT             : testWithCompositeBuild
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : TestCompositeLib1
         ExternalModuleGroup : com.test.composite1

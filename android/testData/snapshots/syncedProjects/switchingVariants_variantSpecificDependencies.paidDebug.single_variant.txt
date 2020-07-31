@@ -1,5 +1,5 @@
 PROJECT             : testSwitchingVariants_variantSpecificDependencies
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : testSwitchingVariants_variantSpecificDependencies
         ExternalModuleGroup :
