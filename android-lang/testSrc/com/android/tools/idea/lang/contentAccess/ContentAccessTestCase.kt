@@ -23,38 +23,57 @@ abstract class ContentAccessTestCase : JavaCodeInsightFixtureTestCase() {
     StudioFlags.CONTENT_ACCESS_SUPPORT_ENABLED.override(true)
     super.setUp()
     myFixture.addFileToProject(
-      "androidx/contentaccess/ContentEntity.kt",
+      "androidx/contentaccess/Annotations.kt",
       // language=kotlin
       """
       package androidx.contentaccess
+
+      import kotlin.reflect.KClass
 
       @Retention(AnnotationRetention.BINARY)
       @Target(AnnotationTarget.CLASS)
       annotation class ContentEntity(val uri: String = "")
-      """.trimIndent()
-    )
-
-    myFixture.addFileToProject(
-      "androidx/contentaccess/ContentPrimaryKey.kt",
-      // language=kotlin
-      """
-      package androidx.contentaccess
 
       @Retention(AnnotationRetention.BINARY)
       @Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
       annotation class ContentPrimaryKey(val columnName: String)
-      """.trimIndent()
-    )
-
-    myFixture.addFileToProject(
-      "androidx/contentaccess/ContentColumn.kt",
-      // language=kotlin
-      """
-      package androidx.contentaccess
 
       @Retention(AnnotationRetention.BINARY)
       @Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
       annotation class ContentColumn(val columnName: String)
+
+      @Retention(AnnotationRetention.BINARY)
+      @Target(AnnotationTarget.CLASS)
+      annotation class ContentAccessObject(val contentEntity: KClass<*> = Void::class)
+
+      @Retention(AnnotationRetention.BINARY)
+      @Target(AnnotationTarget.FUNCTION)
+      annotation class ContentQuery(
+          val projection: Array<String> = arrayOf(),
+          val selection: String = "",
+          val orderBy: Array<String> = arrayOf(),
+          val uri: String = "",
+          val contentEntity: KClass<*> = Void::class
+      )
+
+      @Retention(AnnotationRetention.BINARY)
+      @Target(AnnotationTarget.FUNCTION)
+      annotation class ContentInsert(val uri: String)
+
+      @Retention(AnnotationRetention.BINARY)
+      @Target(AnnotationTarget.FUNCTION)
+      annotation class ContentDelete(
+          val selection: String,
+          val uri: String
+      )
+
+      @Retention(AnnotationRetention.BINARY)
+      @Target(AnnotationTarget.FUNCTION)
+      annotation class ContentUpdate(
+          val where: String = "",
+          val uri: String = "",
+          val contentEntity: KClass<*> = Void::class
+      )
       """.trimIndent()
     )
   }
