@@ -171,7 +171,8 @@ def update_xml_file(workspace, jdk, sdk, jars):
     jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
     gen_lib(project_dir, "studio-plugin-" + plugin, jars, [sdk + "/android-studio-sources.zip"])
 
-def update_embedded_sdk_xml(workspace, version):
+
+def update_files(workspace, version):
   project_dir = workspace + "/tools/adt/idea/"
   sdk = workspace + "/prebuilts/studio/intellij-sdk/" + version
   jdk = workspace + "/prebuilts/studio/jdk/linux"
@@ -182,7 +183,7 @@ def update_embedded_sdk_xml(workspace, version):
   write_build_file(workspace, sdk, jars)
 
 
-def check_artifacts(dir, bid):
+def check_artifacts(dir):
   linux = None
   mac = None
   win = None
@@ -190,10 +191,13 @@ def check_artifacts(dir, bid):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  match = re.match("android-studio-(.*)\.%s-sources.zip" % bid, files[0])
-  if not match:
-    sys.exit("Missing sources.zip artifact in " + dir)
+  regex = re.compile("android-studio-(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
+  files = [file for file in files if regex.match(file)]
+  if not files:
+    sys.exit("No artifacts found in " + dir)
+  match = regex.match(files[0])
   version = match.group(1)
+  bid = match.group(2)
   expected = [
       "android-studio-%s.%s-sources.zip" % (version, bid),
       "android-studio-%s.%s.mac.zip" % (version, bid),
@@ -201,7 +205,9 @@ def check_artifacts(dir, bid):
       "android-studio-%s.%s.win.zip" % (version, bid),
   ]
   if files != expected:
+    print(files)
     sys.exit("Unexpected artifacts in " + dir)
+
   return "AI-" + version, files[0], files[1], files[2], files[3]
 
 
@@ -218,9 +224,13 @@ def download(workspace, bid):
         "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk 'android-studio-*.%s%s' %s"
         % (bid, bid, artifact, dir))
 
-  version, sources, mac, linux, win = check_artifacts(dir, bid)
+  return dir
+
+def extract(workspace, dir, delete_after):
+  version, sources, mac, linux, win = check_artifacts(dir)
 
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
+  # TODO: Don't delete, but add an option for a timestamp-less diff of jars, to reduce git/review pressure
   if os.path.exists(path):
     shutil.rmtree(path)
   os.mkdir(path)
@@ -241,35 +251,46 @@ def download(workspace, bid):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
-  shutil.rmtree(dir)
+  if delete_after:
+    shutil.rmtree(dir)
   return version
 
-
 def main(workspace, args):
-  version = None
-  if args.bid:
-    version = download(workspace, args.bid)
-  else:
-    version = args.version
-  update_embedded_sdk_xml(workspace, version)
-
+  version = args.version
+  path = args.path
+  bid = args.download
+  delete_path = False
+  if bid:
+    path = download(workspace, bid)
+    delete_path = True
+  if path:
+    version = extract(workspace, path, delete_path)
+  
+  update_files(workspace, version)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--bid",
+      "--download",
       default="",
-      dest="bid",
+      dest="download",
       help="The build id of the studio-sdk to download from go/ab")
   parser.add_argument(
-      "--version",
+      "--path",
+      default="",
+      dest="path",
+      help="The path of already downloaded, or locally built, artifacts")
+  parser.add_argument(
+      "--existing_version",
       default="",
       dest="version",
-      help="The build id of the studio-sdk to download from go/ab")
+      help="The version of an SDK already in prebuilts to update the project's xmls")
   workspace = os.path.join(
       os.path.dirname(os.path.realpath(__file__)), "../../../..")
   args = parser.parse_args()
-  if not args.bid and not args.version:
+  options = [opt for opt in [args.version, args.download, args.path] if opt]
+  if len(options) != 1:
+    print("You must specify only one option")
     parser.print_usage()
   else:
     main(workspace, args)
