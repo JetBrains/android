@@ -359,12 +359,10 @@ class AndroidTestResultsTableViewTest {
     }
 
     val view = table.getTableViewForTesting()
-    assertThat(view.rowCount).isEqualTo(1)
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(-1)  // Root aggregation row
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(-1)  // Class1 aggregation row
-    assertThat(view.convertRowIndexToView(2)).isEqualTo(-1)  // Method1 row
-    assertThat(view.convertRowIndexToView(3)).isEqualTo(-1)  // Class2 aggregation row
-    assertThat(view.convertRowIndexToView(4)).isEqualTo(0)   // Method2 row
+    assertThat(view.rowCount).isEqualTo(3)
+    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(view.getItem(1).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(view.getItem(2).getFullTestCaseName()).isEqualTo("package2.class2.method2")
   }
 
   @Test

@@ -88,14 +88,11 @@ import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
-import javax.swing.RowFilter
 import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
-import javax.swing.table.TableModel
-import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import kotlin.math.max
@@ -146,16 +143,8 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
-    val sorter = myTableView.rowSorter as? TableRowSorter ?: return
-    sorter.rowFilter = object: RowFilter<TableModel, Int>() {
-      override fun include(entry: Entry<out TableModel, out Int>): Boolean {
-        if (entry.valueCount == 0) {
-          return false
-        }
-        val results = entry.getValue(0) as? AndroidTestResults ?: return false
-        return filter(results)
-      }
-    }
+    myModel.setRowFilter(filter)
+    refreshTable()
   }
 
   /**
@@ -412,7 +401,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
     }
     showHorizontalLines = false
-    rowSorter = DefaultColumnInfoBasedRowSorter(getModel())
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
@@ -611,6 +599,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       column.maxWidth = width
       column.preferredWidth = width
     }
+    model.applyFilter()
     myRowComparator?.let { model.sort(it) }
     model.reload()
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
@@ -636,6 +625,11 @@ private class AndroidTestResultsTableModel :
    * A current visible condition.
    */
   private var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
+
+  /**
+   * A filter to show and hide rows.
+   */
+  private var myRowFilter: ((Any) -> Boolean)? = null
 
   /**
    * Creates and adds a new column for a given device.
@@ -674,6 +668,31 @@ private class AndroidTestResultsTableModel :
       if (it is AndroidTestResultsColumn) {
         it.myVisibleCondition = myVisibleCondition
       }
+    }
+  }
+
+  /**
+   * Sets a filter to hide specific rows from this table.
+   *
+   * @param filter a predicate which returns false for an item to be hidden
+   */
+  fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
+    myRowFilter = {
+      when(it) {
+        is AndroidTestResultsRow -> filter(it)
+        is AggregationRow -> it.childCount > 0
+        else -> true
+      }
+    }
+    applyFilter()
+  }
+
+  /**
+   * Applies a row filter to update rows.
+   */
+  fun applyFilter() {
+    myRowFilter?.let {
+      myRootAggregationRow.applyFilter(it)
     }
   }
 
@@ -926,11 +945,39 @@ private class AndroidTestResultsRow(override val methodName: String,
   }
 }
 
+private open class FilterableTreeNode : DefaultMutableTreeNode() {
+  private var invisibleNodes: List<Any> = listOf()
+  val allChildren: Sequence<Any>
+    get() = sequence {
+      children?.let { yieldAll(it) }
+      yieldAll(invisibleNodes)
+    }
+
+  /**
+   * Applies a filter to show or hide rows.
+   *
+   * @param filter a predicate which returns false for an item to be hidden
+   */
+  fun applyFilter(filter: (Any) -> Boolean) {
+    if (children == null) {
+      return
+    }
+    children.addAll(invisibleNodes)
+    children.forEach {
+      if (it is FilterableTreeNode) {
+        it.applyFilter(filter)
+      }
+    }
+    invisibleNodes = children.filterNot(filter)
+    children.retainAll(filter)
+  }
+}
+
 /**
  * A row for displaying aggregated test results. Each row has test results for a device.
  */
 private class AggregationRow(override val packageName: String = "",
-                             override val className: String = "") : AndroidTestResults, DefaultMutableTreeNode() {
+                             override val className: String = "") : AndroidTestResults, FilterableTreeNode() {
   override val methodName: String = ""
   override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = getResultStats(device).getSummaryResult()
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
@@ -939,17 +986,17 @@ private class AggregationRow(override val packageName: String = "",
     return "${stats.passed + stats.skipped}/${stats.total}"
   }
   override fun getResultStats(): AndroidTestResultStats {
-    return children?.fold(AndroidTestResultStats()) { acc, result ->
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats()?.plus(acc) ?: acc
     }?:AndroidTestResultStats()
   }
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
-    return children?.fold(AndroidTestResultStats()) { acc, result ->
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
     }?:AndroidTestResultStats()
   }
   override fun getLogcat(device: AndroidDevice): String {
-    return children?.fold("") { acc, result ->
+    return allChildren.fold("") { acc, result ->
       val logcat = (result as? AndroidTestResults)?.getLogcat(device)
       if (logcat.isNullOrBlank()) {
         acc
@@ -963,7 +1010,7 @@ private class AggregationRow(override val packageName: String = "",
     }?:""
   }
   override fun getDuration(device: AndroidDevice): Duration? {
-    return  children?.fold(null as Duration?) { acc, result ->
+    return  allChildren.fold(null as Duration?) { acc, result ->
       val childDuration = (result as? AndroidTestResults)?.getDuration(device) ?: return@fold acc
       if (acc == null) {
         childDuration
@@ -973,13 +1020,13 @@ private class AggregationRow(override val packageName: String = "",
     }
   }
   override fun getTotalDuration(): Duration {
-    return Duration.ofMillis(children?.asSequence()?.map {
+    return Duration.ofMillis(allChildren.map {
       (it as? AndroidTestResults)?.getTotalDuration()?.toMillis() ?: 0
-    }?.sum() ?: 0)
+    }.sum())
   }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
   override fun getBenchmark(device: AndroidDevice): String {
-    return children?.fold("") { acc, result ->
+    return allChildren.fold("") { acc, result ->
       val benchmark = (result as? AndroidTestResults)?.getBenchmark(device)
       if (benchmark.isNullOrBlank()) {
         acc
@@ -990,7 +1037,7 @@ private class AggregationRow(override val packageName: String = "",
           "${acc}\n${benchmark}"
         }
       }
-    }?:""
+    }
   }
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
