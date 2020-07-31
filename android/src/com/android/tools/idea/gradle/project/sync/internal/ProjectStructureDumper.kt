@@ -59,7 +59,7 @@ fun ProjectDumper.dumpProject(project: Project) {
   println("<PROJECT>     <== ${File(project.basePath!!)}")
   head("PROJECT") { project.name }
   nest(File(project.basePath!!), "PROJECT") {
-    head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name }
+    head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name?.replaceJavaVersion() }
     nest {
       prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
     }

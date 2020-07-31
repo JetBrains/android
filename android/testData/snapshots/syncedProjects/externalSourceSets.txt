@@ -1,5 +1,5 @@
 PROJECT             : application
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : application
         ExternalModuleGroup :
