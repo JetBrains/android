@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run
 
-import com.android.builder.model.TestOptions
+import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
@@ -108,11 +108,11 @@ class AndroidRunStateTest {
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
     assertThat((runAndroidApplication().processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(TARGET_APP_ID)
-    assertThat((runAndroidTestApplication(TestOptions.Execution.HOST).processHandler as AndroidProcessHandler)
+    assertThat((runAndroidTestApplication(IdeTestOptions.Execution.HOST).processHandler as AndroidProcessHandler)
                  .targetApplicationId).isEqualTo(TARGET_APP_ID)
-    assertThat((runAndroidTestApplication(TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
+    assertThat((runAndroidTestApplication(IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
                  .targetApplicationId).isEqualTo(ORCHESTRATOR_APP_ID)
-    assertThat((runAndroidTestApplication(TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
+    assertThat((runAndroidTestApplication(IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
                  .targetApplicationId).isEqualTo(ANDROIDX_ORCHESTRATOR_APP_ID)
   }
 
@@ -128,7 +128,7 @@ class AndroidRunStateTest {
     return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
   }
 
-  private fun runAndroidTestApplication(execution: TestOptions.Execution = TestOptions.Execution.HOST): ExecutionResult {
+  private fun runAndroidTestApplication(execution: IdeTestOptions.Execution = IdeTestOptions.Execution.HOST): ExecutionResult {
     val mockTestRunConfiguration = mock(AndroidTestRunConfiguration::class.java)
     val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
     `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)

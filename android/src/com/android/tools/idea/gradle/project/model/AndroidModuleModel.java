@@ -27,8 +27,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAaptOptions;
@@ -41,6 +39,7 @@ import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
@@ -533,10 +532,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public TestOptions.Execution getTestExecutionStrategy() {
+  public IdeTestOptions.Execution getTestExecutionStrategy() {
     IdeAndroidArtifact artifact = getArtifactForAndroidTest();
     if (artifact != null) {
-      TestOptions testOptions = artifact.getTestOptions();
+      IdeTestOptions testOptions = artifact.getTestOptions();
       if (testOptions != null) {
         return testOptions.getExecution();
       }
