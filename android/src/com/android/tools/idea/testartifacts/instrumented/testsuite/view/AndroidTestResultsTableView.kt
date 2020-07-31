@@ -94,6 +94,7 @@ import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlin.math.max
 
@@ -972,10 +973,13 @@ private class AndroidTestResultsRow(override val methodName: String,
 }
 
 private open class FilterableTreeNode : DefaultMutableTreeNode() {
-  private var invisibleNodes: List<Any> = listOf()
-  val allChildren: Sequence<Any>
+  private var invisibleNodes: List<TreeNode> = listOf()
+  val allChildren: Sequence<TreeNode>
     get() = sequence {
-      children?.let { yieldAll(it) }
+      // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
+      // and this assignment is no longer unchecked.
+      @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
+      children?.let { yieldAll(it as Vector<TreeNode>) }
       yieldAll(invisibleNodes)
     }
 
@@ -994,7 +998,10 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
         it.applyFilter(filter)
       }
     }
-    invisibleNodes = children.filterNot(filter)
+    // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
+    // and this assignment is no longer unchecked.
+    @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
+    invisibleNodes = children.filterNot(filter) as List<TreeNode>
     children.retainAll(filter)
   }
 }
