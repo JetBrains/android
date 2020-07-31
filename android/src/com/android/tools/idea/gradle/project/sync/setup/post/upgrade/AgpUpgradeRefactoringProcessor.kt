@@ -63,15 +63,20 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.PREVIEW_REFACTORING
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
+import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
@@ -79,9 +84,11 @@ import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.refactoring.BaseRefactoringProcessor
+import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.usageView.UsageInfo
@@ -90,13 +97,22 @@ import com.intellij.usageView.UsageViewUtil
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageInfoSearcherAdapter
+import com.intellij.usages.UsageSearcher
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
+import com.intellij.usages.UsageViewManager
+import com.intellij.usages.UsageViewPresentation
+import com.intellij.usages.impl.UsageViewEx
+import com.intellij.usages.impl.UsageViewFactory
+import com.intellij.usages.impl.UsageViewImpl
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
+import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
+import com.intellij.util.Processor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
 import com.intellij.util.containers.ContainerUtil
@@ -104,6 +120,8 @@ import com.intellij.util.containers.toArray
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.event.ActionEvent
 import java.io.File
+import java.util.Arrays
+import java.util.HashSet
 import java.util.UUID
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -266,39 +284,172 @@ class AgpUpgradeRefactoringProcessor(
     return true
   }
 
-  override fun previewRefactoring(usages: Array<out UsageInfo>) {
-    trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
-    super.previewRefactoring(usages)
-  }
-
-  var additionalPreviewActions : List<Action> = listOf()
-
-  var usageView: UsageView? = null
-
-  // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
-  // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
-  // in-place, which is fine until the base method changes, at which point this processor will not reflect those
-  // changes.
-  override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
+  private fun ensureElementsWritable(usages: Array<out UsageInfo>, viewDescriptor: UsageViewDescriptor): Boolean {
     fun ensureFilesWritable(project: Project, elements: Collection<PsiElement>): Boolean {
       val psiElements = PsiUtilCore.toPsiElementArray(elements)
       return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
     }
 
-    fun ensureElementsWritable(usages: Array<out UsageInfo>, viewDescriptor: UsageViewDescriptor): Boolean {
-      val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
+    val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
 
-      for (usage in usages) {
-        assert(usage != null) { "Found null element in usages array" }
-        if (skipNonCodeUsages() && usage!!.isNonCodeUsage()) continue
-        val element = usage!!.element
-        if (element != null) elements.add(element)
+    for (usage in usages) {
+      assert(usage != null) { "Found null element in usages array" }
+      if (skipNonCodeUsages() && usage.isNonCodeUsage()) continue
+      val element = usage.element
+      if (element != null) elements.add(element)
+    }
+    elements.addAll(getElementsToWrite(viewDescriptor))
+    return ensureFilesWritable(project, elements)
+  }
+
+  var usageView: UsageView? = null
+
+  private fun createPresentation(descriptor: UsageViewDescriptor, usages: Array<Usage>): UsageViewPresentation {
+    val presentation = UsageViewPresentation()
+    // RefactoringBundle.message("usageView.tabText")
+    presentation.tabText = "Upgrade Preview"
+    presentation.targetsNodeText = descriptor.processedElementsHeader
+    presentation.isShowReadOnlyStatusAsRed = true
+    presentation.isShowCancelButton = true
+    presentation.usagesString = RefactoringBundle.message("usageView.usagesText")
+    var codeUsageCount = 0
+    var nonCodeUsageCount = 0
+    var dynamicUsagesCount = 0
+    val codeFiles: MutableSet<PsiFile?> = HashSet()
+    val nonCodeFiles: MutableSet<PsiFile?> = HashSet()
+    val dynamicUsagesCodeFiles: MutableSet<PsiFile?> = HashSet()
+
+    for (usage in usages) {
+      if (usage is PsiElementUsage) {
+        val elementUsage = usage
+        val element = elementUsage.element ?: continue
+        val containingFile = element.containingFile
+        if (usage is UsageInfo2UsageAdapter && usage.usageInfo.isDynamicUsage) {
+          dynamicUsagesCount++
+          dynamicUsagesCodeFiles.add(containingFile)
+        }
+        else if (elementUsage.isNonCodeUsage) {
+          nonCodeUsageCount++
+          nonCodeFiles.add(containingFile)
+        }
+        else {
+          codeUsageCount++
+          codeFiles.add(containingFile)
+        }
       }
-      elements.addAll(getElementsToWrite(viewDescriptor))
-      return ensureFilesWritable(project, elements)
+    }
+    codeFiles.remove(null)
+    nonCodeFiles.remove(null)
+    dynamicUsagesCodeFiles.remove(null)
 
+    val codeReferencesText: String = descriptor.getCodeReferencesText(codeUsageCount, codeFiles.size)
+    presentation.codeUsagesString = codeReferencesText
+    val commentReferencesText: String? = descriptor.getCommentReferencesText(nonCodeUsageCount, nonCodeFiles.size)
+    if (commentReferencesText != null) {
+      presentation.nonCodeUsagesString = commentReferencesText
+    }
+    presentation.setDynamicUsagesString("Dynamic " + StringUtil.decapitalize(
+      descriptor.getCodeReferencesText(dynamicUsagesCount, dynamicUsagesCodeFiles.size)))
+    val generatedCodeString: String
+    generatedCodeString = if (codeReferencesText.contains("in code")) {
+      StringUtil.replace(codeReferencesText, "in code", "in generated code")
+    }
+    else {
+      "$codeReferencesText in generated code"
+    }
+    presentation.usagesInGeneratedCodeString = generatedCodeString
+    return presentation
+
+  }
+
+  private fun showUsageView(viewDescriptor: UsageViewDescriptor, factory: Factory<UsageSearcher>, usageInfos: Array<out UsageInfo>) {
+    val viewManager = UsageViewManager.getInstance(myProject)
+
+    val initialElements = viewDescriptor.elements
+    val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements)
+    val convertUsagesRef = Ref<Array<Usage>>()
+    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        {
+          ApplicationManager.getApplication().runReadAction {
+            val usages: Array<Usage> = UsageInfo2UsageAdapter.convert(usageInfos) as Array<Usage>
+            convertUsagesRef.set(usages)
+          }
+        },
+        RefactoringBundle.message("refactoring.preprocess.usages.progress"), true, myProject)) {
+      return
     }
 
+    if (convertUsagesRef.isNull) {
+      return
+    }
+
+    val usages = convertUsagesRef.get()
+
+    val presentation = createPresentation(viewDescriptor, usages)
+    if (usageView == null) {
+      usageView = viewManager.showUsages(targets, usages, presentation, factory)
+      customizeUsagesView(viewDescriptor, usageView!!)
+    }
+    else {
+      usageView?.run { removeUsagesBulk(this.usages) }
+      (usageView as UsageViewImpl).appendUsagesInBulk(Arrays.asList(*usages))
+    }
+    // TODO(xof): investigate whether UnloadedModules are a thing we support / understand
+    //val unloadedModules = computeUnloadedModulesFromUseScope(viewDescriptor)
+    //if (!unloadedModules.isEmpty()) {
+    //  usageView?.appendUsage(UnknownUsagesInUnloadedModules(unloadedModules))
+    //}
+  }
+
+  override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
+    // this would be `super.previewRefactoring(usages) except that there's no way to override the tab window title
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      ensureElementsWritable(usages, createUsageViewDescriptor(usages))
+      execute(usages)
+      return
+    }
+    val viewDescriptor = createUsageViewDescriptor(usages)
+    val elements = viewDescriptor.elements
+    val targets = PsiElement2UsageTargetAdapter.convert(elements)
+    val factory = Factory<UsageSearcher> {
+      object : UsageInfoSearcherAdapter() {
+        override fun generate(
+          processor: Processor<in Usage?>) {
+          ApplicationManager.getApplication().runReadAction {
+            var i = 0
+            while (i < elements.size) {
+              elements[i] = targets[i].element
+              i++
+            }
+            refreshElements(
+              elements)
+          }
+          processUsages(
+            processor,
+            myProject)
+        }
+
+        override fun findUsages(): Array<UsageInfo> {
+          return this@AgpUpgradeRefactoringProcessor.findUsages()
+        }
+      }
+    }
+
+    showUsageView(viewDescriptor, factory, usages)
+  }
+
+  var additionalPreviewActions : List<Action> = listOf()
+
+  // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
+  // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
+  // in-place, which is fine until the base method changes, at which point this processor will not reflect those
+  // changes.
+  //
+  // TODO(xof): given that in order to change the tool window tab name we have to override previewRefactoring() as well,
+  //  it's possible that rather than overriding customizeUsagesView (which is only called from previewRefactoring()) we
+  //  could just inline its effect.
+  override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
     val refactoringRunnable = Runnable {
       val usagesToRefactor = UsageViewUtil.getNotExcludedUsageInfos(usageView)
       val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
