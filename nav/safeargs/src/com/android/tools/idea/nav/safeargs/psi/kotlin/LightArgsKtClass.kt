@@ -174,7 +174,6 @@ class LightArgsKtClass(
         valueParametersProvider = { argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters }
       )
 
-      // TODO(b/157920723): Destructuring declaration doesn't work
       var index = 1
       val componentFunctions = argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
         .asSequence()
@@ -189,6 +188,7 @@ class LightArgsKtClass(
             name = methodName,
             returnType = parameter.type,
             dispatchReceiver = argsClassDescriptor,
+            isOperator = true,
             sourceElement = resolvedSourceElement
           )
         }

@@ -14,6 +14,9 @@
         <argument
             android:name="arg1"
             app:argType="integer" />
+        <argument
+            android:name="arg2"
+            app:argType="integer" />
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
