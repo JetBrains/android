@@ -738,6 +738,7 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
     assertThat(elements).hasLength(3);
+/* b/162618558
     assertThat(elements[0].toString()).isEqualTo("MyModel.newInstance");
     assertThat(elements[1].toString()).isEqualTo("MyModel.newInstance");
     assertThat(elements[2].toString()).isEqualTo("MyModel.Outputs");
@@ -758,6 +759,7 @@ public class MlLightClassTest extends AndroidTestCase {
                           "        MyModel.Outputs;\n" +
                           "    }\n" +
                           "}");
+b/162618558 */
   }
 
   public void testCompleteInnerInputClassWithoutOuterClass() {
