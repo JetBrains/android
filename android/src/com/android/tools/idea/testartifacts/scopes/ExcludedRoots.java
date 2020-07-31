@@ -21,12 +21,11 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -210,7 +209,7 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    com.android.ide.common.gradle.model.level2.IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
       for (String path : library.getLocalJars()) {
         File file = new File(path);

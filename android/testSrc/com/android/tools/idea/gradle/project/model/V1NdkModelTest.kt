@@ -21,10 +21,10 @@ import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
-import com.android.ide.common.gradle.model.ModelCache
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.serialization.ObjectSerializer
