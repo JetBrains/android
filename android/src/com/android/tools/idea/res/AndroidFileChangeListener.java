@@ -327,7 +327,11 @@ public class AndroidFileChangeListener implements Disposable {
       }
     }
 
-    private void onFileOrDirectoryCreated(@NotNull VirtualFile parent, @NotNull String childName) {
+    private void onFileOrDirectoryCreated(@Nullable VirtualFile parent, @NotNull String childName) {
+      if (parent == null) {
+        return;
+      }
+
       VirtualFile created = parent.findChild(childName);
       if (created == null) {
         return;
