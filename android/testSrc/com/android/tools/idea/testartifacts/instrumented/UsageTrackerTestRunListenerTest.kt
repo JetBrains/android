@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
+import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
@@ -148,7 +148,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   }
 
   fun testExecutionMapping() {
-    for (execution in TestOptions.Execution.values()) {
+    for (execution in IdeTestOptions.Execution.values()) {
       assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
     }
   }

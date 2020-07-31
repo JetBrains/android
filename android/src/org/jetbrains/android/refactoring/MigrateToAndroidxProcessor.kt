@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.builder.model.TestOptions.Execution
+import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
@@ -449,8 +449,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
       val executionProperty = androidBlock.testOptions().execution()
       val executionValue = executionProperty.getValue(GradlePropertyModel.STRING_TYPE)
-      if (executionValue.equals(Execution.ANDROID_TEST_ORCHESTRATOR.name, ignoreCase = true)) {
-        addStringUsage(executionProperty, executionValue!!, Execution.ANDROIDX_TEST_ORCHESTRATOR.name)
+      if (executionValue.equals(IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name, ignoreCase = true)) {
+        addStringUsage(executionProperty, executionValue!!, IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR.name)
       }
     }
 

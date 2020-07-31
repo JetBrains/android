@@ -20,9 +20,9 @@ import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
-import com.android.builder.model.TestOptions;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -501,7 +501,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       .map(AndroidModuleModel::get)
       .map(AndroidModuleModel::getArtifactForAndroidTest)
       .map(IdeAndroidArtifact::getTestOptions)
-      .map(TestOptions::getAnimationsDisabled)
+      .map(IdeTestOptions::getAnimationsDisabled)
       .orElse(false);
     if (isAnimationDisabled) {
       builder.add("--no-window-animation");
@@ -633,12 +633,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    *
    * @param facet Android facet to retrieve test execution option
    */
-  public TestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
+  public IdeTestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
     return Optional.ofNullable(facet)
       .map(f -> AndroidModuleModel.get(f))
       .map(model -> model.getArtifactForAndroidTest())
       .map(testArtifact -> testArtifact.getTestOptions())
       .map(testOptions -> testOptions.getExecution())
-      .orElse(TestOptions.Execution.HOST);
+      .orElse(IdeTestOptions.Execution.HOST);
   }
 }

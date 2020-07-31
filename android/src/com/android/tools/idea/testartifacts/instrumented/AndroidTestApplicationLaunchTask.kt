@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
@@ -36,7 +36,6 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -203,14 +202,20 @@ class AndroidTestApplicationLaunchTask private constructor(
    */
   fun createRemoteAndroidTestRunner(device: IDevice): RemoteAndroidTestRunner {
     return when (myArtifact?.testOptions?.execution) {
-      TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId,
-                                                                                                        myInstrumentationTestRunner,
-                                                                                                        device,
-                                                                                                        false)
-      TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId,
-                                                                                                         myInstrumentationTestRunner,
-                                                                                                         device,
-                                                                                                         true)
+      IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR ->
+        AndroidTestOrchestratorRemoteAndroidTestRunner(
+          myTestApplicationId,
+          myInstrumentationTestRunner,
+          device,
+          false
+        )
+      IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR ->
+        AndroidTestOrchestratorRemoteAndroidTestRunner(
+          myTestApplicationId,
+          myInstrumentationTestRunner,
+          device,
+          true
+        )
       else -> {
         val statusReporterMode =
           if (device.version.apiLevel >= StatusReporterMode.PROTO_STD.minimumApiLevel) {

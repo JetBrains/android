@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.builder.model.TestOptions
-import com.android.builder.model.TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
-import com.android.builder.model.TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
-import com.android.builder.model.TestOptions.Execution.HOST
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.ide.common.gradle.model.IdeTestOptions.Execution
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun
 
-fun TestOptions.Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
-  ANDROID_TEST_ORCHESTRATOR, ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
-  HOST, null -> TestRun.TestExecution.HOST
+fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
+  Execution.ANDROID_TEST_ORCHESTRATOR, Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+  Execution.HOST, null -> TestRun.TestExecution.HOST
   else -> TestRun.TestExecution.UNKNOWN_TEST_EXECUTION
 }
 
