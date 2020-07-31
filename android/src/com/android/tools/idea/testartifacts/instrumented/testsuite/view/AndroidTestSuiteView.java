@@ -489,8 +489,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @AnyThread
   public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
-      AndroidTestResults results = myTable.addTestCase(device, testCase);
-      myInsertionOrderMap.computeIfAbsent(results, (unused) -> myInsertionOrderMap.size());
+      myTable.addTestCase(device, testCase).iterator().forEachRemaining(results -> {
+        myInsertionOrderMap.computeIfAbsent(results, (unused) -> myInsertionOrderMap.size());
+      });
       myDetailsView.reloadAndroidTestResults();
     });
   }
