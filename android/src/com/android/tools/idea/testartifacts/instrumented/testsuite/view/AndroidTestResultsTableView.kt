@@ -127,13 +127,23 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    *
    * @param device a device which the given [testCase] belongs to
    * @param testCase a test case to be displayed in the table
+   * @return a sequence of AndroidTestResults which are added or updated
    */
   @UiThread
-  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase): AndroidTestResults {
+  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase): Sequence<AndroidTestResults> {
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
-    return testRow
+    return sequence<AndroidTestResults> {
+      yield(testRow)
+      var parent = testRow.parent
+      while (parent != null) {
+        if (parent is AndroidTestResults) {
+          yield(parent)
+        }
+        parent = parent.parent
+      }
+    }
   }
 
   /**

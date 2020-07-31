@@ -372,59 +372,73 @@ class AndroidTestSuiteViewTest {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1")
-    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "Z_method1", "class", "package")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "A_method2", "class", "package")
+    val testsuite = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 4)
+    val testcase1 = AndroidTestCase("testId1", "Z_method1", "Z_class", "package")
+    val testcase2 = AndroidTestCase("testId2", "A_method2", "Z_class", "package")
+    val testcase3 = AndroidTestCase("testId3", "A_method3", "A_class2", "package")
+    val testcase4 = AndroidTestCase("testId4", "Z_method4", "A_class2", "package")
 
     view.onTestSuiteScheduled(device1)
+    view.onTestSuiteStarted(device1, testsuite)
 
-    // Test execution on device 1.
-    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase1OnDevice1)
-    testcase1OnDevice1.apply {
-      result = AndroidTestCaseResult.PASSED
-      startTimestampMillis = 0
-      endTimestampMillis = 100
+    val runTestCase = { testCase: AndroidTestCase, elapsedTimeMillis: Long ->
+      view.onTestCaseStarted(device1, testsuite, testCase)
+      testCase.apply {
+        result = AndroidTestCaseResult.PASSED
+        startTimestampMillis = 0
+        endTimestampMillis = elapsedTimeMillis
+      }
+      view.onTestCaseFinished(device1, testsuite, testCase)
     }
-    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase1OnDevice1)
-    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase2OnDevice1)
-    testcase2OnDevice1.apply {
-      result = AndroidTestCaseResult.PASSED
-      startTimestampMillis = 0
-      endTimestampMillis = 200
-    }
-    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase2OnDevice1)
-    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    runTestCase(testcase1, 100)
+    runTestCase(testcase2, 200)
+    runTestCase(testcase3, 300)
+    runTestCase(testcase4, 10)
+
+    view.onTestSuiteFinished(device1, testsuite)
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
 
     // Enable sort by name.
     view.mySortByNameToggleButton.isSelected = true
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
 
     // Disabling sort by name should restore the original insertion order.
     view.mySortByNameToggleButton.isSelected = false
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
 
     // Enable sort by duration.
     view.mySortByDurationToggleButton.isSelected = true
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")  // 300 ms
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")  // 10 ms
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")  // 200 ms
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")  // 100 ms
   }
 
   @Test
