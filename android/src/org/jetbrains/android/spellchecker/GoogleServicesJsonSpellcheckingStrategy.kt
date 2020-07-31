@@ -17,7 +17,6 @@ package org.jetbrains.android.spellchecker
 
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.spellchecker.inspections.PlainTextSplitter
@@ -53,6 +52,6 @@ class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy() {
 
   override fun isMyContext(element: PsiElement): Boolean {
     val file = element.containingFile ?: return false
-    return file.virtualFile.name.equals("google-services.json", ignoreCase = !SystemInfo.isFileSystemCaseSensitive)
+    return file.virtualFile.name.equals("google-services.json", ignoreCase = !file.virtualFile.isCaseSensitive)
   }
 }
