@@ -311,14 +311,16 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase2OnDevice2)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
-    // Select "device1" in the device filter ComboBox.
+    // Select "device2" in the device filter ComboBox.
     view.myDeviceFilterComboBoxModel.selectedItem =
       AndroidTestSuiteView.DeviceFilterComboBoxItem(device2)
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
-    assertThat(tableViewModel.columnInfos[2].getWidth(tableView)).isEqualTo(1)
-    assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(120)
+    assertThat(tableView.columnCount).isEqualTo(3)
+    assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
+    assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName2")
   }
 
   @Test
@@ -363,8 +365,10 @@ class AndroidTestSuiteViewTest {
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
-    assertThat(tableViewModel.columnInfos[2].getWidth(tableView)).isEqualTo(120)
-    assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(1)
+    assertThat(tableView.columnCount).isEqualTo(3)
+    assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
+    assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName1")
   }
 
   @Test

@@ -373,18 +373,25 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
+
+    val view = table.getTableViewForTesting()
+    val model = table.getModelForTesting()
+
+    assertThat(view.columnCount).isEqualTo(4)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Status")
+    assertThat(model.columns[2].name).isEqualTo("deviceName1")
+    assertThat(model.columns[3].name).isEqualTo("deviceName2")
+
+    // Apply column filter.
     table.setColumnFilter { device ->
       device.id == "deviceId2"
     }
 
-    // "Test Name" + "Test Summary" + "Device 1" + "Device 2".
-    // Device 1 is still visible but we change its width to 1px because
-    // column sorter is not natively supported unlike rows.
-    val view = table.getTableViewForTesting()
-    val model = table.getModelForTesting()
-    assertThat(view.columnCount).isEqualTo(4)
-    assertThat(model.columnInfos[2].getWidth(view)).isEqualTo(1)
-    assertThat(model.columnInfos[3].getWidth(view)).isEqualTo(120)
+    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Status")
+    assertThat(model.columns[2].name).isEqualTo("deviceName2")
   }
 
   @Test

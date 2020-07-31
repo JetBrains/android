@@ -164,7 +164,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
-    myModel.setVisibleCondition(filter)
+    myModel.setColumnFilter(filter)
     refreshTable()
   }
 
@@ -631,10 +631,12 @@ private class AndroidTestResultsTableModel :
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
 
+  val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
+
   /**
-   * A current visible condition.
+   * A filter to show and hide columns.
    */
-  private var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
+  private var myColumnFilter: ((AndroidDevice) -> Boolean)? = null
 
   /**
    * A filter to show and hide rows.
@@ -645,9 +647,7 @@ private class AndroidTestResultsTableModel :
    * Creates and adds a new column for a given device.
    */
   fun addDeviceColumn(device: AndroidDevice) {
-    columns += AndroidTestResultsColumn(device).apply {
-      myVisibleCondition = this@AndroidTestResultsTableModel.myVisibleCondition
-    }
+    myDeviceColumns.add(AndroidTestResultsColumn(device))
   }
 
   /**
@@ -670,15 +670,38 @@ private class AndroidTestResultsTableModel :
   /**
    * Sets a visible condition.
    *
-   * @param visibleCondition a predicate which returns true for an column to be displayed
+   * @param columnFilter a predicate which returns true for an column to be displayed
    */
-  fun setVisibleCondition(visibleCondition: (AndroidDevice) -> Boolean) {
-    myVisibleCondition = visibleCondition
-    columnInfos.forEach {
-      if (it is AndroidTestResultsColumn) {
-        it.myVisibleCondition = myVisibleCondition
-      }
-    }
+  fun setColumnFilter(columnFilter: (AndroidDevice) -> Boolean) {
+    myColumnFilter = columnFilter
+  }
+
+  override fun getColumnClass(column: Int): Class<*> {
+    return columns[column].columnClass
+  }
+
+  override fun getColumnName(column: Int): String {
+    return columns[column].name
+  }
+
+  override fun getColumnCount(): Int {
+    return columns.size
+  }
+
+  override fun getValueAt(value: Any?, column: Int): Any? {
+    return columns[column].valueOf(value)
+  }
+
+  override fun getColumnInfos(): Array<ColumnInfo<Any, Any>> {
+    return columns
+  }
+
+  override fun getColumns(): Array<ColumnInfo<Any, Any>> {
+    return arrayOf(*super.getColumns(), *(myDeviceColumns.filter {
+      myColumnFilter?.invoke(it.device) ?: true
+    }.map{
+      it as ColumnInfo<Any, Any>
+    }.toTypedArray()))
   }
 
   /**
@@ -783,19 +806,12 @@ private class AndroidTestResultsColumn(val device: AndroidDevice) :
   private val myComparator = Comparator<AndroidTestResults> { lhs, rhs ->
     compareValues(lhs.getTestCaseResult(device), rhs.getTestCaseResult(device))
   }
-  var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
   override fun getName(): String = device.getName()
   override fun valueOf(item: AndroidTestResults): AndroidTestResultStats {
     return item.getResultStats(device)
   }
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
-  override fun getWidth(table: JTable): Int {
-    val isVisible = myVisibleCondition?.invoke(device) ?: true
-    // JTable does not support hiding columns natively. We simply set the column
-    // width to 1 px to hide. Note that you cannot set zero here because it will be
-    // ignored. See TableView.updateColumnSizes for details.
-    return if (isVisible) { 120 } else { 1 }
-  }
+  override fun getWidth(table: JTable): Int = 120
   override fun getRenderer(item: AndroidTestResults?): TableCellRenderer {
     return if (item is AggregationRow) {
       AndroidTestAggregatedResultsColumnCellRenderer
