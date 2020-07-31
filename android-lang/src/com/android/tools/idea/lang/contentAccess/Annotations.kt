@@ -24,3 +24,6 @@ internal const val CONTENT_QUERY_ANNOTATION = "androidx.contentaccess.ContentQue
 internal const val CONTENT_UPDATE_ANNOTATION = "androidx.contentaccess.ContentUpdate"
 internal const val CONTENT_DELETE_ANNOTATION = "androidx.contentaccess.ContentDelete"
 internal const val CONTENT_INSERT_ANNOTATION = "androidx.contentaccess.ContentInsert"
+
+internal const val URI_PARAM = "uri"
+internal const val CONTENT_ENTITY_PARAM = "contentEntity"
