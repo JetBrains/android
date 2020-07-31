@@ -154,7 +154,7 @@ class ResourceExplorerToolbarViewModel(
   private fun chooseFile(supportedFileTypes: Set<String>, supportsBatchImport: Boolean): Collection<String> {
     val fileChooserDescriptor = FileChooserDescriptor(true, true, false, false, false, supportsBatchImport)
       .withFileFilter { file ->
-        supportedFileTypes.any { Comparing.equal(file.extension, it, SystemInfo.isFileSystemCaseSensitive) }
+        supportedFileTypes.any { Comparing.equal(file.extension, it, file.isCaseSensitive) }
       }
     return FileChooser.chooseFiles(fileChooserDescriptor, facet.module.project, null)
       .map(VirtualFile::getPath)

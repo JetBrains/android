@@ -53,6 +53,6 @@ class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy() {
 
   override fun isMyContext(element: PsiElement): Boolean {
     val file = element.containingFile ?: return false
-    return file.virtualFile.name.equals("google-services.json", ignoreCase = !SystemInfo.isFileSystemCaseSensitive)
+    return file.virtualFile.name.equals("google-services.json", ignoreCase = !file.virtualFile.isCaseSensitive)
   }
 }

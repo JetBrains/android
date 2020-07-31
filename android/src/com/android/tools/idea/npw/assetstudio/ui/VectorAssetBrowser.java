@@ -23,8 +23,9 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A text field with a browse button which wraps a {@link VectorAsset}, which allows the user
@@ -79,6 +79,6 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
 
   private static FileChooserDescriptor createFileDescriptor(@NotNull String... extensions) {
     return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(
-        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, SystemInfo.isFileSystemCaseSensitive)));
+        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, file.isCaseSensitive())));
   }
 }
