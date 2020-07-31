@@ -119,7 +119,7 @@ class TreeCellRendererImpl(
      */
     override fun getPreferredSize(): Dimension {
       val leftOffset = getLeftOffset(tree)
-      val size = super.getPreferredSize()
+      val size = Dimension(super.getPreferredSize())
       size.width = max(size.width, tree.width - leftOffset)
       return size
     }
@@ -137,7 +137,7 @@ class TreeCellRendererImpl(
         super.setBounds(x, y, width, height)
       }
       else {
-        super.setBounds(x, y, min(tree.width - x, width), height)
+        super.setBounds(x, y, min(tree.width - x - insets.right, width), height)
       }
     }
 
@@ -148,7 +148,7 @@ class TreeCellRendererImpl(
      */
     private fun getLeftOffset(tree: JTree): Int {
       val ui = tree.ui as BasicTreeUI
-      return (ui.leftChildIndent + ui.rightChildIndent) * (currentDepth - 1)
+      return tree.insets.left +(ui.leftChildIndent + ui.rightChildIndent) * (currentDepth - 1)
     }
   }
 }
