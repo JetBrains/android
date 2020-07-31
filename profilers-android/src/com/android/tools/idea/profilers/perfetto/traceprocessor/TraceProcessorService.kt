@@ -23,6 +23,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModel
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.ProcessModel

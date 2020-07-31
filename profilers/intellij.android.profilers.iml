@@ -31,6 +31,15 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
+    <orderEntry type="module-library">
+      <library name="traceprocessor-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
   </component>
 </module>

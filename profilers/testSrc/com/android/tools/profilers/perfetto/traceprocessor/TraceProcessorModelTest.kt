@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.perfetto.traceprocessor
+package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
@@ -107,11 +107,14 @@ class TraceProcessorModelTest {
       .addThread(1, "MainThreadProcess1")
 
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000, 3000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000, 3000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
     schedProtoBuilder.addSchedulingEvent(1, 1, 1, 7000, 2000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 2, 11000, 2000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
+    schedProtoBuilder.addSchedulingEvent(1, 1, 2, 11000, 2000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
     schedProtoBuilder.addSchedulingEvent(1, 2, 2, 2000, 4000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
-    schedProtoBuilder.addSchedulingEvent(1, 2, 1, 10000, 1000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    schedProtoBuilder.addSchedulingEvent(1, 2, 1, 10000, 1000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addProcessMetadata(processProtoBuilder.build())
