@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.gradle.model.level2.IdeLibrary
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker

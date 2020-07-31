@@ -27,7 +27,7 @@ import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.resources.ResourceType.STYLE_ITEM;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;

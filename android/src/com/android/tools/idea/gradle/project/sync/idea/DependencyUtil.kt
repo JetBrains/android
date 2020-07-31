@@ -22,11 +22,9 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.builder.model.level2.Library
-import com.android.builder.model.level2.Library.LIBRARY_ANDROID
-import com.android.builder.model.level2.Library.LIBRARY_JAVA
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.level2.IdeLibrary
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel

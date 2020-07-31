@@ -21,11 +21,11 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
-import com.android.ide.common.gradle.model.level2.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.level2.IdeJavaLibrary;
-import com.android.ide.common.gradle.model.level2.IdeJavaLibraryCore;
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
-import com.android.ide.common.gradle.model.level2.IdeModuleLibrary;
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary;
+import com.android.ide.common.gradle.model.impl.IdeJavaLibrary;
+import com.android.ide.common.gradle.model.impl.IdeJavaLibraryCore;
+import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.ide.common.gradle.model.impl.IdeModuleLibrary;
 import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.ModuleLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;

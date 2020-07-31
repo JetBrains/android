@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;

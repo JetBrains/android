@@ -46,14 +46,16 @@ import com.android.ide.common.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.ide.common.gradle.model.impl.IdeVariantImpl
 import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.ide.common.gradle.model.ModelCache
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
+import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
-import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
-import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
+import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
+import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
 import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
@@ -190,7 +192,7 @@ class ModelSerializationTest {
 
   @Test
   fun level2AndroidLibrary() = assertSerializable {
-    com.android.ide.common.gradle.model.level2.IdeAndroidLibrary(
+    IdeAndroidLibrary(
       "artifactAddress",
       File("folder"),
       "manifest",
@@ -215,7 +217,7 @@ class ModelSerializationTest {
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    com.android.ide.common.gradle.model.level2.IdeJavaLibrary("artifactAddress", File("artifactFile"), true)
+    IdeJavaLibrary("artifactAddress", File("artifactFile"), true)
   }
 
   @Test
