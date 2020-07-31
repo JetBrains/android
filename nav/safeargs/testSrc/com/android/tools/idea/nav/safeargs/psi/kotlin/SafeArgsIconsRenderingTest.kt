@@ -167,8 +167,8 @@ class SafeArgsIconsRenderingTest {
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
     Truth.assertThat(icons).containsExactly(
+      // componentN() functions of data class are filtered out when collecting variants during completions.
       "arg1" to FIELD_VAL_ICON,
-      "component1" to METHOD_ICON,
       "copy" to METHOD_ICON,
       "toBundle" to METHOD_ICON
     )
