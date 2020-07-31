@@ -29,6 +29,7 @@ import static com.android.tools.idea.res.ResourceAsserts.assertThat;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
@@ -51,13 +52,11 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.DrawableRenderer;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.problems.MockWolfTheProblemSolver;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -113,7 +112,7 @@ import org.jetbrains.annotations.Nullable;
  *       Check that in the ModuleResourceRepository test.
  * TODO: Test that adding and removing characters inside a {@code <string>} element does not cause a full rescan.
  */
-@SuppressWarnings({"UnusedDeclaration", "SpellCheckingInspection"})
+@SuppressWarnings({"UnusedDeclaration", "SpellCheckingInspection", "RedundantThrows"})
 public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
@@ -152,7 +151,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         return super.getCachingData(project, resourceDir, directExecutor());
       }
     };
-    new IdeComponents(getProject()).replaceApplicationService(ResourceFolderRepositoryFileCache.class, cache);
+    ServiceContainerUtil.replaceService(getApplication(), ResourceFolderRepositoryFileCache.class, cache, getTestRootDisposable());
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
     Path file = cache.getCachingData(getProject(), getResourceDirectory(), null).getCacheFile();
     Files.deleteIfExists(file);
@@ -258,7 +257,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   /** Tests handling of xliff markup. */
-  @SuppressWarnings("ConstantConditions")
   public void testXliff() {
     VirtualFile file1 = myFixture.copyFileToProject(XLIFF, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -701,7 +699,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("en", item.getConfiguration().getQualifierString());
     assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
-    //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
@@ -721,7 +718,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("no", item.getConfiguration().getQualifierString());
     assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
-    //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue().getValue());
   }
 
@@ -1035,7 +1031,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.isScanPending(psiFile1));
     resetCounters();
-    ApplicationManager.getApplication().invokeLater(() -> {
+    getApplication().invokeLater(() -> {
       ensureSingleScan();
       assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
       assertTrue(resources.getModificationCount() > generation2);
@@ -1629,7 +1625,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       ensureSingleScan();
       assertTrue(generation < resources.getModificationCount());
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_string"));
-      //noinspection ConstantConditions
       assertEquals("New String", resources.getResources(RES_AUTO, ResourceType.STRING, "new_string").get(0).getResourceValue().getValue());
     });
   }
@@ -3131,7 +3126,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       ResourceValue actionBarStyle = srv.getItem(ANDROID, "background");
       assertNotNull(actionBarStyle);
       assertEquals("@android:color/transparent", actionBarStyle.getValue());
-      //noinspection ConstantConditions
       assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue().getValue());
     });
   }
@@ -3384,7 +3378,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRegisteredRepository();
     assertNotNull(resources);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    //noinspection ConstantConditions
     assertEquals("My Application 574",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
@@ -3434,10 +3427,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
 
-    //noinspection ConstantConditions
     assertEquals("New Value",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
-    //noinspection ConstantConditions
     assertEquals("My Application 574",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
@@ -3454,13 +3445,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name2"));
 
-    //noinspection ConstantConditions
     assertEquals("New Value",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
-    //noinspection ConstantConditions
     assertEquals("Another Value",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "new_name2").get(0).getResourceValue().getValue());
-    //noinspection ConstantConditions
     assertEquals("My Application 574",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
     ensureIncremental();
@@ -3477,7 +3465,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "dupe_name"));
-    //noinspection ConstantConditions
     assertEquals("Animations Demo",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
@@ -3499,10 +3486,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "dupe_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    //noinspection ConstantConditions
     assertEquals("Duplicate Demo",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "dupe_name").get(0).getResourceValue().getValue());
-    //noinspection ConstantConditions
     assertEquals("Animations Demo",
                  resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
@@ -3577,7 +3562,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     List<ResourceItem> items = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(items).hasSize(1);
-    //noinspection ConstantConditions
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("Fixed Animations Demo");
   }
 
@@ -3654,7 +3638,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
-      assertTrue(ApplicationManager.getApplication().isDispatchThread());
+      assertTrue(getApplication().isDispatchThread());
       resources.sync();
       assertTrue(generation < resources.getModificationCount());
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -3778,7 +3762,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     generation2 = resources.getModificationCount();
 
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "title_zoom");
-    //noinspection ConstantConditions
     assertEquals("Zoom", item.getResourceValue().getValue());
     WriteCommandAction.runWriteCommandAction(null, () -> {
       int offset = document.getText().indexOf("Zoom");
@@ -4487,7 +4470,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository repository = createRegisteredRepository();
 
     resetCounters();
-    ApplicationManager.getApplication().runWriteAction(() -> {
+    getApplication().runWriteAction(() -> {
       try {
         ttfFile.setBinaryContent(new byte[] { 2 });
       }
