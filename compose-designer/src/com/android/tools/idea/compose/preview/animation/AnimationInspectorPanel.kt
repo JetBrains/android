@@ -481,11 +481,17 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   private inner class TimelineSpeedAction : DropDownAction(message("animation.inspector.action.speed"),
                                                            message("animation.inspector.action.speed"),
-                                                           StudioIcons.LayoutEditor.Motion.SLOW_MOTION) {
+                                                           null) {
 
     init {
       enumValues<TimelineSpeed>().forEach { addAction(SpeedAction(it)) }
     }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.text = timeline.speed.displayText
+    }
+
+    override fun displayTextInToolbar() = true
 
     private inner class SpeedAction(private val speed: TimelineSpeed) : ToggleAction("${speed.displayText}", "${speed.displayText}", null) {
       override fun isSelected(e: AnActionEvent) = timeline.speed == speed
