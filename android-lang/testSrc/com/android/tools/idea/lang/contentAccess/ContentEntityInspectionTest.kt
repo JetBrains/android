@@ -17,6 +17,8 @@ package com.android.tools.idea.lang.contentAccess
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.util.ThrowableRunnable
 import org.jetbrains.kotlin.idea.KotlinFileType
 
 class ContentEntityInspectionTest : ContentAccessTestCase() {
@@ -45,11 +47,35 @@ class ContentEntityInspectionTest : ContentAccessTestCase() {
       )
     """.trimIndent())
 
-    val errors = myFixture.doHighlighting(HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING).map { it.description }
-    assertThat(errors).hasSize(2)
-    assertThat(errors).containsExactly(
+    val errors = myFixture.doHighlighting(HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING)
+    val errorTexts = errors.map { it.description }
+    assertThat(errorTexts).containsExactly(
       "ContentPrimaryKey is only useful within @ContentEntity annotated class",
       "ContentColumn is only useful within @ContentEntity annotated class"
+    )
+
+    val fix = errors.first().quickFixActionRanges.first().first
+    assertThat(fix).isNotNull()
+    WriteCommandAction.writeCommandAction(project).run(ThrowableRunnable<Throwable> {
+      fix.action.invoke(project, myFixture.editor, myFixture.file)
+    })
+    myFixture.checkResult(
+      //language=kotlin
+      """
+      package test
+
+      import androidx.contentaccess.ContentColumn
+      import androidx.contentaccess.ContentEntity
+      import androidx.contentaccess.ContentPrimaryKey
+
+      @ContentEntity
+      data class Image(
+        @ContentPrimaryKey("id")
+        var iD: Long,
+        @ContentColumn("title")
+        var title: String?
+      )
+      """.trimIndent()
     )
   }
 
@@ -72,12 +98,36 @@ class ContentEntityInspectionTest : ContentAccessTestCase() {
       }
     """.trimIndent())
 
-    val errors = myFixture.doHighlighting(HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING).map { it.description }
-    assertThat(errors).hasSize(2)
-    assertThat(errors).containsExactly(
+    val errors = myFixture.doHighlighting(HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING)
+    val errorTexts = errors.map { it.description }
+    assertThat(errorTexts).containsExactly(
       "ContentPrimaryKey is only useful within @ContentEntity annotated class",
       "ContentColumn is only useful within @ContentEntity annotated class"
     )
+
+    val fix = errors.first().quickFixActionRanges.first().first
+    assertThat(fix).isNotNull()
+    WriteCommandAction.writeCommandAction(project).run(ThrowableRunnable<Throwable> {
+      fix.action.invoke(project, myFixture.editor, myFixture.file)
+    })
+    myFixture.checkResult(
+      //language=JAVA
+      """
+      package test;
+
+      import androidx.contentaccess.ContentColumn;
+      import androidx.contentaccess.ContentEntity;
+      import androidx.contentaccess.ContentPrimaryKey;
+
+      @ContentEntity
+      public class Entity {
+        @ContentPrimaryKey(columnName = "dtstart")
+        public Long startTime;
+
+        @ContentColumn(columnName = "dtend")
+        public Long endTime;
+      }
+      """.trimIndent())
   }
 
   fun testContentEntityWithoutContentPrimaryKey() {
