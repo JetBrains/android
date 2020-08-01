@@ -244,12 +244,12 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifact() = assertSerializable {
-    IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
+    IdeAndroidArtifactImpl.createFrom(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
   }
 
   @Test
   fun androidArtifactOutput() = assertSerializable {
-    IdeAndroidArtifactOutputImpl(AndroidArtifactOutputStub(), modelCache)
+    IdeAndroidArtifactOutputImpl.createFrom(AndroidArtifactOutputStub(), modelCache)
   }
 
   @Test
@@ -269,7 +269,7 @@ class ModelSerializationTest {
 
   @Test
   fun buildType() = assertSerializable {
-    IdeBuildTypeImpl(BuildTypeStub(), modelCache)
+    IdeBuildTypeImpl.createFrom(BuildTypeStub(), modelCache)
   }
 
   @Test
@@ -289,7 +289,7 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() = assertSerializable {
-    IdeJavaArtifactImpl(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
+    IdeJavaArtifactImpl.createFrom(JavaArtifactStub(), modelCache, dependenciesFactory)
   }
 
   @Test
@@ -364,7 +364,7 @@ class ModelSerializationTest {
 
   @Test
   fun productFlavor() = assertSerializable {
-    IdeProductFlavorImpl(ProductFlavorStub(), modelCache)
+    IdeProductFlavorImpl.createFrom(ProductFlavorStub(), modelCache)
   }
 
   @Test
