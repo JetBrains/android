@@ -28,12 +28,12 @@ import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeMavenCoordinatesImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeFileImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeSettingsImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeToolchainImpl
-import com.android.ide.common.gradle.model.impl.IdeNativeVariantAbiImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeFileImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.impl.IdeOutputFileImpl
 import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
@@ -48,9 +48,13 @@ import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
+import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
@@ -145,6 +149,18 @@ class ModelSerializationTest {
       androidProject,
       "variantName"
     )
+  }
+
+  @Test
+  fun v1NdkModel() = assertSerializable {
+    V1NdkModel(IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()), listOf(IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache)))
+  }
+
+  @Test
+  fun v2NdkModel() = assertSerializable {
+    V2NdkModel(
+      "agpVersion",
+      IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile")))
   }
 
   @Test
@@ -322,6 +338,21 @@ class ModelSerializationTest {
   @Test
   fun nativeVariantAbi() = assertSerializable {
     IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache)
+  }
+
+  @Test
+  fun nativeAbi() = assertSerializable {
+    IdeNativeAbiImpl("name", File("sourceFlagsFile"), File("sourceFolderIndexFile"), File("buildFileIndexFile"))
+  }
+
+  @Test
+  fun nativeModule() = assertSerializable {
+    IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile"))
+  }
+
+  @Test
+  fun nativeVariant() = assertSerializable {
+    IdeNativeVariantImpl("name", emptyList())
   }
 
   @Test

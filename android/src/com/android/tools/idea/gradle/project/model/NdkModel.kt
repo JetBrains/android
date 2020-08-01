@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.project.model
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.v2.models.ndk.NativeAbi
-import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.ide.common.gradle.model.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.IdeNativeModule
-import com.android.ide.common.gradle.model.IdeNativeVariantAbi
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.repository.GradleVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
@@ -60,7 +62,7 @@ sealed class NdkModel : INdkModel
  *   - detailed build information of all variants and ABIs avaialbe in this module
  * - [nativeVariantAbis] is always empty
  */
-class V1NdkModel(
+data class V1NdkModel(
   val androidProject: IdeNativeAndroidProject,
   val nativeVariantAbis: List<IdeNativeVariantAbi>
 ) : NdkModel() {
@@ -186,17 +188,18 @@ class V1NdkModel(
  * synced variant and ABIs would have the [NativeAbi.compileCommandsJsonFile], [NativeAbi.symbolFolderIndexFile], and
  * [NativeAbi.buildFileIndexFile] generated, containing detailed build information.
  */
-class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor(
+data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor(
   private val /* `val` declaration needed for serialization */ agpVersion: String,
-  nativeModuleArg: NativeModule) : NdkModel() {
-  
-  val nativeModule: NativeModule = nativeModuleArg as? IdeNativeModule ?: IdeNativeModule(nativeModuleArg)
+  val nativeModule: IdeNativeModule
+) : NdkModel() {
+
+  constructor (agpVersion: String, nativeModuleArg: NativeModule) : this(agpVersion, IdeNativeModuleImpl(nativeModuleArg))
 
   @Transient
   override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(agpVersion))
 
   @Transient
-  val abiByVariantAbi: Map<VariantAbi, NativeAbi> = nativeModule.variants.flatMap { variant ->
+  val abiByVariantAbi: Map<VariantAbi, IdeNativeAbi> = nativeModule.variants.flatMap { variant ->
     variant.abis.map { abi ->
       VariantAbi(variant.name, abi.name) to abi
     }
