@@ -214,6 +214,7 @@ iml_module(
         "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/apkanalyzer:unb.intellij.android.apkanalyzer[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
     ],
 )
 
@@ -268,5 +269,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
     ],
 )

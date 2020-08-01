@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="studio-plugin-maven-model">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/maven-model/lib/maven-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/maven-model/lib/maven-model.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

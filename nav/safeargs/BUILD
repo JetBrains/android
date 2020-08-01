@@ -232,5 +232,6 @@ iml_module(
         "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
         "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/sdk-updates:unb.intellij.android.sdkUpdates[module, test]",
     ],
 )
