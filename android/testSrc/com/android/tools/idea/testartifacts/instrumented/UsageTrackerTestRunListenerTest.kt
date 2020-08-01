@@ -46,7 +46,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        IdeAndroidArtifactImpl(
+        IdeAndroidArtifactImpl.createFrom(
           AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
           ModelCache(), IdeDependenciesFactory(), null),
         mock(IDevice::class.java)!!.also {
