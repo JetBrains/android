@@ -65,6 +65,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -742,12 +743,11 @@ public class MlLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
     assertThat(elements).hasLength(3);
-/* b/162618558
-    assertThat(elements[0].toString()).isEqualTo("MyModel.newInstance");
-    assertThat(elements[1].toString()).isEqualTo("MyModel.newInstance");
-    assertThat(elements[2].toString()).isEqualTo("MyModel.Outputs");
+    Optional<LookupElement> element = Arrays.asList(elements).stream()
+      .filter(element1 -> element1.toString().equals("MyModel.Outputs")).findFirst();
+    assertThat(element.isPresent()).isTrue();;
 
-    myFixture.getLookup().setCurrentItem(elements[2]);
+    myFixture.getLookup().setCurrentItem(element.get());
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
     myFixture.checkResult("package p1.p2;\n" +
                           "\n" +
@@ -763,7 +763,6 @@ public class MlLightClassTest extends AndroidTestCase {
                           "        MyModel.Outputs;\n" +
                           "    }\n" +
                           "}");
-b/162618558 */
   }
 
   public void testCompleteInnerInputClassWithoutOuterClass() {
