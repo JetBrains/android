@@ -579,7 +579,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * unexpected events.
    */
   @Service
-  class SyncStateUpdaterService {
+  class SyncStateUpdaterService : Disposable {
     val runningTasks: ConcurrentMap<ExternalSystemTaskId, Pair<String, Disposable>> = ConcurrentHashMap()
 
     fun trackTask(id: ExternalSystemTaskId, projectPath: String): Disposable? {
@@ -606,6 +606,15 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     fun stopTrackingTask(projectDir: String): Boolean {
       val task = runningTasks.entries.find { it.value.first == projectDir }?.key ?: return false
       return stopTrackingTask(task)
+    }
+
+    override fun dispose() {
+      runningTasks.toList().forEach { (key, value) ->
+        runCatching {
+          Disposer.dispose(value.second)
+          runningTasks.remove(key)
+        }
+      }
     }
   }
 
