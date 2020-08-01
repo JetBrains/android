@@ -212,11 +212,10 @@ class KotlinTypeUtilsKtTest {
   fun checkInferredLong() {
     val type = builtIn.getKotlinType(
       typeStr = null,
-      defaultValue = "1l",
+      defaultValue = "1L",
       moduleDescriptor = moduleDescriptor
     )
-    // TODO(b/157920941): Guessing from inferred long type doesn't work
-    assertThat(type).isEqualTo(builtIn.stringType)
+    assertThat(type).isEqualTo(builtIn.longType)
   }
 
   @Test

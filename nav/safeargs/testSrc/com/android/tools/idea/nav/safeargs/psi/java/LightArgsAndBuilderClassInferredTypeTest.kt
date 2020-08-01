@@ -47,7 +47,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
       DefaultValueTypeMapping("1", PsiType.INT.name),
       DefaultValueTypeMapping("0x21", PsiType.INT.name),
       DefaultValueTypeMapping("1f", PsiType.FLOAT.name),
-      DefaultValueTypeMapping("1l", "String"), // "1L" can't be recognized by toLongOrNull
+      DefaultValueTypeMapping("1L", PsiType.LONG.name),
       DefaultValueTypeMapping("true", PsiType.BOOLEAN.name),
       DefaultValueTypeMapping("someString", "String"),
       DefaultValueTypeMapping("@null", "String"),
