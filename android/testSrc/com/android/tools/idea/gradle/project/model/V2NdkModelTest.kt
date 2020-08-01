@@ -122,9 +122,4 @@ class V2NdkModelTest {
     parentFile.mkdirs()
     writeText(s)
   }
-
-  @Test
-  fun `test serialization`() {
-    V1NdkModelTest.assertSerializable(v2NdkModel)
-  }
 }

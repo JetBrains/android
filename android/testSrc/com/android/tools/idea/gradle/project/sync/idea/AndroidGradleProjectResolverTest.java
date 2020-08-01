@@ -32,7 +32,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
