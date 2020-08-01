@@ -35,6 +35,7 @@
     <completion.contributor language="kotlin" implementationClass="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKtCompletionContributor" order="after KotlinCompletionContributor"/>
 
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService" />
+    <postStartupActivity implementation="com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -42,12 +43,6 @@
     <packageFragmentProviderExtension implementation="com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension"/>
     <quickFixContributor implementation="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsImportKtResolver"/>
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
-    </component>
-  </project-components>
 
   <projectListeners>
     <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
