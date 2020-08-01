@@ -25,6 +25,7 @@ import com.google.common.collect.Streams;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -46,7 +47,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class AsyncDevicesGetter {
+final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
 
@@ -70,10 +71,14 @@ final class AsyncDevicesGetter {
 
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
-    this(project,
-         StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
-         new KeyToConnectionTimeMap(),
-         new NameGetter(project));
+    myProject = project;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get;
+
+    myVirtualDevicesWorker = new Worker<>();
+    myConnectedDevicesWorker = new Worker<>();
+
+    myMap = new KeyToConnectionTimeMap();
+    myGetName = new NameGetter(this);
   }
 
   @NonInjectable
@@ -90,6 +95,10 @@ final class AsyncDevicesGetter {
 
     myMap = map;
     myGetName = getName;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @NotNull

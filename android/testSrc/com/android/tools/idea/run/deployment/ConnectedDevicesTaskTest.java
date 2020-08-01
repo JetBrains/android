@@ -75,7 +75,7 @@ public final class ConnectedDevicesTaskTest {
     AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> androidDevice);
 
     // Act
-    Future connectedDevices = task.get();
+    Future<List<ConnectedDevice>> connectedDevices = task.get();
 
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()

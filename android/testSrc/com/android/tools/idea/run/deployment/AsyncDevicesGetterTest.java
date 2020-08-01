@@ -19,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.execution.configurations.RunConfigurationModule;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
 import java.time.Clock;
 import java.time.Instant;
@@ -216,10 +216,10 @@ public final class AsyncDevicesGetterTest {
 
   @Test
   public void initChecker() {
-    RunConfigurationModule configurationModule = Mockito.mock(RunConfigurationModule.class);
+    JavaRunConfigurationModule configurationModule = Mockito.mock(JavaRunConfigurationModule.class);
     Mockito.when(configurationModule.getModule()).thenReturn(myRule.getModule());
 
-    ModuleBasedConfiguration configuration = Mockito.mock(ModuleBasedConfiguration.class);
+    AndroidRunConfiguration configuration = Mockito.mock(AndroidRunConfiguration.class);
     Mockito.when(configuration.getConfigurationModule()).thenReturn(configurationModule);
 
     RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);

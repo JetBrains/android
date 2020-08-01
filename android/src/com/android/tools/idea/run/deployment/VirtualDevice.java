@@ -192,7 +192,6 @@ final class VirtualDevice extends Device {
     Object androidDevice = getAndroidDevice();
 
     if (androidDevice instanceof LaunchableAndroidDevice) {
-      // noinspection UnstableApiUsage
       return Futures.immediateFuture(((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion());
     }
 
