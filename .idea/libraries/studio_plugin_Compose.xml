@@ -1,36 +1,36 @@
 <component name="libraryTable">
   <library name="studio-plugin-Compose">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-testutil.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-jsch.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-resolver.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-bsf.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-junitlauncher.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-jdepend.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-xalan2.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-commons-net.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-launcher.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-javamail.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-junit4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-bcel.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-swing.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-log4j.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-junit.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-regexp.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-jmf.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/debugger-agent.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-commons-logging.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-apache-oro.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-xz.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-antlr.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/debugger-agent-storage.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-netrexx.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/Compose/lib/ant-jai.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-testutil.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-jsch.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-resolver.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-bsf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-junitlauncher.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-jdepend.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-xalan2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-commons-net.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-launcher.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-javamail.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-junit4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-bcel.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-swing.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-log4j.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-junit.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-regexp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-jmf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/debugger-agent.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-commons-logging.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-apache-oro.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-xz.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-antlr.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/debugger-agent-storage.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-netrexx.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/Compose/lib/ant-jai.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

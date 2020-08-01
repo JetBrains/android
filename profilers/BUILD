@@ -135,6 +135,8 @@ iml_module(
         "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",

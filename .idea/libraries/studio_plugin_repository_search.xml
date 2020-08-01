@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="studio-plugin-repository-search">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/linux/android-studio/plugins/repository-search/lib/repository-search.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/repository-search/lib/repository-search.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.4357.23.42/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>
