@@ -82,6 +82,7 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.impl[module]",
+        "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
 )
 

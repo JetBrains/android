@@ -178,6 +178,7 @@ iml_module(
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:jar",
         "//tools/idea/.idea/libraries:xml-apis",
+        "//tools/idea/plugins/webp:intellij.webp[module]",
     ],
 )
 
@@ -326,7 +327,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
@@ -336,6 +336,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/idea/java/mockJDK-1.7",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["testResources"],
     # do not sort: must match IML order
@@ -471,6 +472,7 @@ iml_module(
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:jar",
         "//tools/idea/.idea/libraries:jaxb-api",
+        "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
 )
 

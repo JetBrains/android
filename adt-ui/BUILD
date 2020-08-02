@@ -9,8 +9,8 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
@@ -47,8 +47,6 @@ iml_module(
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
-        "//tools/idea/platform/execution-impl:intellij.platform.execution.impl",
         "//tools/idea/platform/inspect:intellij.platform.inspect",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
@@ -90,7 +88,6 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
-        "//tools/adt/idea/adt-ui/lib:libwebp",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
@@ -99,6 +96,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
+        "//tools/idea/plugins/webp:intellij.webp[module]",
     ],
 )
 

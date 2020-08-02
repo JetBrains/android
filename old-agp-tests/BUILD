@@ -25,7 +25,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:sampleData",
@@ -46,6 +45,7 @@ iml_module(
         "//tools/external/gradle:gradle-distrib-3.5",
         "//tools/external/gradle:gradle-distrib-4.5",
         "//tools/idea/java/mockJDK-1.7",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
