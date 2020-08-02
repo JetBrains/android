@@ -33,12 +33,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 
-class JdbcDatabaseConnectionTest : PlatformTestCase() {
+class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile: VirtualFile
   private var customSqliteFile: VirtualFile? = null

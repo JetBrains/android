@@ -31,7 +31,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
@@ -46,7 +46,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.util.function.Consumer
 
-class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
+class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
