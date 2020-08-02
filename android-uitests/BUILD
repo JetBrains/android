@@ -27,12 +27,12 @@ COMMON_DATA = [
     "//prebuilts/tools:bazel-dist",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
-    "//tools/adt/idea/adt-ui/lib/libwebp",
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/idea/bin:log.xml",
+    "//tools/idea/plugins/webp/lib/libwebp",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 
@@ -66,7 +66,6 @@ iml_module(
         "//tools/idea/plugins/sh:intellij.sh",
         "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
         "//tools/idea/plugins/filePrediction:intellij.filePrediction",
-        "//tools/idea/plugins/webp:intellij.webp",
         "//tools/idea/.idea/libraries:jgoodies-common",
         "//tools/idea/.idea/libraries:commons-net",
     ],
@@ -155,6 +154,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
 )
 

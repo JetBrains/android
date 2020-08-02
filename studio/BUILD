@@ -224,7 +224,6 @@ studio_plugin(
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//prebuilts/studio/layoutlib:layoutlib",
             "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
-            "//tools/adt/idea/adt-ui/lib/libwebp:libwebp-bundle",
         ],
         "resources": [
             "//tools/base/profiler/transform:profilers-transform",

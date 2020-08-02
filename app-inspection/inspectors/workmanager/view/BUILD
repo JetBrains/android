@@ -38,8 +38,6 @@ iml_module(
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
-        "//tools/idea/platform/execution-impl:intellij.platform.execution.impl",
         "//tools/idea/platform/inspect:intellij.platform.inspect",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",

@@ -72,11 +72,11 @@ iml_module(
     test_class = "com.android.tools.idea.emulator.EmbeddedEmulatorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/emulator/testData",
         "//tools/idea/java/mockJDK-1.7",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -131,6 +131,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
 )
 
