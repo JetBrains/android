@@ -17,10 +17,10 @@ package com.android.tools.idea.sqlite.fileType
 
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
-class SqliteFileTypeDetectorTest : PlatformTestCase() {
+class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   private lateinit var mySqliteUtil: SqliteTestUtil
   private var myFeaturePreviousEnabled: Boolean = false
   private var myFileSupportPreviousEnabled: Boolean = false

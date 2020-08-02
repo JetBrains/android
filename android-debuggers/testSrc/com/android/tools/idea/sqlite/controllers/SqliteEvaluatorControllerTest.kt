@@ -50,7 +50,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
@@ -64,7 +64,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
 
-class SqliteEvaluatorControllerTest : PlatformTestCase() {
+class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
   private lateinit var sqliteEvaluatorView: FakeSqliteEvaluatorView
   private lateinit var mockDatabaseConnection: DatabaseConnection
@@ -92,7 +92,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     successfulInvocationNotificationInvocations = mutableListOf()
 
     sqliteEvaluatorController = SqliteEvaluatorController(
-      myProject,
+      project,
       databaseInspectorModel,
       databaseRepository,
       sqliteEvaluatorView,
