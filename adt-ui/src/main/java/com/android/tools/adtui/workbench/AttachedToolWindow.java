@@ -16,7 +16,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -46,7 +45,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -609,20 +607,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private static final class UpdatableActionButton extends ActionButton {
-
     private UpdatableActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
       super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
-    }
-
-    public void update() {
-      AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
-    }
-
-    @Override
-    protected void presentationPropertyChanged(@NotNull PropertyChangeEvent event) {
-      super.presentationPropertyChanged(event);
-      update();
     }
   }
 
