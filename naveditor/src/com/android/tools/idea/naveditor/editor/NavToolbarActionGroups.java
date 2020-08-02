@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.actions.NavEditorHelpAssistantActionKt;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +41,11 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
-    group.add(ActionManager.getInstance().getAction(NavEditorHelpAssistantActionKt.BUNDLE_ID));
+    AnAction assistantAction = ActionManager.getInstance().getAction(NavEditorHelpAssistantActionKt.BUNDLE_ID);
+    // FIXME: IDEA-247246: add assistant to IDEA
+    if (assistantAction != null) {
+      group.add(assistantAction);
+    }
     return group;
   }
 }
