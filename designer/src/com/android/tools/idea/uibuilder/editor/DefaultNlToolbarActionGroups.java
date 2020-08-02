@@ -63,7 +63,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     AnAction assistantAction =
       ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID);
-    // FIXME-ank3: add assistant to IDEA?
+    // FIXME: IDEA-247246: add assistant to IDEA
     if (assistantAction != null) {
       group.add(assistantAction);
     }
