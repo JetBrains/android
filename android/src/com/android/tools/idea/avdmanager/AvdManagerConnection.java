@@ -953,6 +953,17 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_POSTURE_LISTS, "3, 4");
       hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "180-330, 330-360");
     }
+    if (device.getId().equals(("6.7in Foldable"))) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "0");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "0-1318-1080-1");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
+    }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
