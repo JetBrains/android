@@ -16,7 +16,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
@@ -36,14 +38,7 @@ import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
@@ -54,13 +49,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -444,23 +433,23 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       }
     }
     DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
-    attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
-    attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
+    attachedSide.add(new TogglePropertyTypeDumbAction(PropertyType.LEFT, "Left"));
+    attachedSide.add(new ToggleOppositePropertyTypeDumbAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
     if (myDefinition.isFloatingAllowed()) {
-      attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+      attachedSide.add(new TogglePropertyTypeDumbAction(PropertyType.DETACHED, "None"));
     }
     group.add(attachedSide);
     ActionManager manager = ActionManager.getInstance();
     if (myDefinition.isAutoHideAllowed()) {
       group.add(
-        new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
+        new ToggleOppositePropertyTypeDumbAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
     }
     if (myDefinition.isFloatingAllowed()) {
-      group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
+      group.add(new TogglePropertyTypeDumbAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
     }
     if (myDefinition.isSplitModeChangesAllowed()) {
-      group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+      group.add(new TogglePropertyTypeDumbAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
     }
   }
 
@@ -627,7 +616,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      myAction.update(event);
+      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
     }
 
     @Override
@@ -637,17 +626,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SearchAction extends AnAction {
+  private class SearchAction extends AnAction implements DumbAware {
     private SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.Actions.Find);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      Presentation presentation = event.getPresentation();
-      presentation.setEnabled(true);
     }
 
     @Override
@@ -656,15 +639,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class GearAction extends AnAction {
+  private class GearAction extends AnAction implements DumbAware {
     private GearAction() {
       super("More Options", null, AllIcons.General.GearPlain);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      Presentation presentation = event.getPresentation();
-      presentation.setEnabled(true);
     }
 
     @Override
@@ -681,15 +658,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class HideAction extends AnAction {
+  private class HideAction extends AnAction implements DumbAware {
    private HideAction() {
       super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      Presentation presentation = event.getPresentation();
-      presentation.setEnabled(true);
     }
 
     @Override
@@ -698,15 +669,15 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class TogglePropertyTypeAction extends ToggleAction {
+  private class TogglePropertyTypeDumbAction extends ToggleAction implements DumbAware {
     private final PropertyType myProperty;
 
-    private TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    private TogglePropertyTypeDumbAction(@NotNull PropertyType property, @NotNull String text) {
       super(text);
       myProperty = property;
     }
 
-    private TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    private TogglePropertyTypeDumbAction(@NotNull PropertyType property, @NotNull AnAction action) {
       myProperty = property;
       copyFrom(action);
     }
@@ -722,12 +693,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
-    private ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+  private class ToggleOppositePropertyTypeDumbAction extends TogglePropertyTypeDumbAction {
+    private ToggleOppositePropertyTypeDumbAction(@NotNull PropertyType property, @NotNull String text) {
       super(property, text);
     }
 
-    private ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    private ToggleOppositePropertyTypeDumbAction(@NotNull PropertyType property, @NotNull AnAction action) {
       super(property, action);
     }
 
@@ -742,7 +713,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SwapAction extends AnAction {
+  private class SwapAction extends AnAction implements DumbAware {
     private SwapAction() {
       super("Swap");
     }
