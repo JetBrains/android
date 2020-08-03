@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,6 +72,28 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
     myValidatorResult = validatorResult;
+  }
+
+  /**
+   * The {@link #dispose()} may be called in other thread, thus the returned image from {@link #getRenderedImage()} may has been disposed
+   * before using. This function gives a chance to process rendered image and guarantee the image is not disposed during the processing.
+   * If the image is disposed before executing task, then this function does nothing and return false.
+   *
+   * @param processTask The task to process on rendered image
+   * @return            True if the process is executed, false if the rendered image has disposed before executing processTask.
+   */
+  public boolean processImageIfNotDisposed(@NotNull Consumer<ImagePool.Image> processTask) {
+    myDisposeLock.readLock().lock();
+    try {
+      if (isDisposed) {
+        return false;
+      }
+      processTask.accept(myImage);
+      return true;
+    }
+    finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   public void dispose() {
