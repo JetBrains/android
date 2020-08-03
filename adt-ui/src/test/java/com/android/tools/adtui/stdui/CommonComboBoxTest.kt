@@ -49,13 +49,13 @@ class CommonComboBoxTest {
   private fun getList(): JList<*> {
     val field = BasicComboBoxUI::class.java.getDeclaredField("listBox")
     field.isAccessible = true
-    return field!!.get(comboBox.ui) as JList<*>
+    return field.get(comboBox.ui) as JList<*>
   }
 
   @Test
   fun testErrorStateIsSetAndResetOnComboBox() {
     // Only the Darcula UI supplies a ErrorBorderCapable border.
-    comboBox.setUI(DarculaComboBoxUI())
+    comboBox.ui = DarculaComboBoxUI()
 
     // Show outline based on the value when not editing:
     model.value = "Error"
