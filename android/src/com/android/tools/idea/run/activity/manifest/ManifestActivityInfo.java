@@ -66,11 +66,8 @@ public class ManifestActivityInfo {
 
   private void parseApplication(@NotNull XmlNode node) {
     for(XmlNode child : node.childs()) {
-      if ("activity".equals(child.name())) {
+      if ("activity".equals(child.name()) || "activity-alias".equals(child.name())) {
         NodeActivity activity = new NodeActivity(child, myPackageName);
-        myActivities.add(activity);
-      } else if ("activity-alias".equals(child.name())) {
-        NodeActivity activity = new NodeActivityAlias(child, myPackageName, myActivities);
         myActivities.add(activity);
       }
     }
