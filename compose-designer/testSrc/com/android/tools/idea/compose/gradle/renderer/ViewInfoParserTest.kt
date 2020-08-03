@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
@@ -23,6 +24,7 @@ import com.android.tools.idea.compose.preview.navigation.remapInline
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.Logger
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
@@ -30,6 +32,8 @@ import java.io.File
 import javax.imageio.ImageIO
 
 class ViewInfoParserTest {
+  private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
+
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
@@ -48,8 +52,9 @@ class ViewInfoParserTest {
         ImageIO.write(renderResult?.renderedImage?.copy ?: return@thenAccept, "png", File("/tmp/out.png"))
 
         val viewInfos = ReadAction.compute<List<ComposeViewInfo>, Throwable> {
-          parseViewInfo(renderResult.rootViews.single(),
-                        lineNumberMapper = remapInline(module))
+          parseViewInfo(rootViewInfo = renderResult.rootViews.single(),
+                        lineNumberMapper = remapInline(module),
+                        logger = LOG)
         }.flatMap { it.allChildren() }
 
         assertNotNull(viewInfos.find {

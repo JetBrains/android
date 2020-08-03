@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import kotlin.reflect.KFunction
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.jvm.isAccessible
+import java.lang.reflect.Method
 
 /**
  * Wraps a `PreviewAnimationClock` and adds APIs to make it easier to call the clock's functions via reflection.
@@ -39,7 +37,7 @@ internal class AnimationClock(val clock: Any) {
   /**
    * Function `getMaxDurationPerIteration` of [clock].
    */
-  val getMaxDurationPerIteration: KFunction<*> = clock::class.memberFunctions.single { it.name == "getMaxDurationPerIteration" }
+  val getMaxDurationPerIteration = findClockFunction( "getMaxDurationPerIteration")
 
   /**
    * Function `setClockTime` of [clock].
@@ -56,6 +54,6 @@ internal class AnimationClock(val clock: Any) {
    */
   val updateSeekableAnimationFunction = findClockFunction("updateSeekableAnimation")
 
-  private fun findClockFunction(functionName: String) =
-    clock::class.memberFunctions.single { it.name == functionName }.apply { isAccessible = true }
+  private fun findClockFunction(functionName: String): Method =
+    clock::class.java.methods.single { it.name == functionName }.apply { isAccessible = true }
 }

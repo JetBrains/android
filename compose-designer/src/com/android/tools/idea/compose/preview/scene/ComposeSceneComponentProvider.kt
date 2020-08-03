@@ -89,7 +89,7 @@ class ComposeSceneComponentProvider: SceneManager.SceneComponentHierarchyProvide
         LOG.debug(" ${it} component=${component} model=${component.model}")
       }
     }
-    return debugResult(parseViewInfo(viewInfo).flatMap {
+    return debugResult(parseViewInfo(viewInfo, logger = LOG).flatMap {
       it.mapToSceneComponent(manager, component, mutableSetOf())
     })
   }
