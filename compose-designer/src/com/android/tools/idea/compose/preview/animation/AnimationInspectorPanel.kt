@@ -267,8 +267,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      clock.updateSeekableAnimationFunction.call(clock.clock, animation, startState, toState)
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender { clock.updateAnimationStatesFunction.call(clock.clock) }
+      clock.updateSeekableAnimationFunction.invoke(clock.clock, animation, startState, toState)
+      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender { clock.updateAnimationStatesFunction.invoke(clock.clock) }
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
 
@@ -283,10 +283,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      */
     fun updateTimelineWindowSize() {
       val clock = animationClock ?: return
-      val maxDurationPerIteration = clock.getMaxDurationPerIteration.call(clock.clock) as Long
+      val maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
       timeline.updateMaxDuration(maxDurationPerIteration)
 
-      val maxDuration = clock.getMaxDurationFunction.call(clock.clock) as Long
+      val maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long
       timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
         // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
         // so we need to add as many loops to the timeline as necessary to display all the iterations.
@@ -356,7 +356,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.call(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
         animatedPropertiesPanel.updateProperties(animatedPropKeys)
       }
       catch (e: Exception) {
@@ -677,7 +677,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       }
 
       surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
-        animationClock!!.setClockTimeFunction.call(animationClock!!.clock, clockTimeMs)
+        animationClock!!.setClockTimeFunction.invoke(animationClock!!.clock, clockTimeMs)
       }
       selectedTab!!.updateProperties()
     }

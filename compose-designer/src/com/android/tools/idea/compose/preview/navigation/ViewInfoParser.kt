@@ -16,9 +16,8 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.ide.common.rendering.api.ViewInfo
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.compose.COMPOSE_VIEW_ADAPTER_FQNS
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.jvm.isAccessible
 
 interface SourceLocation {
   @Deprecated("This field is not provided by the Compose runtime from dev16+")
@@ -59,18 +58,23 @@ private val identifyLineNumberMapper: LineNumberMapper = { sourceLocation -> sou
  * In the future we hope to change this.
  */
 fun parseViewInfo(rootViewInfo: ViewInfo,
-                  lineNumberMapper: LineNumberMapper = identifyLineNumberMapper): List<ComposeViewInfo> {
+                  lineNumberMapper: LineNumberMapper = identifyLineNumberMapper,
+                  logger: Logger): List<ComposeViewInfo> {
   try {
     val viewObj = findComposeViewAdapter(rootViewInfo.viewObject) ?: return listOf()
-    val viewInfoField = viewObj::class.declaredMemberProperties
-      .single { it.name == "viewInfos" }
-      .getter.also {
+    // With JDK 11, Kotlin reflection fails to find the declaredProperties (b/162686073).
+    // For now, we are stuck using java reflection to find the property and to use contains to avoid the
+    // name mangling.
+    val viewInfoField = viewObj::class.java.declaredMethods
+      .single { it.name.contains("getViewInfos") }
+      .also {
         it.isAccessible = true
       }
-    val composeViewInfos = viewInfoField.call(viewObj) as List<*>
-    return parseBounds(composeViewInfos, lineNumberMapper)
+    val composeViewInfos = viewInfoField.invoke(viewObj) as List<*>
+    return parseBounds(composeViewInfos, lineNumberMapper, logger)
   }
   catch (e: Exception) {
+    logger.debug(e)
     return listOf()
   }
 }
@@ -89,7 +93,8 @@ private fun findComposeViewAdapter(viewObj: Any): Any? {
 }
 
 private fun parseBounds(elements: List<Any?>,
-                        fileLocationMapper: LineNumberMapper): List<ComposeViewInfo> = elements.mapNotNull { item ->
+                        fileLocationMapper: LineNumberMapper,
+                        logger: Logger): List<ComposeViewInfo> = elements.mapNotNull { item ->
   try {
     val fileName = item!!.javaClass.getMethod("getFileName").invoke(item) as String
     val lineNumber = item.javaClass.getMethod("getLineNumber").invoke(item) as Int
@@ -97,6 +102,7 @@ private fun parseBounds(elements: List<Any?>,
       item.javaClass.getMethod("getMethodName").invoke(item) as String
     }
     catch (_: Throwable) {
+      // Method name is not used from dev16 on
       ""
     }
     val bounds = getBound(item)
@@ -110,6 +116,7 @@ private fun parseBounds(elements: List<Any?>,
         }
       }
       catch (_: Throwable) {
+        // Package information is not available before dev16
         null
       } ?: -1
     }
@@ -121,9 +128,10 @@ private fun parseBounds(elements: List<Any?>,
                          fileName,
                          lineNumber,
                          packageHash))
-    ComposeViewInfo(sourceLocation, bounds, parseBounds(children, fileLocationMapper))
+    ComposeViewInfo(sourceLocation, bounds, parseBounds(children, fileLocationMapper, logger))
   }
   catch (t: Throwable) {
+    logger.debug(t)
     null
   }
 }

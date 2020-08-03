@@ -73,7 +73,7 @@ private fun dumpViewInfosToLog(module: Module, viewInfos: List<ComposeViewInfo>,
  */
 @VisibleForTesting
 fun findComponentHits(module: Module, rootViewInfo: ViewInfo, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int): List<SourceLocation> {
-  val allViewInfos = parseViewInfo(rootViewInfo, lineNumberMapper = remapInline(module))
+  val allViewInfos = parseViewInfo(rootViewInfo = rootViewInfo, lineNumberMapper = remapInline(module), logger = LOG)
 
   if (LOG.isDebugEnabled) {
     dumpViewInfosToLog(module, allViewInfos)
