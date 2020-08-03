@@ -243,6 +243,9 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     val treeExpander = object: DefaultTreeExpander(myTableView.tree) {
       override fun canCollapse(): Boolean = true
       override fun canExpand(): Boolean = true
+      override fun collapseAll(tree: JTree, keepSelectionLevel: Int) {
+        collapseAll(tree, false, keepSelectionLevel)
+      }
     }
     return CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, myTableView.tree)
   }
