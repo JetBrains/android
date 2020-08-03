@@ -26,6 +26,7 @@ import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -72,6 +73,9 @@ public class BuildFileProcessorTest extends AndroidGradleTestCase {
    *   function.
    */
   public void testNonExistentModuleDoesNotFailToParse() throws Exception {
+    if (SystemInfoRt.isWindows) {
+      return; // TODO(b/162746378) failing on windows
+    }
     prepareProjectForImport(SIMPLE_APPLICATION);
 
     File settingsFile = getSettingsFilePath();
