@@ -23,6 +23,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListSelectionModel
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.ListModel
@@ -177,7 +178,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class CommonComboBoxEditor<out M : CommonTextFieldModel>(model: M, comboBox: JComponent) : BasicComboBoxEditor() {
+  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(model: M, comboBox: JComboBox<E>) : BasicComboBoxEditor() {
     init {
       editor = TextFieldForComboBox(model, comboBox)
       editor.border = JBUI.Borders.empty()
@@ -191,13 +192,23 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class TextFieldForComboBox<out M : CommonTextFieldModel>(model: M, private val comboBox: JComponent) : CommonTextField<M>(model) {
+  private class TextFieldForComboBox<E, out M : CommonTextFieldModel>(
+    model: M,
+    private val comboBox: JComboBox<E>
+  ) : CommonTextField<M>(model) {
     override fun getToolTipText(): String? {
       return comboBox.toolTipText
     }
 
     override fun getToolTipText(event: MouseEvent?): String? {
       return comboBox.getToolTipText(event)
+    }
+
+    override fun showLookupCompletions(forText: String) {
+      if (comboBox.isPopupVisible) {
+        comboBox.hidePopup()
+      }
+      super.showLookupCompletions(forText)
     }
   }
 
