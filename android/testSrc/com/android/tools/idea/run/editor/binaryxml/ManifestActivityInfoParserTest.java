@@ -18,7 +18,6 @@ package com.android.tools.idea.run.editor.binaryxml;
 import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.android.tools.idea.run.activity.manifest.ManifestActivityInfo;
 import com.android.tools.idea.run.activity.manifest.NodeActivity;
-import com.android.tools.idea.run.activity.manifest.NodeActivityAlias;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -53,7 +52,7 @@ public class ManifestActivityInfoParserTest {
       Assert.assertEquals("Enabled 0", true, activity.isEnabled());
 
       // Activity alias
-      activity = getAliasActivityByQName("com.example.activityapplication.MainActivity", activities);
+      activity = getActivityByQName("com.example.activityapplication.foo", activities);
       Assert.assertNotEquals("Aliased Activity",null, activity);
 
 
@@ -89,15 +88,4 @@ public class ManifestActivityInfoParserTest {
       }
       return null;
   }
-
-  @Nullable
-  private static NodeActivity getAliasActivityByQName(@NotNull String qname, @NotNull List<NodeActivity> activities) {
-    for(NodeActivity activity : activities) {
-      if (qname.equals(activity.getQualifiedName()) && activity instanceof NodeActivityAlias) {
-        return activity;
-      }
-    }
-    return null;
-  }
-
 }
