@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
 import net.jcip.annotations.ThreadSafe
@@ -29,7 +30,12 @@ import net.jcip.annotations.ThreadSafe
  * See also: [safeArgsModeTracker]
  */
 @ThreadSafe
-class SafeArgsModeTrackerProjectComponent(val project: Project) {
+@Service
+class SafeArgsModeTrackerProjectService() {
+  companion object {
+    fun getInstance(project: Project) = project.getService(SafeArgsModeTrackerProjectService::class.java)!!
+  }
+
   /**
    * A thread-safe modification tracker that should get updated
    */
