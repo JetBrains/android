@@ -63,9 +63,12 @@ open class FakeDatabaseInspectorController(private val repository: DatabaseRepos
     return object: SavedUiState {}
   }
 
-  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {}
+  override fun startAppInspectionSession(
+    clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
+  ) { }
 
-  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) { }
+  override fun stopAppInspectionSession() { }
 
   override fun dispose() { }
 }
