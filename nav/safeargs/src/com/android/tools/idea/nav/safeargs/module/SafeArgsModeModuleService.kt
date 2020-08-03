@@ -32,7 +32,11 @@ import java.util.concurrent.atomic.AtomicReference
  * See also: [SafeArgsModeTrackerProjectService]
  * See also: [safeArgsMode]
  */
-class SafeArgsModeModuleComponent(val module: Module) {
+class SafeArgsModeModuleService(val module: Module) {
+  companion object {
+    fun getInstance(module: Module): SafeArgsModeModuleService = module.getService(SafeArgsModeModuleService::class.java)
+  }
+
   private val atomicSafeArgsMode = AtomicReference(SafeArgsMode.NONE)
 
   internal var safeArgsMode: SafeArgsMode
@@ -46,6 +50,10 @@ class SafeArgsModeModuleComponent(val module: Module) {
 
   init {
     if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
+      // As this class is a (lazily instantiated) service, it's possible Gradle was already
+      // initialized before here, so call update immediately just in case.
+      updateSafeArgsMode()
+
       val connection = module.messageBus.connect(module)
       connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, object : GradleSyncListener {
         override fun syncSucceeded(project: Project) {
