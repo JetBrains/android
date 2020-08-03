@@ -457,6 +457,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     private fun play() {
+      if (timeline.isAtEnd()) {
+        // If playing after reaching the timeline end, we should go back to start so the animation can be actually played.
+        timeline.jumpToStart()
+      }
       isPlaying = true
       ticker.start()
     }
