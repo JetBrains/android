@@ -344,16 +344,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     throws IOException {
     Module newModule = createSubModule(name);
 
-    File newModuleFilePath = new File(newModule.getModuleFilePath());
-    File newModuleDirPath = newModuleFilePath.getParentFile();
-    assertAbout(file()).that(newModuleDirPath).isDirectory();
-    File moduleBuildFile = new File(newModuleDirPath, getBuildFileName());
-    assertTrue(ensureCanCreateFile(moduleBuildFile));
-    File moduleProperties = new File(newModuleDirPath, FN_GRADLE_PROPERTIES);
-    assertTrue(ensureCanCreateFile(moduleProperties));
+    runWriteAction((ThrowableComputable<Void, IOException>)() -> {
+      VirtualFile newModuleFile = newModule.getModuleFile();
+      VirtualFile newModuleDir = newModuleFile.getParent();
+      assertTrue(newModuleDir.isDirectory());
+      VirtualFile moduleBuildFile = newModuleDir.createChildData(this, getBuildFileName());
+      assertTrue(moduleBuildFile.isWritable());
+      VirtualFile modulePropertiesFile = newModuleDir.createChildData(this, FN_GRADLE_PROPERTIES);
+      assertTrue(modulePropertiesFile.isWritable());
 
-    writeToFile(moduleBuildFile, buildFileText);
-    writeToFile(moduleProperties, propertiesFileText);
+      saveFileUnderWrite(moduleBuildFile, buildFileText);
+      saveFileUnderWrite(modulePropertiesFile, propertiesFileText);
+      return null;
+    });
 
     return newModule;
   }
