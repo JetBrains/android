@@ -18,6 +18,7 @@ package com.android.tools.idea.nav.safeargs.project
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -34,7 +35,12 @@ import org.jetbrains.android.facet.AndroidFacet
  * This component also serves as a [ModificationTracker] that will allow caches
  * to know when this list might have been updated.
  */
-class SafeArgsEnabledFacetsProjectComponent(val project: Project) : ModificationTracker {
+@Service
+class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTracker {
+  companion object {
+    fun getInstance(project: Project): SafeArgsEnabledFacetsProjectService = project.getService(SafeArgsEnabledFacetsProjectService::class.java)
+  }
+
   private val modulesUsingSafeArgsCache: CachedValue<List<AndroidFacet>>
   val modulesUsingSafeArgs: List<AndroidFacet>
     get() = modulesUsingSafeArgsCache.value

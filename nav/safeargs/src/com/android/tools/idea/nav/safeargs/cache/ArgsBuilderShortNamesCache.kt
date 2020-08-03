@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.cache
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
-import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectService
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsBuilderClass
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
@@ -35,14 +35,14 @@ import com.intellij.util.Processor
  * A short names cache for finding any [LightArgsBuilderClass] instances by their unqualified name.
  */
 class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
+  private val enabledFacetsProvider = SafeArgsEnabledFacetsProjectService.getInstance(project)
   private val lightClassesCache: CachedValue<List<LightArgsBuilderClass>>
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
     lightClassesCache = cachedValuesManager.createCachedValue {
-      val builders = component.modulesUsingSafeArgs
+      val builders = enabledFacetsProvider.modulesUsingSafeArgs
         .asSequence()
         .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
         .flatMap { it.innerClasses.asSequence() }
