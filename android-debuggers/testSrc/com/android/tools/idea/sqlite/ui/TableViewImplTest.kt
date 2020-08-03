@@ -937,6 +937,27 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(null, table.model.getValueAt(0, 1))
   }
 
+  fun testDisabledLiveUpdates() {
+    // Prepare
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.setLiveUpdatesState(false)
+    view.startTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.stopTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {

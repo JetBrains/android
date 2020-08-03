@@ -116,6 +116,9 @@ class TableViewImpl : TableView {
 
   private var orderBy: OrderBy = OrderBy.NotOrdered
 
+  // if false, the live updates checkbox should never become enabled
+  private var liveUpdatesEnabled = true
+
   init {
     val southPanel = JPanel(BorderLayout())
     val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
@@ -334,6 +337,10 @@ class TableViewImpl : TableView {
     this.orderBy = orderBy
   }
 
+  override fun setLiveUpdatesState(state: Boolean) {
+    liveUpdatesEnabled = state
+  }
+
   override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)
   }
@@ -362,7 +369,7 @@ class TableViewImpl : TableView {
   }
 
   private fun setControlButtonsEnabled(enabled: Boolean) {
-    liveUpdatesCheckBox.isEnabled = enabled
+    liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
     refreshButton.isEnabled = enabled
     pageSizeComboBox.isEnabled = enabled
   }

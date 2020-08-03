@@ -57,6 +57,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
@@ -86,6 +87,7 @@ class TableControllerTest : LightPlatformTestCase() {
   private var customDatabaseConnection: DatabaseConnection? = null
   private lateinit var databaseRepository: DatabaseRepository
 
+  private val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file")))
   private val realDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("real", 0)
   private val mockDatabaseConnectionId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
 
@@ -156,6 +158,7 @@ class TableControllerTest : LightPlatformTestCase() {
     runDispatching {
       databaseRepository.addDatabaseConnection(realDatabaseConnectionId, realDatabaseConnection)
       databaseRepository.addDatabaseConnection(mockDatabaseConnectionId, mockDatabaseConnection)
+      databaseRepository.addDatabaseConnection(fileDatabaseId, mockDatabaseConnection)
     }
   }
 
@@ -2330,6 +2333,35 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true, false)))
+  }
+
+  fun testLiveUpdatesDisabledForFileDatabase() {
+    // Prepare
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      fileDatabaseId,
+      { sqliteTable },
+      databaseRepository,
+      SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).setLiveUpdatesState(false)
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).showTableColumns(sqliteResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).stopTableLoading()
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
