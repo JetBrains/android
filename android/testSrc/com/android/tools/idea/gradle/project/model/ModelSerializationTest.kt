@@ -15,35 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
-import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
-import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
-import com.android.ide.common.gradle.model.impl.IdeClassFieldImpl
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
-import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeMavenCoordinatesImpl
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
 import com.android.ide.common.gradle.model.impl.IdeOutputFileImpl
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
-import com.android.ide.common.gradle.model.impl.IdeSigningConfigImpl
-import com.android.ide.common.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
-import com.android.ide.common.gradle.model.impl.IdeSyncIssueImpl
-import com.android.ide.common.gradle.model.impl.IdeTestOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.ide.common.gradle.model.impl.IdeVariantImpl
-import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -237,17 +218,17 @@ class ModelSerializationTest {
 
   @Test
   fun aaptOptions() = assertSerializable {
-    IdeAaptOptionsImpl.createFrom(AaptOptionsStub())
+    ModelCache.aaptOptionsFrom(AaptOptionsStub())
   }
 
   @Test
   fun androidArtifact() = assertSerializable {
-    IdeAndroidArtifactImpl.createFrom(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
+    ModelCache.androidArtifactFrom(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
   }
 
   @Test
   fun androidArtifactOutput() = assertSerializable {
-    IdeAndroidArtifactOutputImpl.createFrom(AndroidArtifactOutputStub(), modelCache)
+    ModelCache.androidArtifactOutputFrom(AndroidArtifactOutputStub(), modelCache)
   }
 
   @Test
@@ -261,37 +242,37 @@ class ModelSerializationTest {
 
   @Test
   fun apiVersion() = assertSerializable {
-    IdeApiVersionImpl.createFrom(ApiVersionStub())
+    ModelCache.apiVersionFrom(ApiVersionStub())
   }
 
   @Test
   fun buildType() = assertSerializable {
-    IdeBuildTypeImpl.createFrom(BuildTypeStub(), modelCache)
+    ModelCache.buildTypeFrom(BuildTypeStub(), modelCache)
   }
 
   @Test
   fun buildTypeContainer() = assertSerializable {
-    IdeBuildTypeContainerImpl.createFrom(BuildTypeContainerStub(), modelCache)
+    ModelCache.buildTypeContainerFrom(BuildTypeContainerStub(), modelCache)
   }
 
   @Test
   fun classField() = assertSerializable {
-    IdeClassFieldImpl.createFrom(ClassFieldStub())
+    ModelCache.classFieldFrom(ClassFieldStub())
   }
 
   @Test
   fun filterData() = assertSerializable {
-    IdeFilterDataImpl.createFrom(FilterDataStub())
+    ModelCache.filterDataFrom(FilterDataStub())
   }
 
   @Test
   fun javaArtifact() = assertSerializable {
-    IdeJavaArtifactImpl.createFrom(JavaArtifactStub(), modelCache, dependenciesFactory)
+    ModelCache.javaArtifactFrom(JavaArtifactStub(), modelCache, dependenciesFactory)
   }
 
   @Test
   fun javaCompileOptions() = assertSerializable {
-    IdeJavaCompileOptionsImpl.createFrom(JavaCompileOptionsStub())
+    ModelCache.javaCompileOptionsFrom(JavaCompileOptionsStub())
   }
 
   @Test
@@ -306,7 +287,7 @@ class ModelSerializationTest {
 
   @Test
   fun mavenCoordinates() = assertSerializable {
-    IdeMavenCoordinatesImpl.createFrom(MavenCoordinatesStub())
+    ModelCache.mavenCoordinatesFrom(MavenCoordinatesStub())
   }
 
   @Test
@@ -361,17 +342,17 @@ class ModelSerializationTest {
 
   @Test
   fun productFlavor() = assertSerializable {
-    IdeProductFlavorImpl.createFrom(ProductFlavorStub(), modelCache)
+    ModelCache.productFlavorFrom(ProductFlavorStub(), modelCache)
   }
 
   @Test
   fun productFlavorContainer() = assertSerializable {
-    IdeProductFlavorContainerImpl.createFrom(ProductFlavorContainerStub(), modelCache)
+    ModelCache.productFlavorContainerFrom(ProductFlavorContainerStub(), modelCache)
   }
 
   @Test
   fun signingConfig() = assertSerializable {
-    IdeSigningConfigImpl.createFrom(SigningConfigStub())
+    ModelCache.signingConfigFrom(SigningConfigStub())
   }
 
   @Test
@@ -381,22 +362,22 @@ class ModelSerializationTest {
 
   @Test
   fun sourceProviderContainer() = assertSerializable {
-    IdeSourceProviderContainerImpl.createFrom(SourceProviderContainerStub(), modelCache)
+    ModelCache.sourceProviderContainerFrom(SourceProviderContainerStub(), modelCache)
   }
 
   @Test
   fun syncIssue() = assertSerializable {
-    IdeSyncIssueImpl.createFrom(SyncIssueStub())
+    ModelCache.syncIssueFrom(SyncIssueStub())
   }
 
   @Test
   fun testedTargetVariant() = assertSerializable {
-    IdeTestedTargetVariantImpl.createFrom(TestedTargetVariantStub())
+    ModelCache.testedTargetVariantFrom(TestedTargetVariantStub())
   }
 
   @Test
   fun testOptions() = assertSerializable {
-    IdeTestOptionsImpl.createFrom(TestOptionsStub())
+    ModelCache.testOptionsFrom(TestOptionsStub())
   }
 
   @Test
@@ -406,7 +387,7 @@ class ModelSerializationTest {
 
   @Test
   fun vectorDrawablesOptions() = assertSerializable {
-    IdeVectorDrawablesOptionsImpl.createFrom(VectorDrawablesOptionsStub())
+    ModelCache.vectorDrawablesOptionsFrom(VectorDrawablesOptionsStub())
   }
 
   @Test
