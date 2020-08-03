@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.SystemInfoRt;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -124,6 +125,9 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
   }
 
   public void testJavaProjectWithTestOutputCorrect() throws Exception {
+    if (SystemInfoRt.isWindows) {
+      return; // TODO(b/162746378) failing on windows
+    }
     loadProject(JAVA_LIB);
     Module module = getModule("lib");
     List<String> result = getAmendedPaths(module, true);

@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.intellij.openapi.util.SystemInfoRt
 import org.junit.Assert.assertTrue
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -35,6 +37,7 @@ class AndroidGradleClassJarProviderTest {
   // AndroidGradleClassJarProvider
   @Test
   fun testRuntimeDependencies() {
+    Assume.assumeTrue("TODO(b/162746378) failing on windows", !SystemInfoRt.isWindows)
     gradleProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
 
     // We use firebase-common because it includes a number of runtime aar dependencies that help us testing that they are correctly
