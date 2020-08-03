@@ -15,7 +15,9 @@
  */
 package com.android.tools.adtui.model.formatter;
 
+import com.intellij.openapi.util.text.StringUtil;
 import gnu.trove.TIntArrayList;
+import java.util.function.DoubleToIntFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
@@ -36,6 +38,8 @@ public abstract class BaseAxisFormatter {
 
   private final boolean mHasSeparator;
 
+  private final DoubleToIntFunction mMaxDecimals;
+
   /**
    * @param maxMinorTicks   The maximum number of minor ticks in a major interval. Note that this
    *                        should be greater than zero.
@@ -48,12 +52,19 @@ public abstract class BaseAxisFormatter {
    *                        the axis will return millisecond intervals up to 5000ms before
    *                        transitioning to second intervals.
    * @param hasSeparator    Whether there is a space separating the value and the unit (e.g. 10% vs 10 MB).
+   * @param maxDecimals     Function computing max decimals to display for number
    */
-  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator) {
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator,
+                              DoubleToIntFunction maxDecimals) {
     mMaxMinorTicks = Math.max(1, maxMinorTicks);
     mMaxMajorTicks = Math.max(1, maxMajorTicks);
     mSwitchThreshold = switchThreshold;
     mHasSeparator = hasSeparator;
+    mMaxDecimals = maxDecimals;
+  }
+
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator) {
+    this(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator, n -> 1);
   }
 
   protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
@@ -69,10 +80,11 @@ public abstract class BaseAxisFormatter {
   @NotNull
   public String getFormattedString(double globalRange, double value, boolean includeUnit) {
     int index = getMultiplierIndex(globalRange, 1);
+    double multipliedValue = value / mMultiplier;
     // If value is an integer number, don't include the floating point/decimal places in the formatted string.
-    // Otherwise, add up to two decimal places of value.
-    DecimalFormat decimalFormat = new DecimalFormat("#.#");
-    String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
+    // Otherwise, add up to specified decimal places of value.
+    DecimalFormat decimalFormat = new DecimalFormat("#." + StringUtil.repeat("#", mMaxDecimals.applyAsInt(multipliedValue)));
+    String formattedValue = decimalFormat.format(multipliedValue);
     if (!includeUnit) {
       return formattedValue;
     }
