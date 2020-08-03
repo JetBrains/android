@@ -15,10 +15,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.DumbAwareToggleAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -612,7 +611,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SearchAction extends AnAction implements DumbAware {
+  private class SearchAction extends DumbAwareAction {
     private SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
@@ -625,7 +624,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class GearAction extends AnAction implements DumbAware {
+  private class GearAction extends DumbAwareAction {
     private GearAction() {
       super("More Options", null, AllIcons.General.GearPlain);
     }
@@ -644,7 +643,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class HideAction extends AnAction implements DumbAware {
+  private class HideAction extends DumbAwareAction {
    private HideAction() {
       super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
     }
@@ -655,7 +654,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class TogglePropertyTypeDumbAction extends ToggleAction implements DumbAware {
+  private class TogglePropertyTypeDumbAction extends DumbAwareToggleAction {
     private final PropertyType myProperty;
 
     private TogglePropertyTypeDumbAction(@NotNull PropertyType property, @NotNull String text) {
@@ -699,7 +698,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private class SwapAction extends AnAction implements DumbAware {
+  private class SwapAction extends DumbAwareAction {
     private SwapAction() {
       super("Swap");
     }
