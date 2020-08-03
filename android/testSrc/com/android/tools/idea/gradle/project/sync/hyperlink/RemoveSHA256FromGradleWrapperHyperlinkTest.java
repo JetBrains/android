@@ -21,9 +21,7 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import java.util.Properties;
 
@@ -45,7 +43,6 @@ public class RemoveSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTes
     // Add distributionSha256Sum to Gradle wrapper.
     properties.setProperty(DISTRIBUTION_SHA_256_SUM, "sha256");
     savePropertiesToFile(properties, propertiesFilePath, null);
-    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(propertiesFilePath));
 
     gradleWrapper = GradleWrapper.find(project);
     assertNotNull(gradleWrapper);
