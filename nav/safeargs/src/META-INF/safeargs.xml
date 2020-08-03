@@ -45,9 +45,6 @@
     <component>
       <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent</implementation-class>
-    </component>
   </project-components>
 
   <projectListeners>

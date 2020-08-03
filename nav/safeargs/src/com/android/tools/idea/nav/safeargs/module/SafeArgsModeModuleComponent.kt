@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import java.util.concurrent.atomic.AtomicReference
@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Component that owns and updates a module's [SafeArgsMode] state.
  *
- * See also: [SafeArgsModeTrackerProjectComponent]
+ * See also: [SafeArgsModeTrackerProjectService]
  * See also: [safeArgsMode]
  */
 class SafeArgsModeModuleComponent(val module: Module) {
@@ -40,7 +40,7 @@ class SafeArgsModeModuleComponent(val module: Module) {
     set(value) {
       if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
       if (atomicSafeArgsMode.getAndSet(value) != value) {
-        module.project.getComponent(SafeArgsModeTrackerProjectComponent::class.java).tracker.incModificationCount()
+        SafeArgsModeTrackerProjectService.getInstance(module.project).tracker.incModificationCount()
       }
     }
 
