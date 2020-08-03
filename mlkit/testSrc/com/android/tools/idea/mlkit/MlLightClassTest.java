@@ -108,7 +108,7 @@ public class MlLightClassTest extends AndroidTestCase {
     doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
     AndroidModuleModel androidModuleModel =
       spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile, IdeAndroidProjectImpl
-        .create(androidProjectStub, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList()), "debug"));
+        .createFrom(androidProjectStub, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList()), "debug"));
     doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
     AndroidModel.set(androidFacet, androidModuleModel);
   }

@@ -379,6 +379,6 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return IdeAndroidProjectImpl.create(androidProject, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList());
+    return IdeAndroidProjectImpl.createFrom(androidProject, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList());
   }
 }
