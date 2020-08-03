@@ -62,6 +62,7 @@ import com.android.builder.model.v2.models.ndk.NativeModule;
 import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
@@ -327,12 +328,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
 
+      ModelCache modelCache = new ModelCache(myStrings);
       IdeAndroidProjectImpl ideAndroidProject =
-        IdeAndroidProjectImpl.createFrom(androidProject,
-                                         myStrings,
-                                         myDependenciesFactory,
-                                     (variantGroup == null) ? null : variantGroup.getVariants(),
-                                         syncIssues);
+        modelCache.androidProjectFrom(
+          androidProject,
+          myDependenciesFactory,
+          (variantGroup == null) ? null : variantGroup.getVariants(),
+          syncIssues);
       ideAndroidProject.addVariants(cachedVariants == null ? emptyList() : cachedVariants.getVariants());
       AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
 
