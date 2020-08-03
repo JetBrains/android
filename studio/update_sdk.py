@@ -191,24 +191,28 @@ def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
   files = [file for file in files if regex.match(file)]
   if not files:
     sys.exit("No artifacts found in " + dir)
   match = regex.match(files[0])
-  version = match.group(1)
-  bid = match.group(2)
+  version_major = match.group(1)
+  version_minor = match.group(2)
+  bid = match.group(3)
   expected = [
-      "android-studio-%s.%s-sources.zip" % (version, bid),
-      "android-studio-%s.%s.mac.zip" % (version, bid),
-      "android-studio-%s.%s.tar.gz" % (version, bid),
-      "android-studio-%s.%s.win.zip" % (version, bid),
+      "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.tar.gz" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.win.zip" % (version_major, version_minor, bid),
   ]
   if files != expected:
+    print("Expected:")
+    print(expected)
+    print("Got:")
     print(files)
     sys.exit("Unexpected artifacts in " + dir)
 
-  return "AI-" + version, files[0], files[1], files[2], files[3]
+  return "AI-" + version_major, files[0], files[1], files[2], files[3]
 
 
 def download(workspace, bid):
@@ -221,18 +225,53 @@ def download(workspace, bid):
 
   for artifact in ["-sources.zip", ".mac.zip", ".tar.gz", ".win.zip"]:
     os.system(
-        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk 'android-studio-*.%s%s' %s"
-        % (bid, bid, artifact, dir))
+        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk 'android-studio-*%s' %s"
+        % (bid, artifact, dir))
 
   return dir
 
+
+def compatible(old_file, new_file):
+  if not os.path.isfile(old_file) or not os.path.isfile(new_file):
+    return False
+  if not old_file.endswith(".jar") or not new_file.endswith(".jar"):
+    return False
+  old_files = []
+  new_files = []
+  with zipfile.ZipFile(old_file) as old_zip:
+    old_files = [(info.filename, info.CRC) for info in old_zip.infolist()]
+  with zipfile.ZipFile(new_file) as new_zip:
+    new_files = [(info.filename, info.CRC) for info in new_zip.infolist()]
+  return sorted(old_files) == sorted(new_files)
+
+
+# Compares old_path with new_path and moves files from old
+# to new that are compatible. Compatible means jars that
+# didn't change content but only timestamps.
+# This preserves old files intact, reducing git pressure.
+def preserve_old(old_path, new_path):
+  if not os.path.isdir(old_path) or not os.path.isdir(new_path):
+    return
+  for file in os.listdir(new_path):
+    old_file = os.path.join(old_path, file)
+    new_file = os.path.join(new_path, file)
+    if os.path.isdir(new_file):
+      if os.path.isdir(old_file):
+        preserve_old(old_file, new_file)
+    else:
+      if compatible(old_file, new_file):
+        os.replace(old_file, new_file)
+
+
 def extract(workspace, dir, delete_after):
   version, sources, mac, linux, win = check_artifacts(dir)
-
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
-  # TODO: Don't delete, but add an option for a timestamp-less diff of jars, to reduce git/review pressure
+
+  # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
+  old_path = None
   if os.path.exists(path):
-    shutil.rmtree(path)
+    old_path = path + ".old"
+    os.rename(path, old_path)
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
 
@@ -251,8 +290,13 @@ def extract(workspace, dir, delete_after):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
+  if old_path:
+    preserve_old(old_path, path)
+
   if delete_after:
     shutil.rmtree(dir)
+  if old_path:
+    shutil.rmtree(old_path)
   return version
 
 def main(workspace, args):
