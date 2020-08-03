@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.ide.analytics
 
+import com.android.ide.common.util.isMdnsAutoConnectTls
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.sdklib.AndroidVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.appinspection.internal.AppInspectionAnalyticsTracker
@@ -70,6 +72,11 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
       .setBuildApiLevelFull(AndroidVersion(this.apiLevel, this.codename).apiString)
       .setManufacturer(this.manufacturer)
       .setDeviceType(if (this.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+      .setMdnsConnectionType(when {
+                               isMdnsAutoConnectUnencrypted(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+                               isMdnsAutoConnectTls(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+                             })
       .setModel(this.model)
       .build()
   }

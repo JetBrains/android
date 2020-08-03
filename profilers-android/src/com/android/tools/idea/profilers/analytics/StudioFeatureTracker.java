@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.profilers.analytics;
 
+import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectTls;
+import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectUnencrypted;
+
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
@@ -827,6 +830,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(myDevice.getCpuAbi()))
             .setManufacturer(myDevice.getManufacturer())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .setMdnsConnectionType(isMdnsAutoConnectUnencrypted(myDevice.getSerial()) ?
+                                   DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED :
+                                   isMdnsAutoConnectTls(myDevice.getSerial()) ?
+                                   DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS :
+                                   DeviceInfo.MdnsConnectionType.MDNS_NONE)
             .setModel(myDevice.getModel())
             .build());
       }
