@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.ide.common.gradle.model.IdeTestOptions
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.testutils.VirtualTimeScheduler
@@ -46,7 +45,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        IdeAndroidArtifactImpl.createFrom(
+        ModelCache.androidArtifactFrom(
           AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
           ModelCache(), IdeDependenciesFactory(), null),
         mock(IDevice::class.java)!!.also {

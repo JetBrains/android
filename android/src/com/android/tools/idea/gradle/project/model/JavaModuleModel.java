@@ -19,7 +19,7 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeSyncIssue;
-import com.android.ide.common.gradle.model.impl.IdeSyncIssueImpl;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
@@ -81,7 +81,7 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
                                        boolean buildable) {
-    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> IdeSyncIssueImpl.createFrom(issue));
+    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> ModelCache.syncIssueFrom(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 
