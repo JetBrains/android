@@ -150,6 +150,7 @@ public class LayoutlibSceneManager extends SceneManager {
   // Protects all read/write accesses to the myRenderResult reference
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
+  @Nullable
   private RenderResult myRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private String myPreviousDeviceName;
@@ -1181,9 +1182,13 @@ public class LayoutlibSceneManager extends SceneManager {
             myRenderResultLock.writeLock().unlock();
           }
           try {
-            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4L);
+            if (myRenderResult != null) {
+              long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+              NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                          myRenderResult.getRenderedImage().getWidth() *
+                                                                          myRenderResult.getRenderedImage().getHeight() *
+                                                                          4L);
+            }
           }
           finally {
             myRenderResultLock.readLock().unlock();
