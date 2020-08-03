@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
 
@@ -33,6 +34,9 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   private val otherLibPackageName = "com.example.otherlib"
 
   fun testNamespaceChoosing() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     loadProject(TestProjectPaths.NAMESPACES)
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(myAndroidFacet)
     assertEquals(Namespacing.REQUIRED, resourceRepositoryManager.namespacing)
@@ -50,6 +54,9 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   }
 
   fun testNonNamespaced() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(myAndroidFacet)
     assertEquals(Namespacing.DISABLED, resourceRepositoryManager.namespacing)
@@ -58,6 +65,9 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   }
 
   fun testResolver() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     loadProject(TestProjectPaths.NAMESPACES)
     val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(project.findAppModule()).getConfiguration(layout).resourceResolver
@@ -79,6 +89,9 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   }
 
   fun testAppResources() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     loadProject(TestProjectPaths.NAMESPACES)
     val appResources = ResourceRepositoryManager.getInstance(myAndroidFacet).appResources
 

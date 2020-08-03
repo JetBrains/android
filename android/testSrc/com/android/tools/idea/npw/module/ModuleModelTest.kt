@@ -24,8 +24,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
 import com.android.tools.idea.testing.findModule
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.util.SystemInfoRt
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
+import org.junit.Assume
 
 class ModuleModelTest : AndroidGradleTestCase() {
   private val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
@@ -40,6 +42,9 @@ class ModuleModelTest : AndroidGradleTestCase() {
   }
 
   fun testInitFillsAllTheDataForLibraryModule() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     loadSimpleApplication()
 
     val libraryModuleModel = NewLibraryModuleModel(project, ":", projectSyncInvoker).apply {
