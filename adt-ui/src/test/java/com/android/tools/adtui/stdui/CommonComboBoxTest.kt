@@ -108,6 +108,17 @@ class CommonComboBoxTest {
     assertThat(actionCount).isEqualTo(0)
   }
 
+  @Test
+  fun testTypingWillClosePopup() {
+    comboBox.ui = FakeComboBoxUI()
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.type(KeyEvent.VK_A)
+    assertThat(comboBox.isPopupVisible).isFalse()
+  }
+
   private fun acquireFocus(): CommonTextField<*> {
     val manager = Mockito.mock(KeyboardFocusManager::class.java)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
