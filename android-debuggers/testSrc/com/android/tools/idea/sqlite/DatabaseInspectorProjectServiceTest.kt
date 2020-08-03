@@ -147,10 +147,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    verify(databaseInspectorController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
-    verify(databaseInspectorController).setDatabaseInspectorClientCommandsChannel(null)
-    verify(databaseInspectorController).setAppInspectionServices(appInspectionServices)
-    verify(databaseInspectorController).setAppInspectionServices(null)
+    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+    verify(databaseInspectorController).stopAppInspectionSession()
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {

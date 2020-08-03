@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -1260,7 +1261,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    databaseInspectorController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1278,7 +1279,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    databaseInspectorController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1305,7 +1306,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Act
-    databaseInspectorController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
 
     // Assert
     assertEquals(listOf(false), invocations)

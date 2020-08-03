@@ -250,13 +250,19 @@ class DatabaseInspectorControllerImpl(
     return SavedUiStateImpl(tabs)
   }
 
-  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {
-    this.databaseInspectorClientCommandsChannel = databaseInspectorClientCommandsChannel
-    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(keepConnectionsOpen)
+  override fun startAppInspectionSession(
+    clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
+  ) {
+    this.databaseInspectorClientCommandsChannel = clientCommandsChannel
+    clientCommandsChannel.keepConnectionsOpen(keepConnectionsOpen)
+
+    this.appInspectionIdeServices = appInspectionIdeServices
   }
 
-  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) {
-    this.appInspectionIdeServices = appInspectionIdeServices
+  override fun stopAppInspectionSession() {
+    databaseInspectorClientCommandsChannel = null
+    appInspectionIdeServices = null
   }
 
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
@@ -547,10 +553,13 @@ interface DatabaseInspectorController : Disposable {
   fun saveState(): SavedUiState
 
   @UiThread
-  fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?)
+  fun startAppInspectionSession(
+    clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
+  )
 
   @UiThread
-  fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?)
+  fun stopAppInspectionSession()
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

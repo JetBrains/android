@@ -260,16 +260,16 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     model.clearDatabases()
 
     ideServices = appInspectionIdeServices
-    controller.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel)
-    controller.setAppInspectionServices(appInspectionIdeServices)
+    controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
+
     controller.restoreSavedState(previousState)
   }
 
   @UiThread
   override fun stopAppInspectionSession(processDescriptor: ProcessDescriptor): SavedUiState {
     ideServices = null
-    controller.setDatabaseInspectorClientCommandsChannel(null)
-    controller.setAppInspectionServices(null)
+    controller.stopAppInspectionSession()
+
     // TODO(b/162403339) decide how state is going to be restored with offline dbs.
     val savedState = controller.saveState()
 
