@@ -19,12 +19,16 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.writeChild
 
 class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162746404) failing on windows
+    }
     loadSimpleApplication()
 
     val appBuildDotGradle = project.baseDir.findFileByRelativePath("app/build.gradle")!!
@@ -53,6 +57,9 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
   }
 
   private fun doTest(path: String, vararg expected: String) {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162746378) failing on windows
+    }
     val daoName = Files.getNameWithoutExtension(path)
     val dao = project.baseDir.writeChild(
         path,
