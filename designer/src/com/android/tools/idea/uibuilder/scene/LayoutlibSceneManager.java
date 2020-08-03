@@ -921,15 +921,17 @@ public class LayoutlibSceneManager extends SceneManager {
    * Synchronously inflates the model and updates the view hierarchy
    *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
-   * @returns whether the model was inflated in this call or not
+   * @returns A {@link CompletableFuture} containing the {@link RenderResult} of the inflate operation or containing null
+   * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
    */
-  private CompletableFuture<Boolean> inflate(boolean force) {
+  @NotNull
+  private CompletableFuture<RenderResult> inflate(boolean force) {
     long startInflateTimeMs = System.currentTimeMillis();
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
     if (project.isDisposed() || isDisposed.get()) {
-      return CompletableFuture.completedFuture(false);
+      return CompletableFuture.completedFuture(null);
     }
 
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
@@ -942,7 +944,7 @@ public class LayoutlibSceneManager extends SceneManager {
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
-        return CompletableFuture.completedFuture(false);
+        return CompletableFuture.completedFuture(null);
       }
     }
 
@@ -1010,7 +1012,7 @@ public class LayoutlibSceneManager extends SceneManager {
             })
             .thenApply(result -> {
               if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
-                return false;
+                return result;
               }
 
               updateHierarchy(result);
@@ -1022,7 +1024,7 @@ public class LayoutlibSceneManager extends SceneManager {
                 myRenderResultLock.writeLock().unlock();
               }
 
-              return true;
+              return result;
             });
         }
         else {
@@ -1044,9 +1046,9 @@ public class LayoutlibSceneManager extends SceneManager {
           finally {
             myRenderResultLock.writeLock().unlock();
           }
-        }
 
-        return CompletableFuture.completedFuture(false);
+          return CompletableFuture.completedFuture(result);
+        }
       });
   }
 
@@ -1257,17 +1259,20 @@ public class LayoutlibSceneManager extends SceneManager {
         if (ex != null) {
           Logger.getInstance(LayoutlibSceneManager.class).warn(ex);
         }
-        if (result) {
+        if (result != null && result.getRenderResult().isSuccess()) {
           notifyListenersModelUpdateComplete();
         }
       }, PooledThreadExecutor.INSTANCE)
-      .thenCompose(inflated -> {
+      .thenCompose(inflateResult -> {
+        boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
         synchronized (myRenderingTaskLock) {
           if (myRenderTask == null) {
             getDesignSurface().updateErrorDisplay();
-            return CompletableFuture.completedFuture(null);
+            // The render task was not initialized, this means that inflate did not succeed. Return the inflation
+            // result.
+            return CompletableFuture.completedFuture(inflateResult);
           }
           long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {
