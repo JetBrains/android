@@ -20,7 +20,6 @@ import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
 import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
@@ -139,9 +138,8 @@ class ModelSerializationTest {
 
   @Test
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
-    val androidProject = IdeAndroidProjectImpl.createFrom(
+    val androidProject = modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      modelCache,
       dependenciesFactory,
       listOf(VariantStub()),
       listOf(SyncIssueStub()))
@@ -254,9 +252,8 @@ class ModelSerializationTest {
 
   @Test
   fun androidProject() = assertSerializable {
-    IdeAndroidProjectImpl.createFrom(
+    modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      modelCache,
       dependenciesFactory,
       listOf(VariantStub()),
       listOf(SyncIssueStub()))

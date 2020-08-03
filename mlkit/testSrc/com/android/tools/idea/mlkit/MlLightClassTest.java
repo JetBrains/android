@@ -21,8 +21,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 import com.android.AndroidProjectTypes;
-import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.stubs.AndroidProjectStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
@@ -107,8 +107,12 @@ public class MlLightClassTest extends AndroidTestCase {
     AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub(version));
     doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
     AndroidModuleModel androidModuleModel =
-      spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile, IdeAndroidProjectImpl
-        .createFrom(androidProjectStub, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList()), "debug"));
+      spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile,
+                                    new ModelCache(new HashMap<>()).androidProjectFrom(
+                                      androidProjectStub,
+                                      new IdeDependenciesFactory(),
+                                      null,
+                                      emptyList()), "debug"));
     doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
     AndroidModel.set(androidFacet, androidModuleModel);
   }

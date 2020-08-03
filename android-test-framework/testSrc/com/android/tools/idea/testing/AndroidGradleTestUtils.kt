@@ -30,8 +30,8 @@ import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.ViewBindingOptions
-import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
@@ -818,15 +818,15 @@ private fun createAndroidModuleDataNode(
     )
   )
 
+  val modelCache = ModelCache(HashMap())
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
       AndroidModuleModel.create(
         moduleName,
         moduleBasePath,
-        IdeAndroidProjectImpl.createFrom(
+        modelCache.androidProjectFrom(
           androidProjectStub,
-          HashMap(),
           IdeDependenciesFactory(),
           null,
           ImmutableList.of()),
