@@ -16,6 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
+import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
@@ -270,6 +272,11 @@ object AndroidStudioUsageTracker {
       .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
       .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
       .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+      .setMdnsConnectionType(when {
+                               device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+                               device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+                             })
       .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
   }
 
