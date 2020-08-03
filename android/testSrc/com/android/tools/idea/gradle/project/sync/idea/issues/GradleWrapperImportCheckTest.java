@@ -22,8 +22,6 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -68,7 +66,6 @@ public class GradleWrapperImportCheckTest extends AndroidGradleTestCase {
       properties.setProperty(DISTRIBUTION_SHA_256_SUM, checksum);
     }
     savePropertiesToFile(properties, propertiesFilePath, null);
-    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(propertiesFilePath));
 
     try {
       GradleWrapperImportCheck.validateGradleWrapper(getProject().getBasePath());

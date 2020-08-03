@@ -24,9 +24,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import java.util.Properties;
 
@@ -68,7 +66,6 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     properties.setProperty(DISTRIBUTION_SHA_256_SUM, SHA256);
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, DISTRIBUTION);
     savePropertiesToFile(properties, propertiesFilePath, null);
-    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(propertiesFilePath));
 
     gradleWrapper = GradleWrapper.find(project);
     assertNotNull(gradleWrapper);
