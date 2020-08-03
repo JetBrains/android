@@ -328,11 +328,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       });
 
       IdeAndroidProjectImpl ideAndroidProject =
-        IdeAndroidProjectImpl.create(androidProject,
-                                     myStrings,
-                                     myDependenciesFactory,
+        IdeAndroidProjectImpl.createFrom(androidProject,
+                                         myStrings,
+                                         myDependenciesFactory,
                                      (variantGroup == null) ? null : variantGroup.getVariants(),
-                                     syncIssues);
+                                         syncIssues);
       ideAndroidProject.addVariants(cachedVariants == null ? emptyList() : cachedVariants.getVariants());
       AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
 

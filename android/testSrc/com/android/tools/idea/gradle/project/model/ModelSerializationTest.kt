@@ -139,7 +139,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
-    val androidProject = IdeAndroidProjectImpl.create(
+    val androidProject = IdeAndroidProjectImpl.createFrom(
       AndroidProjectStub("3.6.0"),
       modelCache,
       dependenciesFactory,
@@ -254,7 +254,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidProject() = assertSerializable {
-    IdeAndroidProjectImpl.create(
+    IdeAndroidProjectImpl.createFrom(
       AndroidProjectStub("3.6.0"),
       modelCache,
       dependenciesFactory,
