@@ -361,6 +361,54 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertEquals(StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE, button.icon)
   }
 
+  fun testKeepConnectionOpenIsDisabledWithOfflineDatabases() {
+    // Prepare
+    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+    val fileDatabaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
+    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+
+    // Act
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId2, true), SqliteSchema(emptyList()), 0)))
+
+    // Assert
+    assertFalse(keepConnectionsOpenButton.isEnabled)
+  }
+
+  fun testKeepConnectionOpenIsEnabledWithLiveDatabases() {
+    // Prepare
+    val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
+    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+
+    // Act
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(liveDatabaseId, true), SqliteSchema(emptyList()), 0)))
+
+    // Assert
+    assertTrue(keepConnectionsOpenButton.isEnabled)
+  }
+
+  fun testKeepConnectionOpenIsEnableIfAtLeastOneOnlineDatabase() {
+    // Prepare
+    val fileDatabaseId1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file1")))
+    val fileDatabaseId2 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
+    val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
+    val keepConnectionsOpenButton = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+
+    // Act
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId1, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(liveDatabaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(fileDatabaseId2, true), SqliteSchema(emptyList()), 0)))
+
+    // Assert
+    assertTrue(keepConnectionsOpenButton.isEnabled)
+
+    // Act
+    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(liveDatabaseId, true))))
+
+    // Assert
+    assertFalse(keepConnectionsOpenButton.isEnabled)
+  }
+
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<ViewDatabase, List<SqliteTable>>) {
     val root = tree.model.root
     assertEquals(databases.size, tree.model.getChildCount(root))

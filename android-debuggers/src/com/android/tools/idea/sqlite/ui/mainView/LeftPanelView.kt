@@ -98,10 +98,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       treeModel.root as DefaultMutableTreeNode
     }
 
-    refreshSchemaButton.isEnabled = true
-    runSqlButton.isEnabled = true
-    keepConnectionsOpenButton.isEnabled = true
-
     val schemaNode = DefaultMutableTreeNode(viewDatabase)
     schema?.tables?.sortedBy { it.name }?.forEach { table ->
       val tableNode = DefaultMutableTreeNode(table)
@@ -111,6 +107,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     treeModel.insertNodeInto(schemaNode, root, index)
     tree.expandPath(TreePath(schemaNode.path))
+
+    refreshSchemaButton.isEnabled = true
+    runSqlButton.isEnabled = true
+    keepConnectionsOpenButton.isEnabled = hasLiveDatabases()
   }
 
   // TODO(b/149920358) handle error by recreating the view.
@@ -156,12 +156,13 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val databaseNode = findDatabaseNode(viewDatabase)
     treeModel.removeNodeFromParent(databaseNode)
 
+    keepConnectionsOpenButton.isEnabled = hasLiveDatabases()
+
     if (databasesCount == 0) {
       tree.model = DefaultTreeModel(null)
 
       refreshSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
-      keepConnectionsOpenButton.isEnabled = false
     }
 
     return databasesCount
@@ -312,6 +313,16 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .map { it as DefaultMutableTreeNode }
       .filter { it.userObject is SqliteColumn }
       .firstOrNull { (it.userObject as SqliteColumn).name == columnName }
+  }
+
+  /** Returns true if at least one live database exists in this view */
+  private fun hasLiveDatabases(): Boolean {
+    val root = tree.model.root as DefaultMutableTreeNode
+    return root.children().asSequence()
+      .map { (it as DefaultMutableTreeNode).userObject as ViewDatabase }
+      .filter { it.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId }
+      .toList()
+      .isNotEmpty()
   }
 
   private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {

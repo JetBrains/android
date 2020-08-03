@@ -64,5 +64,7 @@ open class FakeTableView : TableView {
 
   override fun setColumnSortIndicator(orderBy: OrderBy) { }
 
+  override fun setLiveUpdatesState(state: Boolean) { }
+
   override fun showPageSizeValue(maxRowCount: Int) { }
 }
