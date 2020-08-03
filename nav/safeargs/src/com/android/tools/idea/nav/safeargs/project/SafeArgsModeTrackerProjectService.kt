@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
-import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent
+import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -26,7 +26,7 @@ import net.jcip.annotations.ThreadSafe
  * Component that owns a project-wide tracker which gets updated whenever any module's
  * `safeArgsMode` is updated.
  *
- * See also: [SafeArgsModeModuleComponent]
+ * See also: [SafeArgsModeModuleService]
  * See also: [safeArgsModeTracker]
  */
 @ThreadSafe

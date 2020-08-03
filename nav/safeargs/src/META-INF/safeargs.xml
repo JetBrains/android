@@ -33,6 +33,8 @@
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ActionBuilderShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ActionBuilderClassFinder"/>
     <completion.contributor language="kotlin" implementationClass="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKtCompletionContributor" order="after KotlinCompletionContributor"/>
+
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -51,11 +53,4 @@
     <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
   </projectListeners>
-
-
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent</implementation-class>
-    </component>
-  </module-components>
 </idea-plugin>
