@@ -18,8 +18,11 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend
+import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
+import com.android.tools.idea.flags.StudioFlags.NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -117,22 +120,32 @@ class TasksPageView(
         add(treeHeaderLabel, BorderLayout.CENTER)
       }
       add(treeHeaderPanel, BorderLayout.NORTH)
-      add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), BorderLayout.CENTER)
+      val treeComponent: Component = if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+        // Create tree with new visualization element attached when flag is on.
+        CriticalPathChartLegend.pluginColorPalette.reset()
+        TimeDistributionTreeChart.wrap(tree)
+      }
+      else tree
+
+      add(ScrollPaneFactory.createScrollPane(treeComponent, SideBorder.NONE), BorderLayout.CENTER)
     }
     val detailsHalf: JPanel = JPanel().apply {
       val dimension = JBUI.size(5, 5)
       layout = BorderLayout(dimension.width(), dimension.height())
       border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
-      val chartsScrollArea = JBScrollPane().apply {
-        border = JBUI.Borders.empty()
-        horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-        verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
-        verticalScrollBar.isOpaque = false
+      if (!NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+        // Add old visualization to the UI only if flag is off.
+        val chartsScrollArea = JBScrollPane().apply {
+          border = JBUI.Borders.empty()
+          horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+          verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+          verticalScrollBar.isOpaque = false
 
-        setViewportView(chartsPanel)
+          setViewportView(chartsPanel)
+        }
+        add(chartsScrollArea, BorderLayout.WEST)
       }
-      add(chartsScrollArea, BorderLayout.WEST)
     }
 
     firstComponent = masterHalf
