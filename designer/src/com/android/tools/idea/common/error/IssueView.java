@@ -70,6 +70,9 @@ public class IssueView extends JPanel {
   private final int myDisplayPriority;
   private boolean myInitialized;
 
+  @NotNull
+  private final String myErrorDescriptionContent;
+
   /**
    * Construct a new {@link IssueView} representing the provided {@link Issue}
    *
@@ -82,6 +85,13 @@ public class IssueView extends JPanel {
     myDisplayPriority = getDisplayPriority(issue);
     mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
     myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+
+    // We cache the error description content but we do not set it into the myErrorDescription just yet.
+    // myErrorDescription takes HTML and it is extremely slow to layout (it could be a second for complicated HTML).
+    // myErrorDescription will not be visible by default so we will only populate it when it's about to become visible. This way, we do not
+    // incur in the expensive layout cost when not needed.
+    // b/162809891
+    myErrorDescriptionContent = new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml();
     setupHeader(issue);
     setupDescriptionPanel(issue);
     setupFixPanel(issue);
@@ -130,11 +140,8 @@ public class IssueView extends JPanel {
   }
 
   private void setupDescriptionPanel(@NotNull Issue issue) {
-    String description = issue.getDescription();
-    String formattedText = new HtmlBuilder().openHtmlBody().addHtml(description).closeHtmlBody().getHtml();
     myErrorDescription.setEditorKit(new IssueHTMLEditorKit());
     myErrorDescription.addHyperlinkListener(issue.getHyperlinkListener());
-    myErrorDescription.setText(formattedText);
     myErrorDescription.setFont(UIUtil.getToolTipFont());
     myErrorDescription.addMouseListener(new MouseAdapter() {
       @Override
@@ -184,11 +191,23 @@ public class IssueView extends JPanel {
 
   void setExpanded(boolean expanded) {
     myIsExpanded = expanded;
+
+    if (myIsExpanded) {
+      myErrorDescription.setText(myErrorDescriptionContent);
+    }
+    else {
+      // Remove all the HTML content since it will not be visible and this speeds up the layout.
+      myErrorDescription.setText("");
+    }
+
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
     myContainerIssuePanel.revalidate();
     myContainerIssuePanel.repaint();
-    myContainerIssuePanel.getExpandListener().onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
+    IssuePanel.ExpandListener expandListener = myContainerIssuePanel.getExpandListener();
+    if (expandListener != null) {
+      expandListener.onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
+    }
   }
 
   /**
