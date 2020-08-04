@@ -487,7 +487,15 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
+    handleSelectionChanged(event)
+  }
 
+  override fun columnSelectionChanged(event: ListSelectionEvent) {
+    super.columnSelectionChanged(event)
+    handleSelectionChanged(event)
+  }
+
+  private fun handleSelectionChanged(event: ListSelectionEvent) {
     // Ignore intermediate values.
     if (event.valueIsAdjusting) {
       return
@@ -694,6 +702,10 @@ private class AndroidTestResultsTableModel :
 
   override fun getValueAt(value: Any?, column: Int): Any? {
     return columns[column].valueOf(value)
+  }
+
+  override fun isCellEditable(node: Any?, column: Int): Boolean {
+    return columns[column].isCellEditable(node)
   }
 
   override fun getColumnInfos(): Array<ColumnInfo<Any, Any>> {
