@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfoRt;
+import junit.framework.TestCase;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**
@@ -33,16 +35,13 @@ public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
   }
 
   public void testWithAndroidGradleProject() throws Exception {
-    if (SystemInfoRt.isWindows) {
-      return; // TODO(b/162746378) failing on windows
-    }
     loadSimpleApplication();
 
     Project project = getProject();
     GradleProjectSettings settings = mySettingsFinder.findGradleProjectSettings(project);
     assertNotNull(settings);
 
-    assertEquals(project.getBasePath(), settings.getExternalProjectPath());
+    assertEquals(project.getBasePath(), toSystemIndependentName(settings.getExternalProjectPath()));
   }
 
   public void testWithNonGradleProject() {

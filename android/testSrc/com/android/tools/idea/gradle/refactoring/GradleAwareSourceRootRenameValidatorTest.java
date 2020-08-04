@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
@@ -54,9 +53,6 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   }
 
   public void testIsInputValid() throws Exception {
-    if (SystemInfoRt.isWindows) {
-      return; // TODO(b/162746378) failing on windows
-    }
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
