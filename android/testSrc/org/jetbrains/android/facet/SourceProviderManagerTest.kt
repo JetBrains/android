@@ -25,8 +25,6 @@ import com.intellij.ProjectTopics
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
-import com.intellij.openapi.util.SystemInfoRt
-import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 
@@ -65,7 +63,6 @@ class GradleSourceProviderManagerTest {
 
   @Test
   fun selfDisposesOnFacetConfigurationChange() {
-    Assume.assumeTrue("TODO(b/162746378) failing on windows", !SystemInfoRt.isWindows)
     projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     val facet = AndroidFacet.getInstance(projectRule.project.findAppModule() )!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
