@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import org.junit.Test
@@ -22,6 +23,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
+import javax.swing.JComboBox
 import javax.swing.JList
 import javax.swing.plaf.basic.BasicComboBoxUI
 
@@ -75,11 +78,51 @@ class CommonComboBoxTest {
     assertThat(model.value).isEqualTo("FixedValue")
   }
 
+  @Test
+  fun testKeyboardNavigationWithAction() {
+    var actionCount = 0
+    comboBox.addActionListener { actionCount++ }
+    comboBox.ui = FakeComboBoxUI()
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(comboBox.selectedIndex).isEqualTo(1)
+    assertThat(actionCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testKeyboardNavigationWithoutAction() {
+    var actionCount = 0
+    comboBox.actionOnKeyNavigation = false
+    comboBox.addActionListener { actionCount++ }
+    comboBox.ui = FakeComboBoxUI()
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(comboBox.selectedIndex).isEqualTo(0)
+    assertThat(comboBox.popup!!.list.selectedIndex).isEqualTo(1)
+    assertThat(actionCount).isEqualTo(0)
+  }
+
   private fun acquireFocus(): CommonTextField<*> {
     val manager = Mockito.mock(KeyboardFocusManager::class.java)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
     val textField = comboBox.editor.editorComponent as CommonTextField<*>
     Mockito.`when`(manager.focusOwner).thenReturn(textField)
     return textField
+  }
+
+  private class FakeComboBoxUI : BasicComboBoxUI() {
+    private var popupVisible = false
+
+    override fun setPopupVisible(comboBox: JComboBox<*>?, visible: Boolean) {
+      popupVisible = visible
+    }
+
+    override fun isPopupVisible(comboBox: JComboBox<*>?): Boolean = popupVisible
   }
 }
