@@ -13,14 +13,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/build/attribution/ui/view/BuildAnalyzerMasterTreeCellRenderer.kt"
-            line="44"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
             line="165"/>
     </issue>

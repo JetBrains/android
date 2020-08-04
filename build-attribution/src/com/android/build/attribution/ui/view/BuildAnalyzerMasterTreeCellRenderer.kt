@@ -15,11 +15,8 @@
  */
 package com.android.build.attribution.ui.view
 
-import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
-import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
@@ -27,7 +24,6 @@ import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.DefaultTreeUI
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -41,7 +37,6 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
 
-  private val colorIconSize: Int = JBUIScale.scale(12)
   private val rightAlignedFont = JBUI.Fonts.create(Font.MONOSPACED, 11)
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null
 
@@ -63,11 +58,10 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     val node = value as DefaultMutableTreeNode
     val userObj = node.userObject
     if (userObj is TasksTreePresentableNodeDescriptor) {
-      val chartKeyColor = tasksTreeNodesChartKeyColor(userObj)
-      customize(userObj.presentation, selected, hasFocus, chartKeyColor)
+      customize(userObj.presentation, selected, hasFocus)
     }
     else if (userObj is WarningsTreePresentableNodeDescriptor) {
-      customize(userObj.presentation, selected, hasFocus, null)
+      customize(userObj.presentation, selected, hasFocus)
     }
     else {
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
@@ -78,7 +72,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     durationTextPresentation = null
   }
 
-  private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean, chartKeyColor: Color?) {
+  private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean) {
     icon = when (nodePresentation.nodeIconState) {
       NodeIconState.NO_ICON -> null
       NodeIconState.EMPTY_PLACEHOLDER -> EmptyIcon.ICON_16
@@ -94,60 +88,39 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
         durationWidth = metrics.stringWidth(text),
         durationOffset = metrics.height / 2,
         durationColor = if (selected) UIUtil.getTreeSelectionForeground(hasFocus)
-        else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor,
-        chartIconColor = chartKeyColor
+        else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
       )
     }
   }
 
-  private fun tasksTreeNodesChartKeyColor(tasksNodeDescriptor: TasksTreePresentableNodeDescriptor): Color? {
-    val nodePresentation = tasksNodeDescriptor.presentation
-    return if (nodePresentation.showChartKey) {
-      when (tasksNodeDescriptor) {
-        is PluginDetailsNodeDescriptor ->
-          CriticalPathChartLegend.pluginColorPalette.getColor(tasksNodeDescriptor.pluginData.name).baseColor
-        is TaskDetailsNodeDescriptor ->
-          CriticalPathChartLegend.resolveTaskColor(tasksNodeDescriptor.taskData).baseColor
-      }
-    }
-    else null
-  }
-
   override fun paintComponent(g: Graphics) {
     setupAntialiasing(g)
-    var clip: Shape? = null
-    var width = width
-    val height = height
+    val clipBounds = g.clipBounds
+    var width = clipBounds.width - (myTree.insets?.right ?: 0)
+    val height = clipBounds.height
+    g.clipRect(0, 0, width, height)
     if (isOpaque) {
       // paint background for expanded row
       g.color = background
       g.fillRect(0, 0, width, height)
     }
     durationTextPresentation?.let {
-      width -= it.durationWidth + it.durationOffset + colorIconSize + it.durationOffset / 2
+      width -= it.durationWidth + it.durationOffset + it.durationOffset / 2
       if (width > 0 && height > 0) {
         g.color = it.durationColor
         g.font = rightAlignedFont
         g.drawString(it.durationText, width + it.durationOffset / 2, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
-        if (it.chartIconColor != null) {
-          g.color = it.chartIconColor
-          g.fillRect(width + it.durationWidth + it.durationOffset, (height - colorIconSize) / 2, colorIconSize, colorIconSize)
-        }
-        clip = g.clip
         g.clipRect(0, 0, width, height)
       }
     }
     super.paintComponent(g)
-    // restore clip area if needed
-    if (clip != null) g.clip = clip
   }
 
   private data class RightAlignedDurationTextPresentation(
     val durationText: String,
     val durationColor: Color,
     val durationWidth: Int,
-    val durationOffset: Int,
-    val chartIconColor: Color? = null
+    val durationOffset: Int
   )
 }
 
@@ -162,15 +135,15 @@ data class BuildAnalyzerTreeNodePresentation(
   /** Text that is rendered on the right side. Used to show the execution time. */
   val rightAlignedSuffix: String = "",
   /** What kind of icon should be rendered on the left of the node. */
-  val nodeIconState: NodeIconState = NodeIconState.NO_ICON,
-  /** If color icon matching chart should be rendered on the right. */
-  val showChartKey: Boolean = false
+  val nodeIconState: NodeIconState = NodeIconState.NO_ICON
 ) {
   enum class NodeIconState {
     /** No Icon should be rendered for this node. */
     NO_ICON,
+
     /** Render empty placeholder icon for this nod. This is required to align node text when other nodes on same level have an icon. */
     EMPTY_PLACEHOLDER,
+
     /** Render warning icon for this node. */
     WARNING_ICON
   }
