@@ -15,19 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVORS_ELEMENT_RENAME_PRODUCT_FLAVOR_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -35,7 +25,10 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -49,7 +42,7 @@ import org.junit.Test;
 public class ProductFlavorsElementTest extends GradleFileModelTestCase {
   @Test
   public void testProductFlavorsWithApplicationStatements() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -71,7 +64,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -94,7 +87,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithOverrideStatements() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -117,7 +110,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsWithAppendStatements() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -141,7 +134,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddEmptyProductFlavor() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR);
+    writeToBuildFile(TestFile.ADD_EMPTY_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -149,7 +142,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED);
     android = buildModel.android();
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -180,7 +173,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddProductFlavor() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR);
+    writeToBuildFile(TestFile.ADD_PRODUCT_FLAVOR);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -189,7 +182,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_EXPECTED);
 
     android = buildModel.android();
 
@@ -203,7 +196,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testProductFlavorsNotRemoved() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_NOT_REMOVED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ProductFlavorModel xModel = buildModel.android().productFlavors().get(0);
@@ -214,12 +207,12 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
 
     checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
-    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED);
   }
 
   @Test
   public void testRenameProductFlavor() throws Exception {
-    writeToBuildFile(PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -230,9 +223,35 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     flavor1.rename("newAndImproved");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_RENAME_PRODUCT_FLAVOR_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.RENAME_PRODUCT_FLAVOR_EXPECTED);
 
     assertEquals("newAndImproved", buildModel.android().productFlavors().get(0).name());
     assertEquals("com.example.myFlavor1", buildModel.android().productFlavors().get(0).applicationId().toString());
+  }
+
+  enum TestFile implements TestFileName {
+    PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS("productFlavorsWithApplicationStatements"),
+    PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS("productFlavorsWithAssignmentStatements"),
+    PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS("productFlavorsWithOverrideStatements"),
+    PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS("productFlavorsWithAppendStatements"),
+    ADD_EMPTY_PRODUCT_FLAVOR("addEmptyProductFlavor"),
+    ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED("addEmptyProductFlavorExpected"),
+    ADD_PRODUCT_FLAVOR("addProductFlavor"),
+    ADD_PRODUCT_FLAVOR_EXPECTED("addProductFlavorExpected"),
+    PRODUCT_FLAVORS_NOT_REMOVED("productFlavorsNotRemoved"),
+    PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED("productFlavorsNotRemovedExpected"),
+    RENAME_PRODUCT_FLAVOR_EXPECTED("renameProductFlavorExpected"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/productFlavorsElement/" + path, extension);
+    }
   }
 }
