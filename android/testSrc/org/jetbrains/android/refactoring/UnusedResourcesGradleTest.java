@@ -59,7 +59,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy() +
+                 "repositories {\n" + AndroidGradleTests.getRepositoriesForGroovy() +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }
@@ -92,7 +92,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForKotlin() +
+                 "repositories {\n" + AndroidGradleTests.getRepositoriesForKotlin() +
                  "}\n",
                  getTextForFile("app/build.gradle.kts"));
   }

@@ -172,7 +172,7 @@ abstract class GradleSyncProjectComparisonTest(
     // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
     open fun testPsdDependencyAndroidToJavaModuleAndBack() {
       val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-        val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+        val localRepositories = AndroidGradleTests.getRepositoriesForGroovy()
         val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
         val repositories = """
@@ -239,7 +239,7 @@ abstract class GradleSyncProjectComparisonTest(
 
     open fun testPsdDependencyUpgradeLibraryModule() {
       val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-        val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+        val localRepositories = AndroidGradleTests.getRepositoriesForGroovy()
         val testRepositoryPath =
           File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
         val repositories = """
@@ -380,7 +380,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   protected fun addPsdSampleRepo(projectRoot: File) {
-    val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
+    val localRepositories = AndroidGradleTests.getRepositoriesForGroovy()
     val testRepositoryPath =
       File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
     val repositories = """

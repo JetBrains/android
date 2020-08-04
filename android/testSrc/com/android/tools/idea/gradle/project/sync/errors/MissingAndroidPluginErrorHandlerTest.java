@@ -19,13 +19,13 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.mockito.MockitoEx;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.openapi.application.ApplicationManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.ModuleManager;
@@ -117,7 +117,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
 
   public void testWithPluginSetInAppModule() throws Exception {
     // Check that hyperlinks are applied to app build instead to project build file when the plugin is defined there
-    loadProject(PLUGIN_IN_APP);
+    AndroidGradleTests.disableRemoteRepositoriesDuring(() -> {
+      loadProject(PLUGIN_IN_APP);
+    });
     Project project = getProject();
 
     // Make sure no repository is listed

@@ -292,7 +292,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   private void updateBuildFile(@NotNull String gradlePluginVersion) throws IOException {
     File buildFile = getAbsolutionFilePath("build.gradle");
     String contents = Files.toString(buildFile, Charsets.UTF_8);
-    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy());
+    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getRepositoriesForGroovy());
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
                                    "classpath 'com.android.tools.build:gradle:" +
                                    gradlePluginVersion +

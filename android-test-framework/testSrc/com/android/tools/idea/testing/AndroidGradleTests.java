@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.RegEx;
+import com.intellij.util.ThrowableRunnable;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -81,6 +82,7 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
+  @Nullable private static Boolean useRemoteRepositories = null;
 
   /**
    * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
@@ -110,7 +112,7 @@ public class AndroidGradleTests {
 
   private static void updateToolingVersionsAndPaths(@NotNull File path,
                                                     boolean isRoot,
-                                                    @Nullable String localRepositories,
+                                                    @Nullable String localAndRemoteRepositories,
                                                     @Nullable String gradleVersion,
                                                     @Nullable String gradlePluginVersion)
     throws IOException {
@@ -122,20 +124,26 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        updateToolingVersionsAndPaths(child, false, localRepositories, gradleVersion, gradlePluginVersion);
+        updateToolingVersionsAndPaths(child, false, localAndRemoteRepositories, gradleVersion, gradlePluginVersion);
       }
       return;
     }
+
+    boolean gradleOrKtsFile = (path.getPath().endsWith(DOT_GRADLE) || path.getPath().endsWith(EXT_GRADLE_KTS)) && path.isFile();
+    if (!gradleOrKtsFile) return;
 
     BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
     String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
     String kotlinVersion = KotlinVersionProvider.getInstance().getKotlinVersionForGradle();
 
-    if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
-      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
-      String contents = contentsOrig;
-      if (localRepositories == null) {
-        localRepositories = getLocalRepositoriesForGroovy();
+    String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
+    String contents = contentsOrig;
+    contents = replaceRegexGroup(contents, "['\"]com.android.tools.lint:lint-api:(.+)['\"]", getBaseVersion(pluginVersion));
+    contents = replaceRegexGroup(contents, "['\"]com.android.tools.lint:lint-checks:(.+)['\"]", getBaseVersion(pluginVersion));
+
+    if (path.getPath().endsWith(DOT_GRADLE)) {
+      if (localAndRemoteRepositories == null) {
+        localAndRemoteRepositories = getRepositoriesForGroovy();
       }
 
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
@@ -154,17 +162,15 @@ public class AndroidGradleTests {
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
       contents = updateMinSdkVersion(contents);
-      contents = updateLocalRepositories(contents, localRepositories);
+      contents = updateRepositories(contents, localAndRemoteRepositories);
 
       if (!contents.equals(contentsOrig)) {
         asCharSink(path, StandardCharsets.UTF_8).write(contents);
       }
     }
-    else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
-      String contentsOrig = Files.toString(path, StandardCharsets.UTF_8);
-      String contents = contentsOrig;
-      if (localRepositories == null) {
-        localRepositories = getLocalRepositoriesForKotlin();
+    else if (path.getPath().endsWith(EXT_GRADLE_KTS)) {
+      if (localAndRemoteRepositories == null) {
+        localAndRemoteRepositories = getRepositoriesForKotlin();
       }
 
       contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
@@ -180,12 +186,25 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
       contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
       contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
-      contents = updateLocalRepositories(contents, localRepositories);
+      contents = updateRepositories(contents, localAndRemoteRepositories);
 
       if (!contents.equals(contentsOrig)) {
         asCharSink(path, StandardCharsets.UTF_8).write(contents);
       }
     }
+  }
+
+  /**
+   * Converts plugin version to base version. E.g. 4.0.1 -> 27.0.1
+   */
+  @NotNull
+  private static String getBaseVersion(@NotNull String pluginVersion) {
+    String[] versionParts = pluginVersion.split("\\.", 2);
+    assert versionParts.length == 2: "Unexpected version string: " + pluginVersion + ". Expected smth like 4.0.0";
+    int pluginMajor = Integer.valueOf(versionParts[0]);
+    int baseMajor = pluginMajor + 23;
+    String minorNumbers = versionParts[1];
+    return baseMajor + "." + minorNumbers;
   }
 
   @NotNull
@@ -247,22 +266,22 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
+  public static String updateRepositories(@NotNull String contents, @NotNull String localAndRemoteRepositories) {
     String newContents = contents;
     newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     newContents = MAVEN_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
 
     // Last, as it has maven repos
-    newContents = REPOSITORIES_PATTERN.matcher(newContents).replaceAll("repositories {\n" + localRepositories);
+    newContents = REPOSITORIES_PATTERN.matcher(newContents).replaceAll("repositories {\n" + localAndRemoteRepositories);
     return newContents;
   }
 
   @NotNull
-  public static String getLocalRepositoriesForGroovy() {
+  public static String getRepositoriesForGroovy() {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
-    return StringUtil.join(getLocalRepositoryDirectories(),
+    String localRepositories = StringUtil.join(getLocalRepositoryDirectories(),
                            file -> "maven {\n" +
                                    "  url \"" + file.toURI().toString() + "\"\n" +
                                    "  try {\n" +
@@ -272,12 +291,14 @@ public class AndroidGradleTests {
                                    "    }\n" +
                                    "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
                                    "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositories);
   }
 
   @NotNull
-  public static String getLocalRepositoriesForKotlin() {
+  public static String getRepositoriesForKotlin() {
     // Add metadataSources to work around http://b/144088459.
-    return StringUtil.join(getLocalRepositoryDirectories(),
+    String localRepositories = StringUtil.join(getLocalRepositoryDirectories(),
                            file -> "maven {\n" +
                                    "  setUrl(\"" + file.toURI().toString() + "\")\n" +
                                    "  metadataSources() {\n" +
@@ -285,6 +306,34 @@ public class AndroidGradleTests {
                                    "    artifact()\n" +
                                    "  }\n" +
                                    "}", "\n");
+
+    return appendRemoteRepositoriesIfNeeded(localRepositories);
+  }
+
+  private static String appendRemoteRepositoriesIfNeeded(@NotNull String localRepositories) {
+    if (shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio() : "In Android Studio all the tests are hermetic. Remote repositories never needed.";
+      return localRepositories + "\njcenter()\ngoogle()";
+    }
+    else {
+      return localRepositories;
+    }
+  }
+
+  private static boolean shouldUseRemoteRepositories() {
+    if (useRemoteRepositories != null){
+      return useRemoteRepositories;
+    }
+    return !IdeInfo.getInstance().isAndroidStudio();
+  }
+
+  public static <T extends Throwable> void disableRemoteRepositoriesDuring(ThrowableRunnable<T> r) throws T {
+    useRemoteRepositories = false;
+    try {
+      r.run();
+    } finally {
+      useRemoteRepositories = null;
+    }
   }
 
   @NotNull
@@ -458,7 +507,7 @@ public class AndroidGradleTests {
 
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
-                                                 @NotNull ThrowableConsumer<File, IOException> patcher)
+                                                 @NotNull ThrowableConsumer<? super File, ? extends IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 
