@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
@@ -85,9 +84,6 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
   }
 
   fun testUnresolvedSymbolInJava() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746659) failing on windows
-    }
     // Like testUnresolvedSymbolInKotlin but in a Java file
     loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") }

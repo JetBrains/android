@@ -24,15 +24,11 @@ import com.android.tools.idea.testing.moveCaret
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 
 class AndroidMavenImportFixTest : AndroidGradleTestCase() {
   fun testMissingClassHighlightingAndAddLibraryQuickfix() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746659) failing on windows
-    }
     val inspection = AndroidUnresolvableTagInspection()
     myFixture.enableInspections(inspection)
 
