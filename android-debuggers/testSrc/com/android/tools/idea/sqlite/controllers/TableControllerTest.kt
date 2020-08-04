@@ -2335,7 +2335,7 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true, false)))
   }
 
-  fun testLiveUpdatesDisabledForFileDatabase() {
+  fun testLiveUpdatesDisabledAndReadOnlyForFileDatabase() {
     // Prepare
     `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
     tableController = TableController(
@@ -2362,6 +2362,7 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
+    verify(tableView, times(3)).setEditable(false)
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
