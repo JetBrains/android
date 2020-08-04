@@ -26,7 +26,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
@@ -44,7 +43,6 @@ import org.mockito.Mock;
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
-  @Mock private GradleSyncState mySyncState;
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
@@ -57,7 +55,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     Project project = getProject();
     when(myPluginInfo.getModule()).thenReturn(getModule());
 
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
   }
@@ -80,7 +77,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
     assertFalse(upgraded);
 
-    verify(mySyncState, never()).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
