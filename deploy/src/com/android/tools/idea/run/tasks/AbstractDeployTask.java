@@ -29,12 +29,14 @@ import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -341,5 +343,13 @@ public abstract class AbstractDeployTask implements LaunchTask {
                            ActionPlaces.UNKNOWN,
                            true);
     }
+  }
+
+  @NotNull
+  @Override
+  public Collection<ApkInfo> getApkInfos() {
+    return myPackages.entrySet().stream().map((eachPackage) ->
+                                                ContainerUtil.map(eachPackage.getValue(), file -> new ApkInfo(file, eachPackage.getKey())))
+      .flatMap(List::stream).collect(ImmutableList.toImmutableList());
   }
 }
