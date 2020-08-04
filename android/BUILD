@@ -246,8 +246,6 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
-            # failing studio_win (b/162747504)
-            "tags": ["no_windows"],
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
