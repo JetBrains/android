@@ -234,14 +234,6 @@ public class GradleSyncExecutor {
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
-    // Android Studio 4.0 ONLY - Cleanup Kotlin dsl script models these are cleared normally in a data service that is not called by fetch
-    // models.
-    try {
-      KotlinDslScriptModelKt.getKOTLIN_DSL_SCRIPT_MODELS(new DataNode(ProjectKeys.PROJECT, new ProjectData(SYSTEM_ID, "", "", ""), null))
-        .clear();
-    } catch (Exception e) {
-      // Ignore everything, this hack should never throw
-    }
 
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 

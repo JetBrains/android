@@ -37,10 +37,10 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.text.LiteralFormatUtil
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
-import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
-import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
 import java.math.BigDecimal
 
 /**
