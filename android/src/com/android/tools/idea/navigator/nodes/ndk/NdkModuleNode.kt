@@ -85,7 +85,8 @@ class NdkModuleNode(
 fun getNativeSourceNodes(project: Project,
                          ndkModuleModel: NdkModuleModel,
                          settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)
+               ?: return emptyList() // the module could be missing in case user changes project structure and sync
   val ndkModel = ndkModuleModel.ndkModel
   if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get() && ndkModel is V1NdkModel) {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
