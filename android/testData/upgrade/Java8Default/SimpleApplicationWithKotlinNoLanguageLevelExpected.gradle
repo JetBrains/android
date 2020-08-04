@@ -28,7 +28,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
     kotlinOptions {
-        jvmTarget = '1.6'
+        jvmTarget = '1.6' // Java 7 not supported by kotlinOptions jvmTarget
     }
 }
 

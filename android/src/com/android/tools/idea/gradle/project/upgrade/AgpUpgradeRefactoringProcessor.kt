@@ -160,11 +160,10 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
     buildModel.applyChanges()
 
-    // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
-    // doing non-undoable things to the Psi, and so preventing Undo for the entire refactoring operation.  However,
-    // the GradleWrapper.foo() manipulations of the properties file was so low-level that even running it in the
-    // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
-    // at which point the manipulation could be done in performRefactoring().
+    if (psiSpoilingUsageInfos.isNotEmpty()) {
+      buildModel.reparse()
+    }
+
     psiSpoilingUsageInfos.forEach {
       if (it is SpoilingGradleBuildModelUsageInfo)
         it.performPsiSpoilingRefactoringFor(this)
@@ -197,15 +196,17 @@ abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: Gradl
 }
 
 /**
- * Instances of [SpoilingGradleBuildModelUsageInfo] should perform their refactor in the [performPsiSpoilingBuildModelRefactoring] method
- * in any way they desire, operating after changes to the buildModel have been applied.
+ * Instances of [SpoilingGradleBuildModelUsageInfo] should perform any build model refactoring in their extension of
+ * [performBuildModelRefactoring], which must call this class's method; they may then perform Psi-spoiling refactoring in their
+ * [performPsiSpoilingBuildModelRefactoring] method in any way they desire, operating after changes to the buildModel have been applied
+ * and reparsed.
  */
 abstract class SpoilingGradleBuildModelUsageInfo(
   element: PsiElement,
   current: GradleVersion,
   new: GradleVersion
 ) : GradleBuildModelUsageInfo(element, current, new) {
-  final override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     noteForPsiSpoilingBuildModelRefactoring(processor)
   }
 
@@ -1053,7 +1054,7 @@ class KotlinLanguageLevelUsageInfo(
   internal val existing: Boolean,
   private val noLanguageLevelAction: NoLanguageLevelAction,
   private val propertyName: String
-  ): GradleBuildModelUsageInfo(element, current, new) {
+  ): SpoilingGradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
       false -> when (noLanguageLevelAction) {
@@ -1065,10 +1066,24 @@ class KotlinLanguageLevelUsageInfo(
     }
   }
 
+  val gradleFile = model.gradleFile
+
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     when {
-      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
+      !existing && noLanguageLevelAction == INSERT_OLD_DEFAULT -> {
+        model.setLanguageLevel(LanguageLevel.JDK_1_6)
+        super.performBuildModelRefactoring(processor)
+      }
     }
+  }
+
+  override fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    val element = processor.buildModel.getModuleBuildModel(gradleFile).android().kotlinOptions().jvmTarget().psiElement ?: return
+    val documentManager = PsiDocumentManager.getInstance(project)
+    val document = documentManager.getDocument(element.containingFile) ?: return
+    document.insertString(element.textRange.endOffset, " // Java 7 not supported by kotlinOptions jvmTarget")
+    FileDocumentManager.getInstance().saveDocument(document)
+    documentManager.commitDocument(document)
   }
 
   // Don't need hashCode for correctness because this is stricter than the superclass's equals().
