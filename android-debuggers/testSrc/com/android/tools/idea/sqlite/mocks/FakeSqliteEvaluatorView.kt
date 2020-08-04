@@ -41,4 +41,6 @@ open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
   override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 
   override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
+
+  override fun reportError(message: String, t: Throwable?) { }
 }

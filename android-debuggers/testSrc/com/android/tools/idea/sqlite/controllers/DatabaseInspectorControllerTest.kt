@@ -648,7 +648,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testUpdateSchemaUpdatesModel() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -672,7 +672,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCreateTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -700,7 +700,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableRenameTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -727,7 +727,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableAddColumnUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -755,7 +755,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -805,7 +805,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDropTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
@@ -831,7 +831,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection)
     }
