@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.parents
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.openapi.util.SystemInfoRt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
@@ -282,6 +283,8 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
   }
 
   fun testNoMatchingDimensionInSourceAndMultipleFlavorsInTargetButMissingDimensionStrategy() {
+    if (SystemInfoRt.isWindows) return  // b/149874781
+
     loadProject(TestProjectPaths.PSD_DEPENDENCY)
 
     val resolvedProject = myFixture.project
