@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.SdkConstants.DOT_GRADLE
-import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.gradle.model.IdeLibrary
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
@@ -28,7 +24,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
@@ -36,19 +31,11 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
-import com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion
-import com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes
-import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.stats.withProjectId
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.build.BuildProgressListener
 import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
@@ -69,19 +56,16 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
@@ -174,15 +158,11 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
 
-  // Negative numbers mean that the events have not finished
-  private var syncStartedTimeStamp = -1L
-  private var syncSetupStartedTimeStamp = -1L
-  private var syncEndedTimeStamp = -1L
-  private var sourceGenerationEndedTimeStamp = -1L
-  private var syncFailedTimeStamp = -1L
-  open var lastSyncFinishedTimeStamp = -1L
+  private val eventLogger = GradleSyncEventLogger()
 
-  private var trigger = GradleSyncStats.Trigger.TRIGGER_UNKNOWN
+  fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind) = eventLogger.generateSyncEvent(project, eventKind)
+
+  open var lastSyncFinishedTimeStamp = -1L; protected set
 
   /*
    * START GradleSyncListener methods
@@ -201,8 +181,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
-  @VisibleForTesting
-  fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
+  private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
       if (isSyncInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
@@ -215,8 +194,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
     LOG.info("Started $syncType ($trigger) sync with Gradle for project '${project.name}'.")
 
-    setSyncStartedTimeStamp()
-    this.trigger = trigger
+    eventLogger.syncStarted(getSyncType(), trigger)
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
@@ -239,7 +217,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
   private fun setupStarted() {
-    syncSetupStartedTimeStamp = System.currentTimeMillis()
+    eventLogger.setupStarted()
 
     LOG.info("Started setup of project '${project.name}'.")
 
@@ -249,23 +227,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Triggered at the end of a successful sync, once the models have been fetched.
    */
-  @VisibleForTesting
-  fun syncSucceeded() {
-    // syncFailed should be called if there're any sync issues.
-    assert(!lastSyncFailed())
+  private fun syncSucceeded() {
+    val millisTook = eventLogger.syncEnded()
 
-    val syncEndTimeStamp = System.currentTimeMillis()
-
-    // If mySyncStartedTimestamp is -1, that means sync has not started or syncSucceeded has been called for this invocation.
-    // Reset sync state and don't log the events or notify listener again.
-    // TODO: Replace with exception once sync event calls are corrected to ensure this doesn't over trigger.
-    if (syncStartedTimeStamp == -1L) {
-      syncFinished(syncEndTimeStamp)
-      return
-    }
-    syncEndedTimeStamp = syncEndTimeStamp
-
-    val message = "Gradle sync finished in ${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)}"
+    val message = "Gradle sync finished in ${formatDuration(millisTook)}"
     addToEventLog(SYNC_NOTIFICATION_GROUP,
                   message,
                   MessageType.INFO,
@@ -275,7 +240,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
 
-    syncFinished(syncEndTimeStamp)
+    syncFinished()
     syncPublisher { syncSucceeded(project) }
     ProjectBuildFileChecksums.saveToDisk(project)
   }
@@ -285,20 +250,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    *
    * TODO: This should only be called at the end of sync, not all throughout which is currently the case
    */
-  open fun syncFailed(message: String?, error: Throwable?) {
+  private fun syncFailed(message: String?, error: Throwable?) {
+    val millisTook = eventLogger.syncEnded()
     ProjectStructure.getInstance(project).clearData()
-
-    val syncEndTimeStamp = System.currentTimeMillis()
-
-    // If mySyncStartedTimestamp is -1, that means sync has not started or syncFailed has been called for this invocation.
-    // Reset sync state and don't log the events or notify listener again.
-    if (syncStartedTimeStamp == -1L) {
-      syncFinished(syncEndTimeStamp)
-      return
-    }
-
-    syncFailedTimeStamp = syncEndTimeStamp
-
     val throwableMessage = error?.message
     // Find a none null message from either the provided message or the given throwable.
     val causeMessage: String = when {
@@ -307,7 +261,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       GradleSyncMessages.getInstance(project).errorDescription.isNotEmpty() -> GradleSyncMessages.getInstance(project).errorDescription
       else -> "Unknown cause".also { LOG.warn(IllegalStateException("No error message given")) }
     }
-    val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)})"
+    val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(millisTook)})"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.ERROR, null)
     LOG.warn(resultMessage)
 
@@ -322,8 +276,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
 
-    syncFinished(syncEndTimeStamp)
-
+    syncFinished()
     syncPublisher { syncFailed(project, causeMessage) }
   }
 
@@ -331,10 +284,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
   fun syncSkipped(listener: GradleSyncListener?) {
-    val syncEndTimeStamp = System.currentTimeMillis()
-    syncEndedTimeStamp = syncEndTimeStamp
-
-    syncFinished(syncEndTimeStamp, true)
+    syncFinished(skipped = true)
 
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
@@ -349,109 +299,12 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    */
 
   open fun isSyncNeeded(): ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
-  fun isSourceGenerationFinished(): Boolean = sourceGenerationEndedTimeStamp != -1L
-
-  fun generateSyncEvent(kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
-    val event = AndroidStudioEvent.newBuilder()
-    val syncStats = GradleSyncStats.newBuilder()
-    val buildFileTypes = projectBuildFilesTypes(project)
-
-    // Setup the sync stats
-    syncStats.totalTimeMs = getSyncTotalTimeMs()
-    syncStats.ideTimeMs = getSyncIdeTimeMs()
-    syncStats.gradleTimeMs = getSyncGradleTimeMs()
-    syncStats.trigger = trigger
-    syncStats.syncType = getSyncType()
-    syncStats.usesBuildGradle = buildFileTypes.contains(DOT_GRADLE)
-    syncStats.usesBuildGradleKts = buildFileTypes.contains(DOT_KTS)
-
-    val lastKnownVersion = getLastKnownAndroidGradlePluginVersion(project)
-    if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
-    val lastSuccessfulVersion = getLastSuccessfulAndroidGradlePluginVersion(project)
-    if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
-
-    // Set up the Android studio event
-    event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
-    event.kind = kind
-    event.gradleSyncStats = syncStats.build()
-    return event.withProjectId(project)
-  }
-
-  /**
-   * Returns the total time taken by the last sync or 0 if there is a sync in progress and setup has not been reached.
-   */
-  fun getSyncTotalTimeMs(): Long = when {
-    syncEndedTimeStamp >= 0 -> syncEndedTimeStamp - syncStartedTimeStamp // Sync was successful
-    syncFailedTimeStamp >= 0 -> syncFailedTimeStamp - syncStartedTimeStamp // Sync failed
-    syncSetupStartedTimeStamp >= 0 -> syncSetupStartedTimeStamp - syncStartedTimeStamp // Only fetching model has finished
-    else -> 0
-  }
-
-  /**
-   * Returns the time spent in the IDE part of the last sync (excluding time spent/waiting for Gradle).
-   * If sync has been done from cache, sync has never occurs, sync is in progress or the last sync failed before
-   * setup this method returns -1.
-   */
-  fun getSyncIdeTimeMs(): Long = when {
-    syncEndedTimeStamp < 0 -> -1  // Sync is in progress or something went wrong during the last sync
-    syncSetupStartedTimeStamp < 0 -> -1 // Sync was done from cache (no gradle nor IDE part was done)
-    else -> syncEndedTimeStamp - syncSetupStartedTimeStamp
-  }
-
-  /**
-   * Returns the time spent in the Gradle part of the last sync.
-   * If sync has never been performed or models were loaded from cache, this method returns -1.
-   */
-  fun getSyncGradleTimeMs() = if (syncSetupStartedTimeStamp >= 0) syncSetupStartedTimeStamp - syncStartedTimeStamp else -1
-
-  /*
-   * END public utility methods
-   */
-
-  /*
-   * START Test-only state manipulation methods. These methods should ONLY be used in tests.
-   */
-
-  /**
-   * Clears all of the [GradleSyncState]s time stamps and sets [syncStartedTimeStamp] to the given time-stamp and updates the
-   * trigger to the given [newTrigger]
-   */
-  @TestOnly
-  fun setSyncStartedTimeStamp(timeStamp: Long, newTrigger: GradleSyncStats.Trigger) {
-    syncStartedTimeStamp = timeStamp
-    syncSetupStartedTimeStamp = -1
-    syncEndedTimeStamp = -1
-    sourceGenerationEndedTimeStamp = -1
-    syncFailedTimeStamp = -1
-    lastSyncFinishedTimeStamp = -1
-    trigger = newTrigger
-  }
-
-  @TestOnly
-  fun setSyncSetupStartedTimeStamp(timeStamp: Long) {
-    syncSetupStartedTimeStamp = timeStamp
-  }
-
-  @TestOnly
-  fun setSyncEndedTimeStamp(timeStamp: Long) {
-    syncEndedTimeStamp = timeStamp
-  }
-
-  @TestOnly
-  fun setSyncFailedTimeStamp(timeStamp: Long) {
-    syncFailedTimeStamp = timeStamp
-  }
-
-  /*
-   * END Test-only state manipulation methods
-   */
 
   /**
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
-  private fun syncFinished(timeStamp: Long, skipped: Boolean = false) {
-    syncStartedTimeStamp = -1L
-    lastSyncFinishedTimeStamp = timeStamp
+  private fun syncFinished(skipped: Boolean = false) {
+    lastSyncFinishedTimeStamp = System.currentTimeMillis()
 
     lock.withLock {
       isSyncInProgress = false
@@ -493,18 +346,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   }
 
   /**
-   * Clears all of the [GradleSyncState]s time stamps and sets [syncStartedTimeStamp] to the current system time.
-   */
-  private fun setSyncStartedTimeStamp() {
-    syncStartedTimeStamp = System.currentTimeMillis()
-    syncSetupStartedTimeStamp = -1
-    syncEndedTimeStamp = -1
-    sourceGenerationEndedTimeStamp = -1
-    syncFailedTimeStamp = -1
-    lastSyncFinishedTimeStamp = -1
-  }
-
-  /**
    * Logs a sync event using [UsageTracker]
    */
   private fun logSyncEvent(kind: AndroidStudioEvent.EventKind) {
@@ -512,33 +353,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     // an error.
     if (project.isDisposed) return
 
-    val event = generateSyncEvent(kind)
-
-    if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
-      event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
-      event.setKotlinSupport(generateKotlinSupport())
-    }
+    val event = eventLogger.generateSyncEvent(project, kind)
 
     UsageTracker.log(event)
-  }
-
-  private fun generateKotlinSupport(): KotlinSupport.Builder {
-    var kotlinVersion: GradleVersion? = null
-    var ktxVersion: GradleVersion? = null
-
-    val ordering = Ordering.natural<GradleVersion>().nullsFirst<GradleVersion>()
-
-    ModuleManager.getInstance(project).modules.mapNotNull { module -> AndroidModuleModel.get(module) }.forEach { model ->
-      val dependencies = model.selectedMainCompileLevel2Dependencies
-
-      kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin:kotlin-stdlib"))
-      ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core:core-ktx"))
-    }
-
-    val kotlinSupport = KotlinSupport.newBuilder()
-    if (kotlinVersion != null) kotlinSupport.kotlinSupportVersion = kotlinVersion.toString()
-    if (ktxVersion != null) kotlinSupport.androidKtxVersion = ktxVersion.toString()
-    return kotlinSupport
   }
 
   private fun addToEventLog(
@@ -710,11 +527,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       return syncStateUpdaterService.stopTrackingTask(buildId)
     }
   }
-}
-
-private fun Collection<IdeLibrary>.findVersion(artifact: String): GradleVersion? {
-  val library = firstOrNull { library -> library.artifactAddress.startsWith(artifact) } ?: return null
-  return GradleCoordinate.parseCoordinateString(library.artifactAddress)?.version
 }
 
 private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
