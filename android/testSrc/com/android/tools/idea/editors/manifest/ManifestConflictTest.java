@@ -22,12 +22,10 @@ import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 
-import com.intellij.openapi.util.SystemInfoRt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.Assume;
 
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 
@@ -61,9 +59,6 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveMinSdkConflict() throws Exception {
-    if (SystemInfoRt.isWindows) {
-      return; // TODO(b/162746035) failing on windows
-    }
     loadProject(MANIFEST_CONFLICT_MIN_SDK);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
