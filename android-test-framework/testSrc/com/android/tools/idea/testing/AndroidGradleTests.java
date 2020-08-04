@@ -26,6 +26,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
@@ -55,6 +56,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -533,6 +535,9 @@ public class AndroidGradleTests {
 
   public static TestGradleSyncListener syncProject(@NotNull Project project,
                                                    @NotNull GradleSyncInvoker.Request request) throws InterruptedException {
+    if (getProjectSystem(project).getSyncManager().isSyncInProgress()) {
+      throw new IllegalStateException("Requesting sync while sync in progress");
+    }
     TestGradleSyncListener syncListener = new TestGradleSyncListener();
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
     syncListener.await();
@@ -542,7 +547,7 @@ public class AndroidGradleTests {
   public static void checkSyncStatus(@NotNull Project project,
                                      @NotNull TestGradleSyncListener syncListener,
                                      @Nullable SyncIssueFilter issueFilter) throws SyncIssuesPresentError {
-    if (syncFailed(syncListener)) {
+    if (!syncListener.isSyncFinished() || syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);

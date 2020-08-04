@@ -68,11 +68,13 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
@@ -85,7 +87,6 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val LOG = Logger.getInstance(GradleSyncState::class.java)
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
@@ -583,10 +584,12 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     val runningTasks: ConcurrentMap<ExternalSystemTaskId, Pair<String, Disposable>> = ConcurrentHashMap()
 
     fun trackTask(id: ExternalSystemTaskId, projectPath: String): Disposable? {
+      LOG.info("trackTask($id, $projectPath)")
+      val normalizedProjectPath = normalizePath(projectPath)
       val disposable = Disposer.newDisposable()
-      val old = runningTasks.putIfAbsent(id, projectPath to disposable)
+      val old = runningTasks.putIfAbsent(id, normalizedProjectPath to disposable)
       if (old != null) {
-        Logger.getInstance(SyncStateUpdater::class.java).warn("External task $id has been already started")
+        LOG.warn("External task $id has been already started")
         Disposer.dispose(disposable)
         return null
       }
@@ -594,9 +597,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
 
     fun stopTrackingTask(id: ExternalSystemTaskId): Boolean {
+      LOG.info("stopTrackingTask($id)")
       val info = runningTasks.remove(id)
       if (info == null) {
-        Logger.getInstance(SyncStateUpdater::class.java).warn("Unknown build $id finished")
+        LOG.warn("Unknown build $id finished")
         return false
       }
       Disposer.dispose(info.second) // Unsubscribe from notifications.
@@ -604,7 +608,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
 
     fun stopTrackingTask(projectDir: String): Boolean {
-      val task = runningTasks.entries.find { it.value.first == projectDir }?.key ?: return false
+      LOG.info("stopTrackingTask($projectDir)")
+      val normalizedProjectPath = normalizePath(projectDir)
+      val task = runningTasks.entries.find { it.value.first == normalizedProjectPath }?.key ?: return false
       return stopTrackingTask(task)
     }
 
@@ -620,6 +626,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   class DataImportListener(val project: Project) : ProjectDataImportListener {
     override fun onImportFinished(projectPath: String) {
+      LOG.info("onImportFinished($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath)) {
         GradleSyncState.getInstance(project).syncSucceeded()
@@ -632,13 +639,14 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     private fun ExternalSystemTaskId.findProjectorLog(): Project? {
       val project = findProject()
       if (project == null) {
-        Logger.getInstance(SyncStateUpdater::class.java).warn("No project found for $this")
+        LOG.warn("No project found for $this")
       }
       return project
     }
 
     override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
       if (!id.isGradleResolveProjectTask()) return
+      LOG.info("onStart($id, $workingDir)")
       val project = id.findProjectorLog() ?: return
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
@@ -659,6 +667,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     override fun onSuccess(id: ExternalSystemTaskId) {
       if (!id.isGradleResolveProjectTask()) return
+      LOG.info("onSuccess($id)")
       val project = id.findProjectorLog() ?: return
       val runningTasks = project.getService(SyncStateUpdaterService::class.java).runningTasks
       if (!runningTasks.containsKey(id)) return
@@ -667,6 +676,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
       if (!id.isGradleResolveProjectTask()) return
+      LOG.info("onFailure($id, $e)")
       val project = id.findProjectorLog() ?: return
       if (!stopTrackingTask(project, id)) return
       GradleSyncState.getInstance(project).syncFailed(null, e)
@@ -683,7 +693,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     override fun onEvent(buildId: Any, event: BuildEvent) {
       if (event !is FinishBuildEvent) return
       if (buildId !is ExternalSystemTaskId) {
-        Logger.getInstance(SyncStateUpdater::class.java).warn("Unexpected buildId $buildId of type ${buildId::class.java} encountered")
+        LOG.warn("Unexpected buildId $buildId of type ${buildId::class.java} encountered")
         return
       }
       val project = buildId.findProjectorLog() ?: return
@@ -710,3 +720,6 @@ private fun Collection<IdeLibrary>.findVersion(artifact: String): GradleVersion?
 private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
   projectSystemId == GRADLE_SYSTEM_ID && type == ExternalSystemTaskType.RESOLVE_PROJECT
 
+private fun normalizePath(projectPath: String) = ExternalSystemApiUtil.toCanonicalPath(projectPath)
+
+private val Any.LOG get() = Logger.getInstance(this::class.java)  // Used for non-frequent logging.
