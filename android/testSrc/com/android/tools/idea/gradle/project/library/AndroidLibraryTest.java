@@ -29,7 +29,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfoRt;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
@@ -64,9 +63,6 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
 
   // b/68150753
   public void testRenameLibraryAndAddActivity() throws Exception {
-    if (SystemInfoRt.isWindows) {
-      return; // TODO(b/162746378) failing on windows
-    }
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project project = myAndroidFacet.getModule().getProject();
