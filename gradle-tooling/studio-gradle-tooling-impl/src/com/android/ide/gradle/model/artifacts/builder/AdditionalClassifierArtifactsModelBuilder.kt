@@ -22,13 +22,12 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsImpl
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsModelImpl
-import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.DocsType
 import org.gradle.api.component.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.jvm.JvmLibrary
@@ -39,19 +38,6 @@ import org.gradle.maven.MavenPomArtifact
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import java.io.File
 
-
-/**
- * Currently AS builds against Gradle tooling-api 5.2, but SamplesModelBuilder is enabled for Gradle 6+.
- * We copied some gradle constants from newer version.
- *
- * TODO(b/148289718): delete when studio compiles against tooling-api 5.6+
- */
-interface DocsType : Named {
-  companion object {
-    val DOCS_TYPE_ATTRIBUTE: Attribute<DocsType>
-      get() = Attribute.of("org.gradle.docstype", DocsType::class.java)
-  }
-}
 
 /**
  * Model Builder for [AdditionalClassifierArtifactsModel].
