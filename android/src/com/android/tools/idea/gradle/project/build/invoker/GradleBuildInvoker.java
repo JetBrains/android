@@ -374,7 +374,7 @@ public class GradleBuildInvoker {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // Projects in tests may not have a local.properties, set ANDROID_HOME JVM argument if that's the case.
+      // Projects in tests may not have a local.properties, set ANDROID_SDK_ROOT JVM argument if that's the case.
       LocalProperties localProperties;
       try {
         localProperties = new LocalProperties(myProject);

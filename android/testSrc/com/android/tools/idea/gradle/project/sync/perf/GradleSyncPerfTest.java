@@ -23,6 +23,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
+import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -87,7 +88,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   @NotNull
   private static File findSdkPath() {
-    String localSdkPath = System.getenv("ANDROID_HOME");
+    String localSdkPath = System.getenv(SdkConstants.ANDROID_HOME_ENV);
 
     if (localSdkPath != null) {
       File localSdk = new File(localSdkPath);
@@ -95,6 +96,16 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
         return localSdk;
       }
     }
+
+    localSdkPath = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
+
+    if (localSdkPath != null) {
+      File localSdk = new File(localSdkPath);
+      if (localSdk.exists()) {
+        return localSdk;
+      }
+    }
+
     return getSdk();
   }
 

@@ -30,6 +30,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
@@ -171,11 +172,15 @@ public final class GuiTests {
   }
 
   private static File getAndroidSdk() {
-    String androidHome = System.getenv("ANDROID_HOME");
-    if (androidHome == null) {
-      throw new RuntimeException("Must set ANDROID_HOME environment variable when running in standalone mode");
+    String androidSdkRoot = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    if (androidSdkRoot == null) {
+      androidSdkRoot = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
     }
-    return new File(androidHome);
+
+    if (androidSdkRoot == null) {
+      throw new RuntimeException("Must set " + SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable when running in standalone mode");
+    }
+    return new File(androidSdkRoot);
   }
 
   public static void setUpSdks() {
