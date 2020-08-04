@@ -201,6 +201,11 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShowDecorations;
 
   /**
+   * If true, the scene is interactive.
+   */
+  private boolean myIsInteractive;
+
+  /**
    * If false, the use of the {@link ImagePool} will be disabled for the scene manager.
    */
   private boolean useImagePool = true;
@@ -1583,7 +1588,15 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param interactive true if the scene is interactive, false otherwise.
    */
   public void setInteractive(boolean interactive) {
+    myIsInteractive = interactive;
     getSceneViews().forEach(sv -> sv.setAnimated(interactive));
+  }
+
+  /**
+   * @return true is the scene is interactive, false otherwise.
+   */
+  public boolean getInteractive() {
+    return myIsInteractive;
   }
 
   /**
@@ -1597,6 +1610,13 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void setUsePrivateClassLoader(boolean usePrivateClassLoader) {
     myUsePrivateClassLoader = usePrivateClassLoader;
+  }
+
+  /**
+   * @return true if this scene is using private ClassLoader, false otherwise.
+   */
+  public boolean isUsePrivateClassLoader() {
+    return myUsePrivateClassLoader;
   }
 
   @Override
