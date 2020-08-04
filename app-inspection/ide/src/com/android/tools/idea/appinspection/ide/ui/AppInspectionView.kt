@@ -34,6 +34,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
@@ -137,7 +138,14 @@ class AppInspectionView(
 
   @UiThread
   private fun clearTabs() {
-    inspectorTabs.removeAll()
+    // TODO(b/162518342) this is a temporary hack, needed to be able to use offline mode in DBI.
+    //  Should be removed once we implement an offline story in AppInspection.
+    // Not calling `removeAll` works because DBI's component is a singleton,
+    // and JTabbedPane handles the case when you add the same component again. Therefore there won't be multiple tabs added.
+    // This is behind a flag, because it doesn't make sense to not remove tabs without enabling offline mode in DBI.
+    if (!StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()) {
+      inspectorTabs.removeAll()
+    }
     apiServices.disposeClients(project.name)
     updateUi()
   }
