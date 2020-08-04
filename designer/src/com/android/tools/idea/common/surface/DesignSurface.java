@@ -1237,7 +1237,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #getSceneManager()
    * @see #getSceneManager(NlModel)
    * @see SceneManager#getScene()
+   *
+   * @deprecated Use {@link #getSceneManager()}{@code .getScene()} or {@link SceneView}{@code .getScene()} instead. Using this method will
+   * cause the code not to correctly support multiple previews.
    */
+  @Deprecated
   @Nullable
   public Scene getScene() {
     SceneManager sceneManager = getSceneManager();
@@ -1246,6 +1250,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * @see #getSceneManager(NlModel)
+   *
+   * @deprecated Use {@link #getSceneManager(NlModel)} or {@link #getSceneManagers} instead.
+   * Using this method will cause the code not to correctly support multiple previews.
    */
   @Nullable
   public SceneManager getSceneManager() {
