@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
@@ -30,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.AnActionButton
@@ -239,6 +239,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private val propertiesTimelineSplitter = JBSplitter(0.2f).apply {
       firstComponent = createAnimatedPropertiesPanel()
       secondComponent = timelinePanel
+      dividerWidth = 1
     }
 
     init {
@@ -247,7 +248,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
       add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
-      // TODO(b/157895086): divide timeline and animated properties panel using a horizontal splitter
       add(propertiesTimelineSplitter, TabularLayout.Constraint(1, 0, 3))
     }
 
@@ -297,12 +297,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     private fun createPlaybackControllers(): JComponent = ActionManager.getInstance().createActionToolbar(
       "Animation inspector",
       DefaultActionGroup(listOf(
+        timelineLoopAction,
         GoToStartAction(),
         playPauseAction,
         GoToEndAction(),
-        SwapStartEndStatesAction(),
-        timelineSpeedAction,
-        timelineLoopAction
+        timelineSpeedAction
       )),
       true).component
 
@@ -311,12 +310,19 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      */
     private fun createAnimationStateComboboxes(): JComponent {
       val states = arrayOf(message("animation.inspector.states.combobox.placeholder.message"))
-      val statesToolbar = JPanel(TabularLayout("Fit,Fit,Fit"))
+      val statesToolbar = JPanel(TabularLayout("Fit,Fit,Fit,Fit"))
       startStateComboBox.model = DefaultComboBoxModel(states)
       endStateComboBox.model = DefaultComboBoxModel(states)
-      statesToolbar.add(startStateComboBox, TabularLayout.Constraint(0, 0))
-      statesToolbar.add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 1))
-      statesToolbar.add(endStateComboBox, TabularLayout.Constraint(0, 2))
+
+      val swapStatesActionToolbar = object : ActionToolbarImpl("Swap States", DefaultActionGroup(SwapStartEndStatesAction()), true) {
+        // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
+        // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
+        override fun getPreferredSize() = JBUI.size(30, 30)
+      }
+      statesToolbar.add(swapStatesActionToolbar, TabularLayout.Constraint(0, 0))
+      statesToolbar.add(startStateComboBox, TabularLayout.Constraint(0, 1))
+      statesToolbar.add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 2))
+      statesToolbar.add(endStateComboBox, TabularLayout.Constraint(0, 3))
       return statesToolbar
     }
 
@@ -328,7 +334,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     // TODO(b/157895086): Polish the animated properties panel.
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
       preferredSize = JBDimension(200, 200)
-      border = JBUI.Borders.customLine(JBColor.border(), 1)
+      border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 1, 0) // Only vertical borders are set.
       add(propsTextArea, TabularLayout.Constraint(0, 0))
     }
 
@@ -559,7 +565,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      */
     var maxLoopCount = 1L
 
-    private val slider = object: JSlider(0, 10000, 0) {
+    private val slider = object : JSlider(0, 10000, 0) {
       override fun updateUI() {
         setUI(TimelineSliderUI())
         updateLabelUIs()
@@ -649,7 +655,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       val labelTable = Hashtable<Any, JBLabel>()
       while (keys.hasMoreElements()) {
         val key = keys.nextElement()
-        labelTable[key] = JBLabel("$key ms")
+        labelTable[key] = object : JBLabel("$key ms") {
+          // Setting the enabled property to false is not enough because BasicSliderUI will check if the slider itself is enabled when
+          // paiting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
+          override fun getForeground() = UIUtil.getLabelDisabledForeground()
+        }
       }
       return labelTable
     }
@@ -691,9 +701,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       override fun paintThumb(g: Graphics) {
         g as Graphics2D
-        // TODO(b/157895086): Define a color for the thumb.
-        g.color = selectionBackground
-        g.stroke = BasicStroke(3f)
+        g.color = JBColor(0x4A81FF, 0xB4D7FF)
+        g.stroke = BasicStroke(1f)
         val halfWidth = thumbRect.width / 2
         g.drawLine(thumbRect.x + halfWidth, thumbRect.y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
       }
