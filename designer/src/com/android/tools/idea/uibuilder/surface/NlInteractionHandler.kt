@@ -193,7 +193,8 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     val sceneView = surface.getSceneView(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
-    val sceneComponent = surface.scene?.findComponent(sceneView.context, androidX, androidY) ?: return
+
+    val sceneComponent = sceneView.scene.findComponent(sceneView.context, androidX, androidY) ?: return
 
     if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
                                                                        sceneComponent,
