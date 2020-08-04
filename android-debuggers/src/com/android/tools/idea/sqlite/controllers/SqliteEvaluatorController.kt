@@ -152,7 +152,13 @@ class SqliteEvaluatorController(
       runQuery(databaseId, sqliteStatement)
     }
     else {
-      runUpdate(databaseId, sqliteStatement)
+      if (databaseId !is SqliteDatabaseId.FileSqliteDatabaseId) {
+        runUpdate(databaseId, sqliteStatement)
+      }
+      else {
+        view.reportError("Can't run modifier statements on offline database", null)
+        Futures.immediateFuture(Unit)
+      }
     }
   }
 
@@ -200,7 +206,7 @@ class SqliteEvaluatorController(
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
-        view.tableView.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
+        view.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
       }.cancelOnDispose(this)
   }
 

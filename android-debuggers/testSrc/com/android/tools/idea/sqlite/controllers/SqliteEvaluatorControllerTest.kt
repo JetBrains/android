@@ -31,6 +31,7 @@ import com.android.tools.idea.sqlite.mocks.FakeSqliteEvaluatorView
 import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -49,6 +50,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
@@ -163,7 +165,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(sqlStatement)
-    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
+    verify(sqliteEvaluatorView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
   }
 
   fun testEvaluateStatementWithoutParametersDoesntShowParamsBindingDialog() {
@@ -671,6 +673,22 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     verify(sqliteEvaluatorView, times(2)).setRunSqliteStatementEnabled(false)
   }
 
+  fun testRunModifierStatementOnFileDatabase() {
+    // Prepare
+    val sqlStatement = SqliteStatement(SqliteStatementType.UPDATE, "UPDATE")
+    val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("virtual file")))
+    databaseInspectorModel.addDatabaseSchema(fileDatabaseId, SqliteSchema(emptyList()))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement))
+
+    // Assert
+    verify(mockDatabaseConnection, times(0)).execute(sqlStatement)
+    verify(sqliteEvaluatorView).reportError("Can't run modifier statements on offline database", null)
+  }
+
   private fun evaluateSqlExecuteFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
     // Prepare
     val throwable = Throwable()
@@ -685,7 +703,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
+    verify(sqliteEvaluatorView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
     verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
   }
 

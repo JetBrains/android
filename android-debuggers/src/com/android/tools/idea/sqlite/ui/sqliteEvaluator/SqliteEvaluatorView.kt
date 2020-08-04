@@ -51,6 +51,8 @@ interface SqliteEvaluatorView {
    */
   fun setRunSqliteStatementEnabled(enabled: Boolean)
 
+  fun reportError(message: String, t: Throwable?)
+
   interface Listener {
     /**
      * Invoked when a database is selected in the combobox

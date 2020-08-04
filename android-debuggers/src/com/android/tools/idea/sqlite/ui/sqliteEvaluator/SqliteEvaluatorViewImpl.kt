@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
+import com.android.tools.idea.sqlite.ui.notifyError
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.application.ApplicationManager
@@ -210,5 +211,9 @@ class SqliteEvaluatorViewImpl(
 
   override fun showSqliteStatement(sqliteStatement: String) {
     editorTextField.text = sqliteStatement
+  }
+
+  override fun reportError(message: String, t: Throwable?) {
+    notifyError(message, t)
   }
 }
