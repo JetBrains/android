@@ -24,9 +24,11 @@ import com.android.tools.idea.sqlite.model.getGlobalUserPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import java.io.FileNotFoundException
 import java.io.IOException
+import kotlin.coroutines.coroutineContext
 
 interface OfflineDatabaseManager {
   /**
@@ -60,7 +62,7 @@ class OfflineDatabaseManagerImpl(
     // Room uses write-ahead-log, so we need to download these additional files to open the db
     val pathsToDownload = listOf(filePath, "$filePath-shm", "$filePath-wal")
 
-    val disposableDownloadProgress = DisposableDownloadProgress()
+    val disposableDownloadProgress = DisposableDownloadProgress(coroutineContext[Job]!!)
     Disposer.register(project, disposableDownloadProgress)
 
     val files = try {
@@ -84,15 +86,15 @@ class OfflineDatabaseManagerImpl(
       .await()
   }
 
-  private class DisposableDownloadProgress : DownloadProgress, Disposable {
-    private var isCanceled = false
+  private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {
+    private var isDisposed = false
 
-    override fun isCancelled() = isCanceled
+    override fun isCancelled() = isDisposed || coroutineJob.isCancelled
     override fun onStarting(entryFullPath: String) { }
     override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) { }
     override fun onCompleted(entryFullPath: String) { }
     override fun dispose() {
-      isCanceled = true
+      isDisposed = true
     }
   }
 }
