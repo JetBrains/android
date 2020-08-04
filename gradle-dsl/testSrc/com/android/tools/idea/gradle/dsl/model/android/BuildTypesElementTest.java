@@ -13,24 +13,18 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -43,7 +37,7 @@ import org.junit.Test;
 public class BuildTypesElementTest extends GradleFileModelTestCase {
   @Test
   public void testBuildTypesWithApplicationStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPES_WITH_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -61,7 +55,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithAssignmentStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -80,7 +74,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithOverrideStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPES_WITH_OVERRIDE_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -106,7 +100,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithAppendStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPES_WITH_APPEND_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -126,7 +120,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddEmptyBuildType() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE);
+    writeToBuildFile(TestFile.ADD_EMPTY_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -135,7 +129,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_EMPTY_BUILD_TYPE_EXPECTED);
 
     android = buildModel.android();
 
@@ -168,7 +162,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddBuildType() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE);
+    writeToBuildFile(TestFile.ADD_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -177,7 +171,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_BUILD_TYPE_EXPECTED);
 
     android = buildModel.android();
 
@@ -191,7 +185,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPropertyToImplicitBuildTypes() throws Exception {
-    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES);
+    writeToBuildFile(TestFile.ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -202,7 +196,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED);
 
     android = buildModel.android();
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -211,5 +205,30 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("release.applicationIdSuffix","-release", buildTypes.get(0).applicationIdSuffix());
     assertEquals("debug.name", "debug", buildTypes.get(1).name());
     assertEquals("debug.applicationIdSuffix", "-debug", buildTypes.get(1).applicationIdSuffix());
+  }
+
+  enum TestFile implements TestFileName {
+    BUILD_TYPES_WITH_APPLICATION_STATEMENTS("buildTypesWithApplicationStatements"),
+    BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS("buildTypesWithAssignmentStatements"),
+    BUILD_TYPES_WITH_OVERRIDE_STATEMENTS("buildTypesWithOverrideStatements"),
+    BUILD_TYPES_WITH_APPEND_STATEMENTS("buildTypesWithAppendStatements"),
+    ADD_EMPTY_BUILD_TYPE("addEmptyBuildType"),
+    ADD_EMPTY_BUILD_TYPE_EXPECTED("addEmptyBuildTypeExpected"),
+    ADD_BUILD_TYPE("addBuildType"),
+    ADD_BUILD_TYPE_EXPECTED("addBuildTypeExpected"),
+    ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES("addPropertyToImplicitBuildTypes"),
+    ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED("addPropertyToImplicitBuildTypesExpected"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/buildTypesElement/" + path, extension);
+    }
   }
 }
