@@ -130,6 +130,17 @@ private class ModelDataContext(private val composePreviewManager: ComposePreview
 }
 
 /**
+ * Returns true if change of values of any [LayoutlibSceneManager] properties would require necessary re-inflation. Namely, if we change
+ * [LayoutlibSceneManager.isShowingDecorations], [LayoutlibSceneManager.isUsePrivateClassLoader] or if we transition from interactive to
+ * static preview mode (not the other way around though) we need to re-inflate in order to update the preview layout.
+ */
+fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isInteractive: Boolean, usePrivateClassLoader: Boolean) =
+  (showDecorations != isShowingDecorations) ||
+  (interactive && !isInteractive) || // transition from interactive to static
+  (usePrivateClassLoader != isUsePrivateClassLoader)
+
+
+/**
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
  * will configure if the preview elements will be displayed with "full device size" or simply containing the
  * previewed components (shrink mode).
@@ -144,14 +155,15 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            usePrivateClassLoader: Boolean,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
+    val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
-    setInteractive(isInteractive)
-    setUsePrivateClassLoader(usePrivateClassLoader)
+    interactive = isInteractive
+    isUsePrivateClassLoader = usePrivateClassLoader
     setQuality(0.7f)
     setShowDecorations(showDecorations)
-    if (forceReinflate) {
+    if (reinflate) {
       forceReinflate()
     }
   }
@@ -800,7 +812,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                 configureLayoutlibSceneManager(sceneManager,
                                                showDecorations = previewElement.displaySettings.showDecoration,
                                                isInteractive = interactiveMode.isStartingOrReady(),
-                                               usePrivateClassLoader = usePrivateClassLoader())
+                                               usePrivateClassLoader = usePrivateClassLoader(),
+                                               forceReinflate = false)
                   .requestComposeRender()
                   .await()
               }
