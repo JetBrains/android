@@ -25,7 +25,6 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.SystemInfoRt
 import org.hamcrest.CoreMatchers.hasItem
 import org.junit.After
 import org.junit.Assert.assertThat
@@ -41,9 +40,6 @@ class AndroidLintCustomCheckTest {
 
   @Before
   fun setUp() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746404) failing on windows
-    }
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
 
     ApplicationManager.getApplication().invokeAndWait {
@@ -93,9 +89,6 @@ class AndroidLintCustomCheckTest {
 
   @Test
   fun dependencyOnLocalModuleWithLintChecks() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746404) failing on windows
-    }
     doTest(
       "app/src/main/java/com/example/app/MyList.java",
       "Do not implement java.util.List directly")
@@ -103,9 +96,6 @@ class AndroidLintCustomCheckTest {
 
   @Test
   fun dependencyOnLocalLibraryExportingLintChecks() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746404) failing on windows
-    }
     doTest(
       "app/src/main/AndroidManifest.xml",
       "Should not specify <activity>."
@@ -114,9 +104,6 @@ class AndroidLintCustomCheckTest {
 
   @Test
   fun dependencyOnRemoteLibraryExportingLintChecks() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162746404) failing on windows
-    }
     doTest(
       "app/src/main/java/com/example/app/MySet.java",
       "Do not implement java.util.Set directly")
