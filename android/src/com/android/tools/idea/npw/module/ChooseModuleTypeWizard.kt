@@ -29,6 +29,8 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -81,6 +83,7 @@ class ChooseModuleTypeWizard(
   private val leftPanel = JPanel(BorderLayout())
   private val listEntriesListeners = ListenerManager()
   private val modelWizardListeners = ListenerManager()
+  private val logger: Logger get() = logger<ChooseModuleTypeWizard>()
 
   private var wizardModelChangedListener: (ModelWizard) -> Unit = {}
 
@@ -105,7 +108,11 @@ class ChooseModuleTypeWizard(
 
     fun setNewModelWizard(galleryEntry: Optional<ModuleGalleryEntry>) {
       if (galleryEntry.isPresent && selectedEntry != galleryEntry.get()) {
+        try {
         currentModelWizard = ModelWizard.Builder().addStep(galleryEntry.get().createStep(project, moduleParent, projectSyncInvoker)).build()
+        } catch (ex: Throwable) {
+          logger.error(ex)
+        }
 
         // Ignore first initialization, as currentModelWizard is supplied in modelWizardDialog constructor
         if (selectedEntry != null) {

@@ -24,6 +24,8 @@ import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
@@ -49,12 +51,18 @@ class ChooseModuleTypeStep(
     FormScalingUtil.scaleComponentTree(this.javaClass, it)
   }
   private val moduleDescriptionToStepMap = hashMapOf<ModuleGalleryEntry, SkippableWizardStep<*>>()
+  private val logger: Logger get() = logger<ChooseModuleTypeStep>()
 
   override fun getComponent(): JComponent = rootPanel
 
-  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> = moduleGalleryEntryList.map {
-    it.createStep(project, moduleParent, projectSyncInvoker).also { step ->
-      moduleDescriptionToStepMap[it] = step
+  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> = moduleGalleryEntryList.mapNotNull {
+    try {
+      it.createStep(project, moduleParent, projectSyncInvoker).also { step ->
+        moduleDescriptionToStepMap[it] = step
+      }
+    } catch (ex: Throwable) {
+      logger.error(ex)
+      null
     }
   }
 
