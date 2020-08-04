@@ -39,6 +39,7 @@ import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.FlowLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -232,6 +233,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private fun buildToolbarPanel(toolbar: JPanel) = JPanel(BorderLayout()).apply {
     add(toolbar, BorderLayout.LINE_START)
     alignmentX = Component.LEFT_ALIGNMENT
+    minimumSize = Dimension(0, minimumSize.height)
   }
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
