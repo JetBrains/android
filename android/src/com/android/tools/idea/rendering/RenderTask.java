@@ -1348,7 +1348,12 @@ public class RenderTask {
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
     RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-      finalDisposeMethod.ifPresent(m -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m)));
+
+      finalDisposeMethod.ifPresent(
+        m -> renderSession.execute(
+          () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))
+        )
+      );
       renderSession.dispose();
     });
   }
