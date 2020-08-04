@@ -75,8 +75,6 @@ public interface LaunchTask {
   /**
    * Returns a collection of APK information which is used or installed by this task. This method
    * is used solely for collecting stats data.
-   *
-   * <p>Note that this method is not implemented yet as of April 2019.
    */
   @NotNull
   default Collection<ApkInfo> getApkInfos() {
