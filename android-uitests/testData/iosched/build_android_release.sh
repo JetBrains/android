@@ -17,9 +17,9 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export ANDROID_HOME=$DIR/../../../prebuilts/fullsdk/linux
+export ANDROID_SDK_ROOT=$DIR/../../../prebuilts/fullsdk/linux
 
-echo "ANDROID_HOME=$ANDROID_HOME"
+echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
 cd $DIR
 
 # Build

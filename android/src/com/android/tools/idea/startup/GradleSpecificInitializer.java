@@ -104,7 +104,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       try {
         // Setup JDK and Android SDK if necessary
         setupSdks();
-        checkAndroidSdkHome();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
@@ -302,15 +301,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
         }
       }
     });
-  }
-
-  private static void checkAndroidSdkHome() {
-    try {
-      AndroidLocation.checkAndroidSdkHome();
-    }
-    catch (AndroidLocation.AndroidLocationException e) {
-      addStartupWarning(e.getMessage(), null);
-    }
   }
 
   @Nullable
