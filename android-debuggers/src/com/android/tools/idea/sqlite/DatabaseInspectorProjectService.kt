@@ -43,8 +43,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -221,6 +224,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private var ideServices: AppInspectionIdeServices? = null
 
+  private var downloadOfflineDatabases: Job? = null
+
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
 
@@ -255,6 +260,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
   ) = withContext(uiThread) {
+    withContext(workerThread) { downloadOfflineDatabases?.cancelAndJoin() }
     // close all databases when a new session starts
     model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
     model.clearDatabases()
@@ -273,7 +279,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     // TODO(b/162403339) decide how state is going to be restored with offline dbs.
     val savedState = controller.saveState()
 
-    projectScope.launch {
+    downloadOfflineDatabases = projectScope.launch {
       val openDatabases = model.getOpenDatabaseIds()
 
       openDatabases.forEach {
@@ -285,8 +291,9 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
         for (liveSqliteDatabaseId in openDatabases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()) {
           try {
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
-            openSqliteDatabase(databaseFileData)
-          } catch (e: IOException) {
+            openSqliteDatabase(databaseFileData).await()
+          }
+          catch (e: IOException) {
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
           }
         }
