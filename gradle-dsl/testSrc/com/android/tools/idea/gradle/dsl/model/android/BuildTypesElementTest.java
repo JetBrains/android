@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
@@ -207,6 +208,17 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("debug.applicationIdSuffix", "-debug", buildTypes.get(1).applicationIdSuffix());
   }
 
+  @Test
+  public void testKnownMethods() throws IOException {
+    writeToBuildFile(TestFile.KNOWN_METHODS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<BuildTypeModel> buildTypes = buildModel.android().buildTypes();
+    assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    assertEquals("debug", buildTypes.get(1).name());
+  }
+
   enum TestFile implements TestFileName {
     BUILD_TYPES_WITH_APPLICATION_STATEMENTS("buildTypesWithApplicationStatements"),
     BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS("buildTypesWithAssignmentStatements"),
@@ -218,6 +230,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     ADD_BUILD_TYPE_EXPECTED("addBuildTypeExpected"),
     ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES("addPropertyToImplicitBuildTypes"),
     ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED("addPropertyToImplicitBuildTypesExpected"),
+    KNOWN_METHODS("knownMethods"),
     ;
 
     @NotNull private @SystemDependent String path;
