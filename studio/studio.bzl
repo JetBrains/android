@@ -118,6 +118,7 @@ def _studio_plugin_impl(ctx):
     _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, ctx.outputs.plugin_win)
 
     return struct(
+        directory = ctx.attr.directory,
         xml = plugin_xml,
         xml_jar = plugin_dir + "/lib/" + plugin_jar,
         files = depset(),
@@ -358,12 +359,23 @@ def _android_studio_os(ctx, platform, out):
     module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
+    for dep, spec in ctx.attr.searchable_options.items():
+        plugin, jar = spec.split("/")
+        file = dep.files.to_list()[0]
+        overrides += [("#%splugins/%s/lib/%s!search/%s" % (platform.base_path, plugin, jar, file.basename), file)]
+
     _zip_merger(ctx, zips, files, overrides, out)
 
 def _android_studio_impl(ctx):
+    plugins = [plugin.directory for plugin in ctx.attr.plugins]
+    ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
+
     _android_studio_os(ctx, LINUX, ctx.outputs.linux)
     _android_studio_os(ctx, MAC, ctx.outputs.mac)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
+
+    # Leave everything that is not the main zips as implicit outputs
+    return DefaultInfo(files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]))
 
 _android_studio = rule(
     attrs = {
@@ -374,6 +386,9 @@ _android_studio = rule(
         "resources": attr.label_list(),
         "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
+        "searchable_options": attr.label_keyed_string_dict(
+            allow_files = True,
+        ),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -404,6 +419,7 @@ _android_studio = rule(
         "linux": "%{name}.linux.zip",
         "mac": "%{name}.mac.zip",
         "win": "%{name}.win.zip",
+        "plugins": "%{name}.plugin.lst",
     },
     implementation = _android_studio_impl,
 )
@@ -417,11 +433,17 @@ _android_studio = rule(
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
 def android_studio(
         name,
+        searchable_options,
         modules = {},
         resources = {},
         **kwargs):
     jars, modules_list = _dict_to_lists(modules)
     resources_dirs, resources_list = _dict_to_lists(resources)
+    searchable_options_dict = {}
+    for rel_path in native.glob([searchable_options + "/**"]):
+        parts = rel_path.split("/")
+        if len(parts) > 3:
+            searchable_options_dict[rel_path] = parts[1] + "/" + parts[2]
 
     _android_studio(
         name = name,
@@ -429,5 +451,6 @@ def android_studio(
         jars = jars,
         resources = resources_list,
         resources_dirs = resources_dirs,
+        searchable_options = searchable_options_dict,
         **kwargs
     )

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="app" path="ActionManager" hit="App Links Assistant" />
+    <option name="assistant" path="ActionManager" hit="App Links Assistant" />
+    <option name="links" path="ActionManager" hit="App Links Assistant" />
+    <option name="app" path="ActionManager" hit="Open App Links Assistant" />
+    <option name="assistant" path="ActionManager" hit="Open App Links Assistant" />
+    <option name="links" path="ActionManager" hit="Open App Links Assistant" />
+    <option name="open" path="ActionManager" hit="Open App Links Assistant" />
+  </configurable>
+</options>
+

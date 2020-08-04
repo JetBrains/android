@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="app" path="ActionManager" hit="Deploy Module to App Engine..." />
+    <option name="deploy" path="ActionManager" hit="Deploy Module to App Engine..." />
+    <option name="engine" path="ActionManager" hit="Deploy Module to App Engine..." />
+    <option name="module" path="ActionManager" hit="Deploy Module to App Engine..." />
+    <option name="to" path="ActionManager" hit="Deploy Module to App Engine..." />
+    <option name="import" path="ActionManager" hit="Import Sample..." />
+    <option name="sample" path="ActionManager" hit="Import Sample..." />
+    <option name="an" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="android" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="code" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="import" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="sample" path="ActionManager" hit="Import an Android Code Sample" />
+  </configurable>
+</options>
+
