@@ -305,31 +305,26 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
-    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
-    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2"))
 
     // Select the test case 1. Click on the test name column.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
-    verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method1" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
-      results.getLogcat(device1) == "test logcat message" &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, isNull())
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, isNull())
+
+    // Select the test case 1. Click on the device 2 column.
+    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, eq(device2))
 
     // Select the test case 2. Click on the device2 column.
-    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
-    verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method2" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, eq(device2))
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method2" }, eq(device2))
 
     // Selecting the test case 2 again after clearing the selection should trigger the callback.
     // (Because a user may click the same row again after he/she closes the second page.)
@@ -337,11 +332,26 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
-    verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method2" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, eq(device2))
+    verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { it.methodName == "method2" }, eq(device2))
+  }
+
+  @Test
+  fun editCellAtShouldNotCrashWithFilterApplied() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+
+    table.setColumnFilter { it.deviceName == "deviceName2" }
+    table.setRowFilter { it.getTestResultSummary() == AndroidTestCaseResult.FAILED }
+
+    assertThat(table.getTableViewForTesting().editCellAt(2, 2)).isFalse()
   }
 
   @Test
