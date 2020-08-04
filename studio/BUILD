@@ -414,6 +414,7 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:unb.tightvnc",
         ],
     },
+    searchable_options = "searchable-options",
     tags = ["manual"],
 )
 
@@ -429,6 +430,40 @@ py_test(
         ":android-studio.win.zip",
     ],
     tags = ["manual"],
+)
+
+py_test(
+    name = "searchable_options_test",
+    timeout = "eternal",
+    srcs = [
+        "tests/searchable_options_test.py",
+        "tests/update_searchable_options.py",
+    ],
+    data = [
+        ":android-studio.linux.zip",
+        ":android-studio.plugin.lst",
+    ],
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+)
+
+py_binary(
+    name = "update_searchable_options",
+    srcs = ["tests/update_searchable_options.py"],
+    data = [
+        ":android-studio.linux.zip",
+        ":android-studio.plugin.lst",
+    ],
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
 )
 
 java_binary(
