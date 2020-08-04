@@ -34,10 +34,10 @@ internal interface AppInspectionTarget {
    * @param [creator] a factory lambda to instantiate a [AppInspectorClient] once inspector is successfully created on the device side.
    */
   @WorkerThread
-  suspend fun launchInspector(
+  suspend fun <C: AppInspectorClient> launchInspector(
     params: AppInspectorLauncher.LaunchParameters,
-    @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
-  ): AppInspectorClient
+    @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> C
+  ): C
 
   /**
    * Disposes all of the clients that were launched on this target.

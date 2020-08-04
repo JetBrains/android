@@ -81,10 +81,10 @@ internal class DefaultAppInspectionTarget(
   @VisibleForTesting
   internal val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
 
-  override suspend fun launchInspector(
+  override suspend fun <C: AppInspectorClient> launchInspector(
     params: AppInspectorLauncher.LaunchParameters,
-    creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient
-  ): AppInspectorClient {
+    creator: (AppInspectorClient.CommandMessenger) -> C
+  ): C {
     val clientDeferred = clients.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
@@ -120,7 +120,9 @@ internal class DefaultAppInspectionTarget(
       }
     }
     try {
-      return clientDeferred.await()
+      // We always know the exact type of the client because it gets created via the passed-in creator
+      @Suppress("UNCHECKED_CAST")
+      return clientDeferred.await() as C
     }
     catch (e: CancellationException) {
       throw e
