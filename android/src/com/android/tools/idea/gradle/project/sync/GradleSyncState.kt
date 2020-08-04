@@ -21,7 +21,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
@@ -31,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
-import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -96,7 +94,6 @@ val PROJECT_SYNC_TRIGGER = Key.create<ProjectSyncTrigger>("PROJECT_SYNC_TRIGGER"
  * of sync.
  */
 open class GradleSyncState @NonInjectable constructor(private val project: Project) {
-
   companion object {
     @JvmField
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
@@ -128,6 +125,18 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
+  private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
+    UNKNOWN(),
+    SKIPPED(isSuccessful = true),
+    IN_PROGRESS(isInProgress = true),
+    SUCCEEDED(isSuccessful = true),
+    FAILED(isFailed = true);
+
+    init {
+      assert(!(isSuccessful && isFailed))
+    }
+  }
+
   open var lastSyncedGradleVersion: GradleVersion? = null
 
   /**
@@ -139,9 +148,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    *    doesn't exist in an old version of the Android plugin)
    *   *An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)
    */
-  open fun lastSyncFailed(): Boolean = GradleProjectInfo.getInstance(project).isBuildWithGradle &&
-                                       (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing() ||
-                                        GradleSyncMessages.getInstance(project).errorCount > 0)
+  open fun lastSyncFailed(): Boolean = state.isFailed
+
+  open val isSyncInProgress: Boolean get() = state.isInProgress
 
   // For Java compat, to be refactored out
   open fun areSyncNotificationsEnabled() = areSyncNotificationsEnabled
@@ -151,7 +160,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   private var areSyncNotificationsEnabled = false
     get() = lock.withLock { return field }
     private set(value) = lock.withLock { field = value }
-  open var isSyncInProgress = false
+  private var state: LastSyncState = LastSyncState.UNKNOWN
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
   var externalSystemTaskId: ExternalSystemTaskId? = null
@@ -183,12 +192,12 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    */
   private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
-      if (isSyncInProgress) {
+      if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
         return false
       }
 
-      isSyncInProgress = true
+      state = LastSyncState.IN_PROGRESS
     }
 
     val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
@@ -240,7 +249,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
 
-    syncFinished()
+    syncFinished(LastSyncState.SUCCEEDED)
     syncPublisher { syncSucceeded(project) }
     ProjectBuildFileChecksums.saveToDisk(project)
   }
@@ -276,7 +285,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
 
-    syncFinished()
+    syncFinished(LastSyncState.FAILED)
     syncPublisher { syncFailed(project, causeMessage) }
   }
 
@@ -284,8 +293,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
   fun syncSkipped(listener: GradleSyncListener?) {
-    syncFinished(skipped = true)
-
+    syncFinished(LastSyncState.SKIPPED)
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
   }
@@ -303,18 +311,18 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
-  private fun syncFinished(skipped: Boolean = false) {
+  private fun syncFinished(newState: LastSyncState) {
     lastSyncFinishedTimeStamp = System.currentTimeMillis()
 
     lock.withLock {
-      isSyncInProgress = false
+      state = newState
       externalSystemTaskId = null
 
       areSyncNotificationsEnabled = true
     }
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
-    if (!skipped) {
+    if (newState != LastSyncState.SKIPPED) {
       ApplicationManager.getApplication().invokeAndWait { warnIfNotJdkHome() }
     }
   }
