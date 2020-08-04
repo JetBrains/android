@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
@@ -229,6 +230,15 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertEquals("com.example.myFlavor1", buildModel.android().productFlavors().get(0).applicationId().toString());
   }
 
+  @Test
+  public void testKnownMethods() throws IOException {
+    writeToBuildFile(TestFile.KNOWN_METHODS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ProductFlavorModel> productFlavors = buildModel.android().productFlavors();
+    assertThat(productFlavors).hasSize(0);
+  }
+
   enum TestFile implements TestFileName {
     PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS("productFlavorsWithApplicationStatements"),
     PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS("productFlavorsWithAssignmentStatements"),
@@ -241,6 +251,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     PRODUCT_FLAVORS_NOT_REMOVED("productFlavorsNotRemoved"),
     PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED("productFlavorsNotRemovedExpected"),
     RENAME_PRODUCT_FLAVOR_EXPECTED("renameProductFlavorExpected"),
+    KNOWN_METHODS("knownMethods"),
     ;
 
     @NotNull private @SystemDependent String path;

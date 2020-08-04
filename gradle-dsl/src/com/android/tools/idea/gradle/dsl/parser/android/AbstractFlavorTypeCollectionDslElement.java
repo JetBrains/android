@@ -25,9 +25,36 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractFlavorTypeCollectionDslElement extends GradleDslElementMap {
   @NotNull
   private static final String[] KNOWN_METHOD_NAMES_ARRAY = {
-    "all", "create", "register", "maybeCreate", "configure", "forEach", "stream", "getAt",
-    "getByName", "named", "findAll", "matching", "add", "clear", "addAll", "equals", "isEmpty", "size",
-    "remove", "removeAll", "withType", "getAsMap", "each"
+    "add",
+    "addAll",
+    "addRule",
+    "all",
+    "clear",
+    "create",
+    "configure",
+    "configureEach",
+    "each",
+    "equals",
+    "findAll",
+    "forEach",
+    "getAsMap",
+    "getAt",
+    "getByName",
+    "hashcode",
+    "isEmpty",
+    "matching",
+    "maybeCreate",
+    "named",
+    "register",
+    "remove",
+    "removeIf",
+    "removeAll",
+    "retainAll",
+    "size",
+    "stream",
+    "whenObjectAdded",
+    "whenObjectRemoved",
+    "withType",
   };
 
   @NotNull
