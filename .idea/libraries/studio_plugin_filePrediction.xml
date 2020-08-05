@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="studio-plugin-filePrediction">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/filePrediction/lib/file-prediction-model-0.0.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/filePrediction/lib/filePrediction.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/linux/android-studio/plugins/filePrediction/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/plugins/filePrediction/lib/file-prediction-model-0.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/plugins/filePrediction/lib/filePrediction.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/plugins/filePrediction/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202.5792.28.42/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>
