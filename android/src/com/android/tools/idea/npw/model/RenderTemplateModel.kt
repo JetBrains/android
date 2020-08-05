@@ -190,9 +190,19 @@ class RenderTemplateModel private constructor(
         showErrors = true
       )
 
+      val metrics = TemplateMetrics(
+        templateType = titleToTemplateType(newTemplate.name, newTemplate.formFactor),
+        wizardContext = wizardContext,
+        moduleType = moduleTemplateRendererToModuleType(moduleModelData.loggingEvent),
+        minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
+        bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+        useGradleKts = useGradleKts.get(),
+        useAppCompat = useAppCompat.get()
+      )
+
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
-      return newTemplate.render(context, executor).also {
+      return newTemplate.render(context, executor, metrics).also {
         createdFiles.addAll(context.filesToOpen)
       }
     }
