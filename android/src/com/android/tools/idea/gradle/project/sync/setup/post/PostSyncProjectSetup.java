@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.build.DefaultBuildDescriptor;
@@ -62,7 +61,6 @@ public final class PostSyncProjectSetup {
       else {
         syncState.syncSucceeded();
       }
-      ProjectBuildFileChecksums.saveToDisk(myProject);
     }
   }
 
