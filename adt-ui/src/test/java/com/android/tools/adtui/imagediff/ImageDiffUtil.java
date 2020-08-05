@@ -209,7 +209,7 @@ public final class ImageDiffUtil {
       ImageIO.write(actual, "PNG", outFile);
       // This will copy the file to its designated location. Useful when running locally.
       ImageIO.write(actual, "PNG", goldenFile);
-      fail("File did not exist, created here:" + goldenFile + "  and in undeclared outputs");
+      fail("File did not exist, created here:" + goldenFile + " and in undeclared outputs");
     }
 
     BufferedImage goldenImage = ImageIO.read(goldenFile);

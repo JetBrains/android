@@ -137,7 +137,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
+    val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
