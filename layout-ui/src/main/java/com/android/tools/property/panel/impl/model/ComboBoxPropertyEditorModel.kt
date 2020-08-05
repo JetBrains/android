@@ -197,9 +197,13 @@ class ComboBoxPropertyEditorModel(
     return result
   }
 
-  fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
+  fun popupMenuWillBecomeInvisible() {
+    _popupVisible = false
+  }
+
+  fun selectEnumValue() {
     val newValue = selectedValue
-    if (!ignoreChanges && newValue != null) {
+    if (newValue != null) {
 
       // Be aware that we may loose focus on the next line,
       // if the EnumValue is an action that displays a dialog.
@@ -210,7 +214,6 @@ class ComboBoxPropertyEditorModel(
       }
       fireValueChanged()
     }
-    _popupVisible = false
   }
 
   override fun getSize(): Int {
