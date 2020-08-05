@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import icons.StudioIcons
@@ -50,7 +51,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, isLibrary)
-      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name, NEW_MODULE)
     }
   }
 
@@ -97,7 +98,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, FormFactor.Mobile, true)
-      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name, NEW_MODULE)
     }
   }
 }

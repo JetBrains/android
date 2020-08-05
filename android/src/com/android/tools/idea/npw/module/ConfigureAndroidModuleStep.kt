@@ -29,6 +29,7 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
@@ -41,7 +42,8 @@ class ConfigureAndroidModuleStep(
   model: NewAndroidModuleModel,
   minSdkLevel: Int,
   basePackage: String?,
-  title: String
+  title: String,
+  private val wizardContext: TemplateComponent.WizardUiContext
 ) : ConfigureModuleStep<NewAndroidModuleModel>(model, model.formFactor.get().toWizardFormFactor(), minSdkLevel, basePackage, title) {
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
@@ -99,7 +101,7 @@ class ConfigureAndroidModuleStep(
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     val commonSteps = super.createDependentSteps()
 
-    val renderModel: RenderTemplateModel = fromModuleModel(model, message("android.wizard.activity.add", formFactor.id))
+    val renderModel: RenderTemplateModel = fromModuleModel(model, message("android.wizard.activity.add", formFactor.id), wizardContext)
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     val chooseActivityStep = ChooseActivityTypeStep.forNewModule(renderModel, formFactor, model.androidSdkInfo)
     chooseActivityStep.setShouldShow(!model.isLibrary)

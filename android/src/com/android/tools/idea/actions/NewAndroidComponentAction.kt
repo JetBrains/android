@@ -32,6 +32,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -132,7 +133,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
-      shouldOpenFiles
+      shouldOpenFiles, MENU_GALLERY
     )
     val newActivity = TemplateResolver.getAllTemplates()
       .filter { WizardUiContext.MenuEntry in it.uiContexts }

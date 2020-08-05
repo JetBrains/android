@@ -32,13 +32,12 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
-import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.collect.Table
 import com.google.common.collect.TreeBasedTable
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.ide.actions.NonEmptyActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -205,10 +204,9 @@ class TemplateManager private constructor() {
       val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
       val renderModel = fromFacet(
         facet, initialPackageSuggestion, moduleTemplates[0],
-        commandName, projectSyncInvoker, true
+        commandName, projectSyncInvoker, true, MENU_GALLERY
       )
-      val chooseTypeStep: SkippableWizardStep<WizardModel>
-      chooseTypeStep = when (category) {
+      val chooseTypeStep = when (category) {
         CATEGORY_ACTIVITY -> ChooseActivityTypeStep.forActivityGallery(renderModel, targetDirectory)
         CATEGORY_FRAGMENT -> ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
         else -> throw RuntimeException("Invalid category name: $category")
