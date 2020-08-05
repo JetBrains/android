@@ -132,7 +132,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
           }
         }
 
-        myTaskExecutor.addCallback(downloadFileAndAdditionalFiles(entry, localPath, progress), new FutureCallback<VirtualFile>() {
+        myTaskExecutor.addCallback(downloadFile(entry, localPath, progress), new FutureCallback<VirtualFile>() {
           @Override
           public void onSuccess(VirtualFile result) {
             futureResult.set(result);
@@ -177,19 +177,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     virtualFile.delete(this);
   }
 
-  private @NotNull ListenableFuture<VirtualFile> downloadFileAndAdditionalFiles(@NotNull DeviceFileEntry entry,
-                                                                                @NotNull Path localPath,
-                                                                                @NotNull DownloadProgress progress) {
-    return downloadFile(entry, localPath, progress);
-  }
-
   /**
    * Downloads the file corresponding to the {@link DeviceFileEntry} passed as argument, to the local path specified.
    * @param entry The entry corresponding to the file to download.
    * @param localPath Where to download the file.
    * @param progress Progress indicator for the download operation.
-   * @param callback An optional callback called once the download is over (success or failure).
-   * @return
    */
   @NotNull
   private ListenableFuture<VirtualFile> downloadFile(@NotNull DeviceFileEntry entry,
