@@ -197,7 +197,7 @@ public class EmbeddedDistributionPaths {
         jdkRootPath = new File(jdkRootPath, "jdk11");
       }
       if (SystemInfo.isWindows) {
-        jdkRootPath = new File(jdkRootPath, "win64");
+        jdkRootPath = new File(jdkRootPath, "win");
       }
       else if (SystemInfo.isLinux) {
         jdkRootPath = new File(jdkRootPath, "linux");
