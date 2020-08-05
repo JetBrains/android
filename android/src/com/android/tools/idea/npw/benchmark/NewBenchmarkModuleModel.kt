@@ -32,8 +32,6 @@ class NewBenchmarkModuleModel(
 ) : ModuleModel("benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker), moduleParent = moduleParent) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData, useGradleKts.get()) }
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
 
     override fun init() {
       super.init()
@@ -45,4 +43,7 @@ class NewBenchmarkModuleModel(
       }
     }
   }
+
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
 }

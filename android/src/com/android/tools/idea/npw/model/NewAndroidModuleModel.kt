@@ -85,6 +85,11 @@ interface ModuleModelData : ProjectModelData {
    */
   val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
+
+  /**
+   * A value which will be logged for Studio usage tracking.
+   */
+  val loggingEvent: RenderLoggingEvent
 }
 
 class NewAndroidModuleModel(
@@ -115,6 +120,9 @@ class NewAndroidModuleModel(
     applicationName.set(message(msgId))
   }
 
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = formFactor.get().toModuleRenderingLoggingEvent()
+
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.Mobile -> { data: TemplateData ->
@@ -136,9 +144,6 @@ class NewAndroidModuleModel(
         generateGenericModule(data as ModuleTemplateData)
       }
     }
-
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = formFactor.get().toModuleRenderingLoggingEvent()
 
     @WorkerThread
     override fun init() {
