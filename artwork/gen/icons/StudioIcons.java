@@ -92,6 +92,7 @@ public class StudioIcons {
   }
 
   public static class Compose {
+    public static final Icon ANIMATION_INSPECTOR = load("/studio/icons/compose/toolbar/animation-inspector.svg"); // 16x16
     public static final Icon INSPECT_PREVIEW = load("/studio/icons/compose/toolbar/inspect-preview.svg"); // 16x16
     public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
     public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
