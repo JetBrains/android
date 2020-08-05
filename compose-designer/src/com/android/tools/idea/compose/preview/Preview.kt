@@ -101,6 +101,7 @@ import java.awt.Color
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -334,7 +335,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
-  private val isContentBeingRendered = AtomicBoolean(false)
+  /**
+   * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
+   * is being refreshed. Even though [uniqueRefreshLauncher] guarantees that only at most a single refresh happens at any point in time,
+   * there might be several simultaneous calls to [refresh] method and therefore we need a counter instead of boolean flag.
+   */
+  private val refreshCallsCount = AtomicInteger(0)
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not rendered once
@@ -517,7 +523,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun status(): ComposePreviewManager.Status {
-    val isRefreshing = (isContentBeingRendered.get() ||
+    val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
                         GradleBuildState.getInstance(project).isBuildInProgress)
 
@@ -767,7 +773,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launch
       }
 
-      isContentBeingRendered.set(true)
+      refreshCallsCount.incrementAndGet()
       updateNotifications()
       try {
         val filePreviewElements = withContext(workerThread) {
@@ -810,7 +816,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         LOG.warn("Refresh request failed", t)
       }
       finally {
-        isContentBeingRendered.set(false)
+        refreshCallsCount.decrementAndGet()
         updateSurfaceVisibilityAndNotifications()
       }
     }
