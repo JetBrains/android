@@ -55,7 +55,6 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
 
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
     myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
@@ -98,7 +97,6 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   }
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
-    when(mySyncState.areSyncNotificationsEnabled()).thenReturn(false);
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();

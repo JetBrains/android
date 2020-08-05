@@ -80,18 +80,10 @@ val PROJECT_SYNC_TRIGGER = Key.create<ProjectSyncTrigger>("PROJECT_SYNC_TRIGGER"
 /**
  * This class manages the state of Gradle sync for a project.
  *
- * It contains state methods which are called from the Gradle sync infrastructure these are as follows:
- *   * syncTaskCreated
- *   * syncStarted
- *   * setupStarted
- *   * syncSucceeded
- *   * syncFailed
- *   * syncSkipped
- *   * sourceGenerationFinished
- *
- * Each of these methods record information about the current state of sync (e.g time taken for each stage) and passes these events
- * to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific invocation
- * of sync.
+*
+ * This class records information from various sources about the current state of sync (e.g time taken for each stage) and passes these
+ * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
+ * invocation of sync.
  */
 open class GradleSyncState @NonInjectable constructor(private val project: Project) {
   companion object {
@@ -140,7 +132,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   open var lastSyncedGradleVersion: GradleVersion? = null
 
   /**
-   * Indicates whether the last started Gradle sync has failed or will fail.
+   * Indicates whether the last started Gradle sync has failed.
    *
    * Possible failure causes:
    *   *An error occurred in Gradle (e.g. a missing dependency, or a missing Android platform in the SDK)
@@ -152,14 +144,8 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   open val isSyncInProgress: Boolean get() = state.isInProgress
 
-  // For Java compat, to be refactored out
-  open fun areSyncNotificationsEnabled() = areSyncNotificationsEnabled
-
   private val lock = ReentrantLock()
 
-  private var areSyncNotificationsEnabled = false
-    get() = lock.withLock { return field }
-    private set(value) = lock.withLock { field = value }
   private var state: LastSyncState = LastSyncState.UNKNOWN
     get() = lock.withLock { return field }
     set(value) = lock.withLock { field = value }
@@ -173,22 +159,8 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   open var lastSyncFinishedTimeStamp = -1L; protected set
 
-  /*
-   * START GradleSyncListener methods
-   *
-   * The following method deal with the GradleSync life cycle. These are called from within sync to perform housekeeping to do with
-   * monitoring and recording the state of sync. They also deal with notifying listeners both directly and via the GRADLE_SYNC_TOPIC.
-   *
-   * In each method we ensure that we don't notify the listeners until all the housekeeping has been performed in case they need to read
-   * state about sync. First we notify the listener specifically for this sync, then we notify all the other registered
-   * listeners.
-   * */
-
   /**
-   * Triggered at the start of a sync which has been started by the given [request].
-   *
-   * This method should only be called by the sync internals.
-   * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
+   * Triggered at the start of a sync.
    */
   private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
@@ -221,9 +193,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   /**
    * Triggered at the start of setup, after the models have been fetched.
-   *
-   * This method should only be called by the sync internals.
-   * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
   private fun setupStarted() {
     eventLogger.setupStarted()
@@ -256,8 +225,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   /**
    * Triggered when a sync has been found to have failed.
-   *
-   * TODO: This should only be called at the end of sync, not all throughout which is currently the case
    */
   private fun syncFailed(message: String?, error: Throwable?) {
     val millisTook = eventLogger.syncEnded()
@@ -298,14 +265,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     syncPublisher { syncSkipped(project) }
   }
 
-  /*
-   * END GradleSyncListener methods
-   */
-
-  /*
-   * START public utility methods
-   */
-
   open fun isSyncNeeded(): ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
 
   /**
@@ -317,8 +276,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     lock.withLock {
       state = newState
       externalSystemTaskId = null
-
-      areSyncNotificationsEnabled = true
     }
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
