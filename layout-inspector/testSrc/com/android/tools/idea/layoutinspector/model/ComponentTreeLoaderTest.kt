@@ -41,6 +41,7 @@ import org.mockito.Mockito.anySet
 import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
 import java.awt.Image
+import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.io.File
 
@@ -84,6 +85,16 @@ class ComponentTreeLoaderTest {
             height: 50
             class_name: 4
             package_name: 3
+            transformed_bounds {
+              top_left_x: 25
+              top_left_y: 125
+              top_right_x: 75
+              top_right_y: 127
+              bottom_left_x: 23
+              bottom_left_y: 250
+              bottom_right_x: 78
+              bottom_right_y: 253
+            }
           }
         }
         string {
@@ -183,6 +194,8 @@ class ComponentTreeLoaderTest {
     assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
     assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
     assertThat(node4.children).isEmpty()
+    assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 78, 23))
+    assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 253, 250))
   }
 
   @Test
