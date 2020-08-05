@@ -38,6 +38,7 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardParameterData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
@@ -55,6 +56,8 @@ private class ExistingNewModuleModelData(
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 
   override val formFactor: ObjectValueProperty<FormFactor> get() =
     throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")

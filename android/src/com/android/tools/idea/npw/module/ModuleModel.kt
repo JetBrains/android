@@ -38,7 +38,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import java.io.File
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 private val log: Logger get() = logger<ModuleModel>()
 
@@ -72,10 +71,6 @@ abstract class ModuleModel(
      * A [Recipe] which should be run from [render].
      */
     protected abstract val recipe: Recipe
-    /**
-     * A value which will be logged for Studio usage tracking.
-     */
-    protected abstract val loggingEvent: RenderLoggingEvent
 
     @WorkerThread
     override fun init() {
