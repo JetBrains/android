@@ -234,12 +234,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       @Override
       public void actionPerformed(ActionEvent e) {
         getStage().getTimeline().zoomIn();
+        getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomIn();
       }
     });
     actionMap.put(ZOOM_OUT_KEY, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
         getStage().getTimeline().zoomOut();
+        getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
       }
     });
     actionMap.put(PAN_LEFT_KEY, new AbstractAction() {
@@ -299,9 +301,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
         if (AdtUiUtils.isActionKeyDown(e)) {
           if (e.getWheelRotation() > 0) {
             getStage().getTimeline().zoomOut();
+            getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
           }
           else {
             getStage().getTimeline().zoomIn();
+            getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomIn();
           }
         }
         else {
