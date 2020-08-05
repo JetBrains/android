@@ -196,8 +196,8 @@ data class ProjectChecker(
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
-    projectRecipe.render(projectContext, executor1, null)
-    moduleRecipe.render(context, executor2, null)
+    projectRecipe.render(projectContext, executor1)
+    moduleRecipe.render(context, executor2)
     template.render(context, executor3)
     setGradleWrapperExecutable(projectRoot)
     verifyLastLoggedUsage(usageTracker, template.name, template.formFactor, moduleState.build())

@@ -48,15 +48,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 private val log: Logger get() = logger<Template>()
 
 fun Template.render(c: RenderingContext, e: RecipeExecutor) =
-  recipe.render(c, e, titleToTemplateRenderer(name, formFactor).takeUnless { this == Template.NoActivity })
+  recipe.render(c, e, titleToTemplateRenderer(name, formFactor))
 
 fun Recipe.findReferences(c: RenderingContext) =
-  render(c, FindReferencesRecipeExecutor(c), null)
+  render(c, FindReferencesRecipeExecutor(c))
 
 fun Recipe.actuallyRender(c: RenderingContext) =
-  render(c, DefaultRecipeExecutor(c), null)
+  render(c, DefaultRecipeExecutor(c))
 
-fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
   val success = if (c.project.isInitialized)
     doRender(c, e)
   else
@@ -64,16 +64,20 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: Template
       doRender(c, e)
     }
 
-  if (!c.dryRun && loggingEvent != null) {
-    logRendering(c.projectTemplateData, c.project, loggingEvent)
-  }
-
   if (!c.dryRun) {
     ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
     EditorUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
 
   return success
+}
+
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer): Boolean {
+  return render(c, e).also {
+    if (!c.dryRun) {
+      logRendering(c.projectTemplateData, c.project, loggingEvent)
+    }
+  }
 }
 
 private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
@@ -311,11 +315,4 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, templateRen
         .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
         .setKotlinSupportVersion(projectData.kotlinVersion))
   UsageTracker.log(aseBuilder.withProjectId(project))
-
-
-  /*TODO(qumeric)
-  if (ATTR_DYNAMIC_IS_INSTANT_MODULE) {
-    aseBuilder.templateRenderer = AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
-    UsageTracker.log(aseBuilder.withProjectId(project))
-  }*/
 }
