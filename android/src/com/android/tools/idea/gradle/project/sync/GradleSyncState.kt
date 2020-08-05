@@ -21,7 +21,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -220,7 +219,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     syncFinished(LastSyncState.SUCCEEDED)
     syncPublisher { syncSucceeded(project) }
-    ProjectBuildFileChecksums.saveToDisk(project)
   }
 
   /**
