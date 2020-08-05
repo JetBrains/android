@@ -113,7 +113,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     StringBuilder sb = new StringBuilder();
     sb.append("<p>The following commands will be executed to upgrade your project from Android Gradle Plugin version ")
       .append(myProcessor.getCurrent()).append(" to version ").append(myProcessor.getNew()).append(":</p>");
-    sb.append("<ul>");
+    sb.append("<br/><ul>");
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
       if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
         sb.append("<li>").append(p.getCommandName());
