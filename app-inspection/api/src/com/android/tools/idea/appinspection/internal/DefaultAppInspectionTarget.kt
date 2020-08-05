@@ -62,11 +62,11 @@ internal suspend fun attachAppInspectionTarget(
     )
     .build()
 
-  val eventListener = transport.createStreamEventListener(
+  val streamEventQuery = transport.createStreamEventQuery(
     eventKind = AGENT,
     filter = { it.agentData.status == ATTACHED }
-  ) {}
-  transport.executeCommand(attachCommand.toExecuteRequest(), eventListener)
+  )
+  transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
   return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
 }
 
@@ -98,11 +98,11 @@ internal class DefaultAppInspectionTarget(
           .setCreateInspectorCommand(createInspectorCommand)
           .setCommandId(commandId)
           .build()
-        val eventListener = transport.createStreamEventListener(
+        val eventQuery = transport.createStreamEventQuery(
           eventKind = APP_INSPECTION_RESPONSE,
           filter = { it.appInspectionResponse.commandId == commandId }
-        ) {}
-        val event = transport.executeCommand(appInspectionCommand, eventListener)
+        )
+        val event = transport.executeCommand(appInspectionCommand, eventQuery)
         if (event.appInspectionResponse.status == SUCCESS) {
           val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope)
           setupEventListener(creator, connection).also { inspectorClient ->

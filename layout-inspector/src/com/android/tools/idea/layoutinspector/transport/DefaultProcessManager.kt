@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.manager.TransportStreamListener
@@ -53,8 +54,9 @@ class DefaultProcessManager(
     override fun onStreamConnected(streamChannel: TransportStreamChannel) {
       if (streamFilter(streamChannel.stream)) {
         addStream(streamChannel.stream)
+        val streamQuery = StreamEventQuery(eventKind = PROCESS)
         streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(eventKind = PROCESS, executor = executor) {
+          TransportStreamEventListener(streamEventQuery = streamQuery, executor = executor) {
             if (it.process.hasProcessStarted()) {
               addProcess(streamChannel.stream, it.process.processStarted.process)
             }
