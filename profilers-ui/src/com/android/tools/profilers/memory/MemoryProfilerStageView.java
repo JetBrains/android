@@ -82,6 +82,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
@@ -91,6 +92,8 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FontMetrics;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -734,21 +737,13 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
-    legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
-    legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
-    legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
-    legend.configure(legends.getStackLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getStackSeries())));
-    legend.configure(legends.getCodeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getCodeSeries())));
-    legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
-    legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
-    legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
+    JComponent fullLegend = makeLegendComponent(lineChart, memoryUsage, true);
+    JComponent compactLegend = makeLegendComponent(lineChart, memoryUsage, false);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
-    legendPanel.add(legend, BorderLayout.EAST);
+    legendPanel.add(fullLegend, BorderLayout.EAST);
 
     if (!getStage().hasUserUsedMemoryCapture()) {
       installProfilingInstructions(monitorPanel);
@@ -762,7 +757,35 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     layout.setRowSizing(1, "*"); // Give monitor as much space as possible
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
+
+    panel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        legendPanel.remove(fullLegend);
+        legendPanel.remove(compactLegend);
+        legendPanel.add(fullLegend.getPreferredSize().width + 60 < panel.getWidth() ? fullLegend : compactLegend, BorderLayout.EAST);
+      }
+    });
     return panel;
+  }
+
+  private JComponent makeLegendComponent(LineChart lineChart, DetailedMemoryUsage memoryUsage, boolean full) {
+    MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends)
+      .setRightPadding(PROFILER_LEGEND_RIGHT_PADDING)
+      .setShowValues(full)
+      .setExcludedLegends(full ? ArrayUtil.EMPTY_STRING_ARRAY : new String[]{"Total"})
+      .build();
+
+    legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
+    legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
+    legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
+    legend.configure(legends.getStackLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getStackSeries())));
+    legend.configure(legends.getCodeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getCodeSeries())));
+    legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
+    legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
+    legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
+    return legend;
   }
 
   static Icon getIconForSamplingMode(LiveAllocationSamplingMode mode) {

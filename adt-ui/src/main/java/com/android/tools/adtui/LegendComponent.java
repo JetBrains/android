@@ -39,10 +39,13 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +98,10 @@ public class LegendComponent extends AnimatedComponent {
 
   private final Map<Legend, String> myValuesCache = new HashMap<>();
 
+  private final boolean myShowValues;
+
+  private final Set<String> myExcludedLegends;
+
   /**
    * Convenience method for creating a default, horizontal legend component based on a target
    * model. If you want to override defaults, use a {@link Builder} instead.
@@ -113,6 +120,8 @@ public class LegendComponent extends AnimatedComponent {
     myLeftPadding = builder.myLeftPadding;
     myRightPadding = builder.myRightPadding;
     myVerticalPadding = builder.myVerticalPadding;
+    myShowValues = builder.myShowValues;
+    myExcludedLegends = builder.myExcludedLegends;
     myModel.addDependency(myAspectObserver).onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
     setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(builder.myTextSize));
     modelChanged();
@@ -176,6 +185,10 @@ public class LegendComponent extends AnimatedComponent {
     boolean valuesChanged = false;
     // Check for new/modified legends.
     for (Legend legend : myModel.getLegends()) {
+      if (myExcludedLegends.contains(legend.getName())) {
+        continue;
+      }
+
       boolean isValueCached = myValuesCache.containsKey(legend);
 
       String value = legend.getValue();
@@ -200,6 +213,10 @@ public class LegendComponent extends AnimatedComponent {
     myInstructions.clear();
 
     for (Legend legend : myModel.getLegends()) {
+      if (myExcludedLegends.contains(legend.getName())) {
+        continue;
+      }
+
       String name = legend.getName();
       String value = legend.getValue();
       LegendConfig config = getConfig(legend);
@@ -234,14 +251,14 @@ public class LegendComponent extends AnimatedComponent {
         myInstructions.add(new GapInstruction(ICON_MARGIN_PX + gapAdjust));
       }
 
-      if (!name.isEmpty() && StringUtil.isNotEmpty(value)) {
+      if (myShowValues && !name.isEmpty() && StringUtil.isNotEmpty(value)) {
         name += ": ";
       }
 
       if (StringUtil.isNotEmpty(name)) {
         myInstructions.add(new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), name));
       }
-      if (StringUtil.isNotEmpty(value)) {
+      if (myShowValues && StringUtil.isNotEmpty(value)) {
         TextInstruction valueInstruction = new TextInstruction(UIUtilities.getFontMetrics(this, getFont()), value);
         myInstructions.add(valueInstruction);
         if (myOrientation != Orientation.VERTICAL) {
@@ -294,6 +311,8 @@ public class LegendComponent extends AnimatedComponent {
     private int myVerticalPadding = DEFAULT_PADDING_Y_PX;
     private float myTextSize = DEFAULT_TEXT_SIZE;
     private Orientation myOrientation = Orientation.HORIZONTAL;
+    private boolean myShowValues = true;
+    private Set<String> myExcludedLegends = new TreeSet<>();
 
     public Builder(@NotNull LegendComponentModel model) {
       myModel = model;
@@ -333,6 +352,18 @@ public class LegendComponent extends AnimatedComponent {
     @NotNull
     public Builder setOrientation(@NotNull Orientation orientation) {
       myOrientation = orientation;
+      return this;
+    }
+
+    @NotNull
+    public Builder setShowValues(boolean showValues) {
+      myShowValues = showValues;
+      return this;
+    }
+
+    @NotNull
+    public Builder setExcludedLegends(String ... legendNames) {
+      myExcludedLegends.addAll(Arrays.asList(legendNames));
       return this;
     }
 
