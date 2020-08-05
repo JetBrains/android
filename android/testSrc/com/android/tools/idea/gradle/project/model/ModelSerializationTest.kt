@@ -249,7 +249,7 @@ class ModelSerializationTest {
 
   @Test
   fun buildType() = assertSerializable {
-    ModelCache.buildTypeFrom(BuildTypeStub(), modelCache)
+    ModelCache.buildTypeFrom(BuildTypeStub())
   }
 
   @Test
