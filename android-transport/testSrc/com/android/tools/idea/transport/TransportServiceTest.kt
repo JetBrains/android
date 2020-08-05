@@ -36,8 +36,6 @@ class TransportServiceTest : LightPlatformTestCase() {
 
   @Throws(Exception::class)
   override fun setUp() {
-    // Bazel tests are sandboxed so we disable VfsRoot checks.
-    VfsRootAccess.allowRootAccess(testRootDisposable, "/", "C:\\")
 
     super.setUp()
     myService = TransportService()
