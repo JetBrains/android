@@ -30,7 +30,10 @@ import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.BytecodeLevel
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.ModuleType
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -44,11 +47,12 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import com.android.tools.idea.wizard.template.BytecodeLevel as TemplateBytecodeLevel
 
 private val log: Logger get() = logger<Template>()
 
-fun Template.render(c: RenderingContext, e: RecipeExecutor) =
-  recipe.render(c, e, titleToTemplateRenderer(name, formFactor))
+fun Template.render(c: RenderingContext, e: RecipeExecutor, metrics: TemplateMetrics? = null) =
+  recipe.render(c, e, titleToTemplateRenderer(name, formFactor), metrics)
 
 fun Recipe.findReferences(c: RenderingContext) =
   render(c, FindReferencesRecipeExecutor(c))
@@ -72,10 +76,13 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
   return success
 }
 
-fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer): Boolean {
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer, metrics: TemplateMetrics? = null): Boolean {
   return render(c, e).also {
     if (!c.dryRun) {
       logRendering(c.projectTemplateData, c.project, loggingEvent)
+      if (metrics != null) {
+        logRendering(c.projectTemplateData, c.project, metrics)
+      }
     }
   }
 }
@@ -305,6 +312,27 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
   }
 }
 
+fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer): ModuleType {
+  return when (moduleTemplateRenderer) {
+
+    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER -> ModuleType.NOT_APPLICABLE // Existing module, can't find what type is
+    TemplateRenderer.ANDROID_MODULE -> ModuleType.PHONE_TABLET
+    TemplateRenderer.ANDROID_LIBRARY -> ModuleType.ANDROID_LIBRARY
+    TemplateRenderer.DYNAMIC_FEATURE_MODULE -> ModuleType.DYNAMIC_FEATURE
+    TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE -> ModuleType.INSTANT_DYNAMIC_FEATURE
+    TemplateRenderer.AUTOMOTIVE_MODULE -> ModuleType.AUTOMOTIVE
+    TemplateRenderer.ANDROID_WEAR_MODULE ->  ModuleType.WEAR_OS
+    TemplateRenderer.ANDROID_TV_MODULE -> ModuleType.ANDROID_TV
+    TemplateRenderer.THINGS_MODULE -> ModuleType.ANDROID_THINGS
+    TemplateRenderer.JAVA_LIBRARY -> ModuleType.JAVA_OR_KOTLIN_LIBRARY
+    TemplateRenderer.BENCHMARK_LIBRARY_MODULE -> ModuleType.BENCHMARK_LIBRARY
+    else -> ModuleType.UNKNOWN
+
+    // TODO: b/161230278 Some new modules don't render a template. Need to send the event from their Model render.
+    // IMPORT_GRADLE = 10; IMPORT_ECLIPSE = 11; IMPORT_JAR_AAR = 12;
+  }
+}
+
 fun logRendering(projectData: ProjectTemplateData, project: Project, templateRenderer: TemplateRenderer) {
   val aseBuilder = AndroidStudioEvent.newBuilder()
     .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
@@ -314,5 +342,46 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, templateRen
       KotlinSupport.newBuilder()
         .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
         .setKotlinSupportVersion(projectData.kotlinVersion))
+  UsageTracker.log(aseBuilder.withProjectId(project))
+}
+
+fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {
+  val templateComponentBuilder = TemplatesUsage.TemplateComponent.newBuilder().apply {
+    templateType = metrics.templateType
+    wizardUiContext = metrics.wizardContext
+  }
+
+  val templateModuleBuilder = TemplatesUsage.TemplateModule.newBuilder().apply {
+    moduleType = metrics.moduleType
+    minSdk = metrics.minSdk
+    if (metrics.bytecodeLevel != null) {
+      bytecodeLevel = when (metrics.bytecodeLevel) {
+        TemplateBytecodeLevel.L6 -> BytecodeLevel.LEVEL_6
+        TemplateBytecodeLevel.L7 -> BytecodeLevel.LEVEL_7
+        TemplateBytecodeLevel.L8 -> BytecodeLevel.LEVEL_8
+      }
+    }
+  }
+
+  val templateProjectBuilder = TemplatesUsage.TemplateProject.newBuilder().apply {
+    usesLegacySupport = metrics.useAppCompat
+    usesBuildGradleKts = metrics.useGradleKts
+  }
+
+  val kotlinSupport = KotlinSupport.newBuilder().apply {
+    includeKotlinSupport = projectData.language == Language.Kotlin
+    kotlinSupportVersion = projectData.kotlinVersion
+  }
+
+  val aseBuilder = AndroidStudioEvent.newBuilder()
+    .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
+    .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
+    .setTemplateUsage(
+      TemplatesUsage.newBuilder()
+        .setTemplateComponent(templateComponentBuilder)
+        .setTemplateModule(templateModuleBuilder)
+        .setTemplateProject(templateProjectBuilder)
+        .setKotlinSupport(kotlinSupport)
+    )
   UsageTracker.log(aseBuilder.withProjectId(project))
 }
