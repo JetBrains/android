@@ -29,11 +29,10 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -220,21 +219,17 @@ class AppInspectionView(
                   .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
               }.client
             }
-            client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-              var crashed = false
-              override fun onCrashEvent(message: String) {
+            scope.launch {
+              client.messenger.awaitForDisposal()
+              if (client.messenger.crashMessage != null) {
                 AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-                crashed = true
-              }
-
-              override fun onDispose() {
                 // Wait until AFTER we're disposed before showing the notification. This ensures if
                 // the user hits restart, which requests launching a new inspector, it won't reuse
                 // the existing client. (Users probably would never hit restart fast enough but it's
                 // possible to trigger in tests.)
-                if (crashed) showCrashNotification(provider.displayName)
+                showCrashNotification(provider.displayName)
               }
-            }, MoreExecutors.directExecutor())
+            }
           }
           catch (e: CancellationException) {
             // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels

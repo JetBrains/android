@@ -16,16 +16,14 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
 import com.android.tools.idea.appinspection.test.TEST_PROJECT
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -67,15 +65,9 @@ class AppInspectionTargetManagerTest {
 
     assertThat(appInspectionRule.targetManager.targets).hasSize(2)
 
-    val disposed = CompletableDeferred<Unit>()
-    disposeClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-      override fun onDispose() {
-        disposed.complete(Unit)
-      }
-    }, MoreExecutors.directExecutor())
     appInspectionRule.targetManager.disposeClients("dispose")
+    disposeClient.messenger.awaitForDisposal()
 
-    disposed.join()
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
     assertThat(appInspectionRule.targetManager.targets.values.first().targetDeferred.await()).isSameAs(target)
   }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
@@ -37,7 +37,8 @@ class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppIns
                          processDescriptor: ProcessDescriptor,
                          messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
-      override val client: AppInspectorClient = StubTestAppInspectorClient(messenger)
+      override val client: AppInspectorClient = StubTestAppInspectorClient(
+        messenger)
       override val component = JPanel()
     }
   }
