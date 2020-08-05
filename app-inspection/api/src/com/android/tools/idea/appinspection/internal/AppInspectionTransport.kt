@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.poller.TransportEventListener
@@ -64,22 +65,33 @@ class AppInspectionTransport(
   }
 
   /**
+   * Utility function to create a [StreamEventQuery] based on this pid.
+   */
+  fun createStreamEventQuery(
+    eventKind: Common.Event.Kind,
+    filter: (Common.Event) -> Boolean = { true },
+    startTimeNs: () -> Long = { Long.MIN_VALUE }
+  ) = StreamEventQuery(
+    eventKind = eventKind,
+    startTime = startTimeNs,
+    filter = filter,
+    processId = { process.pid }
+  )
+
+  /**
    * Creates a new [TransportEventListener] given the provided filtering criteria.
    *
    * See [TransportStreamEventListener] for more details about what these parameters are.
    */
   fun createStreamEventListener(
-    filter: (Common.Event) -> Boolean = { true },
     eventKind: Common.Event.Kind,
+    filter: (Common.Event) -> Boolean = { true },
     startTimeNs: () -> Long = { Long.MIN_VALUE },
     isTransient: Boolean = false,
     callback: (Common.Event) -> Unit
   ) = TransportStreamEventListener(
-    eventKind = eventKind,
+    createStreamEventQuery(eventKind, filter, startTimeNs),
     executor = dispatcher.asExecutor(),
-    startTime = startTimeNs,
-    filter = filter,
-    processId = process::getPid,
     isTransient = isTransient,
     callback = callback
   )
@@ -105,19 +117,17 @@ class AppInspectionTransport(
    * Identical in functionality to [executeCommand] below except it takes an AppInspection [command].
    */
   suspend fun executeCommand(command: AppInspection.AppInspectionCommand,
-                             streamEventListener: TransportStreamEventListener): Common.Event {
-    return executeCommand(command.toCommand().toExecuteRequest(), streamEventListener)
+                             streamEventQuery: StreamEventQuery): Common.Event {
+    return executeCommand(command.toCommand().toExecuteRequest(), streamEventQuery)
   }
 
   /**
    * Executes the provided AppInspection [command] and await for a response that satisfies the [streamEventListener].
    * */
   suspend fun executeCommand(request: Transport.ExecuteRequest,
-    // TODO(b/162433786): pass in only the filter.
-                             streamEventListener: TransportStreamEventListener): Common.Event = withContext(dispatcher) {
+                             streamEventQuery: StreamEventQuery): Common.Event = withContext(dispatcher) {
     val deferred = CompletableDeferred<Common.Event>()
-    // TODO(b/162433786): as a temporary measure, copy the event listener but override the callback with our own.
-    val eventListener = streamEventListener.copy { event ->
+    val listener = TransportStreamEventListener(streamEventQuery, dispatcher.asExecutor(), false) { event ->
       try {
         deferred.complete(event)
       }
@@ -125,13 +135,13 @@ class AppInspectionTransport(
         deferred.completeExceptionally(t)
       }
     }
-    registerEventListener(eventListener)
+    registerEventListener(listener)
     client.transportStub.execute(request)
     try {
       deferred.await()
     }
     finally {
-      unregisterEventListener(streamEventListener)
+      unregisterEventListener(listener)
     }
   }
 
