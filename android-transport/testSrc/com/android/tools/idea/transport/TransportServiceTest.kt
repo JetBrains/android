@@ -22,7 +22,6 @@ import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.LightPlatformTestCase
 import java.io.IOException
 import java.util.concurrent.BlockingDeque
@@ -37,9 +36,6 @@ class TransportServiceTest : LightPlatformTestCase() {
 
   @Throws(Exception::class)
   override fun setUp() {
-    // Bazel tests are sandboxed so we disable VfsRoot checks.
-    VfsRootAccess.allowRootAccess(testRootDisposable, "/", "C:\\")
-
     super.setUp()
     myService = TransportService()
     Disposer.register(testRootDisposable, myService)
