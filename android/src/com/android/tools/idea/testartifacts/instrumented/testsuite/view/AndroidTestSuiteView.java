@@ -81,6 +81,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -502,6 +503,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
                                  @NotNull AndroidTestSuite testSuite,
                                  @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
+      // Include a benchmark output to a raw output console for backward compatibility.
+      for (String benchmarkOutput : StringsKt.lines(testCase.getBenchmark())) {
+        print("benchmark: " + benchmarkOutput + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+      }
+
       switch (Preconditions.checkNotNull(testCase.getResult())) {
         case PASSED:
           passedTestCases++;
