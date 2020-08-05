@@ -28,6 +28,9 @@ import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.WizardUiContext
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_PROJECT
 import org.jetbrains.android.util.AndroidBundle.message
 import java.util.Locale
 
@@ -52,7 +55,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
    */
   @JvmField
-  val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, message("android.wizard.config.activity.title"))
+  val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, message("android.wizard.config.activity.title"), NEW_PROJECT)
 
   @JvmField
   val newRenderTemplate = OptionalValueProperty<Template>()
@@ -107,7 +110,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
     !extraRenderTemplateModel.hasActivity -> {
-      RenderTemplateModel.fromModuleModel(newModuleModel).apply {
+      RenderTemplateModel.fromModuleModel(newModuleModel, wizardContext = NEW_PROJECT).apply {
         if (newRenderTemplate.isPresent.get()) {
           newTemplate = newRenderTemplate.value
         }
@@ -137,7 +140,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
 
 private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String): RenderTemplateModel {
   // Note: The companion Render is always a "Empty Activity"
-  val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel).apply {
+  val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel, wizardContext = NEW_PROJECT).apply {
     newTemplate = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }
   }
   addRenderDefaultTemplateValues(companionRenderModel, packageName)

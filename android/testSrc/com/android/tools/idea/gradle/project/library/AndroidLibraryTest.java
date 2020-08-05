@@ -40,6 +40,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
 
 public class AndroidLibraryTest extends AndroidGradleTestCase {
   private static TestInvokeStrategy myInvokeStrategy;
@@ -82,7 +83,8 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     // Create a Wizard and add an Activity to the lib module
     NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.getProjectFilePath(), "");
     RenderTemplateModel render = RenderTemplateModel.fromFacet(
-      libAndroidFacet, "com.example", template, "command", new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true
+      libAndroidFacet, "com.example", template, "command", new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true,
+      NEW_MODULE
     );
     List<Template> templates = TemplateResolver.Companion.getAllTemplates();
     @SuppressWarnings("OptionalGetWithoutIsPresent")
