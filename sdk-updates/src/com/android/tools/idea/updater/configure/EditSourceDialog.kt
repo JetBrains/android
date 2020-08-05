@@ -17,8 +17,8 @@ package com.android.tools.idea.updater.configure
 
 import com.android.repository.api.RepositorySource
 import com.android.repository.api.RepositorySourceProvider
+import com.android.tools.idea.sdk.AndroidAuthenticator
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.updater.AndroidSdkUpdaterPlugin
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper
@@ -37,7 +37,7 @@ import javax.swing.JTextField
  */
 class EditSourceDialog(private val provider: RepositorySourceProvider, private val existingSource: RepositorySource?) : DialogWrapper(null) {
 
-  private val existingAuth = existingSource?.let { AndroidSdkUpdaterPlugin.getAuthentication(existingSource.url) }
+  private val existingAuth = existingSource?.let { AndroidAuthenticator.getAuthentication(existingSource.url) }
   private val urlField = JTextField(existingSource?.url ?: "http://")
   private val nameField = JTextField(existingSource?.displayName ?: "Custom Update Site")
   private val useAuthentication = JBCheckBox("Use Authentication", existingAuth != null)
