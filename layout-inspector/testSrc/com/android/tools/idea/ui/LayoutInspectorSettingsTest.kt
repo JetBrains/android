@@ -20,8 +20,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.registerServiceInstance
@@ -57,7 +57,6 @@ class LayoutInspectorSettingsTest {
   @Test
   fun testSettingPersists() {
     ApplicationManager.getApplication().invokeAndWait {
-/* b/162037345
       enableLiveLayoutInspector = false
       assertThat(enableLiveLayoutInspector).isFalse()
       assertThat(windowManager.getToolWindow("Layout Inspector")).isNull()
@@ -70,20 +69,18 @@ class LayoutInspectorSettingsTest {
       enableLiveLayoutInspector = false
       assertThat(enableLiveLayoutInspector).isFalse()
       assertThat(windowManager.getToolWindow("Layout Inspector")!!.isAvailable).isFalse()
-b/162037345 */
     }
   }
 
   private class MyToolWindowManager(val project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow: ToolWindow? = null
 
-/* b/162037345
-    override fun initToolWindow(bean: ToolWindowEP) {
-      assertThat(bean.toolWindowFactory.isApplicable(project)).isTrue()
-      assertThat(bean.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
+      assertThat(task.contentFactory!!.isApplicable(project)).isTrue()
+      assertThat(task.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
       toolWindow = MyMockToolWindow(project)
+      return toolWindow!!
     }
-b/162037345 */
 
     override fun getToolWindow(id: String?): ToolWindow? {
       assertThat(id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
