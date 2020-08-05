@@ -357,7 +357,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
-  private val mainPanelSplitter = JBSplitter(true, 0.7f)
+  private val mainPanelSplitter = JBSplitter(true, 0.7f).apply { dividerWidth = 3 }
 
   /**
    * [WorkBench] used to contain all the preview elements.

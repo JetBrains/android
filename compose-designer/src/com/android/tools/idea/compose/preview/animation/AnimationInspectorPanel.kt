@@ -59,7 +59,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.SwingConstants
-import javax.swing.border.LineBorder
+import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.ceil
 
@@ -78,6 +78,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * but have their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   private val tabbedPane = CommonTabbedPane().apply {
+    border = MatteBorder(1, 0, 0, 0, JBColor.border())
+
     addChangeListener {
       if (selectedIndex < 0) return@addChangeListener
 
@@ -105,6 +107,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   private val noAnimationsPanel = JPanel(BorderLayout()).apply {
     add(JBLabel(message("animation.inspector.no.animations.panel.message"), SwingConstants.CENTER), BorderLayout.CENTER)
+    border = MatteBorder(1, 0, 0, 0, JBColor.border())
   }
 
   private val timeline = TransitionDurationTimeline()
@@ -122,8 +125,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
   init {
     name = "Animation Inspector"
+    border = MatteBorder(1, 0, 1, 0, JBColor.border())
     var composableTitle = JBLabel(message("animation.inspector.panel.title")).apply {
-      border = JBUI.Borders.empty(5, 0)
+      border = JBUI.Borders.empty(5)
     }
 
     add(composableTitle, TabularLayout.Constraint(0, 0))
@@ -247,7 +251,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
       add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
-      add(propertiesTimelineSplitter, TabularLayout.Constraint(1, 0, 3))
+      val splitterWrapper = JPanel(BorderLayout()).apply {
+        border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
+      }
+      splitterWrapper.add(propertiesTimelineSplitter, BorderLayout.CENTER)
+      add(splitterWrapper, TabularLayout.Constraint(1, 0, 3))
     }
 
     /**
@@ -334,7 +342,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     // TODO(b/157895086): Polish the animated properties panel.
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
       preferredSize = JBDimension(200, 200)
-      border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 1, 0) // Only vertical borders are set.
       add(propsTextArea, TabularLayout.Constraint(0, 0))
     }
 
@@ -598,7 +605,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     init {
-      border = LineBorder(JBColor.border())
+      border = MatteBorder(0, 1, 0, 0, JBColor.border()) // Left border to separate the timeline from the properties panel
 
       add(slider, BorderLayout.CENTER)
       slider.addChangeListener {
