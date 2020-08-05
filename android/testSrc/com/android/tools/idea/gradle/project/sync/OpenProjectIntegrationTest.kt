@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openPreparedProject
@@ -43,7 +44,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
 
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { it: Project -> }
+    openPreparedProject("project") { }
     openPreparedProject("project") { project ->
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
       project.verifyModelsAttached()
@@ -55,9 +56,33 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     }
   }
 
+  fun testReopenProjectAfterFailedSync() {
+    val root = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val buildFile = VfsUtil.findFileByIoFile(root.resolve("app/build.gradle"), true)!!
+
+    val lastSyncFinishedTimestamp = openPreparedProject("project") { project ->
+      runWriteAction {
+        buildFile.setBinaryContent("*bad*".toByteArray())
+      }
+      syncProject(project, GradleSyncInvoker.Request.testRequest())
+      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+      GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
+    }
+
+    openPreparedProject(
+      "project",
+      verifyOpened = { project ->
+        assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+      }
+    ) {
+      // Make sure we tried to sync.
+      assertThat(GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp).isNotEqualTo(lastSyncFinishedTimestamp)
+    }
+  }
+
   fun testReopenCompositeBuildProject() {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { it: Project -> }
+    openPreparedProject("project") { }
     openPreparedProject("project") { project ->
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
       project.verifyModelsAttached()
@@ -71,7 +96,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
 
   fun testReopenWithoutModules() {
     val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { it: Project -> }
+    openPreparedProject("project") { }
 
     val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
     // Tests always run in do not generate *.iml files mode.
