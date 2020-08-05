@@ -1240,8 +1240,6 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
-            # failing studio_win (b/162747504)
-            "tags": ["no_windows"],
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
@@ -1249,8 +1247,6 @@ iml_module(
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # failing studio_win (b/162746023)
-            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator",
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
