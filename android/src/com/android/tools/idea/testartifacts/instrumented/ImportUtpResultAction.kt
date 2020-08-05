@@ -111,9 +111,11 @@ class ImportUtpResultAction : AnAction() {
    * @param e an action event with environment settings.
    */
   override fun actionPerformed(e: AnActionEvent) {
-    chooseFile(FileChooserDescriptor(true, false, false, false, false, false),
-               e.project,
-               null
+    chooseFile(
+      FileChooserDescriptor(true, false, false, false, false, false)
+                 .withFileFilter { it.extension == "pb" },
+      e.project,
+      null
     ) { file: VirtualFile ->
       parseResultsAndDisplay(file.toIoFile(), requireNotNull(e.project), requireNotNull(e.project))
     }
