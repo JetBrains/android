@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspector.api
+package com.android.tools.idea.appinspection.inspector.api.test
+
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 
 class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
 }

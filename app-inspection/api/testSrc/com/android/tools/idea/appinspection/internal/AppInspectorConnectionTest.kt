@@ -20,7 +20,7 @@ import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -32,7 +32,6 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -65,7 +64,7 @@ class AppInspectorConnectionTest {
   fun disposeInspectorSucceeds() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    connection.messenger.disposeInspector()
+    connection.messenger.scope.cancel()
   }
 
   @Test
@@ -74,7 +73,7 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    connection.messenger.disposeInspector()
+    connection.messenger.scope.cancel()
   }
 
   @Test
@@ -105,12 +104,13 @@ class AppInspectorConnectionTest {
     assertThat(connection.messenger.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify flow collection when inspector is disposed.
-    connection.messenger.disposeInspector()
+    connection.messenger.scope.cancel()
 
     try {
       connection.messenger.rawEventFlow.single()
       fail()
-    } catch (e: CancellationException) {
+    }
+    catch (e: CancellationException) {
     }
   }
 
@@ -118,15 +118,8 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    val disposed = CompletableDeferred<Unit>()
-    connection.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-      override fun onDispose() {
-        disposed.complete(Unit)
-      }
-    }, MoreExecutors.directExecutor())
-
-    connection.messenger.disposeInspector()
-    disposed.join()
+    connection.messenger.scope.cancel()
+    connection.messenger.awaitForDisposal()
 
     // connection should be closed
     try {
@@ -182,20 +175,14 @@ class AppInspectorConnectionTest {
   fun sendCommandUsingClosedConnectionThrowsException() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
-    val disposed = CompletableDeferred<Unit>()
-    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-      override fun onDispose() {
-        disposed.complete(Unit)
-      }
-    }, appInspectionRule.executorService)
-
     appInspectionRule.addEvent(
       Event.newBuilder()
         .setKind(PROCESS)
         .setIsEnded(true)
         .build()
     )
-    disposed.join()
+
+    client.messenger.awaitForDisposal()
 
     // connection should be closed
     try {
@@ -335,7 +322,6 @@ class AppInspectorConnectionTest {
       }
     })
 
-    val disposed = CompletableDeferred<Unit>()
     launch {
       try {
         // This next line should get stuck (because of the disabled handler above) until the
@@ -345,7 +331,6 @@ class AppInspectorConnectionTest {
       }
       catch (e: AppInspectionConnectionException) {
         assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
-        disposed.complete(Unit)
       }
     }
 
@@ -353,6 +338,6 @@ class AppInspectorConnectionTest {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     appInspectionRule.scope.cancel()
 
-    disposed.join()
+    client.messenger.awaitForDisposal()
   }
 }

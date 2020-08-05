@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
@@ -33,13 +34,13 @@ import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -79,10 +80,15 @@ internal class DefaultAppInspectionTarget(
 ) : AppInspectionTarget {
   private val scope = parentScope.createChildScope(true)
 
-  @VisibleForTesting
-  internal val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
+  private val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
 
-  override suspend fun <C: AppInspectorClient> launchInspector(
+  /**
+   * Used exclusively in tests. Allows tests to wait until after inspector client is removed from internal cache.
+   */
+  @VisibleForTesting
+  internal val clientDisposalJobs = ConcurrentHashMap<String, Job>()
+
+  override suspend fun <C : AppInspectorClient> launchInspector(
     params: AppInspectorLauncher.LaunchParameters,
     creator: (AppInspectorClient.CommandMessenger) -> C
   ): C {
@@ -107,11 +113,11 @@ internal class DefaultAppInspectionTarget(
         if (event.appInspectionResponse.status == SUCCESS) {
           val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
           setupEventListener(creator, connection).also { inspectorClient ->
-            inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-              override fun onDispose() {
-                clients.remove(params.inspectorId)
-              }
-            }, MoreExecutors.directExecutor())
+            clientDisposalJobs[params.inspectorId] = scope.launch {
+              inspectorClient.messenger.awaitForDisposal()
+              clients.remove(params.inspectorId)
+              clientDisposalJobs.remove(params.inspectorId)
+            }
           }
         }
         else {
@@ -146,7 +152,7 @@ internal class DefaultAppInspectionTarget(
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T,
                                                         connection: AppInspectorConnection): T {
   val client = creator(connection)
-  connection.setupConnection(client.serviceEventNotifier)
+  connection.setupConnection()
   return client
 }
 

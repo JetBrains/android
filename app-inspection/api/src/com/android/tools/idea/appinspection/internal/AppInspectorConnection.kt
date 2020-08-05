@@ -21,6 +21,7 @@ import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
@@ -126,14 +127,16 @@ internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
   private val connectionStartTimeNs: Long,
-  private val scope: CoroutineScope
+  private val parentScope: CoroutineScope
 ) : AppInspectorClient.CommandMessenger {
+  override val scope = parentScope.createChildScope(false)
+  private var _crashMessage: String? = null
+  override val crashMessage: String?
+    get() = _crashMessage
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
   private val commandChannel = Channel<InspectorCommand>()
-
-  private lateinit var serviceEventNotifier: AppInspectorClient.ServiceEventNotifier
 
   private val inspectorEventListener = transport.createStreamEventListener(
     eventKind = APP_INSPECTION_EVENT,
@@ -143,8 +146,6 @@ internal class AppInspectorConnection(
     val appInspectionEvent = event.appInspectionEvent
     when {
       appInspectionEvent.hasCrashEvent() -> {
-        // Remove inspector's listener if it crashes
-        serviceEventNotifier.notifyCrash(appInspectionEvent.crashEvent.errorMessage)
         cleanup("Inspector $inspectorId has crashed.")
       }
     }
@@ -181,8 +182,7 @@ internal class AppInspectorConnection(
    *
    * This has the side effect of starting all relevant transport listeners, so it should only be called as the last stage of client setup.
    */
-  internal fun setupConnection(clientServiceEventNotifier: AppInspectorClient.ServiceEventNotifier) {
-    serviceEventNotifier = clientServiceEventNotifier
+  internal fun setupConnection() {
     transport.registerEventListener(inspectorEventListener)
     transport.registerEventListener(processEndListener)
     scope.launch(start = CoroutineStart.ATOMIC) {
@@ -211,10 +211,6 @@ internal class AppInspectorConnection(
       transport.executeCommand(appInspectionCommand)
       cleanup(inspectorDisposedMessage(inspectorId))
     }
-  }
-
-  override fun disposeInspector() {
-    scope.cancel()
   }
 
   private suspend fun cancelCommand(commandId: Int) {
@@ -259,16 +255,16 @@ internal class AppInspectorConnection(
 
   /**
    * Cleans up inspector connection by unregistering listeners and closing the channel to [commandSender] actor.
-   * All futures are completed exceptionally with [futureExceptionMessage].
+   * All futures are completed exceptionally with [exceptionMessage].
    */
-  private fun cleanup(futureExceptionMessage: String) {
+  private fun cleanup(exceptionMessage: String) {
     if (isDisposed.compareAndSet(false, true)) {
-      val cause = AppInspectionConnectionException(futureExceptionMessage)
+      val cause = AppInspectionConnectionException(exceptionMessage)
       commandChannel.close(cause)
       transport.unregisterEventListener(inspectorEventListener)
       transport.unregisterEventListener(processEndListener)
-      serviceEventNotifier.notifyDispose()
-      scope.cancel(futureExceptionMessage)
+      _crashMessage = exceptionMessage
+      scope.cancel(exceptionMessage)
     }
   }
 }

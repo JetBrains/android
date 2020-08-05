@@ -33,6 +33,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 
@@ -42,15 +43,18 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
   class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient.CommandMessenger {
-    override fun disposeInspector() = Unit
-
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)
       assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
       return response
     }
 
-    override val rawEventFlow: Flow<ByteArray>
+    override val rawEventFlow: Flow<ByteArray> = emptyFlow()
+
+    override val scope: CoroutineScope
+      get() = throw NotImplementedError()
+
+    override val crashMessage: String?
       get() = throw NotImplementedError()
   }
 
