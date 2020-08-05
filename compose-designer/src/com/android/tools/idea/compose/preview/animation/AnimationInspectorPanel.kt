@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,14 +37,13 @@ import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBTextArea
-import com.intellij.util.SystemProperties
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -56,6 +56,7 @@ import java.util.Dictionary
 import java.util.Hashtable
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.SwingConstants
@@ -232,7 +233,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     /**
      * Displays the animated properties and their value at the current timeline time.
      */
-    private val propsTextArea = JBTextArea(message("animation.inspector.no.properties.message")).apply { isEditable = false }
+    private val animatedPropertiesPanel = AnimatedPropertiesPanel()
 
     private val timelinePanel = JPanel(BorderLayout())
 
@@ -339,10 +340,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       endStateComboBox.selectedIndex = if (endStateComboBox.itemCount > 1) 1 else 0
     }
 
-    // TODO(b/157895086): Polish the animated properties panel.
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
       preferredSize = JBDimension(200, 200)
-      add(propsTextArea, TabularLayout.Constraint(0, 0))
+      add(animatedPropertiesPanel, TabularLayout.Constraint(0, 0))
     }
 
     /**
@@ -357,11 +357,54 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       val animClock = animationClock ?: return
       try {
         var animatedPropKeys = animClock.getAnimatedPropertiesFunction.call(animClock.clock, animation) as List<ComposeAnimatedProperty>
-        propsTextArea.text = animatedPropKeys.joinToString(separator = SystemProperties.getLineSeparator()) { "${it.label}: ${it.value}" }
+        animatedPropertiesPanel.updateProperties(animatedPropKeys)
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
       }
+    }
+
+    /**
+     * HTML panel to display animated properties and their corresponding values at the time set in [TransitionDurationTimeline].
+     */
+    private inner class AnimatedPropertiesPanel : JEditorPane() {
+
+      init {
+        margin = JBUI.insets(5)
+        editorKit = UIUtil.getHTMLEditorKit()
+        isEditable = false
+        text = createNoPropertiesPanel()
+      }
+
+      private fun createNoPropertiesPanel() =
+        HtmlBuilder().openHtmlBody().add(message("animation.inspector.no.properties.message")).closeHtmlBody().html
+
+      /**
+       * Updates the properties panel content, displaying one property per line. Each line has the property label (default label color)
+       * followed by the corresponding value at current time (disabled label color).
+       */
+      fun updateProperties(animatedPropKeys: List<ComposeAnimatedProperty>) {
+        text = if (animatedPropKeys.isEmpty()) {
+          createNoPropertiesPanel()
+        }
+        else {
+          val htmlBuilder = HtmlBuilder().openHtmlBody()
+          animatedPropKeys.forEach { property ->
+            htmlBuilder
+              .beginSpan("color: ${UIUtil.getLabelForeground().toCss()}")
+              .add(property.label)
+              .endSpan()
+              .addNbsps(2)
+              .beginSpan("color: ${UIUtil.getLabelDisabledForeground().toCss()}")
+              .add(property.value.toString())
+              .endSpan()
+              .newline()
+          }
+          htmlBuilder.closeHtmlBody().html
+        }
+      }
+
+      private fun Color.toCss() = "rgb($red, $green, $blue)"
     }
 
     /**
