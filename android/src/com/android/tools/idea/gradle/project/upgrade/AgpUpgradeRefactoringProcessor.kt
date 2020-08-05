@@ -466,7 +466,7 @@ class AgpUpgradeRefactoringProcessor(
     usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
 
     usageView.setRerunAction(object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) = doRun()
+      override fun actionPerformed(e: ActionEvent?) = doRun()
     })
 
     this.usageView = usageView
