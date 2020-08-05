@@ -216,7 +216,7 @@ class DdmlibTestRunListenerAdapterTest {
   @Test
   fun benchmarkPrefixIsStripped() {
     val benchmarkOutputFromAndroidX = """
-      benchmark: WARNING: Not using IsolationActivity via AndroidBenchmarkRunner
+      WARNING: Not using IsolationActivity via AndroidBenchmarkRunner
       benchmark:     AndroidBenchmarkRunner should be used to isolate benchmarks from interference
       benchmark:     from other visible apps. To fix this, add the following to your module-level
       benchmark:     build.gradle:
