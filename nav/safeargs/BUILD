@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
+        "no_test_mac",  # b/152941757
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
@@ -194,6 +195,7 @@ iml_module(
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
         "manual",
+        "no_test_mac",  # b/152941757
         "no_test_windows",
         "unb",
     ],
