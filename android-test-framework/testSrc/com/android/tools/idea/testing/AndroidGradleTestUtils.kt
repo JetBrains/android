@@ -993,9 +993,32 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T = openPreparedProject(nameToPath(name), action)
+fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T {
+  return openPreparedProject(
+    nameToPath(name),
+    verifyOpened = ::verifySyncedSuccessfully,
+    action = action
+  )
+}
 
-private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): T {
+/**
+ * Opens a test project previously prepared under the given [name], verifies the state of the project with [verifyOpened] and runs
+ * a test [action] and then closes and disposes the project.
+ *
+ * The project's `.idea` directory is not required to exist, however.
+ */
+fun <T> GradleIntegrationTest.openPreparedProject(
+  name: String,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T
+): T {
+  return openPreparedProject(nameToPath(name), verifyOpened, action)
+}
+
+private fun <T> openPreparedProject(
+  projectPath: File,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T): T {
   val project = runInEdtAndGet {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
@@ -1005,7 +1028,7 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
     project
   }
   try {
-    verifySyncedSuccessfully(project)
+    verifyOpened(project)
     return action(project)
   }
   finally {

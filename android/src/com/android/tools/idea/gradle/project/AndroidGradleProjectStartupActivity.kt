@@ -166,9 +166,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val moduleManager = ModuleManager.getInstance(project)
   val projectDataManager = ProjectDataManager.getInstance()
 
-  fun findProjectDataNode(externalProjectPath: String): DataNode<ProjectData>? =
-    projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)?.externalProjectStructure
-
   fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
     ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
 
@@ -180,13 +177,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 
-  val projectDataNodes: Collection<DataNode<ProjectData>> =
+  val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
       .mapNotNull { it.externalProjectPath }
       .toSet()
       .map {
-        findProjectDataNode(it) ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
+        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, it)
+        if (externalProjectInfo != null && externalProjectInfo.lastImportTimestamp != externalProjectInfo.lastSuccessfulImportTimestamp) {
+          requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
+          return
+        }
+        externalProjectInfo?.externalProjectStructure ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
       }
 
   if (projectDataNodes.isEmpty()) {
