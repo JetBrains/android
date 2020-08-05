@@ -25,6 +25,7 @@ object KeyStrokes {
   val ESCAPE: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
   val TAB: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0)
   val BACKTAB: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK)
+  val TYPED_SPACE: KeyStroke = KeyStroke.getKeyStroke(' ')
   val SPACE: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)
   val CTRL_SPACE: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, KeyEvent.CTRL_MASK)
   val F1: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
