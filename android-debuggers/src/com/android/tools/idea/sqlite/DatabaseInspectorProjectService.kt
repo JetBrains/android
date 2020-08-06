@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
-import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.openJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
@@ -138,7 +137,6 @@ interface DatabaseInspectorProjectService {
    */
   @UiThread
   suspend fun startAppInspectionSession(
-    previousState: SavedUiState?,
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
   )
@@ -149,7 +147,7 @@ interface DatabaseInspectorProjectService {
    * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
    */
   @UiThread
-  fun stopAppInspectionSession(processDescriptor: ProcessDescriptor): SavedUiState
+  fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
 
   @UiThread
   fun handleDatabaseClosed(databaseId: SqliteDatabaseId)
@@ -256,7 +254,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   @UiThread
   override suspend fun startAppInspectionSession(
-    previousState: SavedUiState?,
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
   ) = withContext(uiThread) {
@@ -267,17 +264,12 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     ideServices = appInspectionIdeServices
     controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
-
-    controller.restoreSavedState(previousState)
   }
 
   @UiThread
-  override fun stopAppInspectionSession(processDescriptor: ProcessDescriptor): SavedUiState {
+  override fun stopAppInspectionSession(processDescriptor: ProcessDescriptor) {
     ideServices = null
     controller.stopAppInspectionSession()
-
-    // TODO(b/162403339) decide how state is going to be restored with offline dbs.
-    val savedState = controller.saveState()
 
     downloadOfflineDatabases = projectScope.launch {
       val openDatabases = model.getOpenDatabaseIds()
@@ -299,8 +291,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
         }
       }
     }
-
-    return savedState
   }
 
   @UiThread

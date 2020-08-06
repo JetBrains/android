@@ -139,7 +139,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
 
     runDispatching {
-      databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
+      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices)
     }
 
     // Act
@@ -218,7 +218,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     // Act
     runDispatching {
-      databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
+      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices)
     }
 
     // Assert
