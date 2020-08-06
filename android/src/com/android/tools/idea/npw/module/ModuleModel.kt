@@ -57,6 +57,7 @@ abstract class ModuleModel(
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
+  override val isViewBindingSupported = projectModelData.isViewBindingSupported
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)

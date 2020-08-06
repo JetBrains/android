@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.*
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -57,6 +58,7 @@ class ExistingProjectModelData(
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
+  override val isViewBindingSupported = BoolValueProperty(project.isViewBindingSupported())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
@@ -79,6 +81,7 @@ interface ModuleModelData : ProjectModelData {
   val formFactor: ObjectProperty<FormFactor>
   val isLibrary: Boolean
   val moduleName: StringValueProperty
+
   /**
    * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
    * module, or instead modifies an existing module (for example just adding a new Activity)
@@ -126,7 +129,7 @@ class NewAndroidModuleModel(
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.Mobile -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), bytecodeLevel.value)
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), bytecodeLevel.value, isViewBindingSupported.get())
       }
       FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
@@ -205,4 +208,10 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
 private fun Project.hasKtsUsage() : Boolean {
   // TODO(parentej): Check if settings is kts or any module is kts
   return false
+}
+
+private fun Project.isViewBindingSupported(): Boolean {
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(this) ?: return true
+  val agpVersion = androidPluginInfo.pluginVersion ?: return true
+  return agpVersion.isAtLeast(3, 6, 0)
 }
