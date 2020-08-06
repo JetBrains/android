@@ -16,13 +16,8 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.TimeoutRemainder
-import com.android.tools.idea.flags.StudioFlags
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 
 /**
  * The action to show the [AdbDevicePairingDialog] window.
@@ -31,30 +26,21 @@ class PairDevicesUsingWiFiAction : AnAction() {
   @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = isFeatureEnabled
+    e.presentation.isEnabledAndVisible = false
+    val project = e.project ?: return
+    e.presentation.isEnabledAndVisible = PairDevicesUsingWiFiService.getInstance(project).isFeatureEnabled
   }
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
-    if (!isFeatureEnabled) {
-      return
-    }
     val project = event.project ?: return
+    if (!PairDevicesUsingWiFiService.getInstance(project).isFeatureEnabled) {
+      return;
+    }
 
-    val edtExecutor = EdtExecutorService.getInstance()
-    val taskExecutor = AppExecutorUtil.getAppExecutorService()
-    val timeProvider = TimeoutRemainder.DefaultSystemNanoTime()
-    val randomProvider = RandomProvider()
-    val adbService = AdbServiceWrapperImpl(project, timeProvider, MoreExecutors.listeningDecorator(taskExecutor))
-    val service = AdbDevicePairingServiceImpl(randomProvider, adbService, taskExecutor)
-    val model = AdbDevicePairingModel()
-    val view = AdbDevicePairingViewImpl(project, model)
-    val controller = AdbDevicePairingControllerImpl(project, edtExecutor, service, view)
-    controller.startPairingProcess()
+    val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
+    controller.showDialog()
   }
-
-  private val isFeatureEnabled: Boolean
-    get() = StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()
 
   companion object {
     const val ID = "Android.AdbDevicePairing"
