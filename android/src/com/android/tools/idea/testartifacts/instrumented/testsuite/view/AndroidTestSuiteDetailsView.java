@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
@@ -27,14 +28,19 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -75,6 +81,7 @@ public class AndroidTestSuiteDetailsView {
   private final DetailsViewDeviceSelectorListView myDeviceSelectorListView;
   private final DetailsViewContentView myContentView;
   private final ConsoleViewImpl myRawTestLogConsoleView;
+  private final NonOpaquePanel myRawTestLogConsoleViewWithVerticalToolbar;
 
   @Nullable private AndroidTestResults myTestResults;
   @Nullable private AndroidDevice mySelectedDevice;
@@ -112,6 +119,11 @@ public class AndroidTestSuiteDetailsView {
     myContentView = new DetailsViewContentView(parentDisposable, project, logger);
     myRawTestLogConsoleView = new ConsoleViewImpl(project, /*viewer=*/true);
     Disposer.register(parentDisposable, myRawTestLogConsoleView);
+    myRawTestLogConsoleViewWithVerticalToolbar = new NonOpaquePanel(new BorderLayout());
+    myRawTestLogConsoleViewWithVerticalToolbar.add(myRawTestLogConsoleView.getComponent(), BorderLayout.CENTER);
+    ActionToolbar rawTestLogToolbar = ActionManager.getInstance().createActionToolbar(
+      ActionPlaces.ANDROID_TEST_SUITE_RAW_LOG, new DefaultActionGroup(myRawTestLogConsoleView.createConsoleActions()), false);
+    myRawTestLogConsoleViewWithVerticalToolbar.add(rawTestLogToolbar.getComponent(), BorderLayout.EAST);
 
     myComponentsSplitter = new JBSplitter();
     myComponentsSplitter.setHonorComponentsMinimumSize(false);
@@ -129,13 +141,13 @@ public class AndroidTestSuiteDetailsView {
 
         @Override
         public void onRawOutputSelected() {
-          myComponentsSplitter.setSecondComponent(myRawTestLogConsoleView);
+          myComponentsSplitter.setSecondComponent(myRawTestLogConsoleViewWithVerticalToolbar);
         }
       });
     myComponentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
     myComponentsSplitter.setProportion(0.3f);
 
-    myComponentsSplitter.setSecondComponent(myRawTestLogConsoleView.getComponent());
+    myComponentsSplitter.setSecondComponent(myRawTestLogConsoleViewWithVerticalToolbar);
     myContentPanel.add(myComponentsSplitter);
 
     myTitleText.setBorder(JBUI.Borders.empty(0, 10));
