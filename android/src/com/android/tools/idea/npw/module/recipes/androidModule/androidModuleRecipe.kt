@@ -30,7 +30,8 @@ fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
   useKts: Boolean,
-  bytecodeLevel: BytecodeLevel
+  bytecodeLevel: BytecodeLevel,
+  isViewBindingSupported: Boolean
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   generateCommonModule(
