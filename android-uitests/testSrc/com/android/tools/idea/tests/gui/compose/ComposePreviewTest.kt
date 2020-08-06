@@ -310,7 +310,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+      .clickButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
 
     composePreview
       .waitForRenderToFinish()
@@ -432,7 +432,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
     assertTrue(interactivePreviewButton.isEnabled)
 
     guiTest.robot().click(animButton)
@@ -452,7 +452,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
     // We can't enter interactive mode for a preview being inspected in the animation inspector
     assertFalse(interactivePreviewButton.isEnabled)
 
@@ -474,7 +474,7 @@ class ComposePreviewTest {
         .allSceneViews
         .first()
         .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
+        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
         .isEnabled
     )
 
@@ -512,7 +512,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.RUN_ON_DEVICE)
+      .clickButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
