@@ -60,11 +60,6 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  protected int getMultiplierIndex(double value, int threshold) {
-    return super.getMultiplierIndex(value, threshold);
-  }
-
-  @Override
   protected int getUnitMinimalInterval(int index) {
     return MIN_INTERVAL;
   }
@@ -73,10 +68,5 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
-  }
-
-  @Override
-  protected long getMultiplier() {
-    return super.getMultiplier();
   }
 }

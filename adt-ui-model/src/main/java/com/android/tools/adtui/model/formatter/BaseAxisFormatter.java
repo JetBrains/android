@@ -28,8 +28,6 @@ import java.text.DecimalFormat;
  */
 public abstract class BaseAxisFormatter {
 
-  private long mMultiplier;
-
   private final int mMaxMinorTicks;
 
   private final int mMaxMajorTicks;
@@ -79,8 +77,8 @@ public abstract class BaseAxisFormatter {
    */
   @NotNull
   public String getFormattedString(double globalRange, double value, boolean includeUnit) {
-    int index = getMultiplierIndex(globalRange, 1);
-    double multipliedValue = value / mMultiplier;
+    Multiplier multiplier = getMultiplier(globalRange, 1);
+    double multipliedValue = value / multiplier.accumulation;
     // If value is an integer number, don't include the floating point/decimal places in the formatted string.
     // Otherwise, add up to specified decimal places of value.
     DecimalFormat decimalFormat = new DecimalFormat("#." + StringUtil.repeat("#", mMaxDecimals.applyAsInt(multipliedValue)));
@@ -89,7 +87,7 @@ public abstract class BaseAxisFormatter {
       return formattedValue;
     }
     String pattern = mHasSeparator ? "%s %s" : "%s%s";
-    return String.format(pattern, formattedValue, getUnit(index)).trim();
+    return String.format(pattern, formattedValue, getUnit(multiplier.index)).trim();
   }
 
   /**
@@ -99,7 +97,6 @@ public abstract class BaseAxisFormatter {
    */
   public long getMajorInterval(double range) {
     return getInterval(range, mMaxMajorTicks);
-
   }
 
   /**
@@ -109,19 +106,18 @@ public abstract class BaseAxisFormatter {
    */
   public long getMinorInterval(double range) {
     return getInterval(range, mMaxMinorTicks);
-
   }
 
   /**
    * Determines the interval value for a particular range given the number of ticks that should be used.
    */
   public long getInterval(double range, int numTicks) {
-    int index = getMultiplierIndex(range, mSwitchThreshold);
-    int base = getUnitBase(index);
-    int minInterval = getUnitMinimalInterval(index);
-    TIntArrayList factors = getUnitBaseFactors(index);
-    return getInterval(range / mMultiplier, numTicks, base, minInterval, factors)
-           * mMultiplier;
+    Multiplier multiplier = getMultiplier(range, mSwitchThreshold);
+    int base = getUnitBase(multiplier.index);
+    int minInterval = getUnitMinimalInterval(multiplier.index);
+    TIntArrayList factors = getUnitBaseFactors(multiplier.index);
+    return getInterval(range / multiplier.accumulation, numTicks, base, minInterval, factors)
+           * multiplier.accumulation;
   }
 
   /**
@@ -166,18 +162,18 @@ public abstract class BaseAxisFormatter {
   /**
    * @return Given a value, returns the index of the unit that should be used.
    */
-  protected int getMultiplierIndex(double value, int threshold) {
-    mMultiplier = 1;
+  protected Multiplier getMultiplier(double value, int threshold) {
+    long multiplier = 1;
     int count = getNumUnits();
     for (int i = 0; i < count; i++) {
-      long temp = mMultiplier * getUnitMultiplier(i);
+      long temp = multiplier * getUnitMultiplier(i);
       if (value < temp * threshold) {
-        return i;
+        return new Multiplier(i, multiplier);
       }
-      mMultiplier = temp;
+      multiplier = temp;
     }
 
-    return count - 1;
+    return new Multiplier(count - 1, multiplier);
   }
 
   /**
@@ -251,7 +247,12 @@ public abstract class BaseAxisFormatter {
     return factors;
   }
 
-  protected long getMultiplier() {
-    return mMultiplier;
+  protected static class Multiplier {
+    final int index;
+    final long accumulation;
+    Multiplier(int index, long accumulation) {
+      this.index = index;
+      this.accumulation = accumulation;
+    }
   }
 }
