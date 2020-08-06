@@ -26,23 +26,15 @@ class TransportProcessDescriptor(
   val stream: Common.Stream,
   val process: Common.Process
 ): ProcessDescriptor {
-  /** The manufacturer of the device. */
   override val manufacturer: String = stream.device.manufacturer
-
-  /** The model of the device. */
   override val model: String = stream.device.model
-
-  /** The serial number of the device. */
   override val serial: String = stream.device.serial
-
-  /** The name of the process running on the device. */
   override val processName: String = process.name
-
-  /** Whether this process is running on a virtual device or a physical one. */
   override val isEmulator: Boolean = stream.device.isEmulator
+  override val isRunning: Boolean = process.state != Common.Process.State.DEAD
 
   override fun toString(): String {
-    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName', isEmulator='$isEmulator')"
+    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName', isEmulator='$isEmulator', isRunning='$isRunning')"
   }
 }
 

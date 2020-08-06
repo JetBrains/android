@@ -50,6 +50,7 @@ class OfflineDatabaseManagerTest : LightPlatformTestCase() {
       override val serial = "serial"
       override val processName = "processName"
       override val isEmulator = false
+      override val isRunning = true
     }
 
     liveDatabaseId = SqliteDatabaseId.fromLiveDatabase(
