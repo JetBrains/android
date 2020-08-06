@@ -79,7 +79,7 @@ public interface ProguardR8PsiTypes {
   IElementType COMMA = new ProguardR8TokenType(",");
   IElementType DOT = new ProguardR8TokenType(".");
   IElementType DOUBLE = new ProguardR8TokenType("double");
-  IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("DOUBLE_ASTERISK");
+  IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("**");
   IElementType DOUBLE_QUOTED_CLASS = new ProguardR8TokenType("DOUBLE_QUOTED_CLASS");
   IElementType DOUBLE_QUOTED_STRING = new ProguardR8TokenType("DOUBLE_QUOTED_STRING");
   IElementType EM = new ProguardR8TokenType("!");
