@@ -40,7 +40,7 @@ class AdbDevicePairingControllerImpl(private val project: Project,
     view.addListener(MyViewListener(this))
   }
 
-  override fun startPairingProcess() {
+  override fun showDialog() {
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
