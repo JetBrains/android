@@ -16,11 +16,11 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.util.NlsSafe;
+import java.util.Properties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Properties;
 
 public class PropertiesComponentMock extends PropertiesComponent {
   private final Properties myProperties;
@@ -41,7 +41,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
 
   @Nullable
   @Override
-  public String getValue(@NotNull @NonNls String name) {
+  public @NlsSafe String getValue(@NotNull @NonNls String name) {
     return myProperties.getProperty(name);
   }
 
