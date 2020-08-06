@@ -16,9 +16,10 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.BoxSelectionListener;
+import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
-import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
@@ -34,6 +35,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
@@ -356,7 +358,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     // Thread states and trace events.
-    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel()));
+    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(),
+                                                   getStudioProfilers().getIdeServices().getFeatureTracker()));
   }
 
   private static TrackGroupModel createInteractionTrackGroup(@NotNull StudioProfilers studioProfilers, @NotNull Timeline timeline) {
@@ -418,19 +421,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,
                                                          @NotNull Timeline timeline,
-                                                         @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
+                                                         @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel,
+                                                         @NotNull FeatureTracker featureTracker) {
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
       capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
+    BoxSelectionModel boxSelectionModel = new BoxSelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    boxSelectionModel.addBoxSelectionListener(new BoxSelectionListener() {
+      @Override
+      public void boxSelectionCreated(long durationUs, int trackCount) {
+        featureTracker.trackSelectBox(durationUs, trackCount);
+      }
+    });
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
       .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
                         "Shift+click to select multiple threads.")
       .setTrackSelectable(true)
       // For box selection
-      .setRangeSelectionModel(new RangeSelectionModel(timeline.getSelectionRange(), timeline.getViewRange()))
+      .setBoxSelectionModel(boxSelectionModel)
       .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       String title = threadInfo.getName();

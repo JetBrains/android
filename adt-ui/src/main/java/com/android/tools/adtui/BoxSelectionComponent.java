@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.util.ui.UIUtil;
@@ -42,15 +43,16 @@ import org.jetbrains.annotations.NotNull;
  *       |<---- Range ----->|
  */
 public class BoxSelectionComponent extends RangeSelectionComponent implements MouseListener, MouseMotionListener {
-
+  @NotNull private final BoxSelectionModel myBoxSelectionModel;
   @NotNull private final JList<?> myList;
 
   /**
    * @param model model that handles the range selection.
    * @param list  the list that the box selection component sits on top of.
    */
-  public BoxSelectionComponent(@NotNull RangeSelectionModel model, @NotNull JList<?> list) {
+  public BoxSelectionComponent(@NotNull BoxSelectionModel model, @NotNull JList<?> list) {
     super(model);
+    myBoxSelectionModel = model;
     myList = list;
   }
 
@@ -162,6 +164,8 @@ public class BoxSelectionComponent extends RangeSelectionComponent implements Mo
     getModel().endUpdate();
     myLastX = 0;
     myLastRowIndex = -1;
+    myBoxSelectionModel.selectionCreated((long)getModel().getSelectionRange().getLength(),
+                                         myList.getLeadSelectionIndex() - myList.getAnchorSelectionIndex() + 1);
   }
 
   @Override
