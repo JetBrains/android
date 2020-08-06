@@ -34,7 +34,11 @@ class ProguardR8Lexer(private val acceptJavaIdentifiers: Boolean = false) : Flex
       return lexer.tokenType == ProguardR8PsiTypes.JAVA_IDENTIFIER && lexer.tokenEnd == name.length
     }
 
-    val wildcardsTokenSet = TokenSet.create(ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS, ProguardR8PsiTypes.ASTERISK)
+    val wildcardsTokenSet = TokenSet.create(
+      ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS,
+      ProguardR8PsiTypes.ASTERISK,
+      ProguardR8PsiTypes.DOUBLE_ASTERISK
+    )
   }
 
   override fun getFlex(): _ProguardR8Lexer {

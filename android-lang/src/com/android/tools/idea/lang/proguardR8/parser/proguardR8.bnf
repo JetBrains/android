@@ -40,6 +40,7 @@
     COMMA=','
     DOT='.'
     ASTERISK='*'
+    DOUBLE_ASTERISK='**'
     AT='@'
     ANY_TYPE_='***'
     ANY_TYPE_AND_NUM_OF_ARGS='...'
