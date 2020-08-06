@@ -25,8 +25,6 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.adtui.device.DeviceArtDescriptor;
-import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -49,12 +47,6 @@ public class AvdWizardUtilsTest {
 
   @Test
   public void testConvertWebpSkinToPng() throws IOException {
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
-
     DeviceArtDescriptor pixel = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
@@ -84,13 +76,6 @@ public class AvdWizardUtilsTest {
 
   @Test
   public void testConvertWebpSkinToPngFallthrough() throws IOException {
-    // Make sure that we correctly copy png assets
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
-
     DeviceArtDescriptor wearSquare = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
@@ -141,11 +126,6 @@ public class AvdWizardUtilsTest {
 
   @Test
   public void testEnsureSkinsAreCurrent() throws IOException {
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
     DeviceArtDescriptor pixel = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {

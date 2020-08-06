@@ -32,18 +32,8 @@ import java.util.Base64;
 import com.google.common.truth.Truth;
 
 public class WebpSupportTest extends TestCase {
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    WebpMetadata.ensureWebpRegistered();
-  }
 
   public void testRegistration() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     // Make sure it understands both webp and WEBP as valid format names (it's case sensitive)
     assertTrue(ImageIO.getImageWritersByFormatName("webp").hasNext());
     assertTrue(ImageIO.getImageWritersByFormatName("WEBP").hasNext());
@@ -56,11 +46,6 @@ public class WebpSupportTest extends TestCase {
   }
 
   public void testCodec() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     BufferedImage image = createSampleImage(BufferedImage.TYPE_INT_ARGB);
 
     // Test encoder
@@ -80,11 +65,6 @@ public class WebpSupportTest extends TestCase {
   }
 
   public void testLossyWithTransparency() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     BufferedImage image = createSampleImage(BufferedImage.TYPE_INT_ARGB);
 
     int x = 100;
@@ -114,11 +94,6 @@ public class WebpSupportTest extends TestCase {
   }
 
   public void testConvertIndexedPalette() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     byte[] png = Base64.getDecoder().decode(
       ""
       + "iVBORw0KGgoAAAANSUhEUgAAAIsAAAB1CAMAAABJX+KkAAAC/VBMVEUhNnjqCywARpc7N4YRQpgKR4ckQXoMRpMASpsAS5ZBPG4AToAPR5pVOGECTJFpMXAA"
