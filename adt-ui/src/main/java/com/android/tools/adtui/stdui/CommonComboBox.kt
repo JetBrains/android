@@ -24,7 +24,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JComboBox
-import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.ListModel
 import javax.swing.UIManager
@@ -97,6 +96,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
       super.setEditable(model.editable)
     }
   }
+
   private val consumeKeyNavigation: Boolean
     get() = isPopupVisible || (textField?.lookup?.isVisible == true)
 
