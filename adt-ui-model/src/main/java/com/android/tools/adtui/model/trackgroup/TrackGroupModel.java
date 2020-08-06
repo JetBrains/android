@@ -16,8 +16,8 @@
 package com.android.tools.adtui.model.trackgroup;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DragAndDropListModel;
-import com.android.tools.adtui.model.RangeSelectionModel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +38,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
   private final boolean myTrackSelectable;
-  @Nullable private final RangeSelectionModel myRangeSelectionModel;
+  @Nullable private final BoxSelectionModel myBoxSelectionModel;
 
   private final AspectObserver myObserver = new AspectObserver();
 
@@ -53,7 +53,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
     myTrackSelectable = builder.myTrackSelectable;
-    myRangeSelectionModel = builder.myRangeSelectionModel;
+    myBoxSelectionModel = builder.myBoxSelectionModel;
   }
 
   /**
@@ -121,8 +121,8 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    * @return model for box selection. Null if box selection is not supported.
    */
   @Nullable
-  public RangeSelectionModel getRangeSelectionModel() {
-    return myRangeSelectionModel;
+  public BoxSelectionModel getBoxSelectionModel() {
+    return myBoxSelectionModel;
   }
 
   public static Builder newBuilder() {
@@ -137,7 +137,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
     private boolean myTrackSelectable;
-    @Nullable private RangeSelectionModel myRangeSelectionModel;
+    @Nullable private BoxSelectionModel myBoxSelectionModel;
 
     private Builder() {
       myTitle = "";
@@ -192,8 +192,8 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
       return this;
     }
 
-    public Builder setRangeSelectionModel(RangeSelectionModel rangeSelectionModel) {
-      myRangeSelectionModel = rangeSelectionModel;
+    public Builder setBoxSelectionModel(BoxSelectionModel rangeSelectionModel) {
+      myBoxSelectionModel = rangeSelectionModel;
       return this;
     }
 

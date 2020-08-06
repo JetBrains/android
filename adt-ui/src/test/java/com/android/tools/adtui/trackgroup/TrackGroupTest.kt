@@ -17,8 +17,8 @@ package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.BoxSelectionComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.BoxSelectionModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.trackgroup.StringSelectable
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
@@ -190,8 +190,8 @@ class TrackGroupTest {
 
   @Test
   fun supportsBoxSelection() {
-    val rangeSelectionModel = RangeSelectionModel(Range(), Range(0.0, 10.0))
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setRangeSelectionModel(rangeSelectionModel).build()
+    val selectionModel = BoxSelectionModel(Range(), Range(0.0, 10.0))
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setBoxSelectionModel(selectionModel).build()
     trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
@@ -202,24 +202,24 @@ class TrackGroupTest {
     val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
     val boxUi = FakeUi(boxComponent)
 
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     boxUi.mouse.drag(0, 0, 100, 10)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
+    assertThat(selectionModel.selectionRange.isEmpty).isFalse()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
 
     // Box selection is cleared when manually selecting a track.
     val trackTitleUi = FakeUi(trackGroup.trackTitleOverlay)
     trackTitleUi.mouse.click(0, 0)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
 
     // Verify box selection can be disabled.
     boxUi.mouse.click(0, 0) // Clear selection
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
     trackGroup.setEventHandlersEnabled(false)
     boxUi.mouse.drag(0, 0, 100, 10)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
   }
 }

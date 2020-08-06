@@ -176,8 +176,8 @@ public class TrackGroup extends AspectObserver {
     myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES));
-    if (groupModel.getRangeSelectionModel() != null) {
-      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
+    if (groupModel.getBoxSelectionModel() != null) {
+      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getBoxSelectionModel(), myTrackList);
       DelegateMouseEventHandler.delegateTo(myOverlay)
         .installListenerOn(myBoxSelectionComponent)
         .installMotionListenerOn(myBoxSelectionComponent);
