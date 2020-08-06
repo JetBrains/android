@@ -16,8 +16,4 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
-  override val rawEventListener: RawEventListener = object : RawEventListener {
-    override fun onRawEvent(eventData: ByteArray) {
-    }
-  }
 }

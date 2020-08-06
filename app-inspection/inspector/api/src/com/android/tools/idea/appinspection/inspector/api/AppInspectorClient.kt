@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspector.api
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.WorkerThread
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.Executor
 
 /**
@@ -29,6 +29,7 @@ import java.util.concurrent.Executor
 abstract class AppInspectorClient(
   val messenger: CommandMessenger
 ) {
+  // TODO(b/163551025): merge with AppInspectorClient
   /** Interface for defining a connection that sends basic commands and receives callbacks between studio and inspectors. */
   interface CommandMessenger {
     /**
@@ -50,17 +51,14 @@ abstract class AppInspectorClient(
      */
     @WorkerThread
     suspend fun sendRawCommand(rawData: ByteArray): ByteArray
-  }
 
-  /**
-   * Interface for raw events from an inspector.
-   */
-  interface RawEventListener {
     /**
-     * Callback for raw events sent by inspector.
+     * A cold data stream of Raw Events sent by the inspector on device.
+     *
+     * Note: Once the inspector client is disposed by any means, collection won't be possible and will result in
+     * CancellationException being thrown immediately.
      */
-    @WorkerThread
-    fun onRawEvent(eventData: ByteArray) {}
+    val rawEventFlow: Flow<ByteArray>
   }
 
   /**
@@ -74,7 +72,8 @@ abstract class AppInspectorClient(
      * usual in [onDispose], that will be triggered right after this call.
      */
     @WorkerThread
-    fun onCrashEvent(message: String) {}
+    fun onCrashEvent(message: String) {
+    }
 
     /**
      * Callback when this inspector was disposed to free any held resources and notify any interested parties.
@@ -86,7 +85,8 @@ abstract class AppInspectorClient(
      * via [CommandMessenger.disposeInspector], app's process was terminated or inspector crashed on the device.
      */
     @WorkerThread
-    fun onDispose() {}
+    fun onDispose() {
+    }
   }
 
   /**
@@ -119,7 +119,8 @@ abstract class AppInspectorClient(
         }
         if (isDisposed) {
           executor.execute { listener.onDispose() }
-        } else {
+        }
+        else {
           listeners[listener] = executor
         }
       }
@@ -147,9 +148,7 @@ abstract class AppInspectorClient(
       }
     }
   }
-
-  abstract val rawEventListener: RawEventListener
-
+  
   val serviceEventNotifier = ServiceEventNotifier()
 
   /**

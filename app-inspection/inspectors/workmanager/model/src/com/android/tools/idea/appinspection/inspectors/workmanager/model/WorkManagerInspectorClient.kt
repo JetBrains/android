@@ -23,6 +23,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
@@ -49,12 +50,10 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, clientScope: Corou
     clientScope.launch {
       messenger.sendRawCommand(command.toByteArray())
     }
-  }
-
-  override val rawEventListener = object : RawEventListener {
-    override fun onRawEvent(eventData: ByteArray) {
-      super.onRawEvent(eventData)
-      handleEvent(eventData)
+    clientScope.launch {
+      messenger.rawEventFlow.collect { eventData ->
+        handleEvent(eventData)
+      }
     }
   }
 

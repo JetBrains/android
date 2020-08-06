@@ -34,13 +34,15 @@ import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import junit.framework.TestCase.fail
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -48,7 +50,6 @@ import kotlinx.coroutines.supervisorScope
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.coroutines.resume
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
@@ -94,31 +95,23 @@ class AppInspectorConnectionTest {
 
 
   @Test
-  fun receiveGeneralEvent() = runBlocking<Unit> {
+  fun receiveRawEvent() = runBlocking<Unit> {
+    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    val eventDataDeferred = CompletableDeferred<ByteArray>()
-    val eventListener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
-      override fun onRawEvent(eventData: ByteArray) {
-        super.onRawEvent(eventData)
-        eventDataDeferred.complete(eventData)
-      }
+    assertThat(connection.messenger.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+
+    // Verify the flow is cold.
+    assertThat(connection.messenger.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+
+    // Verify flow collection when inspector is disposed.
+    connection.messenger.disposeInspector()
+
+    try {
+      connection.messenger.rawEventFlow.single()
+      fail()
+    } catch (e: CancellationException) {
     }
-    launch {
-      appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
-      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
-    }
-
-    val eventData = eventDataDeferred.await()
-    assertThat(eventData).isEqualTo(byteArrayOf(0x12, 0x15))
-  }
-
-  @Test
-  fun rawEventWithCommandIdOnlyTriggersEventListener() = runBlocking<Unit> {
-    val eventListener = AppInspectionServiceRule.TestInspectorRawEventListener()
-    val connection = appInspectionRule.launchInspectorConnection(eventListener = eventListener)
-
-    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray())).isEqualTo("TestData".toByteArray())
-    assertThat(eventListener.rawEvents).isEmpty()
   }
 
   @Test
@@ -269,24 +262,10 @@ class AppInspectorConnectionTest {
 
     timer.currentTimeNs = 5
 
-    val eventReceived = CompletableDeferred<Unit>()
-    val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
-      override fun onRawEvent(eventData: ByteArray) {
-        assertThat(eventData).isEqualTo(freshEventData)
-        super.onRawEvent(eventData)
-        eventReceived.complete(Unit)
-      }
-    }
-
-    launch {
-      appInspectionRule.launchInspectorConnection(
-        inspectorId = INSPECTOR_ID,
-        eventListener = listener
-      )
-      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
-    }
-
-    eventReceived.join()
+    val client = appInspectionRule.launchInspectorConnection()
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
+    val rawData = client.messenger.rawEventFlow.take(1).single()
+    assertThat(rawData).isEqualTo(freshEventData)
   }
 
   @ExperimentalCoroutinesApi
@@ -295,30 +274,20 @@ class AppInspectorConnectionTest {
     val firstEventData = byteArrayOf(0x12, 0x15)
     val secondEventData = byteArrayOf(0x01, 0x02)
 
+    val client = appInspectionRule.launchInspectorConnection()
+
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
+
+    var count = 0
+    val flow = client.messenger.rawEventFlow.map { eventData ->
+      count++
+      eventData
+    }
+
     // This test seems more complicated than it needs to be because we want to force the two events to be polled in separate cycles. We want
     // to check the subsequence polling cycle does not pick up the events already seen in the first cycle. Therefore, we use a flow here to
     // receive the first event before adding the second event to the service.
-    val flow = callbackFlow {
-      var count = 0
-      val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
-        override fun onRawEvent(eventData: ByteArray) {
-          super.onRawEvent(eventData)
-          count++
-          offer(eventData)
-          if (count == 2) {
-            close()
-          }
-        }
-      }
-
-      appInspectionRule.launchInspectorConnection(eventListener = listener)
-
-      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
-
-      awaitClose()
-    }
-
-    flow.withIndex().collect { indexedValue ->
+    flow.take(2).withIndex().collect { indexedValue ->
       if (indexedValue.index == 0) {
         assertThat(indexedValue.value).isEqualTo(firstEventData)
         appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(secondEventData))
