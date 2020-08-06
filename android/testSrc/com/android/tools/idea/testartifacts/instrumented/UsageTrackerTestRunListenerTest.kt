@@ -45,9 +45,11 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        ModelCache.androidArtifactFrom(
+        ModelCache().androidArtifactFrom(
           AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
-          ModelCache(), IdeDependenciesFactory(), null),
+          IdeDependenciesFactory(),
+          null
+        ),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }

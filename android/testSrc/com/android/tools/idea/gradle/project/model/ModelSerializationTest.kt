@@ -219,17 +219,17 @@ class ModelSerializationTest {
 
   @Test
   fun aaptOptions() = assertSerializable {
-    ModelCache.aaptOptionsFrom(AaptOptionsStub())
+    modelCache.aaptOptionsFrom(AaptOptionsStub())
   }
 
   @Test
   fun androidArtifact() = assertSerializable {
-    ModelCache.androidArtifactFrom(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion)
+    modelCache.androidArtifactFrom(AndroidArtifactStub(), dependenciesFactory, gradleVersion)
   }
 
   @Test
   fun androidArtifactOutput() = assertSerializable {
-    ModelCache.androidArtifactOutputFrom(AndroidArtifactOutputStub(), modelCache)
+    modelCache.androidArtifactOutputFrom(AndroidArtifactOutputStub())
   }
 
   @Test
@@ -244,37 +244,37 @@ class ModelSerializationTest {
 
   @Test
   fun apiVersion() = assertSerializable {
-    ModelCache.apiVersionFrom(ApiVersionStub())
+    modelCache.apiVersionFrom(ApiVersionStub())
   }
 
   @Test
   fun buildType() = assertSerializable {
-    ModelCache.buildTypeFrom(BuildTypeStub())
+    modelCache.buildTypeFrom(BuildTypeStub())
   }
 
   @Test
   fun buildTypeContainer() = assertSerializable {
-    ModelCache.buildTypeContainerFrom(BuildTypeContainerStub(), modelCache)
+    modelCache.buildTypeContainerFrom(BuildTypeContainerStub())
   }
 
   @Test
   fun classField() = assertSerializable {
-    ModelCache.classFieldFrom(ClassFieldStub())
+    modelCache.classFieldFrom(ClassFieldStub())
   }
 
   @Test
   fun filterData() = assertSerializable {
-    ModelCache.filterDataFrom(FilterDataStub())
+    modelCache.filterDataFrom(FilterDataStub())
   }
 
   @Test
   fun javaArtifact() = assertSerializable {
-    ModelCache.javaArtifactFrom(JavaArtifactStub(), modelCache, dependenciesFactory)
+    modelCache.javaArtifactFrom(JavaArtifactStub(), dependenciesFactory)
   }
 
   @Test
   fun javaCompileOptions() = assertSerializable {
-    ModelCache.javaCompileOptionsFrom(JavaCompileOptionsStub())
+    modelCache.javaCompileOptionsFrom(JavaCompileOptionsStub())
   }
 
   @Test
@@ -344,17 +344,17 @@ class ModelSerializationTest {
 
   @Test
   fun productFlavor() = assertSerializable {
-    ModelCache.productFlavorFrom(ProductFlavorStub(), modelCache)
+    modelCache.productFlavorFrom(ProductFlavorStub())
   }
 
   @Test
   fun productFlavorContainer() = assertSerializable {
-    ModelCache.productFlavorContainerFrom(ProductFlavorContainerStub(), modelCache)
+    modelCache.productFlavorContainerFrom(ProductFlavorContainerStub())
   }
 
   @Test
   fun signingConfig() = assertSerializable {
-    ModelCache.signingConfigFrom(SigningConfigStub())
+    modelCache.signingConfigFrom(SigningConfigStub())
   }
 
   @Test
@@ -364,22 +364,22 @@ class ModelSerializationTest {
 
   @Test
   fun sourceProviderContainer() = assertSerializable {
-    ModelCache.sourceProviderContainerFrom(SourceProviderContainerStub(), modelCache)
+    modelCache.sourceProviderContainerFrom(SourceProviderContainerStub())
   }
 
   @Test
   fun syncIssue() = assertSerializable {
-    ModelCache.syncIssueFrom(SyncIssueStub())
+    modelCache.syncIssueFrom(SyncIssueStub())
   }
 
   @Test
   fun testedTargetVariant() = assertSerializable {
-    ModelCache.testedTargetVariantFrom(TestedTargetVariantStub())
+    modelCache.testedTargetVariantFrom(TestedTargetVariantStub())
   }
 
   @Test
   fun testOptions() = assertSerializable {
-    ModelCache.testOptionsFrom(TestOptionsStub())
+    modelCache.testOptionsFrom(TestOptionsStub())
   }
 
   @Test
@@ -389,7 +389,7 @@ class ModelSerializationTest {
 
   @Test
   fun vectorDrawablesOptions() = assertSerializable {
-    ModelCache.vectorDrawablesOptionsFrom(VectorDrawablesOptionsStub())
+    modelCache.vectorDrawablesOptionsFrom(VectorDrawablesOptionsStub())
   }
 
   @Test

@@ -81,7 +81,8 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
                                        boolean buildable) {
-    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> ModelCache.syncIssueFrom(issue));
+    ModelCache modelCache = new ModelCache();
+    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> modelCache.syncIssueFrom(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 
