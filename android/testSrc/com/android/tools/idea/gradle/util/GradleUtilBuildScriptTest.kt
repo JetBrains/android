@@ -83,10 +83,10 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
 
   @Test
   fun ignoreDirectories() {
-    tempDir.newFolder(FN_BUILD_GRADLE)
-    tempDir.newFolder(FN_SETTINGS_GRADLE)
-    tempDir.newFolder(FN_BUILD_GRADLE_KTS)
-    tempDir.newFolder(FN_SETTINGS_GRADLE_KTS)
+    tempDir.newDirectory(FN_BUILD_GRADLE)
+    tempDir.newDirectory(FN_SETTINGS_GRADLE)
+    tempDir.newDirectory(FN_BUILD_GRADLE_KTS)
+    tempDir.newDirectory(FN_SETTINGS_GRADLE_KTS)
     assertNull(GradleUtil.findGradleBuildFile(tempDir.root.toVFile()))
     assertNull(GradleUtil.findGradleSettingsFile(tempDir.root.toVFile()))
   }
@@ -130,11 +130,11 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
 
   @Test
   fun isGradeFileDirectory() {
-    val randomDir = tempDir.newFolder("coolDir").toVFile()
+    val randomDir = tempDir.newDirectory("coolDir").toVFile()
     assertFalse(isGradleScript(randomDir))
-    val buildGradleFolder = tempDir.newFolder(FN_BUILD_GRADLE).toVFile()
+    val buildGradleFolder = tempDir.newDirectory(FN_BUILD_GRADLE).toVFile()
     assertFalse(isGradleScript(buildGradleFolder))
-    val settingsGradleFolder = tempDir.newFolder(FN_SETTINGS_GRADLE_KTS).toVFile()
+    val settingsGradleFolder = tempDir.newDirectory(FN_SETTINGS_GRADLE_KTS).toVFile()
     assertFalse(isGradleScript(settingsGradleFolder))
   }
 }

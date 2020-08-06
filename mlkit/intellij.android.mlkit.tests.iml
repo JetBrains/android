@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.mlkit" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />

@@ -49,7 +49,7 @@ class DatabaseInspectorClient constructor(
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) : AppInspectorClient(messenger) {
   private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, clientScope, errorsSideChannel)
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, clientScope, taskExecutor, errorsSideChannel)
 
   override val rawEventListener = object : RawEventListener {
     override fun onRawEvent(eventData: ByteArray) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.BuildType
+import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
@@ -59,15 +59,15 @@ open class PsBuildType(
   private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by BuildTypeDescriptors
-  var resolvedModel: BuildType? = null
+  var resolvedModel: IdeBuildType? = null
   private var parsedModel: BuildTypeModel? = null
 
-  fun init(resolvedModel: BuildType?, parsedModel: BuildTypeModel?) {
+  fun init(resolvedModel: IdeBuildType?, parsedModel: BuildTypeModel?) {
     this.resolvedModel = resolvedModel
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
   override val path: PsBuildTypeNavigationPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
@@ -104,8 +104,8 @@ open class PsBuildType(
     renamed(oldName, newName)
   }
 
-  object BuildTypeDescriptors : ModelDescriptor<PsBuildType, BuildType, BuildTypeModel> {
-    override fun getResolved(model: PsBuildType): BuildType? = model.resolvedModel
+  object BuildTypeDescriptors : ModelDescriptor<PsBuildType, IdeBuildType, BuildTypeModel> {
+    override fun getResolved(model: PsBuildType): IdeBuildType? = model.resolvedModel
 
     override fun getParsed(model: PsBuildType): BuildTypeModel? = model.parsedModel
 

@@ -33,11 +33,32 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
+/**
+ * Snapshot tests for 'Android Project View'.
+ *
+ * These tests convert the Android project view to a stable text format which does not depend on local
+ * environment (and ideally should not depend on the versions of irrelevant libraries) and compare them to pre-recorded golden
+ * results.
+ *
+ * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
+ *
+ * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
+ *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
+ *
+ *       Or with bazel:
+bazel test \
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+--test_output=streamed \
+--nocache_test_results \
+--strategy=TestRunner=standalone \
+//tools/adt/idea/android:intellij.android.core.tests_tests__navigator.AndroidGradleProjectViewSnapshotComparisonTest
+ */
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
@@ -122,9 +143,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpAndroidProjectView()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }

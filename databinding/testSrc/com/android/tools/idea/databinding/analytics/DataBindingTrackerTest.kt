@@ -21,7 +21,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -31,7 +30,6 @@ import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_ACCEPTED
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_SUGGESTED
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -80,9 +78,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
-        syncState.syncSucceeded()
+        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
         val dataBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }

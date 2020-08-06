@@ -95,7 +95,7 @@ class StudioPatchUpdaterIntegrationTest {
   @Before
   fun createPatch() {
     java = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(if (SystemInfo.isWindows) "java.exe" else "java")
-    patchJar = myTempDirectory.newFolder("patch").toPath().resolve("patch.jar")
+    patchJar = myTempDirectory.newDirectory("patch").toPath().resolve("patch.jar")
 
     // Build the patch
 

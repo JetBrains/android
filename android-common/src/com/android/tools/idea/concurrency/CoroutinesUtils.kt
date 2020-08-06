@@ -19,7 +19,6 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -32,6 +31,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -77,7 +77,7 @@ object AndroidDispatchers {
   val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
@@ -140,9 +140,10 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
   }
 
   /** @see AndroidCoroutineScope */
-  override val coroutineContext: CoroutineContext get() {
-    return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
-  }
+  override val coroutineContext: CoroutineContext
+    get() {
+      return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
+    }
 }
 
 private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName)
@@ -182,4 +183,25 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
     }.join()
     return newJob
   }
+}
+
+/**
+ * Utility function for quickly creating a scope that is a child of the current scope. It can be optionally a supervisor scope.
+ */
+fun CoroutineScope.createChildScope(isSupervisor: Boolean = false): CoroutineScope = CoroutineScope(
+  this.coroutineContext + if (isSupervisor) SupervisorJob(this.coroutineContext[Job]) else Job(this.coroutineContext[Job]))
+
+/**
+ * Immediately returns the completed result. If deferred is not complete for any reason, return null.
+ */
+suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
+  if (isCompleted) {
+    try {
+      return this.await()
+    }
+    catch (t: Throwable) {
+      return null
+    }
+  }
+  return null
 }

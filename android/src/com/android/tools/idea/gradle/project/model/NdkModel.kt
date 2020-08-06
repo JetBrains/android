@@ -17,11 +17,22 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
-import com.android.ide.common.gradle.model.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.IdeNativeVariantAbi
+import com.android.builder.model.v2.models.ndk.NativeAbi
+import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.repository.GradleVersion
+import com.intellij.serialization.PropertyMapping
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.HashMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 interface INdkModel {
   val features: NdkModelFeatures
@@ -35,7 +46,23 @@ interface INdkModel {
 
 sealed class NdkModel : INdkModel
 
-class V1NdkModel(
+/**
+ * Native information fetched from Android Gradle Plugin about this module using V1 API.
+ *
+ * Specifically, if single variant sync is turned on (default),
+ *
+ * - [androidProject] contains the overview of the native information in this module, including
+ *   - available variants in this module
+ *   - available ABIs for each variants
+ * - [nativeVariantAbis] contains detailed build information for the synced variant and ABI
+ *
+ * If single variant sync is turned off,
+ *
+ * - [androidProject] contains the overview and additionally
+ *   - detailed build information of all variants and ABIs avaialbe in this module
+ * - [nativeVariantAbis] is always empty
+ */
+data class V1NdkModel(
   val androidProject: IdeNativeAndroidProject,
   val nativeVariantAbis: List<IdeNativeVariantAbi>
 ) : NdkModel() {
@@ -150,4 +177,63 @@ class V1NdkModel(
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
   fun findToolchain(toolchainName: String): NativeToolchain? = toolchainsByName[toolchainName]
   fun findSettings(settingsName: String): NativeSettings? = settingsByName[settingsName]
+}
+
+/**
+ * Native information fetched from Android Gradle Plugin about this module using V2 API.
+ *
+ * Regardless of whether single varaint sync or full sync is used, the model contains the exact same [NativeModule] that contains an
+ * overview of the native module.
+ *
+ * synced variant and ABIs would have the [NativeAbi.compileCommandsJsonFile], [NativeAbi.symbolFolderIndexFile], and
+ * [NativeAbi.buildFileIndexFile] generated, containing detailed build information.
+ */
+data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor(
+  private val /* `val` declaration needed for serialization */ agpVersion: String,
+  val nativeModule: IdeNativeModule
+) : NdkModel() {
+
+  constructor (agpVersion: String, nativeModuleArg: NativeModule) : this(agpVersion, IdeNativeModuleImpl(nativeModuleArg))
+
+  @Transient
+  override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(agpVersion))
+
+  @Transient
+  val abiByVariantAbi: Map<VariantAbi, IdeNativeAbi> = nativeModule.variants.flatMap { variant ->
+    variant.abis.map { abi ->
+      VariantAbi(variant.name, abi.name) to abi
+    }
+  }.toMap()
+
+  @Transient
+  override val allVariantAbis: Collection<VariantAbi> = LinkedHashSet(abiByVariantAbi.keys.sortedBy { it.displayName })
+
+  override val syncedVariantAbis: Collection<VariantAbi>
+    get() = LinkedHashSet(
+      abiByVariantAbi.entries.filter { (_, abi) -> abi.sourceFlagsFile.exists() }
+        .map { (variantAbi, _) -> variantAbi }
+        .sortedBy { it.displayName }
+    )
+
+  override val symbolFolders: Map<VariantAbi, Set<File>>
+    get() = abiByVariantAbi.mapValues { (_, abi) ->
+      abi.symbolFolderIndexFile.readIndexFile()
+    }
+
+  override val buildFiles: Collection<File> get() = abiByVariantAbi.values.flatMap { it.buildFileIndexFile.readIndexFile() }.toSet()
+
+  @Transient
+  override val buildSystems: Collection<String> = listOf(
+    when (nativeModule.nativeBuildSystem) {
+      NativeBuildSystem.CMAKE -> "cmake"
+      NativeBuildSystem.NDK_BUILD -> "ndkBuild"
+    })
+
+  @Transient
+  override val defaultNdkVersion: String = nativeModule.defaultNdkVersion
+}
+
+private fun File.readIndexFile(): Set<File> = when {
+  this.isFile -> this.readLines(StandardCharsets.UTF_8).map { File(it) }.toSet()
+  else -> emptySet()
 }

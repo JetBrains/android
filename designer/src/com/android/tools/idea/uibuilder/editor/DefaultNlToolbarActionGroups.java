@@ -29,7 +29,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
-import com.android.tools.idea.uibuilder.surface.LayoutValidatorAction;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -121,7 +121,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       return group;
     }
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
-    group.add(LayoutValidatorAction.getInstance());
+    group.add(LayoutScannerAction.getInstance());
     group.add(IssueNotificationAction.getInstance());
     return group;
   }

@@ -260,7 +260,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void defaultHeapSetTest() {
-    String fakeClassName1 = "DUMMY_CLASS1", fakeClassName2 = "DUMMY_CLASS2";
+    String fakeClassName1 = "SAMPLE_CLASS1", fakeClassName2 = "SAMPLE_CLASS2";
 
     myMockLoader.setReturnImmediateFuture(true);
 
@@ -315,10 +315,10 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testMemoryObjectSelection() {
-    final String dummyClassName = "DUMMY_CLASS1";
+    final String sampleClassName = "SAMPLE_CLASS1";
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(5).setEndTime(10).build();
     InstanceObject mockInstance =
-      new FakeInstanceObject.Builder(captureObject, 1, dummyClassName).setName("DUMMY_INSTANCE")
+      new FakeInstanceObject.Builder(captureObject, 1, sampleClassName).setName("SAMPLE_INSTANCE")
         .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
     captureObject.addInstanceObjects(Collections.singleton(mockInstance));
 
@@ -445,8 +445,8 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testSelectNewCaptureWhileLoading() {
-    CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).build();
-    CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setStartTime(10).setEndTime(15).build();
+    CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setStartTime(5).setEndTime(10).build();
+    CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setStartTime(10).setEndTime(15).build();
 
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
@@ -474,7 +474,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long startTimeUs = 5;
     long endTimeUs = 10;
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder()
-      .setCaptureName("DUMMY_CAPTURE1")
+      .setCaptureName("SAMPLE_CAPTURE1")
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs))
       .setError(true)

@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.sources.LocalSourceProvider;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidAuthenticator;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.updater.AndroidSdkUpdaterPlugin;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -44,16 +44,17 @@ import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.EditableModel;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.table.IconTableCellRenderer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Table model representing the currently available {@link RepositorySource}s. Sources can be added, deleted, enabled, and disabled.
@@ -270,10 +271,10 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
       .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule(), RepoManager.getCommonModule()), userSourceProvider);
     userSourceProvider.addSource(newSource);
-    PasswordSafe.getInstance().set(new CredentialAttributes(AndroidSdkUpdaterPlugin.getCredentialServiceName(url)), credentials);
+    PasswordSafe.getInstance().set(new CredentialAttributes(AndroidAuthenticator.getCredentialServiceName(url)), credentials);
     try {
       PasswordSafe.getInstance().set(
-        new CredentialAttributes(AndroidSdkUpdaterPlugin.getCredentialServiceName(new URL(url).getHost())), credentials);
+        new CredentialAttributes(AndroidAuthenticator.getCredentialServiceName(new URL(url).getHost())), credentials);
     }
     catch (MalformedURLException e) {
       // shouldn't happen: validation is done in the dialog
@@ -404,7 +405,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     boolean myOriginalEnabled;
     String myOriginalName;
 
-    public Row(RepositorySource source) {
+    Row(RepositorySource source) {
       mySource = source;
       myOriginalEnabled = mySource.isEnabled();
       myOriginalName = mySource.getDisplayName();

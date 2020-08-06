@@ -26,13 +26,17 @@ import com.intellij.openapi.util.Disposer
 class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
   private val dlg: AdbDevicePairingDialog
   private val listeners = ArrayList<AdbDevicePairingView.Listener>()
-  //TODO: Enter final URL here
-  private val mdnsDocUrl = "http://developer.android.com/docs"
 
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
     dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    dlg.pinCodePairInvoked = { service ->
+      listeners.forEach { it.onPinCodePairAction(service) }
+    }
+    dlg.qrCodeScanAgainInvoked = {
+      listeners.forEach { it.onScanAnotherQrCodeDeviceAction() }
+    }
     Disposer.register(dlg.disposable, Disposable {
       listeners.forEach { it.onClose() }
     })
@@ -79,29 +83,29 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
         newline()
       }
       newline()
-      addLink("Learn more", mdnsDocUrl)
+      addLink("Learn more", Urls.learnMore)
       endDiv()
     }
   }
 
   override fun showQrCodePairingStarted() {
-    dlg.showQrCodeStatus("Waiting for device...")
+    dlg.showQrCodePairingStarted()
   }
 
   override fun showQrCodePairingInProgress(mdnsService: MdnsService) {
-    dlg.showQrCodeStatus("Pairing with device ${mdnsService.displayString}...")
+    dlg.showQrCodePairingInProgress()
   }
 
-  override fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult) {
-    dlg.showQrCodeStatus("Waiting for device ${pairingResult.displayString} to connect...")
+  override fun showQrCodePairingWaitForDevice(pairingResult: PairingResult) {
+    dlg.showQrCodePairingWaitForDevice()
   }
 
   override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
-    dlg.showQrCodeStatus("${device.displayString} connected")
+    dlg.showQrCodePairingSuccess(device)
   }
 
   override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
-    dlg.showQrCodeStatus("An error occurred connecting the device. Scan to try again.")
+    dlg.showQrCodePairingError(error)
   }
 
   override fun addListener(listener: AdbDevicePairingView.Listener) {
@@ -123,6 +127,7 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
     }
 
     override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
+      // Ignore, as this is handled by the controller via the model
     }
 
     override fun pinCodeServicesDiscovered(services: List<MdnsService>) {

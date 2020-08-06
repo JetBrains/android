@@ -22,11 +22,15 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.ui.components.JBLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.annotation.Retention;
+import java.util.Locale;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,9 +47,14 @@ public class RetentionView {
     public void setAndroidDevice(AndroidDevice device) {
       this.device = device;
     }
-
     public void setSnapshotFile(File snapshotFile) {
       this.snapshotFile = snapshotFile;
+    }
+    public File getSnapshotFile() {
+      return snapshotFile;
+    }
+    public AndroidDevice getAndroidDevice() {
+      return device;
     }
 
     @Nullable
@@ -71,6 +80,7 @@ public class RetentionView {
   @NotNull private String packageName = "";
   private JPanel myRootPanel;
   private JButton myRetentionDebugButton;
+  private JTextPane myInfoText;
 
   /**
    * Returns the root panel.
@@ -86,9 +96,30 @@ public class RetentionView {
 
   public void setSnapshotFile(File snapshotFile) {
     ((RetentionPanel)myRootPanel).setSnapshotFile(snapshotFile);
+    updateInfoText();
   }
 
-  public void setAndroidDevice(AndroidDevice device) { ((RetentionPanel)myRootPanel).setAndroidDevice(device); }
+  private void updateInfoText() {
+    String text = "";
+    AndroidDevice device = ((RetentionPanel)myRootPanel).getAndroidDevice();
+    File snapshotFile = ((RetentionPanel)myRootPanel).getSnapshotFile();
+    if (device != null) {
+      text += String.format(Locale.getDefault(), "AVD name: %s\n", device.getDeviceName());
+    }
+    if (snapshotFile != null) {
+      text += String.format(
+        Locale.getDefault(),
+        "Snapshot file size: %d MB\nSnapshot file path: %s\n",
+        snapshotFile.length() / 1024 / 1024,
+        snapshotFile.getAbsolutePath());
+    }
+      myInfoText.setText(text);
+  }
+
+  public void setAndroidDevice(AndroidDevice device) {
+    ((RetentionPanel)myRootPanel).setAndroidDevice(device);
+    updateInfoText();
+  }
 
   private void createUIComponents() {
     myRootPanel = new RetentionPanel();

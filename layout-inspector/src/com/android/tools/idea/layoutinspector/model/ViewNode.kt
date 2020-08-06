@@ -23,6 +23,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import java.awt.Rectangle
+import java.awt.Shape
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
 @VisibleForTesting
@@ -33,10 +34,15 @@ const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
  *
  * @param drawId the View.getUniqueDrawingId which is also the id found in the skia image
  * @param qualifiedName the qualified class name of the view
- * @param x the left edge of the view from the device left edge
- * @param y the top edge of the view from the device top edge
+ * @param layout reference to the layout xml containing this view
+ * @param x the left edge of the view from the device left edge, ignoring any post-layout transformations
+ * @param y the top edge of the view from the device top edge, ignoring any post-layout transformations
+ * @param width the width of this view, ignoring any post-layout transformations
+ * @param height the height of this view, ignoring any post-layout transformations
+ * @param bounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
+ * @param layoutFlags flags from WindowManager.LayoutParams
  */
 open class ViewNode(
   var drawId: Long,
@@ -46,12 +52,23 @@ open class ViewNode(
   var y: Int,
   var width: Int,
   var height: Int,
+  bounds: Shape?,
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int
 ) {
-  val bounds: Rectangle
+  /** The bounds used by android for layout. Always a rectangle. */
+  val layoutBounds: Rectangle
     get() = Rectangle(x, y, width, height)
+
+  private var _transformedBounds = bounds
+
+  val transformedBounds: Shape
+    get() = _transformedBounds ?: layoutBounds
+
+  fun setTransformedBounds(bounds: Shape?) {
+    _transformedBounds = bounds
+  }
 
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 

@@ -33,7 +33,7 @@ object DesignerActions {
   //<editor-fold desc="Common Actions">
   const val ACTION_FORCE_REFRESH_PREVIEW = "$PREFIX.ForceRefreshPreview"
   const val ACTION_TOGGLE_ISSUE_PANEL = "$PREFIX.IssueNotificationAction"
-  const val ACTION_RUN_LAYOUT_VALIDATOR = "$PREFIX.LayoutValidatorAction"
+  const val ACTION_RUN_LAYOUT_SCANNER = "$PREFIX.LayoutScannerAction"
   //</editor-fold>
 
   //<editor-fold desc="Layout Editor Actions">

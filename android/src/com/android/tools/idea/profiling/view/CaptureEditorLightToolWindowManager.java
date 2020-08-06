@@ -22,10 +22,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +54,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
       myToolWindow.getComponent().putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true");
     }
 
-    ((ToolWindowEx)myToolWindow).setTitleActions(createActions());
+    myToolWindow.setTitleActions(createActions());
     initGearActions();
 
     ContentManager contentManager = myToolWindow.getContentManager();
@@ -76,7 +76,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
   protected abstract String getToolWindowTitleBarText();
 
   @NotNull
-  protected abstract AnAction[] createActions();
+  protected abstract List<AnAction> createActions();
 
   @NotNull
   protected abstract JComponent getContent();

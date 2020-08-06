@@ -26,6 +26,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
@@ -55,6 +56,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -123,25 +125,27 @@ public class AndroidGradleTests {
    */
   @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @Nullable String gradleVersion,
                                                    @Nullable String gradlePluginVersion,
+                                                   @Nullable String kotlinVersion,
                                                    File... localRepos)
     throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, localRepos);
+    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
                                                             boolean isRoot,
                                                             @Nullable String gradleVersion,
                                                             @Nullable String gradlePluginVersion,
+                                                            @Nullable String kotlinVersion,
                                                             File... localRepos)
     throws IOException {
     if (path.isDirectory()) {
@@ -159,7 +163,7 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, localRepos);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
@@ -173,7 +177,9 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
+      if (kotlinVersion == null) {
+        kotlinVersion = getKotlinVersionForTests();
+      }
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -529,6 +535,9 @@ public class AndroidGradleTests {
 
   public static TestGradleSyncListener syncProject(@NotNull Project project,
                                                    @NotNull GradleSyncInvoker.Request request) throws InterruptedException {
+    if (getProjectSystem(project).getSyncManager().isSyncInProgress()) {
+      throw new IllegalStateException("Requesting sync while sync in progress");
+    }
     TestGradleSyncListener syncListener = new TestGradleSyncListener();
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
     syncListener.await();
@@ -538,7 +547,7 @@ public class AndroidGradleTests {
   public static void checkSyncStatus(@NotNull Project project,
                                      @NotNull TestGradleSyncListener syncListener,
                                      @Nullable SyncIssueFilter issueFilter) throws SyncIssuesPresentError {
-    if (syncFailed(syncListener)) {
+    if (!syncListener.isSyncFinished() || syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
@@ -563,10 +572,11 @@ public class AndroidGradleTests {
   public static void defaultPatchPreparedProject(@NotNull File projectRoot,
                                                  @Nullable String gradleVersion,
                                                  @Nullable String gradlePluginVersion,
+                                                 @Nullable String kotlinVersion,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   /**

@@ -1,5 +1,5 @@
 PROJECT             : MultiFlavor
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : MultiFlavor
         ExternalModuleGroup :
@@ -55,6 +55,7 @@ PROJECT             : MultiFlavor
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbc/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestSecondAbc/res
@@ -62,6 +63,7 @@ PROJECT             : MultiFlavor
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -91,6 +93,8 @@ PROJECT             : MultiFlavor
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out
             JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out
             JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
+            JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug

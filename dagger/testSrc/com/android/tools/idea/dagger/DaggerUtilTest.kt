@@ -148,6 +148,17 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
     assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
 
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import androidx.hilt.lifecycle.ViewModelInject
+
+        class MyViewClassKt @ViewModelInject constructor(consumer: String)
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer).isTrue()
 
     myFixture.configureByText(
       //language=JAVA

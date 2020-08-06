@@ -20,6 +20,7 @@ import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUI
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API_CODENAME;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
@@ -385,9 +386,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
     List<String> cmdLineArgs;
     try {
-      cmdLineArgs = deviceFutures != null
-                    ? getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)
-                    : emptyList();
+      cmdLineArgs = getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec);
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);
@@ -434,20 +433,24 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   /**
    * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
    */
+  @VisibleForTesting
   @NotNull
-  private static List<String> getCommonArguments(@NotNull Module[] modules,
-                                                 @NotNull AndroidRunConfigurationBase configuration,
-                                                 @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
+  static List<String> getCommonArguments(@NotNull Module[] modules,
+                                         @NotNull AndroidRunConfigurationBase configuration,
+                                         @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
+    // Always build with stable IDs to avoid push-to-device overhead.
+    cmdLineArgs.add(createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true));
     cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
     cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
     return cmdLineArgs;
   }
 
+  @VisibleForTesting
   @NotNull
-  public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
-                                                        @NotNull AndroidRunConfigurationBase configuration,
-                                                        @Nullable AndroidDeviceSpec deviceSpec) {
+  static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
+                                                 @NotNull AndroidRunConfigurationBase configuration,
+                                                 @Nullable AndroidDeviceSpec deviceSpec) {
     if (deviceSpec == null) {
       return emptyList();
     }

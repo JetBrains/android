@@ -33,9 +33,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
@@ -50,6 +53,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
+        "//tools/idea/.idea/libraries:Trove4j[test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
         "//tools/swing-testing/fest-swing[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
@@ -86,6 +90,7 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
     ],
 )
 
@@ -132,6 +137,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
         "//tools/base/common:unb.studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/swing-testing/fest-swing:unb.fest-swing[module, test]",
@@ -162,5 +170,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:unb.studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:unb.intellij.android.plugin[module, test]",
+        "//tools/adt/idea/emulator:unb.intellij.android.emulator[module, test]",
     ],
 )

@@ -116,6 +116,23 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InnerClassSeparatorInspection"
                      displayName="Invalid separator between class and inner class"/>
 
+    <localInspection groupPath="Android"
+                     groupName="ContentAccess"
+                     language="JAVA"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ContentEntityInspection"
+                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentEntityInspection"
+                     displayName="Invalid ContentEntity"/>
+    <localInspection groupPath="Android"
+                     groupName="ContentAccess"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ContentEntityInspectionKotlin"
+                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentEntityInspectionKotlin"
+                     displayName="Invalid ContentEntity in kotlin files"/>
+
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>

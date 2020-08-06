@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import org.jetbrains.annotations.NotNull;
@@ -90,7 +91,7 @@ public class LayoutTestUtilities {
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
         .withSource(layeredPane)
-        .withMask(modifiers)
+        .withMask(modifiers | InputEvent.BUTTON1_DOWN_MASK)
         .withId(MouseEvent.MOUSE_DRAGGED)
         .build();
       mouseListener.mouseDragged(event);

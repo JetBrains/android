@@ -21,9 +21,10 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectio
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
+import com.android.tools.idea.sqlite.OfflineDatabaseManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
@@ -73,6 +74,7 @@ class DatabaseInspectorControllerImpl(
   private val model: DatabaseInspectorModel,
   private val databaseRepository: DatabaseRepository,
   private val viewFactory: DatabaseInspectorViewsFactory,
+  private val offlineDatabaseManager: OfflineDatabaseManager,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController {
@@ -100,7 +102,7 @@ class DatabaseInspectorControllerImpl(
   private var evaluatorTabCount = 0
   private var keepConnectionsOpen = false
   set(value) {
-    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transform(edtExecutor) {
+    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transformNullable(edtExecutor) {
         if (it != null) {
           field = it
           view.updateKeepConnectionOpenButton(value)
@@ -203,6 +205,12 @@ class DatabaseInspectorControllerImpl(
 
     model.removeDatabaseSchema(databaseId)
     databaseRepository.closeDatabase(databaseId)
+
+    // if the db is file-based we need to delete the files from the user's machine
+    if (databaseId is SqliteDatabaseId.FileSqliteDatabaseId) {
+      offlineDatabaseManager.cleanUp(databaseId)
+    }
+
     return@withContext
   }
 
@@ -242,13 +250,19 @@ class DatabaseInspectorControllerImpl(
     return SavedUiStateImpl(tabs)
   }
 
-  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {
-    this.databaseInspectorClientCommandsChannel = databaseInspectorClientCommandsChannel
-    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(keepConnectionsOpen)
+  override fun startAppInspectionSession(
+    clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
+  ) {
+    this.databaseInspectorClientCommandsChannel = clientCommandsChannel
+    clientCommandsChannel.keepConnectionsOpen(keepConnectionsOpen)
+
+    this.appInspectionIdeServices = appInspectionIdeServices
   }
 
-  override fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?) {
-    this.appInspectionIdeServices = appInspectionIdeServices
+  override fun stopAppInspectionSession() {
+    databaseInspectorClientCommandsChannel = null
+    appInspectionIdeServices = null
   }
 
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
@@ -539,10 +553,13 @@ interface DatabaseInspectorController : Disposable {
   fun saveState(): SavedUiState
 
   @UiThread
-  fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?)
+  fun startAppInspectionSession(
+    clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
+    appInspectionIdeServices: AppInspectionIdeServices
+  )
 
   @UiThread
-  fun setAppInspectionServices(appInspectionIdeServices: AppInspectionIdeServices?)
+  fun stopAppInspectionSession()
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

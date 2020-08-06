@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {

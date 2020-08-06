@@ -21,10 +21,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensure
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -36,15 +33,11 @@ import org.jetbrains.annotations.Nullable;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
-  @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
-
   @Nullable private final GradleSyncListener mySyncListener;
 
   ProjectSetUpTask(@NotNull Project project,
-                   @NotNull PostSyncProjectSetup.Request setupRequest,
                    @Nullable GradleSyncListener syncListener) {
     myProject = project;
-    mySetupRequest = setupRequest;
     mySyncListener = syncListener;
   }
 
@@ -53,7 +46,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    GradleSyncState.getInstance(myProject).setupStarted();
     doPopulateProject(projectInfo);
   }
 
@@ -61,7 +53,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
     try {
       IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-      task.populateProject(projectInfo, mySetupRequest, mySyncListener);
+      task.populateProject(projectInfo, mySyncListener);
     }
     finally {
       myProject.putUserData(FORCE_CREATE_DIRS_KEY, null);
@@ -86,11 +78,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     String exceptionMessage =
       (errorDetails == null || errorMessage.contains(errorDetails)) ? errorMessage : errorMessage + "\n" + errorDetails;
     String messageWithGuide = ExternalSystemBundle.message("error.resolve.with.reason", exceptionMessage);
-    // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
-    // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
-    // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
-    ProjectBuildFileChecksums.removeFrom(myProject);
-    // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
-    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null, mySyncListener);
+    if (mySyncListener != null) {
+      mySyncListener.syncFailed(myProject, messageWithGuide);
+    }
   }
 }

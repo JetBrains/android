@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.*
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -175,13 +176,13 @@ class NewAndroidModuleModel(
       project: Project,
       moduleParent: String,
       projectSyncInvoker: ProjectSyncInvoker,
-      template: NamedModuleTemplate,
+      formFactor: FormFactor,
       isLibrary: Boolean = false
     ) : NewAndroidModuleModel = NewAndroidModuleModel(
       projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-      template = template,
+      template = createSampleTemplate(),
       moduleParent = moduleParent,
-      formFactor = ObjectValueProperty(FormFactor.Mobile),
+      formFactor = ObjectValueProperty(formFactor),
       isLibrary = isLibrary
     )
   }

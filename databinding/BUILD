@@ -29,9 +29,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
@@ -99,9 +102,12 @@ iml_module(
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
@@ -163,8 +169,10 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker-mockito/1.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker/1.2:jar",
         "//prebuilts/tools/common/m2/repository/javax/annotation/jsr250-api/1.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.9.5:jar",
-        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/1.0:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
+        "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
     ],
 )
 
@@ -183,6 +191,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
@@ -225,6 +235,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android:unb.intellij.android.core[module, test]",

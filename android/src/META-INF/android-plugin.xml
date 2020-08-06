@@ -42,16 +42,10 @@
   </application-components>
   <project-components>
     <component>
-      <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.stats.ProjectSizeUsageTracker</implementation-class>
     </component>
     <component>
       <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
@@ -322,6 +316,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
@@ -330,6 +325,8 @@
                        order="first, before gradle"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
+    <postStartupActivity implementation="org.jetbrains.android.AndroidStartupManager"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectDumbStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first, before OpenFilesActivity"/>
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidExecutors" />
@@ -620,7 +617,7 @@
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantUpdater"/>
@@ -635,8 +632,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
+    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncState$SyncStateUpdater" />
     <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter"
                     serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
@@ -830,9 +827,9 @@
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
-    <usageTypeProvider implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.AgpComponentUsageTypeProvider"
+    <usageTypeProvider implementation="com.android.tools.idea.gradle.project.upgrade.AgpComponentUsageTypeProvider"
                        order="first, before org.jetbrains.android.refactoring.GradleUsageTypeProvider"/>
-    <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ComponentGroupingRuleProvider"/>
+    <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.upgrade.ComponentGroupingRuleProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -1010,8 +1007,15 @@
   </applicationListeners>
 
   <projectListeners>
+    <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+  </projectListeners>
+
+  <projectListeners>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
+              topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->

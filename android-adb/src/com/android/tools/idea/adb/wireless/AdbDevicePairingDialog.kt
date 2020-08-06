@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.ui.AbstractDialogWrapper
+import com.android.tools.idea.ui.DialogWrapperOptions
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -26,19 +27,26 @@ import javax.swing.JComponent
 
 @UiThread
 class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
-  private val dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(project, canBeParent, ideModalityType)
-  private val pairingPanel = AdbDevicePairingPanel(dialogWrapper.disposable)
+  private val dialogWrapper: AbstractDialogWrapper
+  private val pairingPanel: AdbDevicePairingPanel
 
   init {
-    dialogWrapper.apply {
-      centerPanelProvider = { createCenterPanel() }
-      isModal = true
-      title = "Pair devices over Wi-Fi"
-      cancelButtonText = "Done"
-      hideOkButton = true
-      init()
-    }
+    val options = DialogWrapperOptions(project,
+                                       canBeParent,
+                                       ideModalityType,
+                                       title = "Pair devices over Wi-Fi",
+                                       isModal = true,
+                                       hasOkButton = false,
+                                       cancelButtonText = "Done",
+                                       centerPanelProvider = { createCenterPanel() })
+    dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(options)
+    pairingPanel = AdbDevicePairingPanel(dialogWrapper.disposable)
+    dialogWrapper.init()
   }
+
+  var pinCodePairInvoked: (MdnsService) -> Unit = {}
+
+  var qrCodeScanAgainInvoked: () -> Unit = {}
 
   val disposable: Disposable
     get() = dialogWrapper.disposable
@@ -46,23 +54,13 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough
     pairingPanel.rootComponent.preferredSize = panelPreferredSize
+    pairingPanel.pinCodePairInvoked = { service -> this.pinCodePairInvoked(service) }
+    pairingPanel.qrCodeScanAgainInvoked = { this.qrCodeScanAgainInvoked() }
     return pairingPanel.rootComponent
   }
 
   fun show() {
     dialogWrapper.show()
-  }
-
-  fun showPinCodeServices(services: List<MdnsService>) {
-    pairingPanel.pinCodePanel.showAvailableServices(services)
-  }
-
-  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
-    pairingPanel.setQrCodeImage(qrCodeImage)
-  }
-
-  fun showQrCodeStatus(label: String) {
-    pairingPanel.setQrCodePairingStatus(label)
   }
 
   fun startLoading(text: String) {
@@ -77,6 +75,34 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
 
   fun stopLoading() {
     pairingPanel.isLoading = false
+  }
+
+  fun showPinCodeServices(services: List<MdnsService>) {
+    pairingPanel.pinCodePanel.showAvailableServices(services)
+  }
+
+  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
+    pairingPanel.qrCodePanel.setQrCode(qrCodeImage)
+  }
+
+  fun showQrCodePairingStarted() {
+    pairingPanel.qrCodePanel.showQrCodePairingStarted()
+  }
+
+  fun showQrCodePairingInProgress() {
+    pairingPanel.qrCodePanel.showQrCodePairingInProgress()
+  }
+
+  fun showQrCodePairingWaitForDevice() {
+    pairingPanel.qrCodePanel.showQrCodePairingWaitForDevice()
+  }
+
+  fun showQrCodePairingSuccess(device: AdbOnlineDevice) {
+    pairingPanel.qrCodePanel.showQrCodePairingSuccess(device)
+  }
+
+  fun showQrCodePairingError(error: Throwable) {
+    pairingPanel.qrCodePanel.showQrCodePairingError()
   }
 
   private val panelPreferredSize: JBDimension

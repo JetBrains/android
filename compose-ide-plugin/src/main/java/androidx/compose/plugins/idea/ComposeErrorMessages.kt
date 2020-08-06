@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 
-object ComposeErrorMessages : DefaultErrorMessages.Extension {
+class ComposeErrorMessages : DefaultErrorMessages.Extension {
   private val MAP = DiagnosticFactoryToRendererMap("Compose")
   override fun getMap() = MAP
 
@@ -43,6 +43,21 @@ object ComposeErrorMessages : DefaultErrorMessages.Extension {
       "Composable calls are not allowed inside the {0} parameter of {1}",
       Renderers.NAME,
       Renderers.COMPACT
+    )
+
+    MAP.put(
+      ComposeErrors.COMPOSABLE_PROPERTY_BACKING_FIELD,
+      "Composable properties are not able to have backing fields"
+    )
+
+    MAP.put(
+      ComposeErrors.COMPOSABLE_VAR,
+      "Composable properties are not able to have a setter"
+    )
+
+    MAP.put(
+      ComposeErrors.COMPOSABLE_SUSPEND_FUN,
+      "Suspend functions cannot be made Composable"
     )
 
     MAP.put(

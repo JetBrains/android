@@ -16,14 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.deployment.Key;
 import com.android.tools.idea.run.deployment.SelectDeviceAction;
+import com.android.tools.idea.run.deployment.SerialNumber;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.time.Duration;
 import javax.swing.JList;
@@ -73,7 +74,7 @@ public final class DeviceSelectorFixture {
   }
 
   /**
-   * Prefer to use {@link #selectItem(String)}. This is only used for DeploymentTest. Will be removed.
+   * @deprecated Prefer to use {@link #selectItem(String)}. This is only used for DeploymentTest. Will be removed.
    */
   @Deprecated
   public void selectDevice(@NotNull IDevice device) {
@@ -98,9 +99,10 @@ public final class DeviceSelectorFixture {
           return false;
         }
 
-        return GuiQuery.get(() -> ActionManager.getInstance()
-          .tryToExecute(selectDeviceAction, ActionCommand.getInputEvent("SelectDevicesAction"), null, ActionPlaces.UNKNOWN, true)
-          .isDone());
+        return GuiQuery.getNonNull(() -> {
+          InputEvent event = ActionCommand.getInputEvent("SelectDevicesAction");
+          return ActionManager.getInstance().tryToExecute(selectDeviceAction, event, null, ActionPlaces.UNKNOWN, true).isDone();
+        });
       }
       catch (ComponentLookupException exception) {
         return false;
@@ -115,7 +117,7 @@ public final class DeviceSelectorFixture {
       JList<ActionItem> target = list.target();
 
       ListModel<ActionItem> model = target.getModel();
-      Object key = new Key(device.getSerialNumber());
+      Object key = new SerialNumber(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
         ActionItem actionItem = model.getElementAt(i);
@@ -141,7 +143,7 @@ public final class DeviceSelectorFixture {
       JList<ActionItem> target = list.target();
 
       ListModel<ActionItem> model = target.getModel();
-      Key key = new Key(device.getSerialNumber());
+      Object key = new SerialNumber(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
         ActionItem actionItem = model.getElementAt(i);

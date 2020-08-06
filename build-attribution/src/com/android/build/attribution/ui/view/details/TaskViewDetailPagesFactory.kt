@@ -18,13 +18,13 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.panels.taskDetailsPanel
+import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
@@ -53,15 +53,11 @@ class TaskViewDetailPagesFactory(
     name = nodeDescriptor.pageId.id
   }
 
-  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = JPanel().apply {
-    layout = BorderLayout()
-    add(htmlTextLabelWithFixedLines("<b>${descriptor.taskData.taskPath}</b>"), BorderLayout.NORTH)
-    add(taskDetailsPanel(
-      descriptor.taskData,
-      helpLinkListener = actionHandlers::helpLinkClicked,
-      generateReportClickedListener = actionHandlers::generateReportClicked
-    ), BorderLayout.CENTER)
-  }
+  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(
+    descriptor.taskData,
+    helpLinkListener = actionHandlers::helpLinkClicked,
+    generateReportClickedListener = actionHandlers::generateReportClicked
+  )
 
   private fun createPluginDetailsPage(descriptor: PluginDetailsNodeDescriptor): JComponent {
     fun inlinedTaskInfo(taskUiData: TaskUiData) = JPanel().apply {

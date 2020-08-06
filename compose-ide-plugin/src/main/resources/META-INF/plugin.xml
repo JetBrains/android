@@ -30,6 +30,7 @@ The Jetpack Compose IDE plugin
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.TryCatchComposableChecker" />
         <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableCallChecker" />
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableDeclarationChecker" />
         <diagnosticSuppressor implementation="androidx.compose.plugins.idea.ComposeDiagnosticSuppressor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">

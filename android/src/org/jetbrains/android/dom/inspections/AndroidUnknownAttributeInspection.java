@@ -31,16 +31,17 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.xml.XmlElementDescriptor;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
-import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
+import org.jetbrains.android.dom.AndroidAnyTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.TagFromClassDescriptor;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
@@ -130,9 +131,16 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
         if (SdkConstants.ANDROID_URI.equals(namespace) || namespace.isEmpty()) {
           final XmlTag tag = attribute.getParent();
 
-          if (tag != null &&
-              tag.getDescriptor() instanceof AndroidXmlTagDescriptor &&
-              attribute.getDescriptor() instanceof AndroidAnyAttributeDescriptor) {
+          if (tag == null) return;
+
+          XmlElementDescriptor descriptor = tag.getDescriptor();
+          if (descriptor instanceof AndroidAnyTagDescriptor ||
+              descriptor instanceof TagFromClassDescriptor && ((TagFromClassDescriptor)descriptor).getClazz() == null) {
+            // Don't register warning for unknown tags tags or for unresolved Views.
+            return;
+          }
+
+          if (attribute.getDescriptor() instanceof AndroidAnyAttributeDescriptor) {
 
             if (myBindingAdapterAttributes.contains(attribute.getName())) {
               // Attribute is defined by @BindingAdapter annotation.

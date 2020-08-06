@@ -51,7 +51,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import gnu.trove.TLongObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -59,6 +58,8 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -71,7 +72,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
@@ -302,7 +302,7 @@ public class TransportServiceProxy extends ServiceProxy
     // This loop runs on a GRPC thread, it should not exit until the grpc is terminated killing the thread.
     myEventStreamingLatch = new CountDownLatch(1);
     myEventsListenerThread = new Thread(() -> {
-      Map<Event.Kind, TLongObjectHashMap> ongoingEventGroups = new HashMap<>();
+      Map<Event.Kind, Long2ObjectMap<Event>> ongoingEventGroups = new HashMap<>();
       // The loop keeps running if the queue is not emptied, to make sure we pipe through all the existing
       // events that are already in the queue.
       while (!Thread.currentThread().isInterrupted() || !myEventQueue.isEmpty()) {
@@ -326,7 +326,9 @@ public class TransportServiceProxy extends ServiceProxy
           }
           else if (event.getGroupId() != 0) {
             ongoingEventGroups.compute(event.getKind(), (kind, map) -> {
-              map = Optional.ofNullable(map).orElseGet(TLongObjectHashMap::new);
+              if (map == null) {
+                map = new Long2ObjectOpenHashMap<>();
+              }
               map.put(event.getGroupId(), event);
               return map;
             });
@@ -342,10 +344,9 @@ public class TransportServiceProxy extends ServiceProxy
       // Note - We will revisit this logic if it turns out we need to insert domain-specific data with the end event.
       // For the most part, since the device stream is disconnected, we should not have to care.
       for (Event.Kind kind : ongoingEventGroups.keySet()) {
-        ongoingEventGroups.get(kind).forEachValue(lastEvent -> {
-          responseObserver.onNext(generateEndEvent((Event)lastEvent));
-          return true;
-        });
+        for (Event lastEvent : ongoingEventGroups.get(kind).values()) {
+          responseObserver.onNext(generateEndEvent(lastEvent));
+        }
       }
 
       responseObserver.onCompleted();

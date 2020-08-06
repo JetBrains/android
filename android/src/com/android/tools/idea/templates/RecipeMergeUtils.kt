@@ -52,7 +52,7 @@ import java.io.InputStream
  * Utility methods to support the recipe.xml merge instruction.
  */
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("RecipeMergeUtils.kt")
 
 private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"

@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.orchestrator
 
-import com.android.builder.model.TestOptions
+import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ReattachingDebugConnectorTask
 import com.android.tools.idea.run.tasks.createReattachingDebugConnectorTaskWithMasterAndroidProcessName
 
 /**
- * A map of [TestOptions.Execution] and the master android process name.
+ * A map of [IdeTestOptions.Execution] and the master android process name.
  */
 val MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME = mapOf(
-  TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR to "android.support.test.orchestrator",
-  TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR to "androidx.test.orchestrator"
+  IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR to "android.support.test.orchestrator",
+  IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR to "androidx.test.orchestrator"
 )
 
 /**
  * Creates [ReattachingDebugConnectorTask] based on the given [baseConnector] for the given [executionType].
  */
-fun createReattachingDebugConnectorTask(baseConnector: ConnectDebuggerTask,
-                                        executionType: TestOptions.Execution): ReattachingDebugConnectorTask {
+fun createReattachingDebugConnectorTask(
+  baseConnector: ConnectDebuggerTask,
+  executionType: IdeTestOptions.Execution
+): ReattachingDebugConnectorTask {
   return createReattachingDebugConnectorTaskWithMasterAndroidProcessName(
     baseConnector,
     MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME.getValue(executionType))

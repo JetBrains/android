@@ -260,7 +260,7 @@ public final class GradleWrapper {
 
   private static void saveProperties(@NotNull Properties properties, @NotNull File file, @Nullable Project project) throws IOException {
     savePropertiesToFile(properties, file, null);
-    VirtualFile virtualFile = findFileByIoFile(file, true);
+    VirtualFile virtualFile = findFileByIoFile(file, false);
     if (virtualFile != null) {
       virtualFile.refresh(false, false);
       if (project != null) {

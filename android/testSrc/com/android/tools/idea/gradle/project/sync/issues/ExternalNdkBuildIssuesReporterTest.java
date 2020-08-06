@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link ExternalNdkBuildIssuesReporter}.
  */
 public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
-  private SyncIssue mySyncIssue;
+  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private BuildOutputParser myOutputParser;
   private ExternalNdkBuildIssuesReporter myReporter;
@@ -57,7 +57,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue = mock(IdeSyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myOutputParser = mock(BuildOutputParser.class);
     myReporter = new ExternalNdkBuildIssuesReporter(myOutputParser);

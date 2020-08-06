@@ -17,10 +17,10 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
-import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.ide.common.gradle.model.level2.IdeLibrary
+import com.android.ide.common.gradle.model.IdeBuildType
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
@@ -111,7 +111,7 @@ import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("GradleModuleSystem.kt")
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -451,7 +451,7 @@ class GradleModuleSystem(
     )
   }
 
-  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: IdeBuildType): String? {
     val flavor = gradleModel.selectedVariant.mergedFlavor
     val versionName = flavor.versionName
     val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""

@@ -27,6 +27,7 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -60,7 +61,7 @@ class AppInspectorLauncherTest {
   }
 
   @Test
-  fun launchNewInspector() {
+  fun launchNewInspector() = runBlocking<Unit> {
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
@@ -69,6 +70,7 @@ class AppInspectorLauncherTest {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processReadyLatch.countDown()
       }
+
       override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
       }
     })
@@ -76,6 +78,6 @@ class AppInspectorLauncherTest {
 
     appInspectionServiceRule.launcher.launchInspector(
       createFakeLaunchParameters()
-    ) { StubTestAppInspectorClient(it) }.get()
+    ) { StubTestAppInspectorClient(it) }
   }
 }

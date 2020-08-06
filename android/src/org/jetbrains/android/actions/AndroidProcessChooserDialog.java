@@ -28,6 +28,7 @@ import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.execution.RunManager;
@@ -264,8 +265,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     // The attach dialog contains the project's run configurations.
     // We also add null to the front of the list to represent "[Create New]" run configuration.
-    List<RunConfiguration> runConfigurations = RunManager.getInstance(myProject).getAllConfigurationsList();
-    runConfigurations.add(0, null);
+    // Note we can't use ImmutableList here because ImmutableList doesn't allow null elements.
+    ArrayList<RunConfiguration> runConfigurations = new ArrayList<>();
+    runConfigurations.add(null);
+    runConfigurations.addAll(RunManager.getInstance(myProject).getAllConfigurationsList());
     myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel(runConfigurations));
     myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Create New]", RunConfiguration::getName));
 

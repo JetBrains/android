@@ -30,6 +30,7 @@ import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
+import java.awt.geom.Area
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan
@@ -43,12 +44,11 @@ data class ViewDrawInfo(
   val bounds: Shape,
   val transform: AffineTransform,
   val node: DrawViewNode,
-  val clip: Rectangle,
   val hitLevel: Int,
   val isCollapsed: Boolean
 )
 
-private data class LevelListItem(val node: DrawViewNode, val clip: Rectangle, val isCollapsed: Boolean)
+private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
@@ -166,7 +166,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    root.drawChildren.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
+    root.drawChildren.forEach { buildLevelLists(it, levelLists, levelLists.size) }
     maxDepth = levelLists.size
 
     val newHitRects = mutableListOf<ViewDrawInfo>()
@@ -174,7 +174,11 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.clip }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      rootBounds = levelLists[0].map { it.node.owner.transformedBounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      root.x = rootBounds.x
+      root.y = rootBounds.x
+      root.width = rootBounds.width
+      root.height = rootBounds.height
       transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
       // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
@@ -189,22 +193,22 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       rootBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
+    newHitRects.forEach { it.bounds }
     hitRects = newHitRects.toList()
     modificationListeners.forEach { it() }
   }
 
   private fun buildLevelLists(root: DrawViewNode,
-                              parentClip: Rectangle,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int) {
-    var childClip = parentClip
     var newLevelIndex = levelListCollector.size
     if (root.owner.visible) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
       // in the next level above that (that is, the last level, starting from the top, where there's space).
+      val rootArea = Area(root.owner.transformedBounds)
       newLevelIndex = levelListCollector
         .subList(minLevel, levelListCollector.size)
-        .indexOfLast { it.any { (node, _) -> node.owner.bounds.intersects(root.owner.bounds) } }
+        .indexOfLast { it.map { (node, _) -> Area(node.owner.transformedBounds) }.any { a -> a.run { intersect(rootArea); !isEmpty } } }
       if (newLevelIndex == -1) {
         newLevelIndex = levelListCollector.size
       }
@@ -214,13 +218,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       val levelList = levelListCollector.getOrElse(newLevelIndex) {
         mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
       }
-      childClip = parentClip.intersection(root.owner.bounds)
-      levelList.add(LevelListItem(root, childClip, false))
+      levelList.add(LevelListItem(root, false))
       if (!root.canCollapse) {
         // Add leading images to this level
         root.owner.drawChildren
           .takeWhile { it.canCollapse }
-          .mapTo(levelList) { LevelListItem(it, childClip, true) }
+          .mapTo(levelList) { LevelListItem(it, true) }
       }
     }
     if (root is DrawViewChild) {
@@ -231,7 +234,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
           continue
         }
         sawChild = true
-        buildLevelLists(drawChild, childClip, levelListCollector, newLevelIndex)
+        buildLevelLists(drawChild, levelListCollector, newLevelIndex)
       }
     }
   }
@@ -244,7 +247,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     val ownerToLevel = mutableMapOf<ViewNode, Int>()
 
     allLevels.forEachIndexed { level, levelList ->
-      levelList.forEach { (view, clip, isCollapsed) ->
+      levelList.forEach { (view, isCollapsed) ->
         val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
         val viewTransform = AffineTransform(transform)
 
@@ -254,8 +257,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.owner.bounds)
-        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip, hitLevel, isCollapsed))
+        val rect = viewTransform.createTransformedShape(view.owner.transformedBounds)
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
       }
     }
   }

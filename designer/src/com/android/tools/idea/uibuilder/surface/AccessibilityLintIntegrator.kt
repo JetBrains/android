@@ -36,9 +36,10 @@ import javax.swing.event.HyperlinkListener
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
   private val ACCESSIBILITY_CATEGORY = "Accessibility"
-  private val ACCESSIBILITY_ERROR = "Accessibility Error"
-  private val ACCESSIBILITY_WARNING = "Accessibility Warning"
-  private val ACCESSIBILITY_INFO = "Accessibility Info"
+  private val ACCESSIBILITY_ISSUE = "Accessibility Issue"
+  private val CONTENT_LABELING = "CONTENT_LABELING"
+  private val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
+  private val LOW_CONTRAST = "LOW_CONTRAST"
 
   private val issueProvider: IssueProvider = object : IssueProvider() {
     override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
@@ -77,6 +78,9 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
   fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
+    if (result.mLevel == ValidatorData.Level.VERBOSE || result.mLevel == ValidatorData.Level.INFO) {
+      return
+    }
     val source = if (component == null) {
       IssueSource.NONE
     }
@@ -86,10 +90,11 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     issues.add(object : Issue() {
       override val summary: String
         get() =
-          when (result.mLevel) {
-            ValidatorData.Level.ERROR -> ACCESSIBILITY_ERROR
-            ValidatorData.Level.WARNING -> ACCESSIBILITY_WARNING
-            else -> ACCESSIBILITY_INFO
+          when (result.mCategory) {
+            CONTENT_LABELING -> "Content labels missing or confusing"
+            TOUCH_TARGET_SIZE -> "Touch size too small"
+            LOW_CONTRAST -> "Low contrast"
+            else -> ACCESSIBILITY_ISSUE
           }
 
       override val description: String

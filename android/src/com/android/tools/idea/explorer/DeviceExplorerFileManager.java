@@ -16,11 +16,11 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.device.fs.DownloadProgress;
-import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +47,13 @@ public interface DeviceExplorerFileManager {
    * download operation.
    */
   @NotNull
-  ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry,
-                                                         @NotNull Path localPath,
-                                                         @NotNull DownloadProgress progress);
+  ListenableFuture<VirtualFile> downloadFileEntry(@NotNull DeviceFileEntry entry,
+                                                  @NotNull Path localPath,
+                                                  @NotNull DownloadProgress progress);
+
+  /**
+   * Delete the VirtualFile passed as argument using the VFS.
+   * The returned future fails with IOException in case of problems during file deletion.
+   */
+  ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile);
 }

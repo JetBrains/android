@@ -16,7 +16,6 @@
 package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -35,6 +34,7 @@ import com.android.resources.ResourceType.STRING
 import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
+import com.android.tools.idea.model.Namespacing
 import com.intellij.openapi.module.Module
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
@@ -126,7 +126,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     @JvmName("finalIdsUsed")
     get() {
       return facet.configuration.isAppProject
-             && ResourceRepositoryManager.getInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
+             && ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED
     }
 
   @Synchronized

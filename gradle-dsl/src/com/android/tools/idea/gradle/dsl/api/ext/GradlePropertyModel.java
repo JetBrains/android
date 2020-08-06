@@ -44,6 +44,12 @@ public interface GradlePropertyModel extends PsiElementHolder {
   @NotNull
   String DOUBLE_QUOTES = "\"";
 
+  /**
+   * @return the model property holder. For {@link ResolvedPropertyModel} this means the unresolved model property holder.
+   */
+  @NotNull
+  GradleDslElement getRawPropertyHolder();
+
   @Nullable
   GradleDslElement getRawElement();
 

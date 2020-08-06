@@ -298,7 +298,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       assertFalse(systemImageMatchesDevice(myWearImageDescription, myFoldable));
       assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFoldable));
       assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFoldable));
-      assertTrue(systemImageMatchesDevice(myGapi29ImageDescription, myFoldable));
+      assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFoldable));
       assertFalse(systemImageMatchesDevice(myWearImageDescription, myFreeform));
       assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFreeform));
       assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFreeform));

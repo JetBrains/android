@@ -1,3 +1,5 @@
 <LinearLayout>
     <android.widget.RadioButton
+        layout_width=""
+        layout_height=""
 </LinearLayout>

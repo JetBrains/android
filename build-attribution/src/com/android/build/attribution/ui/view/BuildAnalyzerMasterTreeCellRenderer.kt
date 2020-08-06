@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.view
 
-import com.android.build.attribution.ui.emptyIcon
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
@@ -30,6 +29,7 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.DefaultTreeUI
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -81,7 +81,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
   private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean, chartKeyColor: Color?) {
     icon = when (nodePresentation.nodeIconState) {
       NodeIconState.NO_ICON -> null
-      NodeIconState.EMPTY_PLACEHOLDER -> emptyIcon()
+      NodeIconState.EMPTY_PLACEHOLDER -> EmptyIcon.ICON_16
       NodeIconState.WARNING_ICON -> if (selected && hasFocus) generateWhiteIcon(warningIcon()) else warningIcon()
     }
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)

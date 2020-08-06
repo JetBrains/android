@@ -34,7 +34,7 @@ import org.junit.Assume;
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Create New Project"));
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "New Project"));
     return new NewProjectWizardFixture(robot, dialog);
   }
 

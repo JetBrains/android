@@ -90,7 +90,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
     // false, since these affect DataBindingKotlinAnnotator
     val gradleFacet = projectRule.addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName())
     gradleFacet.setGradleModuleModel(
-      GradleModuleModel("dummy", mutableListOf(), ":", File(""), mutableListOf(), null, null, null, false))
+      GradleModuleModel("sample", mutableListOf(), ":", File(""), mutableListOf(), null, null, null, false))
     assertThat(gradleFacet.gradleModuleModel!!.isKaptEnabled).isFalse()
   }
 
@@ -103,8 +103,8 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
         package test.langdb
         import ${mode.bindingAdapter}
 
-        <error descr="To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle">@BindingAdapter("dummyValue")</error>
-        fun dummyFunction() {
+        <error descr="To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle">@BindingAdapter("sampleValue")</error>
+        fun sampleFunction() {
         }
       """.trimIndent())
 
@@ -122,7 +122,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
         import ${mode.bindingAdapter};
 
         class TagUtils {
-          @BindingAdapter("dummyValue")
+          @BindingAdapter("sampleValue")
           public void unusedFunction() {
           }
         }

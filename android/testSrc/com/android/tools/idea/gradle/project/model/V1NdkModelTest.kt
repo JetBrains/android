@@ -21,10 +21,10 @@ import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
-import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.IdeNativeArtifact
-import com.android.ide.common.gradle.model.IdeNativeVariantAbi
-import com.android.ide.common.gradle.model.ModelCache
+import com.android.ide.common.gradle.model.impl.ModelCache
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
+import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.serialization.ObjectSerializer
@@ -83,24 +83,26 @@ class V1NdkModelTest {
   private val modelCache = ModelCache()
 
   @Mock
-  private val mockDebugX86Artifact = IdeNativeArtifact(mock(NativeArtifact::class.java).apply {
-    `when`(name).thenReturn("artifact1")
-    `when`(groupName).thenReturn("debug")
-    `when`(abi).thenReturn("x86")
-    `when`(outputFile).thenReturn(x86SoFile)
-    `when`(toolChain).thenReturn("toolchain1")
-    `when`(targetName).thenReturn("target1")
-  }, modelCache)
+  private val mockDebugX86Artifact = IdeNativeArtifactImpl(
+    mock(NativeArtifact::class.java).apply {
+      `when`(name).thenReturn("artifact1")
+      `when`(groupName).thenReturn("debug")
+      `when`(abi).thenReturn("x86")
+      `when`(outputFile).thenReturn(x86SoFile)
+      `when`(toolChain).thenReturn("toolchain1")
+      `when`(targetName).thenReturn("target1")
+    }, modelCache)
 
   @Mock
-  private val mockDebugArm64Artifact = IdeNativeArtifact(mock(NativeArtifact::class.java).apply {
-    `when`(name).thenReturn("artifact2")
-    `when`(groupName).thenReturn("debug")
-    `when`(abi).thenReturn("arm64-v8a")
-    `when`(outputFile).thenReturn(arm64V8aSoFile)
-    `when`(toolChain).thenReturn("toolchain2")
-    `when`(targetName).thenReturn("target2")
-  }, modelCache)
+  private val mockDebugArm64Artifact = IdeNativeArtifactImpl(
+    mock(NativeArtifact::class.java).apply {
+      `when`(name).thenReturn("artifact2")
+      `when`(groupName).thenReturn("debug")
+      `when`(abi).thenReturn("arm64-v8a")
+      `when`(outputFile).thenReturn(arm64V8aSoFile)
+      `when`(toolChain).thenReturn("toolchain2")
+      `when`(targetName).thenReturn("target2")
+    }, modelCache)
 
   private val fullSyncV1NdkModel = V1NdkModel(
     IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
@@ -151,7 +153,7 @@ class V1NdkModelTest {
       )
     }),
     listOf(
-      IdeNativeVariantAbi(object : NativeVariantAbi {
+      IdeNativeVariantAbiImpl(object : NativeVariantAbi {
         override fun getBuildFiles(): Collection<File> = emptyList()
         override fun getAbi(): String = "x86"
         override fun getSettings(): Collection<NativeSettings> = listOf(
@@ -241,17 +243,19 @@ class V1NdkModelTest {
     assertSerializable(singleVariantSyncV1NdkModel)
   }
 
-  private inline fun <reified T : Any> assertSerializable(value: T): T {
-    val configuration = WriteConfiguration(
-      allowAnySubTypes = true,
-      binary = false,
-      filter = SkipNullAndEmptySerializationFilter
-    )
-    val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
-    val deserialized = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
-    val bytes2 = ObjectSerializer.instance.writeAsBytes(deserialized, configuration)
-    TestCase.assertEquals(String(bytes), String(bytes2))
-    EqualsBuilder.reflectionEquals(value, deserialized)
-    return deserialized
+  companion object {
+    inline fun <reified T : Any> assertSerializable(value: T): T {
+      val configuration = WriteConfiguration(
+        allowAnySubTypes = true,
+        binary = false,
+        filter = SkipNullAndEmptySerializationFilter
+      )
+      val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
+      val deserialized = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
+      val bytes2 = ObjectSerializer.instance.writeAsBytes(deserialized, configuration)
+      TestCase.assertEquals(String(bytes), String(bytes2))
+      EqualsBuilder.reflectionEquals(value, deserialized)
+      return deserialized
+    }
   }
 }

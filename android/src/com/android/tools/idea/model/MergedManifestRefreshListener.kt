@@ -104,7 +104,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
   }
 
   /**
-   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
+   * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed to listen for VFS changes once the initial project sync has completed.
    */
   private class SubscriptionStartupActivity : StartupActivity.DumbAware {

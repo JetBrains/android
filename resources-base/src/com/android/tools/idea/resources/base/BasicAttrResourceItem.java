@@ -25,7 +25,7 @@ import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -142,9 +142,9 @@ public class BasicAttrResourceItem extends BasicValueResourceItemBase implements
 
   @Override
   public void serialize(@NotNull Base128OutputStream stream,
-                        @NotNull ObjectIntHashMap<String> configIndexes,
-                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
-                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+                        @NotNull Object2IntMap<String> configIndexes,
+                        @NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     serializeAttrValue(this, getRepository().getNamespace(), stream);
   }

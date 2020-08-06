@@ -2,7 +2,8 @@ package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import gnu.trove.TObjectLongHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.builders.storage.StorageProvider;
@@ -69,10 +70,10 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
         output.writeLong(state.myManifestFileTimestamp);
         output.writeInt(state.myLibManifestsTimestamps.size());
 
-        for (Object key : state.myLibManifestsTimestamps.keys()) {
+        for (Object key : state.myLibManifestsTimestamps.keySet()) {
           final String strKey = (String)key;
           output.writeUTF(strKey);
-          output.writeLong(state.myLibManifestsTimestamps.get(strKey));
+          output.writeLong(state.myLibManifestsTimestamps.getLong(strKey));
         }
         output.writeBoolean(state.myToMerge);
       }
@@ -87,12 +88,12 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
 
   public static class MyState {
     private final long myManifestFileTimestamp;
-    private final TObjectLongHashMap<String> myLibManifestsTimestamps;
+    private final Object2LongMap<String> myLibManifestsTimestamps;
     private final boolean myToMerge;
 
     public MyState(@NotNull File manifestFile, @NotNull Collection<File> libManifestFiles, boolean toMerge) {
       myManifestFileTimestamp = FSOperations.lastModified(manifestFile);
-      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestFiles.size());
+      myLibManifestsTimestamps = new Object2LongOpenHashMap<>(libManifestFiles.size());
 
       for (File libManifestFile : libManifestFiles) {
         myLibManifestsTimestamps.put(FileUtil.toCanonicalPath(libManifestFile.getPath()),
@@ -104,7 +105,7 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     private MyState(DataInput input) throws IOException {
       myManifestFileTimestamp = input.readLong();
       final int libManifestsCount = input.readInt();
-      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestsCount);
+      myLibManifestsTimestamps = new Object2LongOpenHashMap<>(libManifestsCount);
 
       for (int i = 0; i < libManifestsCount; i++) {
         final String path = input.readUTF();

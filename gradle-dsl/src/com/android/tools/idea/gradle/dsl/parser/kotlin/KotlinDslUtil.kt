@@ -116,20 +116,28 @@ fun convertToExternalTextValue(
   referenceText : String,
   forInjection: Boolean
 ) : String {
-  val resolvedReference = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
+  val referenceElement = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
+
   // Get the resolvedReference value type that might be used for the final cast.
+  return convertToExternalTextValue(referenceElement, context, applyContext, forInjection) ?: referenceText
+}
+
+internal fun convertToExternalTextValue(dslReference: GradleDslElement,
+                                        context: GradleDslSimpleExpression,
+                                        applyContext: GradleDslFile,
+                                        forInjection: Boolean): String? {
   // TODO(karimai): what if the type needs to be imported ?
-  val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.kotlin?.simpleName else null
-  var externalName = StringBuilder()
+  val className = if (dslReference is GradleDslLiteral) dslReference.value?.javaClass?.kotlin?.simpleName else null
+  val externalName = StringBuilder()
   var lastArray = false
-  var currentParent = resolvedReference.parent
+  var currentParent = dslReference.parent
   var useProjectPrefix = false
 
   // Trace parents to be used for reference resolution.
   val resolutionElements = ArrayList<GradleDslElement>()
   // TODO(xof): we need the same logic as in the Groovy here, to stop adding parents once the expression context's scope contains them
   //  (modulo possible confusions between lexical scope and model hierarchy)
-  resolutionElements.add(resolvedReference)
+  resolutionElements.add(dslReference)
   while (currentParent?.parent != null) {
     resolutionElements.add(0, currentParent)
     currentParent = currentParent.parent
@@ -233,7 +241,7 @@ fun convertToExternalTextValue(
     }
   }
 
-  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.') else referenceText
+  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.') else null
 }
 
 internal fun isValidBlockName(blockName : String?) =
@@ -365,7 +373,13 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
-      val externalTextValue = convertToExternalTextValue(context, applyContext, value.text, false)
+      // TODO(b/161911921): we will want to only allow references to resolvable elements.
+      val externalTextValue = if (value.referredElement != null) {
+        convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
+      }
+      else {
+        convertToExternalTextValue(context, applyContext, value.text, false)
+      }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)

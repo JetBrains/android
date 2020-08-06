@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.layout;
 
+import com.intellij.util.xml.CustomChildren;
 import com.intellij.util.xml.SubTagList;
 import java.util.List;
 import org.jetbrains.android.dom.AndroidDomElement;
@@ -33,4 +34,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 public interface LayoutElement extends AndroidDomElement {
   @SubTagList("requestFocus")
   List<LayoutElement> getRequestFocuses();
+
+  @CustomChildren
+  List<LayoutViewElement> getSubView();
 }

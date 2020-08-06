@@ -63,8 +63,26 @@ class HeapAnalysisTest {
       .replace(Regex("(\r\n|\n)"), System.lineSeparator())
   }
 
-  private fun getBaselinePath(fileName: String) =
-    TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/analysis-baseline/$fileName").toPath()
+  /**
+   * Returns path to a baseline file. Baselines may be different for different runtime versions.
+   */
+  private fun getBaselinePath(fileName: String): Path {
+    val javaSpecString = System.getProperty("java.specification.version")
+    val filenameWithPath = "tools/adt/idea/android/testData/profiling/analysis-baseline/$fileName"
+    val file = File(filenameWithPath)
+
+    val name = file.nameWithoutExtension
+    val extension = if (file.extension != "") "." + file.extension else ""
+
+    val javaSpecSpecificFileName = File(file.parent, "$name.$javaSpecString$extension").toString()
+    val javaSpecSpecificFile = File(TestUtils.getWorkspaceRoot(), javaSpecSpecificFileName)
+
+    if (javaSpecSpecificFile.exists()) {
+      return javaSpecSpecificFile.toPath()
+    }
+
+    return TestUtils.getWorkspaceFile(filenameWithPath).toPath()
+  }
 
   class MemoryBackedIntList(size: Int) : IntList {
     private val array = IntArray(size)

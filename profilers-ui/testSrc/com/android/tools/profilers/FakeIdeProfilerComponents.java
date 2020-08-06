@@ -152,30 +152,30 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
     if (contentType.isSupportedImageType()) {
       return new ImageDataViewer() {
-        private final BufferedImage DUMMY_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        private final JComponent DUMMY_COMPONENT = new JLabel(new ImageIcon(DUMMY_IMAGE));
+        private final BufferedImage SAMPLE_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        private final JComponent SAMPLE_COMPONENT = new JLabel(new ImageIcon(SAMPLE_IMAGE));
 
         @NotNull
         @Override
         public BufferedImage getImage() {
-          return DUMMY_IMAGE;
+          return SAMPLE_IMAGE;
         }
 
         @NotNull
         @Override
         public JComponent getComponent() {
-          return DUMMY_COMPONENT;
+          return SAMPLE_COMPONENT;
         }
       };
     }
     else {
       return new DataViewer() {
-        private final JComponent DUMMY_COMPONENT = new JPanel();
+        private final JComponent SAMPLE_COMPONENT = new JPanel();
 
         @NotNull
         @Override
         public JComponent getComponent() {
-          return DUMMY_COMPONENT;
+          return SAMPLE_COMPONENT;
         }
 
         @NotNull

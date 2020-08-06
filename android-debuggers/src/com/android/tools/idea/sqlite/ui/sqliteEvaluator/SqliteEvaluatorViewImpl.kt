@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
+import com.android.tools.idea.sqlite.ui.notifyError
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.application.ApplicationManager
@@ -31,9 +32,11 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.psi.PsiManager
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.EditorTextField
+import com.intellij.ui.EditorCustomization
+import com.intellij.ui.EditorTextFieldProvider
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBUI
@@ -57,10 +60,15 @@ class SqliteEvaluatorViewImpl(
   private val schemaProvider: SchemaProvider
 ) : SqliteEvaluatorView {
 
-  override val component: JComponent = JPanel(BorderLayout())
+  private val threeComponentsSplitter = ThreeComponentsSplitter(project)
+  override val component: JComponent = threeComponentsSplitter
 
   private val databaseComboBox = ComboBox<SqliteDatabaseId>()
-  private val expandableEditor = ExpandableEditor(EditorTextField(project, AndroidSqlLanguage.INSTANCE.associatedFileType))
+  private val editorTextField = EditorTextFieldProvider.getInstance().getEditorField(
+    AndroidSqlLanguage.INSTANCE,
+    project,
+    listOf(EditorCustomization { editor -> editor.setBorder(JBUI.Borders.empty()) })
+  )
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
@@ -68,10 +76,25 @@ class SqliteEvaluatorViewImpl(
   private var evaluateSqliteStatementEnabled = false
 
   init {
+    val evaluatorPanel = JPanel(BorderLayout())
     val controlsPanel = JPanel(BorderLayout())
 
-    component.add(controlsPanel, BorderLayout.NORTH)
-    component.add(tableView.component, BorderLayout.CENTER)
+    evaluatorPanel.add(editorTextField, BorderLayout.CENTER)
+    evaluatorPanel.add(controlsPanel, BorderLayout.SOUTH)
+
+    threeComponentsSplitter.dividerWidth = 0
+    threeComponentsSplitter.firstSize = JBUI.scale(100)
+    threeComponentsSplitter.orientation = true
+    threeComponentsSplitter.firstComponent = evaluatorPanel
+    threeComponentsSplitter.lastComponent = tableView.component
+    threeComponentsSplitter.invalidate()
+    threeComponentsSplitter.repaint()
+
+    evaluatorPanel.border = JBUI.Borders.empty(6)
+    tableView.component.border = IdeBorderFactory.createBorder(SideBorder.TOP)
+
+    evaluatorPanel.background = editorTextField.background
+    controlsPanel.background = editorTextField.background
 
     val active = KeymapManager.getInstance().activeKeymap
 
@@ -88,8 +111,9 @@ class SqliteEvaluatorViewImpl(
 
     val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
 
-    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.collapsedEditor)
-    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.expandedEditor)
+    editorTextField.name = "editor"
+    editorTextField.setPlaceholder("Enter query")
+    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
 
     databaseComboBox.addActionListener {
       setSchemaFromSelectedItem()
@@ -125,19 +149,10 @@ class SqliteEvaluatorViewImpl(
       }
     }
 
-    expandableEditor.collapsedEditor.document.addDocumentListener(myDocumentListener)
-    expandableEditor.expandedEditor.document.addDocumentListener(myDocumentListener)
-    expandableEditor.collapsedEditor.name = "collapsed-editor"
+    editorTextField.document.addDocumentListener(myDocumentListener)
 
     controlsPanel.add(runButton, BorderLayout.EAST)
     controlsPanel.add(databaseComboBox, BorderLayout.WEST)
-    controlsPanel.add(expandableEditor.collapsedEditor, BorderLayout.CENTER)
-
-    controlsPanel.border = JBUI.Borders.merge(
-      JBUI.Borders.empty(2, 0, 2, 0),
-      IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-      true
-    )
   }
 
   override fun schemaChanged(databaseId: SqliteDatabaseId) {
@@ -167,8 +182,7 @@ class SqliteEvaluatorViewImpl(
     val schema = schemaProvider.getSchema(database)
 
     val fileDocumentManager = FileDocumentManager.getInstance()
-    fileDocumentManager.getFile(expandableEditor.collapsedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
-    fileDocumentManager.getFile(expandableEditor.expandedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    fileDocumentManager.getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
     ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
@@ -196,6 +210,10 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun showSqliteStatement(sqliteStatement: String) {
-    expandableEditor.activeEditor.text = sqliteStatement
+    editorTextField.text = sqliteStatement
+  }
+
+  override fun reportError(message: String, t: Throwable?) {
+    notifyError(message, t)
   }
 }

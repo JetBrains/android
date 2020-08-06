@@ -7,6 +7,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManagerImpl;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
@@ -70,7 +71,7 @@ b/144931276 */
     FacetManager facetManager = mock(FacetManager.class);
     when(facetManager.getFacetByType(GradleFacet.getFacetTypeId())).thenReturn(mock(GradleFacet.class));
     when(module.getComponent(FacetManager.class)).thenReturn(facetManager);
-    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManager(module);
+    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManagerImpl(module);
     when(picoContainer.getComponentInstance(ExternalSystemModulePropertyManager.class.getName())).thenReturn(modulePropertyManager);
     modulePropertyManager.setExternalOptions(GradleUtil.GRADLE_SYSTEM_ID, new ModuleData("", GradleUtil.GRADLE_SYSTEM_ID,
                                                                                          "", "", "", projectPath), null);

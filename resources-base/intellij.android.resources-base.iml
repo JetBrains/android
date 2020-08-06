@@ -10,6 +10,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />

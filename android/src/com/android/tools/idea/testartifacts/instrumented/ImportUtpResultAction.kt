@@ -33,6 +33,7 @@ import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
@@ -40,6 +41,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
+import java.nio.file.Paths
 
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
@@ -111,9 +113,19 @@ class ImportUtpResultAction : AnAction() {
    * @param e an action event with environment settings.
    */
   override fun actionPerformed(e: AnActionEvent) {
-    chooseFile(FileChooserDescriptor(true, false, false, false, false, false),
-               e.project,
-               null
+    val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected", "test-result.pb")
+    val defaultPath = e.project?.let { project ->
+      ModuleManager.getInstance(project).modules.asSequence().map { module ->
+        ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
+          it.findFileByRelativePath(relativePath.toString())
+        }.filterNotNull().firstOrNull()
+      }.filterNotNull().firstOrNull()
+    }
+    chooseFile(
+      FileChooserDescriptor(true, false, false, false, false, false)
+                 .withFileFilter { it.extension == "pb" },
+      e.project,
+      defaultPath
     ) { file: VirtualFile ->
       parseResultsAndDisplay(file.toIoFile(), requireNotNull(e.project), requireNotNull(e.project))
     }

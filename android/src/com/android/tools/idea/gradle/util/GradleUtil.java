@@ -63,14 +63,13 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -175,7 +174,7 @@ public final class GradleUtil {
     else {
       List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
       if (outputs.isEmpty()) return null;
-      AndroidArtifactOutput output = getFirstItem(outputs);
+      IdeAndroidArtifactOutput output = getFirstItem(outputs);
       assert output != null;
       return output.getMainOutputFile().getOutputFile();
     }

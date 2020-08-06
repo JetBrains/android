@@ -31,7 +31,7 @@ class RoomNameElementTest : LightJavaCodeInsightFixtureTestCase() {
    */
   private fun <T : PsiElement> parseAndFind(input: String, kclass: KClass<T>): T {
     return PsiTreeUtil.findChildOfType(
-      PsiFileFactory.getInstance(project).createFileFromText("dummy.rsql", AndroidSqlFileType.INSTANCE, input),
+      PsiFileFactory.getInstance(project).createFileFromText("sample.rsql", AndroidSqlFileType.INSTANCE, input),
       kclass.java
     )!!
   }

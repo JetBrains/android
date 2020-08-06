@@ -16,10 +16,12 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.tools.idea.layoutinspector.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -33,6 +35,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anySet
 import org.mockito.Mockito.verify
@@ -121,16 +124,16 @@ class ComponentTreeLoaderTest {
     val image3: Image = mock()
     val image4: Image = mock()
 
-    val skiaResponse = SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, listOf(
-      SkiaViewNode("1", "com.example.MyViewClass1", 0, 0, 100, 200, image1),
-      SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, listOf(
-        SkiaViewNode("2", "com.example.MyViewClass2", 10, 10, 50, 100, image2),
-        SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, listOf(
-          SkiaViewNode("3", "com.example.MyViewClass1", 20, 20, 20, 50, image3)
+    val skiaResponse = SkiaViewNode(1, listOf(
+      SkiaViewNode(1, image1),
+      SkiaViewNode(2, listOf(
+        SkiaViewNode(2, image2),
+        SkiaViewNode(3, listOf(
+          SkiaViewNode(3, image3)
         ))
       )),
-      SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, listOf(
-        SkiaViewNode("4", "com.example.MyViewClass2", 30, 120, 40, 50, image4)
+      SkiaViewNode(4, listOf(
+        SkiaViewNode(4, image4)
       ))
     ))
 
@@ -138,7 +141,8 @@ class ComponentTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
     val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), eq(setOf(1L, 2L, 3L, 4L)), any ())).thenReturn(skiaResponse)
+    `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.drawId }.sorted() == listOf(1L, 2L, 3L, 4L) }, any()))
+      .thenReturn(skiaResponse)
 
     val tree = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     assertThat(tree.drawId).isEqualTo(1)
@@ -210,7 +214,7 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
+    `when`(skiaParser.getViewTree(eq(payload), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
     verify(client).requestScreenshotMode()
@@ -227,7 +231,7 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenReturn(null)
+    `when`(skiaParser.getViewTree(eq(payload), any(), any())).thenReturn(null)
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
     verify(client).requestScreenshotMode()

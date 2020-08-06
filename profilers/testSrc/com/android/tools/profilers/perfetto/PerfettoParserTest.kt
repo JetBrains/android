@@ -16,12 +16,15 @@
 package com.android.tools.profilers.perfetto
 
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
+import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import org.junit.Test
 
 class PerfettoParserTest {
@@ -52,5 +55,22 @@ class PerfettoParserTest {
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+
+    val fakeTracker = services.featureTracker as FakeFeatureTracker
+    assertThat(fakeTracker.traceProcessorQueryMetrics).containsExactly(
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getMetricStatsFor(10, 10, 20400)),
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_PROCESS_METADATA, getMetricStatsFor(20, 5)),
+      Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA, getMetricStatsFor(40, 10)))
+  }
+
+  private fun getMetricStatsFor(methodTimeMs: Long , queryTimeMs: Long, traceSizeBytes: Long? = null): TraceProcessorDaemonQueryStats {
+    val builder =  TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+
+    traceSizeBytes?.let { builder.setTraceSizeBytes(it) }
+
+    return builder.build()
   }
 }

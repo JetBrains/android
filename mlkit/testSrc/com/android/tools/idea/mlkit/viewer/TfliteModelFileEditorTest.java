@@ -16,15 +16,24 @@
 package com.android.tools.idea.mlkit.viewer;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
+import com.android.AndroidProjectTypes;
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.ModelCache;
+import com.android.ide.common.gradle.model.stubs.AndroidProjectStub;
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
@@ -35,11 +44,16 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.WaitFor;
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.jetbrains.android.AndroidTestCase;
@@ -60,6 +74,20 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     NamedIdeaSourceProvider ideSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFile.getUrl())
       .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
     SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
+
+    // Mock test to have gradle version 4.2.0-alpha8
+    File rootFile = new File(myFixture.getProject().getBasePath());
+    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0-alpha8"));
+    doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
+    AndroidModuleModel androidModuleModel =
+      spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile,
+                                    new ModelCache(new HashMap<>()).androidProjectFrom(
+                                      androidProjectStub,
+                                      new IdeDependenciesFactory(),
+                                      null,
+                                      emptyList()), "debug"));
+    doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
+    AndroidModel.set(androidFacet, androidModuleModel);
   }
 
   @Override
@@ -99,7 +127,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     usageTracker.close();
   }
 
-  public void testCreateHtmlBody_normalModel() {
+  public void testCreateHtmlBody_imageClassificationModel() {
     VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
@@ -108,6 +136,95 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Tensors");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(2), "Sample Code");
+
+    JBTabbedPane tabbedPane = (JBTabbedPane)((JPanel)((JPanel)contentPanel.getComponent(2)).getComponent(1)).getComponent(0);
+    assertThat(tabbedPane.getTabCount()).isEqualTo(2);
+    assertThat(((JLabel)tabbedPane.getTabComponentAt(0)).getText()).isEqualTo("Kotlin");
+    assertThat(((EditorTextField)tabbedPane.getComponentAt(0)).getText())
+      .isEqualTo("val model = MyModel.newInstance(context)\n" +
+                 "\n" +
+                 "// Creates inputs for reference.\n" +
+                 "val image = TensorImage.fromBitmap(bitmap)\n" +
+                 "\n" +
+                 "// Runs model inference and gets result.\n" +
+                 "val outputs = model.process(image)\n" +
+                 "val probability = outputs.probabilityAsCategoryList\n" +
+                 "\n" +
+                 "// Releases model resources if no longer used.\n" +
+                 "model.close()\n");
+
+    assertThat(((JLabel)tabbedPane.getTabComponentAt(1)).getText()).isEqualTo("Java");
+    assertThat(((EditorTextField)tabbedPane.getComponentAt(1)).getText())
+      .isEqualTo("try {\n" +
+                 "    MyModel model = MyModel.newInstance(context);\n" +
+                 "\n" +
+                 "    // Creates inputs for reference.\n" +
+                 "    TensorImage image = TensorImage.fromBitmap(bitmap);\n" +
+                 "\n" +
+                 "    // Runs model inference and gets result.\n" +
+                 "    MyModel.Outputs outputs = model.process(image);\n" +
+                 "    List<Category> probability = outputs.getProbabilityAsCategoryList();\n" +
+                 "\n" +
+                 "    // Releases model resources if no longer used.\n" +
+                 "    model.close();\n" +
+                 "} catch (IOException e) {\n" +
+                 "    // TODO Handle the exception\n" +
+                 "}\n");
+  }
+
+  public void testCreateHtmlBody_objectDetectionModel() {
+    VirtualFile modelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
+    assertThat(contentPanel.getComponentCount()).isEqualTo(3);
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Tensors");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(2), "Sample Code");
+
+    JBTabbedPane tabbedPane = (JBTabbedPane)((JPanel)((JPanel)contentPanel.getComponent(2)).getComponent(1)).getComponent(0);
+    assertThat(tabbedPane.getTabCount()).isEqualTo(2);
+    assertThat(((JLabel)tabbedPane.getTabComponentAt(0)).getText()).isEqualTo("Kotlin");
+    assertThat(((EditorTextField)tabbedPane.getComponentAt(0)).getText())
+      .isEqualTo("val model = MyModel.newInstance(context)\n" +
+                 "\n" +
+                 "// Creates inputs for reference.\n" +
+                 "val image = TensorImage.fromBitmap(bitmap)\n" +
+                 "\n" +
+                 "// Runs model inference and gets result.\n" +
+                 "val outputs = model.process(image)\n" +
+                 "val detectionResult = outputs.detectionResultList\n" +
+                 "\n" +
+                 "// Gets result from DetectionResult.\n" +
+                 "val locations = detectionResult.locationsAsRectF;\n" +
+                 "val classes = detectionResult.classesAsString;\n" +
+                 "val scores = detectionResult.scoresAsFloat;\n" +
+                 "\n" +
+                 "// Releases model resources if no longer used.\n" +
+                 "model.close()\n");
+
+    assertThat(((JLabel)tabbedPane.getTabComponentAt(1)).getText()).isEqualTo("Java");
+    assertThat(((EditorTextField)tabbedPane.getComponentAt(1)).getText())
+      .isEqualTo("try {\n" +
+                 "    MyModel model = MyModel.newInstance(context);\n" +
+                 "\n" +
+                 "    // Creates inputs for reference.\n" +
+                 "    TensorImage image = TensorImage.fromBitmap(bitmap);\n" +
+                 "\n" +
+                 "    // Runs model inference and gets result.\n" +
+                 "    MyModel.Outputs outputs = model.process(image);\n" +
+                 "    List<DetectionResult> detectionResult = outputs.getDetectionResultList();\n" +
+                 "\n" +
+                 "    // Gets result from DetectionResult.\n" +
+                 "    RectF locations = detectionResult.getLocationsAsRectF();\n" +
+                 "    String classes = detectionResult.getClassesAsString();\n" +
+                 "    float scores = detectionResult.getScoresAsFloat();\n" +
+                 "\n" +
+                 "    // Releases model resources if no longer used.\n" +
+                 "    model.close();\n" +
+                 "} catch (IOException e) {\n" +
+                 "    // TODO Handle the exception\n" +
+                 "}\n");
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {

@@ -32,7 +32,7 @@ import org.jetbrains.annotations.TestOnly
  */
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
-  private val LOG: Logger get() = logger(::LOG)
+  private val LOG: Logger get() = logger("MergedManifestModificationTracker.kt")
   var manifestChangedActivityRegistered = false
     private set
     @TestOnly get

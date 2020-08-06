@@ -104,7 +104,7 @@ class LayoutInspectorBuilder(project: Project,
     val parent = getParentComponent(properties) ?: return null
     val customPanelKey = getCustomPanelKey(parent)
     val panel = cachedCustomPanels[customPanelKey] ?: createCustomPanel(parent, customPanelKey)
-    if (panel == DummyCustomPanel.INSTANCE) return null
+    if (panel == SampleCustomPanel.INSTANCE) return null
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
@@ -119,7 +119,7 @@ class LayoutInspectorBuilder(project: Project,
 
   private fun createCustomPanel(parent: NlComponent, customPanelKey: String): CustomPanel {
     val handler = viewHandlerManager.getHandler(parent)
-    val panel = handler?.layoutCustomPanel ?: DummyCustomPanel.INSTANCE
+    val panel = handler?.layoutCustomPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[customPanelKey] = panel
     return panel
   }

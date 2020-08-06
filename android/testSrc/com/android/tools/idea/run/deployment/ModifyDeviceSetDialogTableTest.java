@@ -44,7 +44,7 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -62,14 +62,14 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     myTable.setModel(new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)));
 
     // Act
-    myTable.setSelectedDevices(Collections.singleton(new Key("Pixel_3_API_29")));
+    myTable.setSelectedDevices(Collections.singleton(new VirtualDeviceName("Pixel_3_API_29")));
 
     // Assert
     assertTrue(myTable.isSelected(0));
@@ -89,7 +89,7 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
+      .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -114,7 +114,7 @@ public final class ModifyDeviceSetDialogTableTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
       .setValidityReason("Missing system image")
-      .setKey(new Key("Pixel_4_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -138,13 +138,13 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
+      .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa602"))
+      .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -169,7 +169,7 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/default_boot"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/default_boot"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()))
       .build();
@@ -194,7 +194,7 @@ public final class ModifyDeviceSetDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
       .build();

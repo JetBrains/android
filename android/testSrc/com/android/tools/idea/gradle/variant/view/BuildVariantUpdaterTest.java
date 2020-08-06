@@ -30,8 +30,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -70,7 +69,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeAndroidProject myAndroidProject;
   @Mock private IdeDependencies myIdeDependencies;
   @Mock private IdeVariant myDebugVariant;
-  @Mock private PostSyncProjectSetup myPostSyncProjectSetup;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
   @Mock private BuildVariantView.BuildVariantSelectionChangeListener myVariantSelectionChangeListener;
@@ -97,7 +95,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myIdeDependencies.getModuleDependencies()).thenReturn(myModuleDependencies);
 
     IdeComponents ideComponents = new IdeComponents(project);
-    ideComponents.replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
     ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
 

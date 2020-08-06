@@ -23,9 +23,10 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListSelectionModel
-import javax.swing.JComponent
+import javax.swing.JComboBox
 import javax.swing.JTextField
 import javax.swing.ListModel
+import javax.swing.UIManager
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
@@ -34,20 +35,48 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
  */
 open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBox<E>(model) {
 
+  /**
+   * Fire an ActionEvent for every navigation key stroke.
+   *
+   * When this is true modify ComboBox.selectedIndex (which causes an ActionEvent when changed).
+   * When this is false modify List.selectedIndex instead.
+   */
+  var actionOnKeyNavigation = !UIManager.getBoolean("ComboBox.noActionOnKeyNavigation")
+
+  private var logicalSelectionIndex: Int
+    get() = if (actionOnKeyNavigation) selectedIndex else popup?.list?.selectedIndex ?: -1
+    set(value) {
+      if (actionOnKeyNavigation) {
+        selectedIndex = value
+      }
+      else {
+        val list = popup?.list ?: return
+        list.selectedIndex = value
+        list.ensureIndexIsVisible(value)
+      }
+    }
+
   private var textField: CommonTextField<*>? = null
 
   init {
     // Override the editor with a CommonTextField such that the text is also controlled by the model.
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
+
+    // Register key stroke navigation for dropdowns (textField is not editable)
+    registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
+    registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
+    registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
+    registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
+    registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
+
+    // Register key stroke navigation for dropdowns (textField is editable)
     textField = editor.editorComponent as CommonTextField<*>
     textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
     textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
     textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
     textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
     textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
-    registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     setFromModel()
 
@@ -67,6 +96,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
       super.setEditable(model.editable)
     }
   }
+
   private val consumeKeyNavigation: Boolean
     get() = isPopupVisible || (textField?.lookup?.isVisible == true)
 
@@ -91,8 +121,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
     else {
       val size = dataModel.size
-      val index = selectedIndex
-      selectedIndex = Integer.min(index + 1, size - 1)
+      val index = logicalSelectionIndex
+      logicalSelectionIndex = Integer.min(index + 1, size - 1)
     }
   }
 
@@ -102,8 +132,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
     else if (isPopupVisible) {
       val minValue = if (dataModel.size == 0) -1 else 0
-      val index = selectedIndex
-      selectedIndex = Integer.max(index - 1, minValue)
+      val index = logicalSelectionIndex
+      logicalSelectionIndex = Integer.max(index - 1, minValue)
     }
   }
 
@@ -113,8 +143,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
     else if (isPopupVisible) {
       val size = dataModel.size
-      val index = selectedIndex
-      selectedIndex = Integer.min(index + maximumRowCount, size - 1)
+      val index = logicalSelectionIndex
+      logicalSelectionIndex =Integer.min(index + maximumRowCount, size - 1)
     }
   }
 
@@ -124,8 +154,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
     else if (isPopupVisible) {
       val minValue = if (dataModel.size == 0) -1 else 0
-      val index = selectedIndex
-      selectedIndex = Integer.max(index - maximumRowCount, minValue)
+      val index = logicalSelectionIndex
+      logicalSelectionIndex = Integer.max(index - maximumRowCount, minValue)
     }
   }
 
@@ -148,7 +178,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class CommonComboBoxEditor<out M : CommonTextFieldModel>(model: M, comboBox: JComponent) : BasicComboBoxEditor() {
+  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(model: M, comboBox: JComboBox<E>) : BasicComboBoxEditor() {
     init {
       editor = TextFieldForComboBox(model, comboBox)
       editor.border = JBUI.Borders.empty()
@@ -162,13 +192,23 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class TextFieldForComboBox<out M : CommonTextFieldModel>(model: M, private val comboBox: JComponent) : CommonTextField<M>(model) {
+  private class TextFieldForComboBox<E, out M : CommonTextFieldModel>(
+    model: M,
+    private val comboBox: JComboBox<E>
+  ) : CommonTextField<M>(model) {
     override fun getToolTipText(): String? {
       return comboBox.toolTipText
     }
 
     override fun getToolTipText(event: MouseEvent?): String? {
       return comboBox.getToolTipText(event)
+    }
+
+    override fun showLookupCompletions(forText: String) {
+      if (comboBox.isPopupVisible) {
+        comboBox.hidePopup()
+      }
+      super.showLookupCompletions(forText)
     }
   }
 

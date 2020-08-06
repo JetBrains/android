@@ -17,25 +17,35 @@ package com.android.tools.idea.adb.wireless;
 
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class PinCodeDevicePanel {
+  @NotNull private final MdnsService myMdnsService;
   @NotNull private JButton myPairButton;
   @NotNull private JBLabel myDeviceIpLabel;
   @NotNull private JPanel myRootContainer;
   @NotNull private JBLabel myAvailableToPairLabel;
 
-  public PinCodeDevicePanel() {
+  public PinCodeDevicePanel(@NotNull MdnsService mdnsService, @NotNull Runnable pairActionRunnable) {
+    myMdnsService = mdnsService;
     myRootContainer.setBorder(JBUI.Borders.empty(5, 10));
     myRootContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myPairButton.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myAvailableToPairLabel.setForeground(UIColors.LIGHT_LABEL);
     RelativeFont.SMALL.install(myAvailableToPairLabel);
+    myPairButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        pairActionRunnable.run();
+      }
+    });
+    myDeviceIpLabel.setText(mdnsService.getDisplayString());
   }
 
   @NotNull
@@ -43,7 +53,8 @@ public class PinCodeDevicePanel {
     return myRootContainer;
   }
 
-  public void setDevice(@NotNull MdnsService device) {
-    myDeviceIpLabel.setText(device.getDisplayString());
+  @NotNull
+  public MdnsService getMdnsService() {
+    return myMdnsService;
   }
 }

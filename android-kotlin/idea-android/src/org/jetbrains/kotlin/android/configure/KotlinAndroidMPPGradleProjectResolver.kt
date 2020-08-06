@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.tools.idea.IdeInfo
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -25,8 +25,9 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
     private val isAndroidProject by lazy {
-        resolverCtx.hasModulesWithModel(IdeAndroidProject::class.java)
-                || resolverCtx.hasModulesWithModel(NativeAndroidProject::class.java)
+      resolverCtx.hasModulesWithModel(IdeAndroidProject::class.java)
+      || resolverCtx.hasModulesWithModel(NativeAndroidProject::class.java)
+      || resolverCtx.hasModulesWithModel(NativeModule::class.java)
     }
 
     override fun getToolingExtensionsClasses(): Set<Class<out Any>> {
@@ -39,32 +40,15 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 
     override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {
         return super.createModule(gradleModule, projectDataNode)!!.also {
-            initializeModuleData(gradleModule, it, projectDataNode)
-        }
-    }
-
-    override fun populateModuleContentRoots(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
-        super.populateModuleContentRoots(gradleModule, ideModule)
-        if (IdeInfo.getInstance().isAndroidStudio || isAndroidProject) {
-            KotlinMPPGradleProjectResolver.populateContentRoots(gradleModule, ideModule, resolverCtx)
-        }
-    }
-
-    override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
-        super.populateModuleDependencies(gradleModule, ideModule, ideProject)
-        if (isAndroidProject) {
-            KotlinMPPGradleProjectResolver.populateModuleDependencies(gradleModule, ideProject, ideModule, resolverCtx)
+            initializeModuleData(gradleModule, it)
         }
     }
 
     private fun initializeModuleData(
         gradleModule: IdeaModule,
-        mainModuleData: DataNode<ModuleData>,
-        projectDataNode: DataNode<ProjectData>
+        mainModuleData: DataNode<ModuleData>
     ) {
         if (!isAndroidProject) return
-
-        KotlinMPPGradleProjectResolver.initializeModuleData(gradleModule, mainModuleData, projectDataNode, resolverCtx)
 
         val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
 

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Basic navigation features, without any surprising or complex edge cases -->
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/basic"
+    app:startDestination="@id/basic_fragment1">
+
+    <fragment
+        android:id="@+id/basic_fragment1"
+        android:name="com.example.BasicFragment1"
+        android:label="BasicFragment1" >
+        <action
+            android:id="@+id/action_basic_fragment1_to_basic_fragment2"
+            app:destination="@id/basic_fragment2" />
+        <argument
+            android:name="stringArg"
+            app:argType="string" />
+        <argument
+            android:name="stringArgWithDefault"
+            app:argType="string"
+            android:defaultValue="unsetValue"/>
+        <argument
+            android:name="customClass"
+            app:argType="com.example.CustomClass"/>
+        <action
+            android:id="@+id/action_basic_fragment1_to_navigation"
+            app:destination="@id/basic_navigation" />
+    </fragment>
+    <fragment
+        android:id="@+id/basic_fragment2"
+        android:name="com.example.BasicFragment2"
+        android:label="BasicFragment2" >
+        <argument
+            android:name="floatArg"
+            app:argType="float" />
+        <action
+            android:id="@+id/action_basic_fragment2_to_basic_navigation"
+            app:destination="@id/basic_navigation" />
+    </fragment>
+    <navigation
+        android:id="@+id/basic_navigation"
+        app:startDestination="@id/basic_fragment3" >
+        <fragment
+            android:id="@+id/basic_fragment3"
+            android:name="com.example.BasicFragment3"
+            android:label="BasicFragment3">
+            <argument
+                android:name="intArg"
+                app:argType="integer" />
+            <argument
+                android:name="intArgWithDefault"
+                app:argType="integer"
+                android:defaultValue="3"/>
+            <argument
+                android:name="customInnerClass"
+                app:argType="com.example.BasicFragment3.InnerClass"/>
+        </fragment>
+    </navigation>
+</navigation>

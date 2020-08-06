@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -63,7 +63,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * in subclasses should different semantics be required.
    */
   @Override
-  final void report(@NotNull SyncIssue syncIssue,
+  final void report(@NotNull IdeSyncIssue syncIssue,
                     @NotNull Module module,
                     @Nullable VirtualFile buildFile,
                     @NotNull SyncIssueUsageReporter usageReporter) {
@@ -72,22 +72,22 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   @Override
-  final void reportAll(@NotNull List<SyncIssue> syncIssues,
-                       @NotNull Map<SyncIssue, Module> moduleMap,
+  final void reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                       @NotNull Map<IdeSyncIssue, Module> moduleMap,
                        @NotNull Map<Module, VirtualFile> buildFileMap,
                        @NotNull SyncIssueUsageReporter usageReporter) {
     // Group by the deduplication key.
-    Map<Object, List<SyncIssue>> groupedIssues = new LinkedHashMap<>();
-    for (SyncIssue issue : syncIssues) {
+    Map<Object, List<IdeSyncIssue>> groupedIssues = new LinkedHashMap<>();
+    for (IdeSyncIssue issue : syncIssues) {
       groupedIssues.computeIfAbsent(getDeduplicationKey(issue), (config) -> new ArrayList<>()).add(issue);
     }
 
     // Report once for each group, including the list of affected modules.
-    for (List<SyncIssue> entry : groupedIssues.values()) {
+    for (List<IdeSyncIssue> entry : groupedIssues.values()) {
       if (entry.isEmpty()) {
         continue;
       }
-      SyncIssue issue = entry.get(0);
+      IdeSyncIssue issue = entry.get(0);
       Module module = moduleMap.get(issue);
       if (module == null) {
         continue;
@@ -102,7 +102,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   private void createNotificationDataAndReport(@NotNull Project project,
-                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull List<IdeSyncIssue> syncIssues,
                                                @NotNull List<Module> affectedModules,
                                                @NotNull Map<Module, VirtualFile> buildFileMap,
                                                boolean isError,
@@ -151,7 +151,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                   @NotNull NotificationData notification,
                                   @NotNull StringBuilder builder,
                                   @NotNull Module module,
-                                  @NotNull List<SyncIssue> syncIssues,
+                                  @NotNull List<IdeSyncIssue> syncIssues,
                                   @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
@@ -179,7 +179,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
-                                               @NotNull List<SyncIssue> syncIssues,
+                                               @NotNull List<IdeSyncIssue> syncIssues,
                                                @NotNull VirtualFile buildFile) {
 
     return new OpenFileHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
@@ -191,7 +191,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * method should be stateless.
    */
   @NotNull
-  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+  protected Object getDeduplicationKey(@NotNull IdeSyncIssue issue) {
     return (issue.getData() == null) ? issue : issue.getData();
   }
 
@@ -213,7 +213,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    */
   @NotNull
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     return ImmutableList.of();
@@ -232,7 +232,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    */
   @NotNull
   protected NotificationData setupNotificationData(@NotNull Project project,
-                                                   @NotNull List<SyncIssue> syncIssues,
+                                                   @NotNull List<IdeSyncIssue> syncIssues,
                                                    @NotNull List<Module> affectedModules,
                                                    @NotNull Map<Module, VirtualFile> buildFileMap,
                                                    @NotNull MessageType type) {

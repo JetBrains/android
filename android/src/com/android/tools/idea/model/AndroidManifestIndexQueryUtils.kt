@@ -41,7 +41,7 @@ import java.util.LinkedList
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("AndroidManifestIndexQueryUtils.kt")
 
 /**
  * Applies [processContributors] to the data indexed for [facet]'s merged manifest contributors,

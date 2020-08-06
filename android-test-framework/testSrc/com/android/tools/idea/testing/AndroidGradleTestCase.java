@@ -33,7 +33,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -60,8 +59,9 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
+import com.intellij.testFramework.TestApplicationManagerKt;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -179,24 +179,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     myAndroidFacet = null;
     if (myFixture != null) {
       try {
-        Project project = myFixture.getProject();
-        // Since we don't really open the project, but we manually register listeners in the gradle importer
-        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-        // that here, otherwise the testsuite will leak
-        if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-          projectComponent.projectClosed();
-        }
+        myFixture.tearDown();
       }
-      finally {
-        try {
-          myFixture.tearDown();
-        }
-        catch (Throwable e) {
-          LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
-        }
-        myFixture = null;
+      catch (Throwable e) {
+        LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
       }
+      myFixture = null;
     }
   }
 
@@ -210,7 +198,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        TestApplicationManagerKt.tearDownProjectAndApp(openProjects[0]);
       }
       myAndroidFacet = null;
     }
@@ -261,12 +249,22 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    ) throws Exception {
     loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null);
   }
+
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
                                    @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion);
+    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, issueFilter);
+  }
+
+  protected final void loadProject(@NotNull String relativePath,
+                                   @Nullable String chosenModuleName,
+                                   @Nullable String gradleVersion,
+                                   @Nullable String gradlePluginVersion,
+                                   @Nullable String kotlinVersion,
+                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
     importProject(issueFilter);
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -293,25 +291,26 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected void patchPreparedProject(@NotNull File projectRoot,
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
+                                      @Nullable String kotlinVersion,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null);
+    return prepareProjectForImport(relativePath, null, null, null);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion) throws IOException {
+                                         @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
     prepareGradleProject(
       projectSourceRoot,
       projectRoot,
-      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, getAdditionalRepos().toArray(new File[0])));
+      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, getAdditionalRepos().toArray(new File[0])));
     return projectRoot;
   }
 

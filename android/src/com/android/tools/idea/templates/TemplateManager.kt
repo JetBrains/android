@@ -130,7 +130,7 @@ class TemplateManager private constructor() {
     }
 
     for (templateName in categoryRow.keys) {
-      val template = _categoryTable!![category, templateName]
+      val template = _categoryTable!![category, templateName]!!
       val templateAction = NewAndroidComponentAction(category, templateName, template.minSdk, template.minCompileSdk, template.constraints)
       val actionId = ACTION_ID_PREFIX + category + templateName
       am.replaceAction(actionId, templateAction)

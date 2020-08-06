@@ -166,12 +166,6 @@ public class GradleSyncInvoker {
   @WorkerThread
   private static void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
-
-
-    if (!GradleSyncState.getInstance(project).syncStarted(request)) {
-      return;
-    }
-
     new GradleSyncExecutor(project).sync(request, listener);
   }
 

@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.lang.jvm.JvmMethod
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.psi.JavaPsiFacade
@@ -52,6 +53,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
@@ -303,31 +305,26 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
-    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
-    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2"))
 
     // Select the test case 1. Click on the test name column.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
 
-    verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method1" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
-      results.getLogcat(device1) == "test logcat message" &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, isNull())
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, isNull())
+
+    // Select the test case 1. Click on the device 2 column.
+    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, eq(device2))
 
     // Select the test case 2. Click on the device2 column.
-    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
-    verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method2" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, eq(device2))
+    verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method2" }, eq(device2))
 
     // Selecting the test case 2 again after clearing the selection should trigger the callback.
     // (Because a user may click the same row again after he/she closes the second page.)
@@ -335,11 +332,26 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
-    verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
-      results.methodName == "method2" &&
-      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
-      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    }, eq(device2))
+    verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { it.methodName == "method2" }, eq(device2))
+  }
+
+  @Test
+  fun editCellAtShouldNotCrashWithFilterApplied() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+
+    table.setColumnFilter { it.deviceName == "deviceName2" }
+    table.setRowFilter { it.getTestResultSummary() == AndroidTestCaseResult.FAILED }
+
+    assertThat(table.getTableViewForTesting().editCellAt(2, 2)).isFalse()
   }
 
   @Test
@@ -357,12 +369,10 @@ class AndroidTestResultsTableViewTest {
     }
 
     val view = table.getTableViewForTesting()
-    assertThat(view.rowCount).isEqualTo(1)
-    assertThat(view.convertRowIndexToView(0)).isEqualTo(-1)  // Root aggregation row
-    assertThat(view.convertRowIndexToView(1)).isEqualTo(-1)  // Class1 aggregation row
-    assertThat(view.convertRowIndexToView(2)).isEqualTo(-1)  // Method1 row
-    assertThat(view.convertRowIndexToView(3)).isEqualTo(-1)  // Class2 aggregation row
-    assertThat(view.convertRowIndexToView(4)).isEqualTo(0)   // Method2 row
+    assertThat(view.rowCount).isEqualTo(3)
+    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(view.getItem(1).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(view.getItem(2).getFullTestCaseName()).isEqualTo("package2.class2.method2")
   }
 
   @Test
@@ -373,18 +383,25 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
+
+    val view = table.getTableViewForTesting()
+    val model = table.getModelForTesting()
+
+    assertThat(view.columnCount).isEqualTo(4)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Status")
+    assertThat(model.columns[2].name).isEqualTo("deviceName1")
+    assertThat(model.columns[3].name).isEqualTo("deviceName2")
+
+    // Apply column filter.
     table.setColumnFilter { device ->
       device.id == "deviceId2"
     }
 
-    // "Test Name" + "Test Summary" + "Device 1" + "Device 2".
-    // Device 1 is still visible but we change its width to 1px because
-    // column sorter is not natively supported unlike rows.
-    val view = table.getTableViewForTesting()
-    val model = table.getModelForTesting()
-    assertThat(view.columnCount).isEqualTo(4)
-    assertThat(model.columnInfos[2].getWidth(view)).isEqualTo(1)
-    assertThat(model.columnInfos[3].getWidth(view)).isEqualTo(120)
+    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Status")
+    assertThat(model.columns[2].name).isEqualTo("deviceName2")
   }
 
   @Test
@@ -466,8 +483,8 @@ class AndroidTestResultsTableViewTest {
     val mockPsiMethod = mock<PsiMethod>()
     `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
     `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
-    `when`(mockPsiClass.findMethodsByName(any())).thenReturn(arrayOf())
-    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"))).thenReturn(arrayOf(mockPsiMethod))
+    `when`(mockPsiClass.findMethodsByName(any(), anyBoolean())).thenReturn(arrayOf())
+    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"), anyBoolean())).thenReturn(arrayOf(mockPsiMethod))
     `when`(mockPsiClass.name).thenReturn("myTestClassName")
     `when`(mockPsiClass.isValid).thenReturn(true)
     `when`(mockPsiClass.project).thenReturn(projectRule.project)
@@ -528,6 +545,73 @@ class AndroidTestResultsTableViewTest {
     verify(mockDataProvider).getData(eq(CommonDataKeys.NAVIGATABLE_ARRAY.name))
 
     verify(mockLogger).reportInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
+  }
+
+  @Test
+  fun expandAllAndCollapseAllAction() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    table.addDevice(device1)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1"))
+
+    val expandAllAction = table.createExpandAllAction()
+    val collapseAllAction = table.createCollapseAllAction()
+
+    val tableView = table.getTableViewForTesting()
+    assertThat(tableView.rowCount).isEqualTo(6)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
+
+    collapseAllAction.actionPerformed(mock())
+
+    assertThat(tableView.rowCount).isEqualTo(3)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.")
+
+    expandAllAction.actionPerformed(mock())
+
+    assertThat(tableView.rowCount).isEqualTo(6)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
+  }
+
+  @Test
+  fun navigateToPrevAndNextFailedTestAction() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    table.addDevice(device1)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.FAILED))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", AndroidTestCaseResult.FAILED))
+
+    val prevFailedTestAction = table.createNavigateToPreviousFailedTestAction()
+    val nextFailedTestAction = table.createNavigateToNextFailedTestAction()
+    val tableView = table.getTableViewForTesting()
+    val mockActionEvent = mock<AnActionEvent>()
+    `when`(mockActionEvent.project).thenReturn(projectRule.project)
+
+    assertThat(tableView.selectedObject).isNull()
+    nextFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    nextFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
+    nextFailedTestAction.actionPerformed(mockActionEvent)  // No more next failed tests so nothing happens.
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
+    prevFailedTestAction.actionPerformed(mockActionEvent)
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    prevFailedTestAction.actionPerformed(mockActionEvent)  // No more prev failed tests so nothing happens.
+    assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
   }
 
   // Workaround for Kotlin nullability check.

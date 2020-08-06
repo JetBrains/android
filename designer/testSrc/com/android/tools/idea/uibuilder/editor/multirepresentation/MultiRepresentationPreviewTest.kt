@@ -70,7 +70,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     }
   }
 
-  private class DummyPreviewRepresentation : PreviewRepresentation {
+  private class SamplePreviewRepresentation : PreviewRepresentation {
     var nActivations = 0
 
     override val component = JPanel()
@@ -87,15 +87,15 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
   private open class SimpleProvider(override val displayName: String, val isAccept: Boolean) : PreviewRepresentationProvider {
     override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-    override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = DummyPreviewRepresentation()
+    override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = SamplePreviewRepresentation()
   }
 
   fun testNoProviders_noHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
-    multiPreview = UpdatableMultiRepresentationPreview(dummyFile, listOf(), persistenceManager)
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf(), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -113,9 +113,9 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testNoProviders_someHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("foo")
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
-    multiPreview = UpdatableMultiRepresentationPreview(dummyFile, listOf(), persistenceManager)
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, listOf(), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -133,10 +133,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleAcceptingProvider_noHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -166,10 +166,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleAcceptingProvider_validHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Accepting")
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -191,10 +191,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleAcceptingProvider_invalidHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("foo")
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
+      sampleFile, listOf(SimpleProvider("Accepting", true)), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -212,10 +212,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleNonAcceptingProvider_noHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile, listOf(SimpleProvider("NonAccepting", false)), persistenceManager)
+      sampleFile, listOf(SimpleProvider("NonAccepting", false)), persistenceManager)
 
     TestCase.assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -232,10 +232,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testMultipleProviders_noHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).then(returnsSecondArg<String>())
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile,
+      sampleFile,
       listOf(
         SimpleProvider("Accepting1", true),
         SimpleProvider("Accepting2", true),
@@ -265,10 +265,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testMultipleProviders_validHistory() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Accepting2")
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile,
+      sampleFile,
       listOf(
         SimpleProvider("Accepting1", true),
         SimpleProvider("Accepting2", true),
@@ -297,17 +297,17 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
   fun testMultipleProviders_conditionallyAccepting() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("ConditionallyAccepting")
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     val conditionallyAccepting = object : PreviewRepresentationProvider {
       var isAccept = false
       override val displayName = "ConditionallyAccepting"
       override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-      override fun createRepresentation(psiFile: PsiFile) = DummyPreviewRepresentation()
+      override fun createRepresentation(psiFile: PsiFile) = SamplePreviewRepresentation()
     }
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile,
+      sampleFile,
       listOf(
         SimpleProvider("Accepting", true),
         conditionallyAccepting),
@@ -364,10 +364,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       override fun createRepresentation(psiFile: PsiFile) = laterAcceptedRepresentation
     }
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile,
+      sampleFile,
       listOf(
         initiallyAcceptingProvider,
         laterAcceptingProvider),
@@ -416,10 +416,10 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       override fun createRepresentation(psiFile: PsiFile) = representation3
     }
 
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile, listOf(acceptingProvider1, acceptingProvider2, nonAcceptingProvider), persistenceManager)
+      sampleFile, listOf(acceptingProvider1, acceptingProvider2, nonAcceptingProvider), persistenceManager)
 
     multiPreview.updateNotifications()
 
@@ -438,12 +438,12 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testActivationDeactivation() {
     Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("Representation1")
-    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
-    val representation1 = DummyPreviewRepresentation()
-    val representation2 = DummyPreviewRepresentation()
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    val representation1 = SamplePreviewRepresentation()
+    val representation2 = SamplePreviewRepresentation()
 
     multiPreview = UpdatableMultiRepresentationPreview(
-      dummyFile,
+      sampleFile,
       listOf(
         object : SimpleProvider("Representation1", true) {
           override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation1

@@ -27,21 +27,21 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.builder.model.AaptOptions;
-import com.android.builder.model.ApiVersion;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.JavaCompileOptions;
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.SyncIssue;
-import com.android.builder.model.TestOptions;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
+import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeApiVersion;
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -98,8 +99,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
-  @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
-  @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
+  @NotNull private final transient Map<String, IdeBuildTypeContainer> myBuildTypesByName;
+  @NotNull private final transient Map<String, IdeProductFlavorContainer> myProductFlavorsByName;
   @NotNull final transient Map<String, IdeVariant> myVariantsByName;
 
   @GuardedBy("myGenericBuiltArtifactsMap")
@@ -196,27 +197,27 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public SourceProvider getDefaultSourceProvider() {
+  public IdeSourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
   @NotNull
-  public List<SourceProvider> getActiveSourceProviders() {
+  public List<IdeSourceProvider> getActiveSourceProviders() {
     return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getUnitTestSourceProviders() {
+  public List<IdeSourceProvider> getUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getAndroidTestSourceProviders() {
+  public List<IdeSourceProvider> getAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
-  public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
+  public List<IdeSourceProvider> getTestSourceProviders(@NotNull String artifactName) {
     switch (artifactName) {
       case ARTIFACT_ANDROID_TEST:
         return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
@@ -234,17 +235,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public List<SourceProvider> getAllSourceProviders() {
+  public List<IdeSourceProvider> getAllSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllSourceProviders(this);
   }
 
   @NotNull
-  public List<SourceProvider> getAllUnitTestSourceProviders() {
+  public List<IdeSourceProvider> getAllUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllUnitTestSourceProviders(this);
   }
 
   @NotNull
-  public List<SourceProvider> getAllAndroidTestSourceProviders() {
+  public List<IdeSourceProvider> getAllAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllAndroidTestSourceProviders(this);
   }
 
@@ -272,7 +273,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public Boolean isDebuggable() {
-    BuildTypeContainer buildTypeContainer = findBuildType(getSelectedVariant().getBuildType());
+    IdeBuildTypeContainer buildTypeContainer = findBuildType(getSelectedVariant().getBuildType());
     if (buildTypeContainer != null) {
       return buildTypeContainer.getBuildType().isDebuggable();
     }
@@ -293,18 +294,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getMinSdkVersion() {
     if (myMinSdkVersion == null) {
-      ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
-        ApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        IdeApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
         if (defaultConfigVersion != null) {
           minSdkVersion = defaultConfigVersion;
         }
 
         List<String> flavors = getSelectedVariant().getProductFlavors();
         for (String flavor : flavors) {
-          ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+          IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
           assert productFlavor != null;
-          ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
+          IdeApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
           if (flavorVersion != null) {
             minSdkVersion = flavorVersion;
             break;
@@ -320,14 +321,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
-    ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+    IdeApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
     return minSdkVersion != null ? convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
-    ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+    IdeApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
     return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
   }
 
@@ -348,7 +349,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public BuildTypeContainer findBuildType(@NotNull String name) {
+  public IdeBuildTypeContainer findBuildType(@NotNull String name) {
     return myBuildTypesByName.get(name);
   }
 
@@ -363,7 +364,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public ProductFlavorContainer findProductFlavor(@NotNull String name) {
+  public IdeProductFlavorContainer findProductFlavor(@NotNull String name) {
     return myProductFlavorsByName.get(name);
   }
 
@@ -476,7 +477,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
-    JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
+    IdeJavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
   }
@@ -496,7 +497,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
       List<String> flavors = variant.getProductFlavors();
       for (String flavor : flavors) {
-        ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+        IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
         assert productFlavor != null;
         if (productFlavor.getProductFlavor().getApplicationId() != null) {
           myOverridesManifestPackage = true;
@@ -511,7 +512,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public Collection<SyncIssue> getSyncIssues() {
+  public Collection<IdeSyncIssue> getSyncIssues() {
     if (getFeatures().isIssueReportingSupported()) {
       return myAndroidProject.getSyncIssues();
     }
@@ -531,10 +532,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public TestOptions.Execution getTestExecutionStrategy() {
+  public IdeTestOptions.Execution getTestExecutionStrategy() {
     IdeAndroidArtifact artifact = getArtifactForAndroidTest();
     if (artifact != null) {
-      TestOptions testOptions = artifact.getTestOptions();
+      IdeTestOptions testOptions = artifact.getTestOptions();
       if (testOptions != null) {
         return testOptions.getExecution();
       }
@@ -553,12 +554,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @Deprecated
   @NotNull
-  public List<SourceProvider> getFlavorSourceProviders() {
+  public List<IdeSourceProvider> getFlavorSourceProviders() {
     IdeVariant selectedVariant = getSelectedVariant();
     List<String> productFlavors = selectedVariant.getProductFlavors();
-    List<SourceProvider> providers = new ArrayList<>();
+    List<IdeSourceProvider> providers = new ArrayList<>();
     for (String flavor : productFlavors) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+      IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
       providers.add(productFlavor.getSourceProvider());
     }
@@ -598,8 +599,16 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   @Override
-  public AaptOptions.Namespacing getNamespacing() {
-    return myAndroidProject.getAaptOptions().getNamespacing();
+  public Namespacing getNamespacing() {
+    IdeAaptOptions.Namespacing namespacing = myAndroidProject.getAaptOptions().getNamespacing();
+    switch (namespacing) {
+      case DISABLED:
+        return Namespacing.DISABLED;
+      case REQUIRED:
+        return Namespacing.REQUIRED;
+      default:
+        throw new IllegalStateException("Unknown namespacing option: " + namespacing);
+    }
   }
 
   @NotNull

@@ -20,7 +20,7 @@ import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.veri
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.android.builder.model.ApiVersion;
+import com.android.ide.common.gradle.model.IdeApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -186,7 +186,7 @@ public class NewProjectTest {
 
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
-    ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+    IdeApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isAtLeast(LanguageLevel.JDK_1_7);

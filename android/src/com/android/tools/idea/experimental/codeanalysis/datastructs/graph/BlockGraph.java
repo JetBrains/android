@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A control flow graph For statements in \{\}
- * It should have dummy Entry and Exit node
+ * It should have placeholder Entry and Exit node
  */
 public interface BlockGraph extends Graph {
 

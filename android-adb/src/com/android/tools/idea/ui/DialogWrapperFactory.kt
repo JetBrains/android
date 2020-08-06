@@ -17,10 +17,30 @@ package com.android.tools.idea.ui
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
+import java.awt.Component
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Factory for [AbstractDialogWrapper] instances
  */
 interface DialogWrapperFactory {
-  fun createDialogWrapper(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType): AbstractDialogWrapper
+  fun createDialogWrapper(options: DialogWrapperOptions): AbstractDialogWrapper
 }
+
+data class DialogWrapperOptions(
+  val project: Project,
+  val canBeParent: Boolean,
+  val ideModalityType: DialogWrapper.IdeModalityType,
+  val title: String,
+  val isModal: Boolean,
+  /** Lambda that creates the center panel of the dialog */
+  val centerPanelProvider: () -> JComponent,
+  val preferredFocusProvider: () -> JComponent? = { null },
+  val hasOkButton: Boolean = true,
+  val okButtonText: String? = null,
+  val okActionHandler: () -> Boolean = { false },
+  val cancelButtonText: String? = null,
+  val validationHandler: () -> ValidationInfo? = { null }
+)

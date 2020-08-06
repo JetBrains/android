@@ -180,38 +180,38 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File getEmbeddedJdkPath() {
-    String ideHomePath = getIdeHomePath();
+    if (StudioPathManager.isRunningFromSources()) {
+      // If AndroidStudio runs from IntelliJ IDEA sources
+      if (System.getProperty("android.test.embedded.jdk") != null) {
+        File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
+        assert jdkDir.exists();
+        return jdkDir;
+      }
 
-    File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
-    if (jdkRootPath.isDirectory()) {
+      // Development build.
+      String sourcesRoot = StudioPathManager.getSourcesRoot();
+      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
+      String relativePath = toSystemDependentName(jdkDevPath);
+      File jdkRootPath = new File(toCanonicalPath(relativePath));
+      if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
+        jdkRootPath = new File(jdkRootPath, "jdk11");
+      }
+      if (SystemInfo.isWindows) {
+        jdkRootPath = new File(jdkRootPath, "win64");
+      }
+      else if (SystemInfo.isLinux) {
+        jdkRootPath = new File(jdkRootPath, "linux");
+      }
+      else if (SystemInfo.isMac) {
+        jdkRootPath = new File(jdkRootPath, "mac");
+      }
+      return getSystemSpecificJdkPath(jdkRootPath);
+    } else {
       // Release build.
+      String ideHomePath = getIdeHomePath();
+      File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
-
-    // If AndroidStudio runs from IntelliJ IDEA sources
-    if (System.getProperty("android.test.embedded.jdk") != null) {
-      File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
-      assert jdkDir.exists();
-      return jdkDir;
-    }
-
-    // Development build.
-    String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
-    String relativePath = toSystemDependentName(jdkDevPath);
-    jdkRootPath = new File(toCanonicalPath(relativePath));
-    if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
-      jdkRootPath = new File(jdkRootPath, "jdk11");
-    }
-    if (SystemInfo.isWindows) {
-      jdkRootPath = new File(jdkRootPath, "win64");
-    }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
-    }
-    else if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, "mac");
-    }
-    return getSystemSpecificJdkPath(jdkRootPath);
   }
 
   @NotNull

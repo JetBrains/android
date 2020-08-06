@@ -30,8 +30,8 @@ import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.ViewBindingOptions
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
@@ -71,7 +71,6 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTa
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
 import com.android.tools.idea.gradle.project.sync.issues.syncIssues
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
@@ -781,7 +780,6 @@ fun setupTestProjectFromAndroidModel(
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      PostSyncProjectSetup.Request(),
       null
     )
     if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
@@ -820,15 +818,15 @@ private fun createAndroidModuleDataNode(
     )
   )
 
+  val modelCache = ModelCache(HashMap())
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
       AndroidModuleModel.create(
         moduleName,
         moduleBasePath,
-        IdeAndroidProjectImpl.create(
+        modelCache.androidProjectFrom(
           androidProjectStub,
-          HashMap(),
           IdeDependenciesFactory(),
           null,
           ImmutableList.of()),
@@ -968,7 +966,8 @@ fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
   gradleVersion: String? = null,
-  gradlePluginVersion: String? = null
+  gradlePluginVersion: String? = null,
+  kotlinVersion: String? = null
 ): File {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = resolveTestDataPath(testProjectPath)
@@ -978,6 +977,7 @@ fun GradleIntegrationTest.prepareGradleProject(
     srcPath, projectPath,
     ThrowableConsumer<File, IOException> { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
+                                                     kotlinVersion,
                                                      *getAdditionalRepos().toTypedArray())
     })
   return projectPath
@@ -993,9 +993,32 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T = openPreparedProject(nameToPath(name), action)
+fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T {
+  return openPreparedProject(
+    nameToPath(name),
+    verifyOpened = ::verifySyncedSuccessfully,
+    action = action
+  )
+}
 
-private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): T {
+/**
+ * Opens a test project previously prepared under the given [name], verifies the state of the project with [verifyOpened] and runs
+ * a test [action] and then closes and disposes the project.
+ *
+ * The project's `.idea` directory is not required to exist, however.
+ */
+fun <T> GradleIntegrationTest.openPreparedProject(
+  name: String,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T
+): T {
+  return openPreparedProject(nameToPath(name), verifyOpened, action)
+}
+
+private fun <T> openPreparedProject(
+  projectPath: File,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T): T {
   val project = runInEdtAndGet {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
@@ -1005,7 +1028,7 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
     project
   }
   try {
-    verifySyncedSuccessfully(project)
+    verifyOpened(project)
     return action(project)
   }
   finally {

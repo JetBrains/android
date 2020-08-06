@@ -20,6 +20,6 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProces
 
 class AndroidGradleOpenProjectProcessorInitializer : Runnable {
   override fun run() {
-    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint(null).unregisterExtension(GradleProjectOpenProcessor::class.java)
+    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint().unregisterExtension(GradleProjectOpenProcessor::class.java)
   }
 }

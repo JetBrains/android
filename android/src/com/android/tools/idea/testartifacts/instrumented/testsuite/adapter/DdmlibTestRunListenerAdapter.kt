@@ -45,7 +45,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
 
   companion object {
     const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
-    private val benchmarkPrefixRegex = "^benchmark:".toRegex(RegexOption.MULTILINE)
+    private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
      * Retrieves benchmark output text from a given [testMetrics].
@@ -54,7 +54,6 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
       // Workaround solution for b/154322086.
       return benchmarkPrefixRegex
         .replace(testMetrics.getOrDefault(BENCHMARK_TEST_METRICS_KEY, ""), "")
-        .trimIndent()
     }
 
     /**

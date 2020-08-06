@@ -8,6 +8,14 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
@@ -47,6 +55,8 @@
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
     <orderEntry type="module" module-name="intellij.platform.bootstrap" />
     <orderEntry type="library" name="jcip" level="project" />
@@ -151,7 +161,6 @@
     <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
-    <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.resources-base" />
     <orderEntry type="library" name="NanoXML" level="project" />

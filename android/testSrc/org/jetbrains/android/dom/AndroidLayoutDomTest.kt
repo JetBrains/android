@@ -787,7 +787,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testCustomTagCompletion8() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
     copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
-    doTestCompletionVariants("ctn8.xml", "LabelView")
+    toTestCompletion("ctn8.xml", "ctn8_after.xml")
   }
 
   fun testCustomTagCompletion9() {
@@ -798,7 +798,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testCustomTagCompletion10() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
     copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
-    doTestCompletionVariants("ctn10.xml", "LabelView")
+    toTestCompletion("ctn10.xml", "ctn10_after.xml")
   }
 
   fun testCustomAttributeNameCompletion() {

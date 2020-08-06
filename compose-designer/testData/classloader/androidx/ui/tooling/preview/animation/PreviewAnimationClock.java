@@ -1,6 +1,6 @@
 package androidx.ui.tooling.preview.animation;
 
-import androidx.ui.animation.tooling.ComposeAnimation;
+import androidx.compose.animation.tooling.ComposeAnimation;
 
 public class PreviewAnimationClock {
 

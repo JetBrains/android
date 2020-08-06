@@ -94,7 +94,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
       .withLogger(logger)
       .withPsiFile(psiFile!!)
       .disableSecurityManager()
-      .withLayoutValidation(true)
+      .withLayoutScanner(true)
       .buildSynchronously()
     Assert.assertNotNull(task)
     try {

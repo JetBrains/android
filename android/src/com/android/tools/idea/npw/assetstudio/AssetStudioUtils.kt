@@ -98,11 +98,11 @@ fun scaleDimension(dim: Dimension, scaleFactor: Double) =
 fun Double.roundToInt(): Int = roundToInt()
 
 /**
- * Create a tiny dummy image, so that we can always return a not null result if an image we were looking for isn't found.
+ * Create a tiny sample image, so that we can always return a not null result if an image we were looking for isn't found.
  *
  */
 @Suppress("UndesirableClassUsage") // we intentionally avoid UiUtil.createImage (for retina) because we just want a small image
-fun createDummyImage(): BufferedImage = BufferedImage(1, 1, TYPE_INT_ARGB)
+fun createPlaceholderImage(): BufferedImage = BufferedImage(1, 1, TYPE_INT_ARGB)
 
 /**
  * Remove any surrounding padding from the image.
@@ -122,7 +122,7 @@ fun trim(image: BufferedImage): BufferedImage = ImageUtils.cropBlank(image, null
  */
 fun pad(image: BufferedImage, paddingPercent: Int): BufferedImage {
   if (image.width <= 1 || image.height <= 1) {
-    // If we're handling a dummy image, just abort now before AssetUtil.paddedImage throws an exception.
+    // If we're handling a sample image, just abort now before AssetUtil.paddedImage throws an exception.
     return image
   }
 

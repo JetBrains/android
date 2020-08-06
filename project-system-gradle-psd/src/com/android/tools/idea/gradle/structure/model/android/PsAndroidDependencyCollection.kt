@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.level2.IdeLibrary
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel

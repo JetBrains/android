@@ -421,7 +421,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
                               // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
                               // the app.
-                              .setSamplingIntervalBytes(ide.getFeatureConfig().getNativeMemorySamplingRateForCurrentConfig())
+                              .setSamplingIntervalBytes(ide.getNativeMemorySamplingRateForCurrentConfig())
                               .setSharedMemoryBufferBytes(64 * 1024 * 1024)
                               .setAbiCpuArch(process.getAbiCpuArch())
                               .setTempPath(traceFilePath)

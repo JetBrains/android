@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.ui.animation.tooling.ComposeAnimation
-import androidx.ui.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
@@ -67,8 +67,8 @@ object ComposePreviewAnimationManager {
     if (subscribedAnimations.add(animation)) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.addTab(animation)
-        if (animation.getType() == ComposeAnimationType.TRANSITION_ANIMATION) {
-          currentInspector?.updateTransitionStates(animation, animation.getStates())
+        if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
+          currentInspector?.updateTransitionStates(animation, animation.states)
         }
       }
     }

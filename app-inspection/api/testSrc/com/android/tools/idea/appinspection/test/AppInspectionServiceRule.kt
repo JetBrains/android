@@ -41,11 +41,10 @@ import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
@@ -100,11 +99,11 @@ class AppInspectionServiceRule(
     streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
-    scope = CoroutineScope(executorService.asCoroutineDispatcher())
-    transport = AppInspectionTransport(client, stream, process, executorService, streamChannel)
+    scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
+    transport = AppInspectionTransport(client, stream, process, executorService.asCoroutineDispatcher(), streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(executorService, client, scope)
-    processNotifier = AppInspectionProcessDiscovery(executorService, streamManager)
+    targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
+    processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
     launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery) { jarCopier }
     apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
   }
@@ -115,21 +114,22 @@ class AppInspectionServiceRule(
     executorService.shutdownNow()
     client.shutdown()
     timer.currentTimeNs += 1
+    client.shutdown()
   }
 
   /**
    * Launches a new [AppInspectionTarget] and sets the optional [commandHandler].
    */
-  internal fun launchTarget(
+  internal suspend fun launchTarget(
     process: ProcessDescriptor,
     project: String = TEST_PROJECT,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer)
-  ): ListenableFuture<AppInspectionTarget> {
+  ): AppInspectionTarget {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    val targetFuture = targetManager.attachToProcess(process, jarCopier, streamChannel, project)
-    timer.currentTimeNs += 1
-    return targetFuture
+    return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also {
+      timer.currentTimeNs += 1
+    }
   }
 
   /**
@@ -140,10 +140,11 @@ class AppInspectionServiceRule(
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-    eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener()
+    eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener(),
+    parentScope: CoroutineScope = scope
   ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope) {
       TestInspectorClient(it, eventListener)
     }.also { timer.currentTimeNs += 1 }
   }
@@ -151,23 +152,6 @@ class AppInspectionServiceRule(
   fun addEvent(event: Common.Event) {
     val modifiedEvent = event.toBuilder().setPid(process.pid).setTimestamp(timer.currentTimeNs).build()
     transportService.addEventToStream(stream.streamId, modifiedEvent)
-    timer.currentTimeNs += 1
-  }
-
-  /**
-   * Generate a fake [Common.Event] using the provided [appInspectionResponse].
-   */
-  fun addAppInspectionResponse(appInspectionResponse: AppInspection.AppInspectionResponse) {
-    transportService.addEventToStream(
-      stream.streamId,
-      Common.Event.newBuilder()
-        .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
-        .setPid(process.pid)
-        .setTimestamp(timer.currentTimeNs)
-        .setIsEnded(true)
-        .setAppInspectionResponse(appInspectionResponse)
-        .build()
-    )
     timer.currentTimeNs += 1
   }
 

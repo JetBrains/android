@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
+import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -65,9 +65,9 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     databaseConnection2 = mock()
     databaseConnection3 = mock()
 
-    `when`(databaseConnection1.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
-    `when`(databaseConnection2.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
-    `when`(databaseConnection3.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    `when`(databaseConnection1.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    `when`(databaseConnection2.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    `when`(databaseConnection3.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
 
     `when`(databaseConnection1.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
     `when`(databaseConnection2.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))

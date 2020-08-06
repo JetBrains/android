@@ -24,13 +24,13 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
 @UiThread
-class AdbDevicePairingControllerImpl(project: Project,
+class AdbDevicePairingControllerImpl(private val project: Project,
                                      edtExecutor: Executor,
-                                     private val service: AdbDevicePairingService,
+                                     private val pairingService: AdbDevicePairingService,
                                      private val view: AdbDevicePairingView
 ) : AdbDevicePairingController {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val qrCodeScanningController = QrCodeScanningController(service, view, edtExecutor, this)
+  private val qrCodeScanningController = QrCodeScanningController(pairingService, view, edtExecutor, this)
 
   init {
     // Ensure we are disposed when the project closes
@@ -44,7 +44,7 @@ class AdbDevicePairingControllerImpl(project: Project,
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    service.checkMdnsSupport().transform(edtExecutor) { supportState ->
+    pairingService.checkMdnsSupport().transform(edtExecutor) { supportState ->
       when(supportState) {
         MdnsSupportState.Supported -> {
           view.showMdnsCheckSuccess()
@@ -70,7 +70,15 @@ class AdbDevicePairingControllerImpl(project: Project,
     // Nothing to do (the view or project disposal is what makes us being disposed)
   }
 
-  class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {
+  inner class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {
+    override fun onScanAnotherQrCodeDeviceAction() {
+      // Ignore
+    }
+
+    override fun onPinCodePairAction(mdnsService: MdnsService) {
+      PinCodePairingController(project, edtExecutor, pairingService, mdnsService).show()
+    }
+
     override fun onClose() {
       Disposer.dispose(parentDisposable)
     }

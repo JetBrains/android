@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
+        "no_test_mac",  # b/152941757
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
@@ -40,9 +41,12 @@ iml_module(
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -66,12 +70,15 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/platform/core-api:intellij.platform.core[module, test]",
+        "//tools/idea/uast/uast-common:intellij.platform.uast[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
     ],
 )
 
@@ -103,9 +110,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
@@ -155,7 +165,7 @@ iml_module(
     name = "unb.intellij.android.nav.safeargs",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.iml"],
-    lint_baseline = "lint_baseline.xml",
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
         "manual",
         "unb",
@@ -164,6 +174,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
@@ -183,6 +195,7 @@ iml_module(
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
         "manual",
+        "no_test_mac",  # b/152941757
         "no_test_windows",
         "unb",
     ],
@@ -206,6 +219,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
@@ -219,5 +234,6 @@ iml_module(
         "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
         "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/sdk-updates:unb.intellij.android.sdkUpdates[module, test]",
     ],
 )

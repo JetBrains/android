@@ -16,14 +16,14 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
-import com.google.common.annotations.VisibleForTesting
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
 import org.jetbrains.kotlin.types.ErrorUtils.createUnresolvedType
 import org.jetbrains.kotlin.types.KotlinType
@@ -33,16 +33,16 @@ import org.jetbrains.kotlin.types.typeUtil.makeNullable
 /**
  * Return kotlin type with nullability info.
  *
- * It falls back to [fallbackType] if defined. Else [UnresolvedType] is returned.
+ * Or it falls back to [UnresolvedType].
  */
 fun KotlinBuiltIns.getKotlinType(
   typeStr: String?,
   defaultValue: String?,
   moduleDescriptor: ModuleDescriptor,
-  isNonNull: Boolean = true,
-  fallbackType: KotlinType? = null
+  isNonNull: Boolean = true
 ): KotlinType {
-  val resolvedTypeStr = getPsiTypeStr(moduleDescriptor.fqNameSafe.toString(), typeStr, defaultValue)
+  val modulePackageName = moduleDescriptor.module.toModule()?.let { getPackageName(it) } ?: ""
+  val resolvedTypeStr = getPsiTypeStr(modulePackageName, typeStr, defaultValue)
 
   // array type
   if (resolvedTypeStr.endsWith("[]")) {
@@ -53,7 +53,7 @@ fun KotlinBuiltIns.getKotlinType(
       }
     }
     catch (e: AssertionError) {
-      this.getArrayType(Variance.INVARIANT, getKotlinTypeFromDescriptor(FqName(type), moduleDescriptor, fallbackType))
+      this.getArrayType(Variance.INVARIANT, getKotlinTypeFromDescriptor(FqName(type), moduleDescriptor))
     }
   }
 
@@ -63,7 +63,7 @@ fun KotlinBuiltIns.getKotlinType(
     }
   }
   catch (e: AssertionError) {
-    val rawType = getKotlinTypeFromDescriptor(FqName(resolvedTypeStr), moduleDescriptor, fallbackType)
+    val rawType = getKotlinTypeFromDescriptor(FqName(resolvedTypeStr), moduleDescriptor)
 
     if (isNonNull) return rawType
     else return rawType.makeNullable()
@@ -72,14 +72,13 @@ fun KotlinBuiltIns.getKotlinType(
 
 private fun getKotlinTypeFromDescriptor(
   fqName: FqName,
-  moduleDescriptor: ModuleDescriptor,
-  fallbackType: KotlinType?
+  moduleDescriptor: ModuleDescriptor
 ): KotlinType {
   return JavaToKotlinClassMap.mapJavaToKotlin(fqName)?.let {
     moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
   } ?: ClassId.topLevel(fqName).let {
     moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
-  } ?: fallbackType ?: fqName.getUnresolvedType()
+  } ?: fqName.getUnresolvedType()
 }
 
 private fun FqName.getUnresolvedType(): KotlinType {

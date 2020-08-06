@@ -182,6 +182,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                 y - margin.top,
                 cachedScaledContentSize.width + margin.left + margin.right,
                 cachedScaledContentSize.height + margin.top + margin.bottom)
+      sceneView.scene.needsRebuildList()
     }
 
     override fun setLocation(x: Int, y: Int) {

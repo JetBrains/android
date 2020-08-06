@@ -47,7 +47,7 @@ public class IdeaWizardAdapterTest {
   @Rule
   public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
 
-  private static class DummyModel extends WizardModel {
+  private static class SampleModel extends WizardModel {
     boolean isFinished;
 
     @Override
@@ -56,11 +56,11 @@ public class IdeaWizardAdapterTest {
     }
   }
 
-  private static class DummyStep extends ModelWizardStep<DummyModel> {
+  private static class SampleStep extends ModelWizardStep<SampleModel> {
 
     public final BoolValueProperty goForwardValue = new BoolValueProperty(true);
 
-    protected DummyStep(@NotNull DummyModel model) {
+    protected SampleStep(@NotNull IdeaWizardAdapterTest.SampleModel model) {
       super(model, "Step title");
     }
 
@@ -77,13 +77,13 @@ public class IdeaWizardAdapterTest {
     }
   }
 
-  private class DummyHost extends AbstractWizard<Step> {
+  private class SampleHost extends AbstractWizard<Step> {
     boolean updateButtonsCalled;
     boolean lastStepValue;
     boolean canGoNextValue;
     boolean firstStepValue;
 
-    private DummyHost() {
+    private SampleHost() {
       super("Host title", (Project) null);
       Reset();
       Disposer.register(myTestRootDisposable, getDisposable());
@@ -123,10 +123,10 @@ public class IdeaWizardAdapterTest {
 
   @Test
   public void canGoForwardsAndBackwards() {
-    AbstractWizard<Step> host = new DummyHost();
+    AbstractWizard<Step> host = new SampleHost();
 
-    DummyStep step1 = new DummyStep(new DummyModel());
-    DummyStep step2 = new DummyStep(new DummyModel());
+    SampleStep step1 = new SampleStep(new SampleModel());
+    SampleStep step2 = new SampleStep(new SampleModel());
     ModelWizard guest = new ModelWizard.Builder(step1, step2).build();
 
     IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
@@ -146,10 +146,10 @@ public class IdeaWizardAdapterTest {
 
   @Test
   public void canFinish() {
-    AbstractWizard<Step> host = new DummyHost();
+    AbstractWizard<Step> host = new SampleHost();
 
-    DummyModel model = new DummyModel();
-    DummyStep step1 = new DummyStep(model);
+    SampleModel model = new SampleModel();
+    SampleStep step1 = new SampleStep(model);
     ModelWizard guest = new ModelWizard.Builder(step1).build();
 
     IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
@@ -173,11 +173,11 @@ public class IdeaWizardAdapterTest {
 
   @Test
   public void updatesButtonsOnNavigation() {
-    DummyHost host = new DummyHost();
+    SampleHost host = new SampleHost();
 
-    DummyStep step1 = new DummyStep(new DummyModel());
-    DummyStep step2 = new DummyStep(new DummyModel());
-    DummyStep step3 = new DummyStep(new DummyModel());
+    SampleStep step1 = new SampleStep(new SampleModel());
+    SampleStep step2 = new SampleStep(new SampleModel());
+    SampleStep step3 = new SampleStep(new SampleModel());
     ModelWizard guest = new ModelWizard.Builder(step1, step2, step3).build();
 
     IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);
@@ -208,8 +208,8 @@ public class IdeaWizardAdapterTest {
 
   @Test
   public void updatesButtonsOnInput() {
-    DummyHost host = new DummyHost();
-    DummyStep step = new DummyStep(new DummyModel());
+    SampleHost host = new SampleHost();
+    SampleStep step = new SampleStep(new SampleModel());
     ModelWizard guest = new ModelWizard.Builder(step).build();
 
     IdeaWizardDelegate adaptor = new IdeaWizardAdapter(host, guest);

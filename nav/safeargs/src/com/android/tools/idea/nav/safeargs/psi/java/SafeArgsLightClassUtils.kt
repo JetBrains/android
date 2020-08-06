@@ -99,6 +99,9 @@ private fun guessFromDefaultValue(defaultValue: String?): String? {
   val referenceTypeStr = defaultValue.parseReference()
   if (referenceTypeStr != null) return referenceTypeStr
 
+  val longTypeStr = defaultValue.parseLong()
+  if (longTypeStr != null) return longTypeStr
+
   val intTypeStr = defaultValue.parseInt()
   if (intTypeStr != null) return intTypeStr
 
@@ -119,6 +122,11 @@ private val RESOURCE_REGEX = Regex("^@[+]?(.+?:)?(.+?)/(.+)$")
 
 private fun String.parseReference(): String? {
   return RESOURCE_REGEX.matchEntire(this)?.let { "reference" }
+}
+
+private fun String.parseLong(): String? {
+  if (!endsWith('L')) return null
+  return substringBeforeLast('L').toLongOrNull()?.let { PsiType.LONG.name }
 }
 
 private fun String.parseInt(): String? {
@@ -160,13 +168,11 @@ internal fun PsiClass.createConstructor(
     }
 }
 
-internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag? = null): LightFieldBuilder {
+internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag?): LightFieldBuilder {
   val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
   val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
-  val navigationElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
-  val fallback = this.navigationElement
   return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
-    this.navigationElement = navigationElement ?: fallback
+    this.navigationElement = xmlTag ?: this.navigationElement
   }
 }
 

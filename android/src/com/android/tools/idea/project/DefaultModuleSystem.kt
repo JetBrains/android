@@ -80,7 +80,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("DefaultModuleSystem.kt")
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {

@@ -40,8 +40,12 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?, vararg localRepos: File) {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, *localRepos)
+  override fun patchPreparedProject(projectRoot: File,
+                                    gradleVersion: String?,
+                                    graldePluginVersion: String?,
+                                    kotlinVersion: String?,
+                                    vararg localRepos: File) {
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, kotlinVersion, *localRepos)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -159,7 +163,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
       assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("${resolvedProject.basePath}/module/jav")))
     }
   }
-  
+
   fun testEmptyParentsInNestedModules() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 

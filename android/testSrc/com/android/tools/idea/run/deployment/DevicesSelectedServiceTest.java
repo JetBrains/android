@@ -72,7 +72,7 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -95,7 +95,7 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -118,7 +118,7 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -142,13 +142,13 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
-      .setKey(new Key("Pixel_2_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:28.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -173,13 +173,13 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
-      .setKey(new Key("Pixel_2_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:26.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -203,13 +203,13 @@ public final class DevicesSelectedServiceTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
-      .setKey(new Key("Pixel_2_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_2_API_29"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:28.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();

@@ -73,7 +73,6 @@ import static com.android.SdkConstants.VIEW_TAG;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewClassByName;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewValidInXMLByName;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -104,6 +103,7 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -124,6 +124,7 @@ import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
 import org.jetbrains.android.dom.layout.Tag;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -137,6 +138,7 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.TagFromClassDescriptor;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -324,7 +326,7 @@ public class AttributeProcessingUtil {
    */
   private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
     if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
-      return Collections.singleton(getViewValidInXMLByName(facet, SCROLL_VIEW));
+      return Collections.singleton(findViewValidInXMLByName(facet, SCROLL_VIEW));
     }
 
     return Collections.emptySet();
@@ -368,7 +370,7 @@ public class AttributeProcessingUtil {
     // Handle preferences:
     Map<String, PsiClass> prefClassMap;
     AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-    prefClassMap = getClassMap(facet, preferenceSource.getQualifiedBaseClass());
+    prefClassMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(preferenceSource.getQualifiedBaseClass());
     PsiClass psiClass = prefClassMap.get(tagName);
     if (psiClass == null) {
       return;
@@ -388,14 +390,6 @@ public class AttributeProcessingUtil {
         }
       }
     }
-  }
-
-  private static Map<String, PsiClass> getClassMap(AndroidFacet facet, String qualifiedClassName) {
-    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(qualifiedClassName);
-  }
-
-  private static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, VIEW_CLASS_NAME);
   }
 
   /**
@@ -521,17 +515,6 @@ public class AttributeProcessingUtil {
     }
   }
 
-  @Nullable
-  private static PsiClass getViewValidInXMLByName(@NotNull AndroidFacet facet, String tag) {
-    switch (StudioFlags.LAYOUT_XML_MODE.get()) {
-      case ATTRIBUTES_FROM_STYLEABLES:
-      case CUSTOM_CHILDREN:
-        return findViewValidInXMLByName(facet, tag);
-      default:
-        return getViewClassMap(facet).get(tag);
-    }
-  }
-
   /**
    * Entry point for XML elements in layout XMLs
    */
@@ -552,8 +535,10 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_VIEW_BINDING_IGNORE, callback);
       }
 
-      if (getViewValidInXMLByName(facet, tag.getName()) != null) {
-        PsiClass viewClass = getViewValidInXMLByName(facet, tag.getName());
+      XmlElementDescriptor descriptor = tag.getDescriptor();
+      if (descriptor instanceof LayoutViewElementDescriptor &&
+          ((LayoutViewElementDescriptor)descriptor).getClazz() != null) {
+        PsiClass viewClass = ((LayoutViewElementDescriptor)descriptor).getClazz();
 
         if (InheritanceUtil.isInheritor(viewClass, FQCN_ADAPTER_VIEW)) {
           registerToolsAttribute(ATTR_LISTITEM, callback);
@@ -605,7 +590,7 @@ public class AttributeProcessingUtil {
 
         String name = tag.getAttributeValue("class");
         if (name != null) {
-          PsiClass aClass = getViewValidInXMLByName(facet, name);
+          PsiClass aClass = findViewValidInXMLByName(facet, name);
           if (aClass != null) {
             registerAttributesForClassAndSuperclasses(facet, element, aClass, callback, skipAttrNames);
           }
@@ -616,16 +601,17 @@ public class AttributeProcessingUtil {
         if (tag.getParentTag() == null) {
           registerToolsAttribute(ATTR_PARENT_TAG, callback);
         }
-        registerAttributesForClassAndSuperclasses(facet, element, getViewValidInXMLByName(facet, VIEW_MERGE), callback, skipAttrNames);
+        registerAttributesForClassAndSuperclasses(facet, element, findViewValidInXMLByName(facet, VIEW_MERGE), callback, skipAttrNames);
 
         String parentTagName = tag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
         if (parentTagName != null) {
-          registerAttributesForClassAndSuperclasses(facet, element, getViewValidInXMLByName(facet, parentTagName), callback, skipAttrNames);
+          registerAttributesForClassAndSuperclasses(facet, element, findViewValidInXMLByName(facet, parentTagName), callback,
+                                                    skipAttrNames);
         }
         break;
 
       default:
-        PsiClass c = getViewValidInXMLByName(facet, tagName);
+        PsiClass c = findViewValidInXMLByName(facet, tagName);
         registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
         break;
     }
@@ -651,7 +637,7 @@ public class AttributeProcessingUtil {
         parentViewClass = findViewClassByName(facet, CLASS_VIEWGROUP);
       }
       else if (parentTagName != null) {
-        parentViewClass = getViewValidInXMLByName(facet, parentTagName);
+        parentViewClass = findViewValidInXMLByName(facet, parentTagName);
       }
 
       if (parentTagName != null) {
@@ -692,6 +678,12 @@ public class AttributeProcessingUtil {
 
     Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, element, callback) : new HashSet<>();
+
+    XmlElementDescriptor descriptor = tag.getDescriptor();
+    if (descriptor instanceof TagFromClassDescriptor && ((TagFromClassDescriptor)descriptor).getClazz() == null) {
+      // Don't register attributes for unresolved classes.
+      return;
+    }
 
     if (element instanceof ManifestElement) {
       processManifestAttributes(tag, element, callback);

@@ -23,7 +23,7 @@ private const val PREFERENCE_KEY = "layout.editor.validator.a11y"
 /**
  * UI Controller for editor.
  */
-interface LayoutValidatingEditor{
+interface LayoutScanningEditor{
 
   /**
    * Force refresh the design surface.
@@ -32,19 +32,19 @@ interface LayoutValidatingEditor{
 }
 
 /**
- * Returns true if layout validation should always be enabled. False otherwise.
+ * Returns true if layout scanner should always be enabled. False otherwise.
  */
-var alwaysEnableLayoutValidation
+var alwaysEnableLayoutScanner
   get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, false)
   set(value) {
-    if (value != alwaysEnableLayoutValidation) {
+    if (value != alwaysEnableLayoutScanner) {
       PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value)
 
       for (project in ProjectManager.getInstance().openProjects) {
         val editorManager = FileEditorManager.getInstance(project)
         val editor = editorManager.selectedEditor
 
-        if (editor is LayoutValidatingEditor) {
+        if (editor is LayoutScanningEditor) {
           editor.forceRefreshDesignSurface()
         }
       }

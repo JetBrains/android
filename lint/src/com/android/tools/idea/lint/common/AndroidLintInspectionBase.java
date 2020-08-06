@@ -400,13 +400,13 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @SuppressWarnings("rawtypes")
-  private static InspectionToolWrapper[] getInspectionTools(@NotNull Project project) {
+  private static @NotNull List<InspectionToolWrapper<?, ?>> getInspectionTools(@NotNull Project project) {
     InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
     try {
       return profile.getInspectionTools(null);
     } catch (Throwable t) {
       LOG.warn("Couldn't look up inspection tools", t);
-      return InspectionToolWrapper.EMPTY_ARRAY;
+      return Collections.emptyList();
     }
   }
 

@@ -1,5 +1,5 @@
 PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : testWithCentralBuildDirectoryInRootModuleDeleted
         ExternalModuleGroup :
@@ -51,9 +51,11 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/central/build/generated/res/rs/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/central/build/generated/res/resValues/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/central/build/generated/res/resValues/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -145,6 +147,10 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
             JavaSource          : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debug/out
         CONENT_ENTRY        : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debugAndroidTest/out
             JavaSource (test)   : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/resValues/androidTest/debug
+            JavaResource (test) : file://<PROJECT>/central/build/generated/res/resValues/androidTest/debug
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/resValues/debug
+            JavaResource        : file://<PROJECT>/central/build/generated/res/resValues/debug
         CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug
             JavaResource (test) : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug
         CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/rs/debug

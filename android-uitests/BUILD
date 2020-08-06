@@ -57,9 +57,8 @@ iml_module(
         "//tools/idea/plugins/properties/properties-resource-bundle-editor:intellij.properties.resource.bundle.editor",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
-        "//tools/vendor/intellij/cidr/cidr-workspaceModel:intellij.cidr.workspaceModel",
+        "//tools/vendor/intellij/cidr/cidr-workspaceModelBridge:intellij.cidr.workspaceModelBridge",
         "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
-        "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
         "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
         "//tools/idea/plugins/editorconfig:intellij.editorconfig",
@@ -67,6 +66,7 @@ iml_module(
         "//tools/idea/plugins/sh:intellij.sh",
         "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
         "//tools/idea/plugins/filePrediction:intellij.filePrediction",
+        "//tools/idea/plugins/webp:intellij.webp",
         "//tools/idea/.idea/libraries:jgoodies-common",
         "//tools/idea/.idea/libraries:commons-net",
     ],
@@ -81,9 +81,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -99,7 +102,9 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:jna[test]",
+        "//tools/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea:intellij.idea.community.main[module, test]",
@@ -376,6 +381,19 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "EmbeddedEmulatorTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/android-emulator:emulator",
+        "@system_image_latest_default_x86_64//:images",
+    ] + glob(["testData/TextInput/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # sanity test
 java_test(
     name = "CompileWithJava8Test",
@@ -393,7 +411,6 @@ java_test(
 # sanity test
 java_test(
     name = "CreateDefaultActivityTest",
-    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -2197,8 +2214,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.emulator-proto[test]",
         "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:unb.intellij.android.emulator[module, test]",
         "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",

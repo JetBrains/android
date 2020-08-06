@@ -39,12 +39,17 @@ def _module_deps(ctx, jar_names, modules):
     jars = _lists_to_dict(jar_names, modules)
     bundled = {}
     res_files = []
+    plugin_jar = None
+    plugin_xml = None
     for j, ms in jars.items():
         jar_file = ctx.actions.declare_file(j)
         modules_jars = []
         for m in ms:
             if not hasattr(m, "module"):
                 fail("Only iml_modules are allowed in modules")
+            if m.module.plugin:
+                plugin_jar = j
+                plugin_xml = m.module.plugin
             modules_jars += [m.module.module_jars]
             for dep in m.module.bundled_deps:
                 if dep in bundled:
@@ -53,41 +58,72 @@ def _module_deps(ctx, jar_names, modules):
                 bundled[dep] = True
         run_singlejar(ctx, modules_jars, jar_file)
         res_files += [(j, jar_file)]
-    return res_files
+    return res_files, plugin_jar, plugin_xml
 
-def _resource_deps(res_dirs, res):
+def _get_linux(dep):
+    return dep.files.to_list() + dep.files_linux.to_list()
+
+LINUX = struct(
+    name = "linux",
+    jre = "jre/",
+    get = _get_linux,
+    base_path = "android-studio/",
+    resource_path = "android-studio/",
+)
+
+def _get_mac(dep):
+    return dep.files.to_list() + dep.files_mac.to_list()
+
+MAC = struct(
+    name = "mac",
+    jre = "jre/jdk/",
+    get = _get_mac,
+    base_path = "Android Studio.app/Contents/",
+    resource_path = "Android Studio.app/Contents/Resources/",
+)
+
+def _get_win(dep):
+    return dep.files.to_list() + dep.files_win.to_list()
+
+WIN = struct(
+    name = "win",
+    jre = "jre/",
+    get = _get_win,
+    base_path = "android-studio/",
+    resource_path = "android-studio/",
+)
+
+def _resource_deps(res_dirs, res, platform):
     files = []
-    linux = []
-    mac = []
-    win = []
-
     for dir, dep in zip(res_dirs, res):
         if hasattr(dep, "mappings"):
-            files += [(dir + "/" + dep.mappings[f], f) for f in dep.files.to_list()]
-            linux += [(dir + "/" + dep.mappings[f], f) for f in dep.files_linux.to_list()]
-            mac += [(dir + "/" + dep.mappings[f], f) for f in dep.files_mac.to_list()]
-            win += [(dir + "/" + dep.mappings[f], f) for f in dep.files_win.to_list()]
+            files += [(dir + "/" + dep.mappings[f], f) for f in platform.get(dep)]
         else:
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
-    return (files, linux, mac, win)
+    return files
+
+def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, out):
+    files = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
+
+    res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
+    files += [(plugin_dir + "/" + d, f) for (d, f) in res]
+
+    _zipper(ctx, "%s plugin" % platform.name, files, out)
 
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
-    files = [(plugin_dir + "/lib/" + d, f) for (d, f) in _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)]
+    module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, ctx.outputs.plugin_linux)
+    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, ctx.outputs.plugin_mac)
+    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, ctx.outputs.plugin_win)
 
-    res, res_linux, res_mac, res_win = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources)
-    files += [(plugin_dir + "/" + d, f) for (d, f) in res]
-    res_linux = [(plugin_dir + "/" + d, f) for (d, f) in res_linux]
-    res_mac = [(plugin_dir + "/" + d, f) for (d, f) in res_mac]
-    res_win = [(plugin_dir + "/" + d, f) for (d, f) in res_win]
-
-    _zipper(ctx, "linux plugin", files + res_linux, ctx.outputs.plugin_linux)
-    _zipper(ctx, "mac plugin", files + res_mac, ctx.outputs.plugin_mac)
-    _zipper(ctx, "win plugin", files + res_win, ctx.outputs.plugin_win)
     return struct(
-        linux = ctx.outputs.plugin_linux,
-        mac = ctx.outputs.plugin_mac,
-        win = ctx.outputs.plugin_win,
+        xml = plugin_xml,
+        xml_jar = plugin_dir + "/lib/" + plugin_jar,
+        files = depset(),
+        files_linux = depset([ctx.outputs.plugin_linux]),
+        files_mac = depset([ctx.outputs.plugin_mac]),
+        files_win = depset([ctx.outputs.plugin_win]),
     )
 
 _studio_plugin = rule(
@@ -222,10 +258,63 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_win = 
         **kwargs
     )
 
-def _zip_merger(ctx, zips, files, out):
-    data = [f for (d, f) in zips + files]
+def _stamp_plugin(ctx, build_txt, in_xml, stamped_xml):
+    args = ["--build_file", build_txt.path]
+    args += ["--info_file", ctx.info_file.path]
+    args += ["--stamp_plugin", in_xml.path, stamped_xml.path]
+    ctx.actions.run(
+        inputs = [in_xml, build_txt, ctx.info_file],
+        outputs = [stamped_xml],
+        executable = ctx.executable._stamper,
+        arguments = args,
+        progress_message = "Stamping plugin xml...",
+        mnemonic = "stamper",
+    )
+
+def _extract(ctx, zip, file, target):
+    ctx.actions.run(
+        inputs = [zip],
+        outputs = [target],
+        executable = ctx.executable._unzipper,
+        arguments = [zip.path, file + ":" + target.path],
+        progress_message = "Extracting file from zip...",
+        mnemonic = "extract",
+    )
+
+def _stamp_app_info(ctx, platform, platform_files):
+    build_txt = None
+    app_info_xml = None
+    for rel_path, file in platform_files:
+        if rel_path == platform.resource_path + "build.txt":
+            build_txt = file
+        if rel_path == platform.base_path + "lib/resources.jar":
+            app_info_xml = ctx.actions.declare_file(ctx.attr.name + ".%s.app_info.xml" % platform.name)
+            _extract(ctx, file, "idea/AndroidStudioApplicationInfo.xml", app_info_xml)
+
+    if not build_txt:
+        fail("build.txt not found in %s platform distribution" % platform.name)
+    if not app_info_xml:
+        fail("lib/resources.jar!idea/AndroidStudioApplicationInfo.xml not found")
+
+    stamped_app_info_xml = ctx.actions.declare_file(ctx.attr.name + "stamped.%s.app_info.xml" % platform.name)
+    args = ["--build_file", build_txt.path]
+    args += ["--info_file", ctx.info_file.path]
+    args += ["--stamp_build", app_info_xml.path, stamped_app_info_xml.path]
+    ctx.actions.run(
+        inputs = [app_info_xml, build_txt, ctx.info_file],
+        outputs = [stamped_app_info_xml],
+        executable = ctx.executable._stamper,
+        arguments = args,
+        progress_message = "Stamping plugin xml...",
+        mnemonic = "stamper",
+    )
+    return stamped_app_info_xml, build_txt
+
+def _zip_merger(ctx, zips, files, overrides, out):
+    data = [f for (d, f) in zips + files + overrides]
     zipper_files = [r + "=+" + f.path + "\n" for r, f in zips]
     zipper_files += [r + "=" + f.path + "\n" for r, f in files]
+    zipper_files += [r + "=" + f.path + "\n" for r, f in overrides]
     zipper_args = ["c", out.path]
     zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
     zipper_args += ["@" + zipper_list.path]
@@ -238,68 +327,43 @@ def _zip_merger(ctx, zips, files, out):
         mnemonic = "zipmerger",
     )
 
-def _android_studio_impl(ctx):
-    zips_linux = []
-    zips_mac = []
-    zips_win = []
+def _android_studio_os(ctx, platform, out):
+    zips = []
+    files = []
 
-    files_linux = []
-    files_mac = []
-    files_win = []
+    platform_zip = ctx.actions.declare_file(ctx.attr.name + ".platform.%s.zip" % platform.name)
+    platform_files = [(ctx.attr.platform.mappings[f], f) for f in platform.get(ctx.attr.platform)]
 
-    platform_zip_linux = ctx.actions.declare_file(ctx.attr.name + ".platform.linux.zip")
-    platform_zip_mac = ctx.actions.declare_file(ctx.attr.name + ".platform.mac.zip")
-    platform_zip_win = ctx.actions.declare_file(ctx.attr.name + ".platform.win.zip")
+    stamped_app_info_xml, build_txt = _stamp_app_info(ctx, platform, platform_files)
+    overrides = [("#%slib/resources.jar!idea/AndroidStudioApplicationInfo.xml" % platform.base_path, stamped_app_info_xml)]
 
-    platform_files = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files.to_list()]
-    platform_files_linux = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_linux.to_list()]
-    platform_files_mac = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_mac.to_list()]
-    platform_files_win = [(ctx.attr.platform.mappings[f], f) for f in ctx.attr.platform.files_win.to_list()]
+    _zipper(ctx, "%s platform" % platform.name, platform_files, platform_zip)
 
-    _zipper(ctx, "linux platform", platform_files + platform_files_linux, platform_zip_linux)
-    _zipper(ctx, "mac platform", platform_files + platform_files_mac, platform_zip_mac)
-    _zipper(ctx, "win platform", platform_files + platform_files_win, platform_zip_win)
-
-    zips_linux += [("", platform_zip_linux)]
-    zips_mac += [("", platform_zip_mac)]
-    zips_win += [("", platform_zip_win)]
-
+    zips += [("", platform_zip)]
     if ctx.attr.jre:
-        jre_zip_linux = ctx.actions.declare_file(ctx.attr.name + ".jre.linux.zip")
-        jre_zip_mac = ctx.actions.declare_file(ctx.attr.name + ".jre.mac.zip")
-        jre_zip_win = ctx.actions.declare_file(ctx.attr.name + ".jre.win.zip")
+        jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
+        jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
+        _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
+        zips += [(platform.base_path + platform.jre, jre_zip)]
 
-        jre_files = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files.to_list()]
-        jre_files_linux = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_linux.to_list()]
-        jre_files_mac = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_mac.to_list()]
-        jre_files_win = [(ctx.attr.jre.mappings[f], f) for f in ctx.attr.jre.files_win.to_list()]
-
-        _zipper(ctx, "linux jre", jre_files + jre_files_linux, jre_zip_linux)
-        _zipper(ctx, "mac jre", jre_files + jre_files_mac, jre_zip_mac)
-        _zipper(ctx, "win jre", jre_files + jre_files_win, jre_zip_win)
-
-        zips_linux += [("android-studio/jre/", jre_zip_linux)]
-        zips_mac += [("Android Studio.app/Contents/jre/jdk/", jre_zip_mac)]
-        zips_win += [("android-studio/jre/", jre_zip_win)]
+    res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
+    files += [(platform.base_path + d, f) for (d, f) in res]
 
     for p in ctx.attr.plugins:
-        zips_linux += [("android-studio/", p.linux)]
-        zips_mac += [("Android Studio.app/Contents/", p.mac)]
-        zips_win += [("android-studio/", p.win)]
+        stamped_xml = ctx.actions.declare_file("stamped.%s.%s.xml" % (p.label.name, platform.name))
+        _stamp_plugin(ctx, build_txt, p.xml, stamped_xml)
+        overrides += [("#%s%s!META-INF/plugin.xml" % (platform.base_path, p.xml_jar), stamped_xml)]
+        zips += [(platform.base_path, platform.get(p)[0])]
 
-    res, res_linux, res_mac, res_win = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources)
-    files_linux += [("android-studio/" + d, f) for (d, f) in res + res_linux]
-    files_mac += [("Android Studio.app/Contents/" + d, f) for (d, f) in res + res_mac]
-    files_win += [("android-studio/" + d, f) for (d, f) in res + res_win]
+    module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
-    module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    files_linux += [("android-studio/lib/" + d, f) for (d, f) in module_deps]
-    files_mac += [("Android Studio.app/Contents/lib/" + d, f) for (d, f) in module_deps]
-    files_win += [("android-studio/lib/" + d, f) for (d, f) in module_deps]
+    _zip_merger(ctx, zips, files, overrides, out)
 
-    _zip_merger(ctx, zips_linux, files_linux, ctx.outputs.linux)
-    _zip_merger(ctx, zips_mac, files_mac, ctx.outputs.mac)
-    _zip_merger(ctx, zips_win, files_win, ctx.outputs.win)
+def _android_studio_impl(ctx):
+    _android_studio_os(ctx, LINUX, ctx.outputs.linux)
+    _android_studio_os(ctx, MAC, ctx.outputs.mac)
+    _android_studio_os(ctx, WIN, ctx.outputs.win)
 
 _android_studio = rule(
     attrs = {
@@ -320,8 +384,18 @@ _android_studio = rule(
             cfg = "host",
             executable = True,
         ),
+        "_stamper": attr.label(
+            default = Label("//tools/adt/idea/studio:stamper"),
+            cfg = "host",
+            executable = True,
+        ),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "host",
+            executable = True,
+        ),
+        "_unzipper": attr.label(
+            default = Label("//tools/base/bazel:unzipper"),
             cfg = "host",
             executable = True,
         ),

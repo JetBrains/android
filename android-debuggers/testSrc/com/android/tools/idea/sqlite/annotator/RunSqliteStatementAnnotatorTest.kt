@@ -21,7 +21,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
@@ -37,6 +37,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.Icon
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -46,6 +47,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var sqliteDatabaseId1: SqliteDatabaseId
 
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val scope = CoroutineScope(EmptyCoroutineContext)
 
   override fun setUp() {
@@ -58,7 +60,10 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
       model = model,
-      createController = { _, _ -> MockDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model) }
+      offlineDatabaseManager = mock(),
+      createController = { _, _, _ ->
+        FakeDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model)
+      }
     )
 
     ideComponents = IdeComponents(myFixture)
@@ -199,7 +204,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
-    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope)
+    val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope, taskExecutor)
     return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }

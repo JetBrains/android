@@ -146,7 +146,6 @@ private class RemoveSHA256FromGradleWrapperQuickFix : DescribedBuildIssueQuickFi
           // Remove distributionSha256Sum from Gradle wrapper.
           properties.remove(DISTRIBUTION_SHA_256_SUM)
           PropertiesFiles.savePropertiesToFile(properties, wrapper.propertiesFilePath, null)
-          LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(wrapper.propertiesFilePath))
         }
         catch (exception: IOException) {
           Logger.getInstance(RemoveSHA256FromGradleWrapperQuickFix::class.java).warn(

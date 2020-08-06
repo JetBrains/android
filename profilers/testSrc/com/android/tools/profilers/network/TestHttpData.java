@@ -135,7 +135,7 @@ public final class TestHttpData {
 
   @NotNull
   private static HttpData.Builder initHttpDataBuilder(@NotNull HttpData.Builder builder) {
-    // Create a dummy data so we can read its values (the builder itself doesn't have or need
+    // Create sample data so we can read its values (the builder itself doesn't have or need
     // getters)
     HttpData temp = builder.build();
     long id = temp.getId();

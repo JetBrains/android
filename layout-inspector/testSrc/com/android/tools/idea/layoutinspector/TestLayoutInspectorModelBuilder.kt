@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -29,6 +30,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.Image
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
 fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
@@ -46,12 +48,28 @@ fun view(drawId: Long,
          layout: ResourceReference? = null,
          imageType: PayloadType = PayloadType.SKP,
          body: InspectorViewDescriptor.() -> Unit = {}) =
-  InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue, layoutFlags, layout,
-                          imageType)
+  InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue, layoutFlags, layout, imageType)
     .also(body).build()
 
+fun compose(drawId: Long,
+            name: String,
+            composeFilename: String = "",
+            composePackageHash: Int = -1,
+            composeOffset: Int = 0,
+            composeLineNumber: Int = 0,
+            x: Int = 0,
+            y: Int = 0,
+            width: Int = 0,
+            height: Int = 0,
+            imageType: PayloadType = PayloadType.SKP,
+            body: InspectorViewDescriptor.() -> Unit = {}) =
+  InspectorViewDescriptor(drawId, name, x, y, width, height, null, "", 0, null, imageType,
+                          composeFilename, composePackageHash, composeOffset, composeLineNumber).also(body)
+
 interface InspectorNodeDescriptor
-class InspectorImageDescriptor(internal val image: Image, internal val x: Int? = null, internal val y: Int? = null): InspectorNodeDescriptor
+class InspectorImageDescriptor(
+  internal val image: BufferedImage, internal val x: Int? = null, internal val y: Int? = null
+): InspectorNodeDescriptor
 
 class InspectorViewDescriptor(private val drawId: Long,
                               private val qualifiedName: String,
@@ -63,10 +81,14 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val textValue: String,
                               private val layoutFlags: Int,
                               private val layout: ResourceReference?,
-                              private val imageType: PayloadType): InspectorNodeDescriptor {
+                              private val imageType: PayloadType,
+                              private val composeFilename: String = "",
+                              private val composePackageHash: Int = 0,
+                              private val composeOffset: Int = 0,
+                              private val composeLineNumber: Int = 0): InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
-  fun image(image: Image = mock(), x: Int? = null, y: Int? = null) {
+  fun image(image: BufferedImage = mock()) {
     children.add(InspectorImageDescriptor(image, x, y))
   }
 
@@ -95,8 +117,26 @@ class InspectorViewDescriptor(private val drawId: Long,
            body: InspectorViewDescriptor.() -> Unit = {}) =
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, 0, layout, imageType, body)
 
+  fun compose(drawId: Long,
+              name: String,
+              composeFilename: String = "",
+              composePackageHash: Int = -1,
+              composeOffset: Int = 0,
+              composeLineNumber: Int = 0,
+              x: Int = 0,
+              y: Int = 0,
+              width: Int = 0,
+              height: Int = 0,
+              imageType: PayloadType = PayloadType.SKP,
+              body: InspectorViewDescriptor.() -> Unit = {}) =
+    children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, "", 0, null, imageType,
+                                         composeFilename, composePackageHash, composeOffset, composeLineNumber).apply(body))
+
   fun build(): ViewNode {
-    val result = ViewNode(drawId, qualifiedName, layout, x, y, width, height, viewId, textValue, layoutFlags)
+    val result =
+      if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, null, viewId, textValue, layoutFlags)
+      else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, textValue, 0,
+                           composeFilename, composePackageHash, composeOffset, composeLineNumber)
     result.imageType = imageType
     children.forEach {
       when (it) {
@@ -105,7 +145,10 @@ class InspectorViewDescriptor(private val drawId: Long,
           result.children.add(viewNode)
           result.drawChildren.add(DrawViewChild(viewNode))
         }
-        is InspectorImageDescriptor -> result.drawChildren.add(DrawViewImage(it.image, it.x ?: result.x, it.y ?: result.y, result))
+        is InspectorImageDescriptor -> {
+          val image = it.image.getSubimage(0, 0, result.width, result.height) ?: it.image
+          result.drawChildren.add(DrawViewImage(image, it.x ?: result.x, it.y ?: result.y, result))
+        }
       }
     }
     result.children.forEach { it.parent = result }
@@ -148,7 +191,7 @@ class InspectorModelDescriptor(val project: Project) {
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationBuilder(strings)
-      model.resourceLookup.updateConfiguration(config.makeDummyConfiguration(project), strings)
+      model.resourceLookup.updateConfiguration(config.makeSampleConfiguration(project), strings)
     }
     return model
   }

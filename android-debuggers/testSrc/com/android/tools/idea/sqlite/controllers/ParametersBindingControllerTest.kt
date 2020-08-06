@@ -17,12 +17,12 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
-import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.FakeParametersBindingDialogView
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
+import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import org.mockito.InOrder
@@ -32,15 +32,15 @@ import org.mockito.Mockito.verify
 
 class ParametersBindingControllerTest : PlatformTestCase() {
   private lateinit var controller: ParametersBindingController
-  private lateinit var view: MockParametersBindingDialogView
+  private lateinit var view: FakeParametersBindingDialogView
   private lateinit var orderVerifier: InOrder
   private lateinit var ranStatements: MutableList<SqliteStatement>
 
   override fun setUp() {
     super.setUp()
 
-    val factory = MockDatabaseInspectorViewsFactory()
-    view = spy(factory.parametersBindingDialogView)
+    val databaseInspectorViewsFactory = FakeDatabaseInspectorViewsFactory()
+    view = spy(databaseInspectorViewsFactory.parametersBindingDialogView)
     orderVerifier = Mockito.inOrder(view)
 
     ranStatements = mutableListOf()

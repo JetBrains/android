@@ -23,10 +23,11 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
+import com.android.tools.idea.templates.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType
@@ -34,9 +35,12 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.io.IOException
 
@@ -71,6 +75,20 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
   val autoAddGpuSetup: BoolValueProperty = BoolValueProperty(false)
 
   override fun handleFinished() {
+    object : Task.Modal(module.project, message("android.compile.messages.generating.r.java.content.name"), false) {
+      lateinit var moduleTemplateData: ModuleTemplateData
+      override fun run(indicator: ProgressIndicator) {
+        // Slow operation, do in background.
+        moduleTemplateData = getExistingModuleTemplateDataBuilder(module).build()
+      }
+
+      override fun onFinished() {
+        render(moduleTemplateData)
+      }
+    }.queue()
+  }
+
+  private fun render(moduleTemplateData: ModuleTemplateData) {
     val fromFile: VirtualFile? = VfsUtil.findFileByIoFile(File(sourceLocation.get()), false)
     val directoryPath: String = mlDirectory.get()
     runWriteAction {
@@ -91,7 +109,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
               module.project,
               module,
               "Import TensorFlow Lite Model",
-              getDummyModuleTemplateDataBuilder(module.project).build(),
+              moduleTemplateData,
               showErrors = true,
               dryRun = false,
               moduleRoot = null

@@ -34,9 +34,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
@@ -50,6 +53,7 @@ iml_module(
     deps = [
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
+        "//tools/idea/.idea/libraries:Trove4j",
         "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
@@ -85,6 +89,7 @@ iml_module(
         "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
+        "//tools/idea/.idea/libraries:fastutil-min",
     ],
 )
 
@@ -110,6 +115,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
         "//tools/adt/idea/profilers-ui:unb.intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:unb.intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",

@@ -101,6 +101,7 @@ import java.awt.Color
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -140,7 +141,8 @@ private class ModelDataContext(private val composePreviewManager: ComposePreview
 private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            showDecorations: Boolean,
                                            isInteractive: Boolean,
-                                           usePrivateClassLoader: Boolean): LayoutlibSceneManager =
+                                           usePrivateClassLoader: Boolean,
+                                           forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
@@ -149,7 +151,9 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
     setUsePrivateClassLoader(usePrivateClassLoader)
     setQuality(0.7f)
     setShowDecorations(showDecorations)
-    forceReinflate()
+    if (forceReinflate) {
+      forceReinflate()
+    }
   }
 
 /**
@@ -233,7 +237,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         interactiveMode = InteractiveMode.STARTING
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
-        forceRefresh().invokeOnCompletion {
+        forceRefresh(StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()).invokeOnCompletion {
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
 
@@ -331,7 +335,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
-  private val isContentBeingRendered = AtomicBoolean(false)
+  /**
+   * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
+   * is being refreshed. Even though [uniqueRefreshLauncher] guarantees that only at most a single refresh happens at any point in time,
+   * there might be several simultaneous calls to [refresh] method and therefore we need a counter instead of boolean flag.
+   */
+  private val refreshCallsCount = AtomicInteger(0)
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not rendered once
@@ -354,7 +363,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
-  private val mainPanelSplitter = JBSplitter(true, 0.7f)
+  private val mainPanelSplitter = JBSplitter(true, 0.7f).apply { dividerWidth = 3 }
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -514,7 +523,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun status(): ComposePreviewManager.Status {
-    val isRefreshing = (isContentBeingRendered.get() ||
+    val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
                         GradleBuildState.getInstance(project).isBuildInProgress)
 
@@ -574,9 +583,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
-   * The call will block until all the given [PreviewElement]s have completed rendering.
+   * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
+   * is true the preview surfaces for the same [PreviewElement]s do not get reinflated, this allows to save
+   * time for e.g. static to animated preview transition.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
@@ -632,6 +643,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val model = if (existingModels.isNotEmpty()) {
           // Find the same model we were using before, if possible. See modelAffinity for more details.
           val reusedModel = existingModels.minBy { aModel -> modelAffinity(aModel.dataContext, previewElement) }!!
+          val affinity = modelAffinity(reusedModel.dataContext, previewElement)
+          // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
+          // we can skip reinflate and therefore refresh much quicker
+          val forceReinflate = !(affinity == 0 && quickRefresh)
           existingModels.remove(reusedModel)
 
           LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
@@ -644,7 +659,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureLayoutlibSceneManager(surface.addModelWithoutRender(reusedModel) as LayoutlibSceneManager,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
-                                         usePrivateClassLoader = usePrivateClassLoader())
+                                         usePrivateClassLoader = usePrivateClassLoader(),
+                                         forceReinflate = forceReinflate)
           reusedModel
         }
         else {
@@ -748,7 +764,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  fun refresh(): Job {
+  fun refresh(quickRefresh: Boolean = false): Job {
     var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       LOG.debug("Refresh triggered", refreshTrigger)
@@ -757,7 +773,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launch
       }
 
-      isContentBeingRendered.set(true)
+      refreshCallsCount.incrementAndGet()
       updateNotifications()
       try {
         val filePreviewElements = withContext(workerThread) {
@@ -792,7 +808,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         else {
           uniqueRefreshLauncher.launch {
-            doRefreshSync(filePreviewElements)
+            doRefreshSync(filePreviewElements, quickRefresh)
           }?.join()
         }
       }
@@ -800,7 +816,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         LOG.warn("Refresh request failed", t)
       }
       finally {
-        isContentBeingRendered.set(false)
+        refreshCallsCount.decrementAndGet()
         updateSurfaceVisibilityAndNotifications()
       }
     }
@@ -810,11 +826,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
    * where it's crucial not to share the state (which includes the compose framework).
    */
-  private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get()
+  private fun usePrivateClassLoader() =
+    interactiveMode.isStartingOrReady() || animationInspection.get() || StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()
 
-  private fun forceRefresh(): Job {
+  private fun forceRefresh(quickRefresh: Boolean = false): Job {
     previewElements = emptyList() // This will just force a refresh
-    return refresh()
+    return refresh(quickRefresh)
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {

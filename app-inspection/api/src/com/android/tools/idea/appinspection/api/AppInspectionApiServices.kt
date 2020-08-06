@@ -24,7 +24,9 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asExecutor
 import java.util.concurrent.ExecutorService
 
 typealias JarCopierCreator = (Common.Device) -> AppInspectionJarCopier?
@@ -52,7 +54,7 @@ interface AppInspectionApiServices {
   /**
    * Disposes all of the currently active inspector clients in [project].
    */
-  fun disposeClients(project: String)
+  suspend fun disposeClients(project: String)
 
   /**
    * A coroutine scope used to launch jobs. This scope is tied to the disposable of the App Inspection IDE service.
@@ -61,15 +63,15 @@ interface AppInspectionApiServices {
 
   companion object {
     fun createDefaultAppInspectionApiServices(
-      executor: ExecutorService,
       client: TransportClient,
       streamManager: TransportStreamManager,
       scope: CoroutineScope,
+      dispatcher: CoroutineDispatcher,
       createJarCopier: JarCopierCreator
     ): AppInspectionApiServices {
-      val targetManager = AppInspectionTargetManager(executor, client, scope)
-      val processNotifier: ProcessNotifier = AppInspectionProcessDiscovery(executor, streamManager)
-      processNotifier.addProcessListener(executor, targetManager)
+      val targetManager = AppInspectionTargetManager(client, scope, dispatcher)
+      val processNotifier: ProcessNotifier = AppInspectionProcessDiscovery(dispatcher, streamManager)
+      processNotifier.addProcessListener(dispatcher.asExecutor(), targetManager)
       val launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery, createJarCopier)
       return DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
     }

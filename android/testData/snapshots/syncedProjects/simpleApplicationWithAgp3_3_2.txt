@@ -1,5 +1,5 @@
 PROJECT             : testSimpleApplicationWithAgp3_3_2
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : testSimpleApplicationWithAgp3_3_2
         ExternalModuleGroup :

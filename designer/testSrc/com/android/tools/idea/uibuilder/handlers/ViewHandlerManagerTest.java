@@ -41,8 +41,8 @@ import org.jetbrains.annotations.Nullable;
 public class ViewHandlerManagerTest extends LayoutTestCase {
 
   public void testBasicHandlers() {
-    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
-    assertSame(viewManager, getProject().getComponent(ViewHandlerManager.class));
+    ViewHandlerManager viewManager = getProject().getService(ViewHandlerManager.class);
+    assertSame(viewManager, getProject().getService(ViewHandlerManager.class));
 
     assertTrue(viewManager.getHandler("LinearLayout") instanceof LinearLayoutHandler);
     assertTrue(viewManager.getHandler("android.widget.LinearLayout") instanceof LinearLayoutHandler);
@@ -58,7 +58,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
   }
 
   public void testAndroidxHandler() {
-    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    ViewHandlerManager viewManager = getProject().getService(ViewHandlerManager.class);
     assertTrue(viewManager.getHandler(RECYCLER_VIEW.newName()) instanceof RecyclerViewHandler);
   }
 
@@ -66,7 +66,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     String xml = "<merge/>\n";
     XmlFile file = (XmlFile)myFixture.addFileToProject("layout/merge.xml", xml);
     NlComponent root = MockNlComponent.create(file.getRootTag());
-    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    ViewHandlerManager viewManager = getProject().getService(ViewHandlerManager.class);
     ViewHandler handler = viewManager.getHandler(root);
     assertTrue(handler instanceof MergeHandler);
     assertThat(handler.getInspectorProperties()).containsExactly(
@@ -81,7 +81,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
                  "</merge>";
     XmlFile file = (XmlFile)myFixture.addFileToProject("layout/merge.xml", xml);
     NlComponent root = MockNlComponent.create(file.getRootTag());
-    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    ViewHandlerManager viewManager = getProject().getService(ViewHandlerManager.class);
     ViewHandler handler = viewManager.getHandler(root);
     assertTrue(handler instanceof MergeDelegateHandler);
 
@@ -102,7 +102,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
       return null;
     });
 
-    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    ViewHandlerManager viewManager = getProject().getService(ViewHandlerManager.class);
     assertNull(viewManager.getHandler("TestTag"));
     viewManager.clearCache();
     ServiceContainerUtil.registerExtension(getProject(),

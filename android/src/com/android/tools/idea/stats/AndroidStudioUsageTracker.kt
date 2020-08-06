@@ -53,7 +53,7 @@ import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -349,7 +349,7 @@ object AndroidStudioUsageTracker {
     // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
     override fun projectComponentsInitialized(project: Project) {
       val service = ToolWindowTrackerService.getInstance(project)
-      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
+      project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
 
       // Track usage of Compose Jetnews sample
       StartupManager.getInstance(project)?.registerPostStartupActivity {

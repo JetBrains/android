@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_TRIGGER;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -28,8 +29,6 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskT
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static java.util.Arrays.asList;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
@@ -42,8 +41,8 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ProjectSyncTrigger;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -54,15 +53,10 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -76,12 +70,11 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
-  @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
   @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
   public GradleSyncExecutor(@NotNull Project project) {
@@ -91,13 +84,11 @@ public class GradleSyncExecutor {
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     // Setup the settings for setup.
-    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-
     // Setup the settings for the resolver.
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
-    setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync, listener);
+    setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
@@ -127,7 +118,7 @@ public class GradleSyncExecutor {
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
-      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
+      ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       //noinspection TestOnlyProblems
       if (request.forceCreateDirs) {
         myProject.putUserData(FORCE_CREATE_DIRS_KEY, true);
@@ -137,6 +128,7 @@ public class GradleSyncExecutor {
       if (request.forceCreateDirs) {
         builder.createDirectoriesForEmptyContentRoots();
       }
+      myProject.putUserData(PROJECT_SYNC_TRIGGER, new ProjectSyncTrigger(rootPath, request.trigger));
       refreshProject(rootPath, builder.build());
     }
   }
@@ -167,7 +159,9 @@ public class GradleSyncExecutor {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, project, null);
+    GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
+    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
@@ -180,12 +174,9 @@ public class GradleSyncExecutor {
    * external system infrastructure.
    *
    * @param singleVariant whether or not only a single variant should be synced
-   * @param listener      the listener that is being used for the current sync.
    */
-  private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant,
-                                                                 @Nullable GradleSyncListener listener) {
+  private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant) {
     myProject.putUserData(SINGLE_VARIANT_KEY, singleVariant);
-    myProject.putUserData(LISTENER_KEY, listener);
   }
 
   @NotNull
@@ -195,7 +186,7 @@ public class GradleSyncExecutor {
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
 
-    setProjectUserDataForAndroidGradleProjectResolver(false, null);
+    setProjectUserDataForAndroidGradleProjectResolver(false);
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);

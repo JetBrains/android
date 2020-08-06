@@ -75,6 +75,6 @@ class LiveDatabaseConnection(
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     val queryCommand = buildQueryCommand(sqliteStatement, id)
     val responseFuture = messenger.sendCommandAsync(queryCommand)
-    return responseFuture.transform { Unit }
+    return responseFuture.transform(taskExecutor) { Unit }
   }
 }

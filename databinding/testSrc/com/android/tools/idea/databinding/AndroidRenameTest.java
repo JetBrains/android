@@ -67,9 +67,9 @@ public class AndroidRenameTest {
   @Test
   @RunsInEdt
   public void testMoveDataBindingClass() throws Exception {
-    getFixture().copyFileToProject("src/p1/p2/DummyClass.java", "src/p1/p2/DummyClass.java");
+    getFixture().copyFileToProject("src/p1/p2/SampleClass.java", "src/p1/p2/SampleClass.java");
     getFixture().copyFileToProject("res/layout/basic_binding.xml", "res/layout/basic_binding.xml");
-    moveClassNoTextReferences("p1.p2.DummyClass", "p1");
+    moveClassNoTextReferences("p1.p2.SampleClass", "p1");
     getFixture().checkResultByFile("res/layout/basic_binding.xml", "res/layout/basic_binding_after.xml", true);
   }
 

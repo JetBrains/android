@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.SdkConstants
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
@@ -26,7 +28,6 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiTypesUtil
-import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -63,7 +64,7 @@ class LightArgsClass(facet: AndroidFacet,
   }
 
   private val NAV_ARGS_FQCN = "androidx.navigation.NavArgs"
-  val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
+  private val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
   private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(destination.id) }
@@ -115,7 +116,10 @@ class LightArgsClass(facet: AndroidFacet,
   private fun computeFields(): Array<PsiField> {
     return destination.arguments
       .asSequence()
-      .map { createField(it, modulePackage, backingXmlTag as XmlTag) }
+      .map { arg ->
+        val targetArgumentTag = backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+        createField(arg, modulePackage, targetArgumentTag)
+      }
       .toList()
       .toTypedArray()
   }

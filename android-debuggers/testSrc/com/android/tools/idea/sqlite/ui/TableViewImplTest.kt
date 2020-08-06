@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.controllers.TableController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -454,7 +455,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -503,7 +504,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -552,7 +553,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -601,7 +602,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -802,7 +803,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -934,6 +935,27 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertEquals(null, table.model.getValueAt(0, 1))
+  }
+
+  fun testDisabledLiveUpdates() {
+    // Prepare
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.setLiveUpdatesState(false)
+    view.startTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.stopTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

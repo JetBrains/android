@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -63,7 +63,7 @@ import org.mockito.InOrder;
  * Tests for {@link SyncIssuesReporter}.
  */
 public class SyncIssuesReporterTest extends AndroidGradleTestCase {
-  private SyncIssue mySyncIssue;
+  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private BaseSyncIssuesReporter myStrategy1;
   private BaseSyncIssuesReporter myStrategy2;
@@ -71,7 +71,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue = mock(IdeSyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
@@ -133,7 +133,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     mySyncMessagesStub.removeAllMessages();
 
     // This issue is created to be equal to mySyncIssue, in practice issues with the same fields will be classed as equal.
-    SyncIssue syncIssue2 = new SyncIssue() {
+    IdeSyncIssue syncIssue2 = new IdeSyncIssue() {
       @Override
       public int getSeverity() {
         return SEVERITY_ERROR;
@@ -169,7 +169,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
       @Override
       public boolean equals(@NonNull Object o) {
-        return o instanceof SyncIssue;
+        return o instanceof IdeSyncIssue;
       }
     };
 
@@ -266,8 +266,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportErrorBeforeWarning() throws Exception {
     loadSimpleApplication();
-    SyncIssue syncIssue2 = mock(SyncIssue.class);
-    SyncIssue syncIssue3 = mock(SyncIssue.class);
+    IdeSyncIssue syncIssue2 = mock(IdeSyncIssue.class);
+    IdeSyncIssue syncIssue3 = mock(IdeSyncIssue.class);
 
     when(mySyncIssue.getMessage()).thenReturn("Warning message!");
     when(mySyncIssue.getData()).thenReturn("key1");

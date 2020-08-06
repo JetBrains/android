@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
@@ -202,26 +203,24 @@ class AndroidTestSuiteViewTest {
 
     // Initially, all tests are displayed.
     assertThat(tableView.rowCount).isEqualTo(7)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)  // Class A aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(2)  // method 1 (failed)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(3)  // method 2 (passed)
-    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(4)  // Class B aggregation (in progress)
-    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(5)  // method 3 (skipped)
-    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(6)  // method 4 (in progress)
-
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
 
     // Remove "Skipped".
     view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(6)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(1)  // Class A aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(2)  // method 1 (failed)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(3)  // method 2 (passed)
-    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(4)  // Class B aggregation (in progress)
-    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(-1)  // method 3 (skipped)
-    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(5)  // method 4 (in progress)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
 
     // Remove "Passed", "Failed" and "In progress". Then select "Skipped".
     view.myPassedToggleButton.isSelected = false
@@ -229,33 +228,26 @@ class AndroidTestSuiteViewTest {
     view.mySkippedToggleButton.isSelected = true
     view.myInProgressToggleButton.isSelected = false
 
-    assertThat(tableView.rowCount).isEqualTo(2)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)  // Class A aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)  // method 1 (failed)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)  // method 2 (passed)
-    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(-1)  // Class B aggregation (in progress)
-    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(1)  // method 3 (skipped)
-    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(-1)  // method 4 (in progress)
+    assertThat(tableView.rowCount).isEqualTo(3)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
 
     // Remove "Skipped" and select "In Progress".
     view.mySkippedToggleButton.isSelected = false
     view.myInProgressToggleButton.isSelected = true
+    view.tableForTesting.createExpandAllAction().actionPerformed(mock())
 
     assertThat(tableView.rowCount).isEqualTo(3)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
-    assertThat(tableView.convertRowIndexToView(1)).isEqualTo(-1)  // Class A aggregation (failed)
-    assertThat(tableView.convertRowIndexToView(2)).isEqualTo(-1)  // method 1 (failed)
-    assertThat(tableView.convertRowIndexToView(3)).isEqualTo(-1)  // method 2 (passed)
-    assertThat(tableView.convertRowIndexToView(4)).isEqualTo(1)  // Class B aggregation (in progress)
-    assertThat(tableView.convertRowIndexToView(5)).isEqualTo(-1)  // method 3 (skipped)
-    assertThat(tableView.convertRowIndexToView(6)).isEqualTo(2)  // method 4 (in progress)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
 
     // Remove "In Progress". (Nothing is selected).
     view.myInProgressToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(1)
-    assertThat(tableView.convertRowIndexToView(0)).isEqualTo(0)  // Root aggregation should always be visible.
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation should always be visible.
   }
 
   @Test
@@ -319,14 +311,16 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase2OnDevice2)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
-    // Select "device1" in the device filter ComboBox.
+    // Select "device2" in the device filter ComboBox.
     view.myDeviceFilterComboBoxModel.selectedItem =
       AndroidTestSuiteView.DeviceFilterComboBoxItem(device2)
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
-    assertThat(tableViewModel.columnInfos[2].getWidth(tableView)).isEqualTo(1)
-    assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(120)
+    assertThat(tableView.columnCount).isEqualTo(3)
+    assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
+    assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName2")
   }
 
   @Test
@@ -371,8 +365,10 @@ class AndroidTestSuiteViewTest {
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
-    assertThat(tableViewModel.columnInfos[2].getWidth(tableView)).isEqualTo(120)
-    assertThat(tableViewModel.columnInfos[3].getWidth(tableView)).isEqualTo(1)
+    assertThat(tableView.columnCount).isEqualTo(3)
+    assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
+    assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName1")
   }
 
   @Test
@@ -380,59 +376,73 @@ class AndroidTestSuiteViewTest {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1")
-    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "Z_method1", "class", "package")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "A_method2", "class", "package")
+    val testsuite = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 4)
+    val testcase1 = AndroidTestCase("testId1", "Z_method1", "Z_class", "package")
+    val testcase2 = AndroidTestCase("testId2", "A_method2", "Z_class", "package")
+    val testcase3 = AndroidTestCase("testId3", "A_method3", "A_class2", "package")
+    val testcase4 = AndroidTestCase("testId4", "Z_method4", "A_class2", "package")
 
     view.onTestSuiteScheduled(device1)
+    view.onTestSuiteStarted(device1, testsuite)
 
-    // Test execution on device 1.
-    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase1OnDevice1)
-    testcase1OnDevice1.apply {
-      result = AndroidTestCaseResult.PASSED
-      startTimestampMillis = 0
-      endTimestampMillis = 100
+    val runTestCase = { testCase: AndroidTestCase, elapsedTimeMillis: Long ->
+      view.onTestCaseStarted(device1, testsuite, testCase)
+      testCase.apply {
+        result = AndroidTestCaseResult.PASSED
+        startTimestampMillis = 0
+        endTimestampMillis = elapsedTimeMillis
+      }
+      view.onTestCaseFinished(device1, testsuite, testCase)
     }
-    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase1OnDevice1)
-    view.onTestCaseStarted(device1, testsuiteOnDevice1, testcase2OnDevice1)
-    testcase2OnDevice1.apply {
-      result = AndroidTestCaseResult.PASSED
-      startTimestampMillis = 0
-      endTimestampMillis = 200
-    }
-    view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase2OnDevice1)
-    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    runTestCase(testcase1, 100)
+    runTestCase(testcase2, 200)
+    runTestCase(testcase3, 300)
+    runTestCase(testcase4, 10)
+
+    view.onTestSuiteFinished(device1, testsuite)
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
 
     // Enable sort by name.
     view.mySortByNameToggleButton.isSelected = true
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
 
     // Disabling sort by name should restore the original insertion order.
     view.mySortByNameToggleButton.isSelected = false
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.A_method2")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")
 
     // Enable sort by duration.
     view.mySortByDurationToggleButton.isSelected = true
 
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.class.")
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.class.A_method2")
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.class.Z_method1")
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.A_class2.")
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.A_class2.A_method3")  // 300 ms
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package.A_class2.Z_method4")  // 10 ms
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("package.Z_class.")
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package.Z_class.A_method2")  // 200 ms
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")  // 100 ms
   }
 
   @Test

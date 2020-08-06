@@ -19,8 +19,6 @@ import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -70,9 +68,5 @@ class LightArgsBuilderClassTest {
       LightArgsBuilderClass::class.java)
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args.Builder", context)).isInstanceOf(
       LightArgsBuilderClass::class.java)
-
-    // ... but cannot be found without context
-    val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
-    assertThat(psiFacade.findClass("test.safeargs.Fragment1Args.Builder", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
   }
 }

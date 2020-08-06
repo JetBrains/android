@@ -36,6 +36,7 @@ import org.junit.rules.RuleChain
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
@@ -215,35 +216,6 @@ class DeviceViewContentPanelTest {
   }
 
   @Test
-  fun testClipping() {
-    @Suppress("UndesirableClassUsage")
-    val childImage = BufferedImage(50, 100, TYPE_INT_ARGB)
-    val childImageGraphics = childImage.createGraphics()
-    childImageGraphics.color = Color.RED
-    childImageGraphics.fillOval(0, 0, 50, 100)
-
-    val model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 25, 50, 50, 100) {
-          image(childImage)
-        }
-      }
-    }
-
-    @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
-    val graphics = generatedImage.createGraphics()
-
-    val settings = DeviceViewSettings(scalePercent = 50)
-    settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings)
-    panel.setSize(200, 300)
-
-    panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testClip.png"), generatedImage, DIFF_THRESHOLD)
-  }
-
-  @Test
   fun testDrag() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
@@ -414,30 +386,43 @@ class DeviceViewContentPanelTest {
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
+  @Suppress("UndesirableClassUsage")
   @Test
   fun testPaintWithImagesBetweenChildren() {
-    val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
-    val image2 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image2.png"))
-    val image3 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image3.png"))
+    val image1 = BufferedImage(100, 200, TYPE_INT_ARGB)
+    image1.graphics.run {
+      color = Color.RED
+      fillRect(25, 25, 50, 50)
+    }
+    val image2 = BufferedImage(100, 100, TYPE_INT_ARGB)
+    image2.graphics.run {
+      color = Color.BLUE
+      fillRect(0, 0, 60, 60)
+    }
+    val image3 = BufferedImage(100, 100, TYPE_INT_ARGB)
+    image3.graphics.run {
+      color = Color.GREEN
+      fillRect(0, 0, 50, 50)
+    }
 
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
+      view(ROOT, 0, 0, 100, 100) {
         view(VIEW1, 0, 0, 100, 100) {
           image(image2)
         }
-        image(image1, 0, 50)
-        view(VIEW2, 0, 100, 100, 100) {
+        image(image1)
+        view(VIEW2, 50, 50, 50, 50) {
           image(image3)
         }
       }
     }
 
     @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(1400, 1800, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(1200, 1400, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val panel = DeviceViewContentPanel(model, DeviceViewSettings(scalePercent = 400))
-    panel.setSize(1400, 1800)
+    panel.setSize(1200, 1400)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren.png"), generatedImage,
@@ -455,7 +440,6 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD)
-
   }
 
   @Test
@@ -481,7 +465,8 @@ class DeviceViewContentPanelTest {
     panel.setSize(350, 450)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly.png"), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly.png"), generatedImage,
+                                     DIFF_THRESHOLD)
 
     model.selection = model[ROOT]
     graphics = generatedImage.createGraphics()

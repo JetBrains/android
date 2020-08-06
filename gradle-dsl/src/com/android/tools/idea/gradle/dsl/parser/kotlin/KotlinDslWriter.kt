@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -28,14 +27,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.intellij.openapi.diagnostic.logger
@@ -58,7 +54,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls
-import java.lang.UnsupportedOperationException
 
 class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
@@ -73,15 +68,15 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
     }
 
-    // Create a dummy element to move the element to.
+    // Create a placeholder element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
-    val dummyString = psiFactory.createStringTemplate("toReplace")
+    val sampleString = psiFactory.createStringTemplate("toReplace")
     // If the element has no anchor, add it to the beginning of the block.
     val toReplace = if (parentPsiElement is KtBlockExpression && anchorAfter == null) {
-      parentPsiElement.addBefore(dummyString, anchor)
+      parentPsiElement.addBefore(sampleString, anchor)
     }
     else {
-      parentPsiElement.addAfter(dummyString, anchor)
+      parentPsiElement.addAfter(sampleString, anchor)
     }
 
     // Find the element we need to replace.

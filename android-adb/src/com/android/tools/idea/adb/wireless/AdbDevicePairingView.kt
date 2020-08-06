@@ -36,7 +36,7 @@ interface AdbDevicePairingView {
 
   fun showQrCodePairingStarted()
   fun showQrCodePairingInProgress(mdnsService: MdnsService)
-  fun showQrCodeMdnsPairingSuccess(pairingResult: PairingResult)
+  fun showQrCodePairingWaitForDevice(pairingResult: PairingResult)
   fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice)
   fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable)
 
@@ -45,6 +45,8 @@ interface AdbDevicePairingView {
 
   @UiThread
   interface Listener {
+    fun onScanAnotherQrCodeDeviceAction()
+    fun onPinCodePairAction(mdnsService: MdnsService)
     fun onClose()
   }
 }

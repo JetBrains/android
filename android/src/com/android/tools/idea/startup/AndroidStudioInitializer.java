@@ -61,7 +61,6 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -255,9 +254,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
       @Override
       public void projectOpened(@NotNull Project project) {
-        ExtensionPoint<MultiHostInjector> extensionPoint =
-          project.getExtensionArea().getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
-
+        ExtensionPoint<MultiHostInjector> extensionPoint = MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME.getPoint(project);
         for (MultiHostInjector injector : extensionPoint.getExtensions()) {
           if (injector instanceof GrConcatenationInjector) {
             extensionPoint.unregisterExtension(injector.getClass());
@@ -282,7 +279,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static void disableKaptImportHandlers() {
-    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint(null);
+    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
     resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
   }
 
@@ -291,7 +288,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
     configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
     configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
 
@@ -304,8 +301,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       }
     }
 
-    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
-      Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
+    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint = ConfigurationType.CONFIGURATION_TYPE_EP.getPoint();
     for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
       if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
         // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType

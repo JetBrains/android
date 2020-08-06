@@ -1,9 +1,12 @@
 package org.jetbrains.android.refactoring;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -50,11 +53,9 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -304,8 +305,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         if (!(layoutFile instanceof XmlFile)) {
           return;
         }
-        if (!(DomManager.getDomManager(myProject).getDomFileDescription(
-          (XmlFile)layoutFile) instanceof LayoutDomFileDescription)) {
+        if (!isFileInResourceFolderType((XmlFile)layoutFile, ResourceFolderType.LAYOUT)) {
           return;
         }
         collectPossibleStyleApplications(layoutFile, usages);

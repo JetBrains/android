@@ -8,7 +8,7 @@ simpleApplication_corrupted_missing_iml_40 (icon: /toolwindows/toolWindowProject
             google.simpleapplication (androidTest) (icon: /nodes/package.svg)
                 ApplicationTest (icon: /nodes/class.svg)
             google.simpleapplication (test) (icon: /nodes/package.svg)
-                UnitTest (icon: Layered icon 1x1. myIcons=[/nodes/class.svg, /nodes/junitTestMark.svg] (LayeredIcon))
+                UnitTest (icon: [/nodes/class.svg, /nodes/junitTestMark.svg] / unit test class)
         res (icon: /modules/resourcesRoot.svg)
             drawable (icon: /nodes/package.svg)
                 ic_launcher.xml (icon: /fileTypes/xml.svg)

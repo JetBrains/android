@@ -21,13 +21,15 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
- * Dummy LightToolWindowManager because the framework requires two managers at the same time.
+ * Empty LightToolWindowManager because the framework requires two managers at the same time.
  */
 public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull private JPanel myEmptyPanel = new JPanel();
@@ -72,8 +74,8 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
 
   @NotNull
   @Override
-  protected AnAction[] createActions() {
-    return AnAction.EMPTY_ARRAY;
+  protected List<AnAction> createActions() {
+    return Collections.emptyList();
   }
 
   @NotNull

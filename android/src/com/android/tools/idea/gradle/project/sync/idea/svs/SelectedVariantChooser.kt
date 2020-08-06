@@ -19,10 +19,12 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
+import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
+import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
-import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.UnsupportedMethodException
 import java.util.Collections
@@ -188,25 +190,39 @@ private fun syncAndAddNativeVariantAbi(
   selectedAbi: String?
 ): String? {
   // This module is not a native one, nothing to do
-  if (module.nativeAndroidProject == null) return null
+  if (!module.hasNative) return null
 
   // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
   // Otherwise return from this method with a null result as abis are not supported.
-  val abiNames = try {
-    module.nativeAndroidProject.variantInfos[variantName]?.abiNames
-  }
-  catch (e: UnsupportedMethodException) {
-    null
-  } ?: return null
+  val abiNames: List<String>? =
+    try {
+      val abiNamesFromV2Model: List<String>? = module.nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
+      abiNamesFromV2Model ?: module.nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
+    }
+    catch (e: UnsupportedMethodException) {
+      null
+    }
+
+  if (abiNames == null) return null
 
   val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else getDefaultOrFirstItem(abiNames, "x86"))
                      ?: throw IllegalStateException("No valid Native abi found to request!")
 
-  controller.findModel(module.gradleProject, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
-    parameter.setVariantName(variantName)
-    parameter.setAbiName(abiToRequest)
-  }?.also {
-    module.variantGroup.nativeVariants.add(it)
+  if (module.nativeModule != null) {
+    // V2 model is available, trigger the sync with V2 API
+    controller.findModel(module.gradleProject, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+      it.variantsToGenerateBuildInformation = listOf(variantName)
+      it.abisToGenerateBuildInformation = listOf(abiToRequest)
+    }
+  }
+  else {
+    // Fallback to V1 models otherwise.
+    controller.findModel(module.gradleProject, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
+      parameter.setVariantName(variantName)
+      parameter.setAbiName(abiToRequest)
+    }?.also {
+      module.variantGroup.nativeVariants.add(it)
+    }
   }
   return abiToRequest
 }

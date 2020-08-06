@@ -27,9 +27,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
@@ -70,6 +73,14 @@ iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.gradle",
+        },
+        "non-gradle": {},
+    },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     # keep sorted
@@ -108,9 +119,11 @@ iml_module(
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -120,7 +133,6 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
         "no_test_mac",  # b/72973198
     ],
@@ -170,6 +182,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/designer:unb.intellij.android.designer[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
@@ -190,6 +204,14 @@ iml_module(
     name = "unb.intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.gradle",
+        },
+        "non-gradle": {},
+    },
     tags = [
         "manual",
         "no_test_windows",
@@ -217,7 +239,6 @@ iml_module(
     test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
         "no_test_mac",  # b/72973198
     ],
@@ -226,6 +247,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer[module, test]",

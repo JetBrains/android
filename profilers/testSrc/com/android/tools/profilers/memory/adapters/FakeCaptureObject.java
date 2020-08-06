@@ -182,7 +182,7 @@ public final class FakeCaptureObject implements CaptureObject {
     public static final int DEFAULT_HEAP_ID = 0;
     public static final String DEFAULT_HEAP_NAME = "default";
 
-    @NotNull private String myCaptureName = "DUMMY_CAPTURE";
+    @NotNull private String myCaptureName = "SAMPLE_CAPTURE";
     @NotNull private List<ClassifierAttribute> myClassifierAttributes = Arrays.asList(CaptureObject.ClassifierAttribute.values());
     @NotNull private List<InstanceAttribute> myInstanceAttributes = Arrays.asList(CaptureObject.InstanceAttribute.values());
     @NotNull private Map<Integer, String> myHeapIdToNameMap = Collections.singletonMap(DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME);

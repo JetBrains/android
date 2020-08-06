@@ -123,7 +123,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val embeddedFlags = if (standalone) {
       ""
     } else {
-      """ "-no-window" "-gpu" "auto-no-window""""
+      """ "-no-window" "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
     }
 
     registration = """
@@ -424,7 +424,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     override fun pushSnapshot(responseObserver: StreamObserver<SnapshotPackage>): StreamObserver<SnapshotPackage> {
-      return object : DummyStreamObserver<SnapshotPackage>() {
+      return object : EmptyStreamObserver<SnapshotPackage>() {
         override fun onCompleted() {
           sendDefaultSnapshotPackage(responseObserver)
         }

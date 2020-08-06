@@ -26,7 +26,7 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

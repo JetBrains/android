@@ -37,8 +37,6 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   @NotNull
   private final AndroidDebugBridge myAndroidDebugBridge;
 
-  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
-
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
@@ -48,24 +46,16 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   @NotNull
   private final Function<IDevice, AndroidDevice> myAndroidDeviceFactory;
 
-  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
-                       boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                       @Nullable LaunchCompatibilityChecker checker) {
-    this(androidDebugBridge,
-         selectDeviceSnapshotComboBoxSnapshotsEnabled,
-         checker,
-         AppExecutorUtil.getAppExecutorService(),
-         device -> new ConnectedAndroidDevice(device, null));
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker checker) {
+    this(androidDebugBridge, checker, AppExecutorUtil.getAppExecutorService(), device -> new ConnectedAndroidDevice(device, null));
   }
 
   @VisibleForTesting
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
-                       boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
                        @Nullable LaunchCompatibilityChecker checker,
                        @NotNull Executor executor,
                        @NotNull Function<IDevice, AndroidDevice> androidDeviceFactory) {
     myAndroidDebugBridge = androidDebugBridge;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
     myChecker = checker;
     myExecutor = executor;
     myAndroidDeviceFactory = androidDeviceFactory;
@@ -74,43 +64,23 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   @NotNull
   @Override
   public ListenableFuture<List<ConnectedDevice>> get() {
-    ListenableFuture<Collection<IDevice>> devices = myAndroidDebugBridge.getConnectedDevices();
-
     // noinspection UnstableApiUsage
-    return Futures.transformAsync(devices, this::newConnectedDevices, myExecutor);
+    return Futures.transform(myAndroidDebugBridge.getConnectedDevices(), this::newConnectedDevices, myExecutor);
   }
 
-  @NotNull
-  private ListenableFuture<List<ConnectedDevice>> newConnectedDevices(@NotNull Collection<IDevice> devices) {
-    Iterable<ListenableFuture<ConnectedDevice>> futures = devices.stream()
+  private @NotNull List<@NotNull ConnectedDevice> newConnectedDevices(@NotNull Collection<@NotNull IDevice> devices) {
+    return devices.stream()
       .filter(IDevice::isOnline)
       .map(this::newConnectedDevice)
       .collect(Collectors.toList());
-
-    // noinspection UnstableApiUsage
-    return Futures.successfulAsList(futures);
   }
 
-  @NotNull
-  private ListenableFuture<ConnectedDevice> newConnectedDevice(@NotNull IDevice ddmlibDevice) {
-    if (mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      ListenableFuture<String> idFuture = myAndroidDebugBridge.getVirtualDeviceId(ddmlibDevice);
-
-      // noinspection ConstantConditions, UnstableApiUsage
-      return Futures.transform(idFuture, id -> newConnectedDevice(ddmlibDevice, id), myExecutor);
-    }
-
-    // noinspection UnstableApiUsage
-    return Futures.immediateFuture(newConnectedDevice(ddmlibDevice, ""));
-  }
-
-  @NotNull
-  private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice, @NotNull String id) {
+  private @NotNull ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice) {
     AndroidDevice androidDevice = myAndroidDeviceFactory.apply(ddmlibDevice);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setName(ddmlibDevice.isEmulator() ? "Virtual Device" : "Physical Device")
-      .setKey(newKey(ddmlibDevice, id))
+      .setName(composeDeviceName(ddmlibDevice))
+      .setKey(newKey(ddmlibDevice))
       .setAndroidDevice(androidDevice);
 
     if (myChecker == null) {
@@ -126,19 +96,36 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   }
 
   @NotNull
-  private Key newKey(@NotNull IDevice connectedDevice, @NotNull String id) {
-    if (!connectedDevice.isEmulator()) {
-      return new Key(connectedDevice.getSerialNumber());
+  private static String composeDeviceName(@NotNull IDevice ddmlibDevice) {
+    if (ddmlibDevice.isEmulator()) {
+      String avdName = ddmlibDevice.getAvdName();
+      // The AVD name "<build>" is produced in case of a custom system image.
+      if (avdName != null && !avdName.equals("<build>")) {
+        return avdName;
+      }
+    }
+    return ddmlibDevice.getSerialNumber();
+  }
+
+  private static @NotNull Key newKey(@NotNull IDevice device) {
+    if (!device.isEmulator()) {
+      return new SerialNumber(device.getSerialNumber());
     }
 
-    String virtualDeviceName = connectedDevice.getAvdName();
+    String path = device.getAvdPath();
 
-    if (virtualDeviceName == null || virtualDeviceName.equals("<build>")) {
-      // Either the virtual device name is null or the developer built their own system image. Neither names will work as virtual device
-      // keys. Fall back to the serial number.
-      return new Key(connectedDevice.getSerialNumber());
+    if (path != null) {
+      return new VirtualDevicePath(path);
     }
 
-    return new Key(mySelectDeviceSnapshotComboBoxSnapshotsEnabled ? id : virtualDeviceName);
+    String name = device.getAvdName();
+
+    if (name != null && !name.equals("<build>")) {
+      return new VirtualDeviceName(name);
+    }
+
+    // Either the virtual device name is null or the developer built their own system image. Neither names will work as virtual device keys.
+    // Fall back to the serial number.
+    return new SerialNumber(device.getSerialNumber());
   }
 }

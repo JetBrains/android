@@ -67,7 +67,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.surface.LayoutValidationConfiguration;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -150,6 +150,7 @@ public class LayoutlibSceneManager extends SceneManager {
   // Protects all read/write accesses to the myRenderResult reference
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
+  @Nullable
   private RenderResult myRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private String myPreviousDeviceName;
@@ -256,7 +257,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * Based on the configuration layout validation will be turned on or off while rendering.
    */
   @NotNull
-  public final LayoutValidationConfiguration layoutValidationConfig;
+  public final LayoutScannerConfiguration layoutScannerConfig;
 
   /**
    * Creates a new LayoutlibSceneManager.
@@ -274,7 +275,7 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @NotNull LayoutValidationConfiguration layoutValidationConfig) {
+                                  @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
@@ -304,7 +305,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     model.addListener(myModelChangeListener);
     myAreListenersRegistered = true;
-    this.layoutValidationConfig = layoutValidationConfig;
+    this.layoutScannerConfig = layoutScannerConfig;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -328,7 +329,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       sceneComponentProvider,
-      LayoutValidationConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED());
   }
 
   /**
@@ -345,7 +346,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
-      LayoutValidationConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED());
   }
 
   /**
@@ -354,7 +355,7 @@ public class LayoutlibSceneManager extends SceneManager {
    *
    * @param config configuration for layout validation when rendering.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutValidationConfiguration config) {
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutScannerConfiguration config) {
     this(
       model,
       designSurface,
@@ -920,15 +921,17 @@ public class LayoutlibSceneManager extends SceneManager {
    * Synchronously inflates the model and updates the view hierarchy
    *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
-   * @returns whether the model was inflated in this call or not
+   * @returns A {@link CompletableFuture} containing the {@link RenderResult} of the inflate operation or containing null
+   * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
    */
-  private CompletableFuture<Boolean> inflate(boolean force) {
+  @NotNull
+  private CompletableFuture<RenderResult> inflate(boolean force) {
     long startInflateTimeMs = System.currentTimeMillis();
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
     if (project.isDisposed() || isDisposed.get()) {
-      return CompletableFuture.completedFuture(false);
+      return CompletableFuture.completedFuture(null);
     }
 
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
@@ -941,7 +944,7 @@ public class LayoutlibSceneManager extends SceneManager {
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
-        return CompletableFuture.completedFuture(false);
+        return CompletableFuture.completedFuture(null);
       }
     }
 
@@ -954,7 +957,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutValidation(layoutValidationConfig.isLayoutValidationEnabled())
+      .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
@@ -1009,7 +1012,7 @@ public class LayoutlibSceneManager extends SceneManager {
             })
             .thenApply(result -> {
               if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
-                return false;
+                return result;
               }
 
               updateHierarchy(result);
@@ -1021,7 +1024,7 @@ public class LayoutlibSceneManager extends SceneManager {
                 myRenderResultLock.writeLock().unlock();
               }
 
-              return true;
+              return result;
             });
         }
         else {
@@ -1043,9 +1046,9 @@ public class LayoutlibSceneManager extends SceneManager {
           finally {
             myRenderResultLock.writeLock().unlock();
           }
-        }
 
-        return CompletableFuture.completedFuture(false);
+          return CompletableFuture.completedFuture(result);
+        }
       });
   }
 
@@ -1163,16 +1166,17 @@ public class LayoutlibSceneManager extends SceneManager {
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl(trigger)
         .handle((result, exception) -> {
-          if (result != null) {
-            return result;
-          } else {
+          if (exception != null) {
             return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
           }
+          return result;
         })
         .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
-            updateCachedRenderResult(result);
+            if (result != null) {
+              updateCachedRenderResult(result);
+            }
             // Downgrade the write lock to read lock
             myRenderResultLock.readLock().lock();
           }
@@ -1180,9 +1184,13 @@ public class LayoutlibSceneManager extends SceneManager {
             myRenderResultLock.writeLock().unlock();
           }
           try {
-            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4L);
+            if (myRenderResult != null) {
+              long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+              NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                          myRenderResult.getRenderedImage().getWidth() *
+                                                                          myRenderResult.getRenderedImage().getHeight() *
+                                                                          4L);
+            }
           }
           finally {
             myRenderResultLock.readLock().unlock();
@@ -1251,17 +1259,20 @@ public class LayoutlibSceneManager extends SceneManager {
         if (ex != null) {
           Logger.getInstance(LayoutlibSceneManager.class).warn(ex);
         }
-        if (result) {
+        if (result != null && result.getRenderResult().isSuccess()) {
           notifyListenersModelUpdateComplete();
         }
       }, PooledThreadExecutor.INSTANCE)
-      .thenCompose(inflated -> {
+      .thenCompose(inflateResult -> {
+        boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
         synchronized (myRenderingTaskLock) {
           if (myRenderTask == null) {
             getDesignSurface().updateErrorDisplay();
-            return CompletableFuture.completedFuture(null);
+            // The render task was not initialized, this means that inflate did not succeed. Return the inflation
+            // result.
+            return CompletableFuture.completedFuture(inflateResult);
           }
           long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {

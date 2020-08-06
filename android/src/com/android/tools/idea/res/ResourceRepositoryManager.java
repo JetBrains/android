@@ -17,12 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.AaptOptions;
-import com.android.builder.model.Variant;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
@@ -34,6 +31,7 @@ import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
@@ -85,7 +83,7 @@ public final class ResourceRepositoryManager implements Disposable {
   private static final Object TEST_RESOURCES_LOCK = new Object();
 
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final AaptOptions.Namespacing myNamespacing;
+  @NotNull private final Namespacing myNamespacing;
 
   /**
    * If the module is namespaced, this is the shared {@link ResourceNamespace} instance corresponding to the package name from the manifest.
@@ -121,7 +119,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public static ResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
-    AaptOptions.Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
+    Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
     ResourceRepositoryManager instance = facet.getUserData(KEY);
 
     if (instance != null && instance.myNamespacing != namespacing) {
@@ -255,7 +253,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return getInstance(facet).getModuleResources();
   }
 
-  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
+  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
   }
@@ -546,7 +544,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
     AppResourceRepository appRepository = (AppResourceRepository)getAppResources();
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ImmutableList.of(appRepository);
     }
     return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
@@ -659,7 +657,7 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  public AaptOptions.Namespacing getNamespacing() {
+  public Namespacing getNamespacing() {
     return myNamespacing;
   }
 
@@ -670,7 +668,7 @@ public final class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public ResourceNamespace getNamespace() {
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
@@ -693,7 +691,7 @@ public final class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public ResourceNamespace getTestNamespace() {
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
@@ -789,7 +787,7 @@ public final class ResourceRepositoryManager implements Disposable {
     Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
-    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == AaptOptions.Namespacing.DISABLED ?
+    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
                                                                aarResourceRepositoryCache::getSourceRepository :
                                                                aarResourceRepositoryCache::getProtoRepository;
 

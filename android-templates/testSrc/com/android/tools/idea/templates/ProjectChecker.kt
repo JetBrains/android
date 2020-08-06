@@ -200,7 +200,7 @@ data class ProjectChecker(
     moduleRecipe.render(context, executor2, null)
     template.render(context, executor3)
     setGradleWrapperExecutable(projectRoot)
-    verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(template.name, template.formFactor), moduleState.build())
+    verifyLastLoggedUsage(usageTracker, template.name, template.formFactor, moduleState.build())
 
     // Make sure we didn't forgot to specify a thumbnail
     assertNotEquals(template.thumb(), Thumb.NoThumb)

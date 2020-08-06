@@ -17,9 +17,8 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.tools.idea.concurrency.transform
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.concurrency.readOnPooledThread
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -38,11 +37,13 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQ
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
@@ -154,7 +155,7 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
 
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
-  GradleVersionsRepository.getKnownVersionsFuture().transform {
+  GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false

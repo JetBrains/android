@@ -15,40 +15,61 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyZeroInteractions
+import java.awt.Point
+import java.awt.event.MouseEvent
 
 class ActionHandleTargetTest : NavTestCase() {
+  private lateinit var surface: DesignSurface
+  private lateinit var interactionManager: InteractionManager
+  private lateinit var scene: Scene
+  private lateinit var view: SceneView
+
+  private fun setModel(model: SyncNlModel) {
+    surface = model.surface
+    interactionManager = model.surface.interactionManager
+    scene = model.surface.scene!!
+    view = scene.sceneManager.sceneViews.first()
+
+    scene.layout(0, view.context)
+    interactionManager.startListening()
+  }
+
+  override fun tearDown() {
+    interactionManager.stopListening()
+    super.tearDown()
+  }
 
   fun testCreateAction() {
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
         fragment("fragment2")
+        fragment("fragment3")
       }
     }
-    val surface = model.surface
-    val scene = surface.scene!!
-    scene.layout(0, scene.sceneManager.sceneView.context)
+    setModel(model)
 
-    val fragment2x = scene.getSceneComponent("fragment2")!!.drawX
-    val fragment2y = scene.getSceneComponent("fragment2")!!.drawY
-
-    val sceneComponent = scene.getSceneComponent("fragment1")!!
-    val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
     TestNavUsageTracker.create(model).use { tracker ->
-      actionHandleTarget.mouseDown(0, 0)
-      actionHandleTarget.mouseRelease(fragment2x, fragment2y, listOf())
+      dragCreate("fragment1", "fragment2")
 
       val action = model.find("fragment1")!!.children.first { it.isAction }
       assertEquals(model.find("fragment2")!!, action.actionDestination)
@@ -64,6 +85,23 @@ class ActionHandleTargetTest : NavTestCase() {
                                                           .setType(NavActionInfo.ActionType.REGULAR))
                                          .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
     }
+
+    TestNavUsageTracker.create(model).use { tracker ->
+      dragCreate("fragment1", "fragment3")
+
+      val action = model.find("fragment1")!!.children.first { it.isAction && it.id == "action_fragment1_to_fragment3" }
+      assertEquals(model.find("fragment3")!!, action.actionDestination)
+      assertSameElements(surface.selectionModel.selection, action)
+
+      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+                                         .setActionInfo(NavActionInfo.newBuilder()
+                                                          .setCountFromSource(2)
+                                                          .setCountToDestination(1)
+                                                          .setCountSame(1)
+                                                          .setType(NavActionInfo.ActionType.REGULAR))
+                                         .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+    }
   }
 
   fun testCreateToInclude() {
@@ -73,18 +111,11 @@ class ActionHandleTargetTest : NavTestCase() {
         include("navigation")
       }
     }
-    val surface = model.surface
-    val scene = surface.scene!!
-    scene.layout(0, scene.sceneManager.sceneView.context)
 
-    val fragment2x = scene.getSceneComponent("nav")!!.drawX
-    val fragment2y = scene.getSceneComponent("nav")!!.drawY
+    setModel(model)
 
-    val sceneComponent = scene.getSceneComponent("fragment1")!!
-    val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
     TestNavUsageTracker.create(model).use { tracker ->
-      actionHandleTarget.mouseDown(0, 0)
-      actionHandleTarget.mouseRelease(fragment2x, fragment2y, listOf())
+      dragCreate("fragment1", "nav")
 
       val action = model.find("fragment1")!!.children.first { it.isAction }
       assertEquals(model.find("nav")!!, action.actionDestination)
@@ -108,24 +139,14 @@ class ActionHandleTargetTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    val surface = model.surface
-    val scene = surface.scene!!
-    scene.layout(0, scene.sceneManager.sceneView.context)
 
-    val sceneComponent = scene.getSceneComponent("fragment1")!!
-    val fragment1x = sceneComponent.drawX
-    val fragment1y = sceneComponent.drawY
+    setModel(model)
 
-    val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
     TestNavUsageTracker.create(model).use { tracker ->
-      actionHandleTarget.mouseDown(0, 0)
-      actionHandleTarget.mouseRelease(fragment1x, fragment1y, listOf())
+      dragCreate("fragment1", "fragment1")
 
-
-      val nlComponent = sceneComponent.nlComponent
-      val action = nlComponent.children.first { it.isAction }
-      assertEquals(1, nlComponent.children.size)
-      assertEquals(nlComponent, action.actionDestination)
+      val action = model.find("fragment1")!!.children.first { it.isAction }
+      assertEquals(model.find("fragment1")!!, action.actionDestination)
       assertEquals("action_fragment1_self", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
@@ -146,19 +167,16 @@ class ActionHandleTargetTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    val surface = model.surface
-    val scene = surface.scene!!
-    scene.layout(0, scene.sceneManager.sceneView.context)
 
-    val sceneComponent = scene.getSceneComponent("fragment1")!!
-    val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
+    setModel(model)
+
     TestNavUsageTracker.create(model).use { tracker ->
-      actionHandleTarget.mouseDown(0, 0)
+      val sourceComponent = scene.getSceneComponent("fragment1")!!
+      val p1 = sourceComponent.handlePoint()
+
       // drag release to a point over the root and verify no action is created
-      actionHandleTarget.mouseRelease(sceneComponent.drawX - 50, sceneComponent.drawY - 50, listOf())
-
-      assertNull(model.find { it.isAction})
-
+      dragAndRelease(p1.x, p1.y, p1.x + 50, p1.y)
+      assertNull(model.find { it.isAction })
       verifyZeroInteractions(tracker)
     }
   }
@@ -171,21 +189,51 @@ class ActionHandleTargetTest : NavTestCase() {
       }
     }
 
-    val surface = model.surface
-    val scene = surface.scene!!
-    scene.layout(0, scene.sceneManager.sceneView.context)
+    setModel(model)
 
-    val sceneComponent = scene.getSceneComponent("fragment1")!!
-    val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
     TestNavUsageTracker.create(model).use { tracker ->
-      actionHandleTarget.mouseDown(0, 0)
-      val invalidFragment = scene.getSceneComponent(model.find { it.id == null })!!
-      actionHandleTarget.mouseRelease(invalidFragment.centerX, invalidFragment.centerY, listOf())
+      val sourceComponent = scene.getSceneComponent("fragment1")!!
+      val p1 = sourceComponent.handlePoint()
 
-      assertNull(model.find { it.isAction})
+      val destinationComponent = scene.getSceneComponent(model.find { it.id == null })!!
+      val p2 = destinationComponent.centerPoint()
 
+      dragAndRelease(p1.x, p1.y, p2.x, p2.y)
+      assertNull(model.find { it.isAction })
       verifyZeroInteractions(tracker)
     }
   }
 
+  private fun dragCreate(sourceId: String, destinationId: String) {
+    val sourceComponent = scene.getSceneComponent(sourceId)!!
+    val p1 = sourceComponent.handlePoint()
+
+    val destinationComponent = scene.getSceneComponent(destinationId)!!
+    val p2 = destinationComponent.centerPoint()
+
+    dragAndRelease(p1.x, p1.y, p2.x, p2.y)
+  }
+
+  private fun dragAndRelease(@SwingCoordinate x1: Int, @SwingCoordinate y1: Int,
+                             @SwingCoordinate x2: Int, @SwingCoordinate y2: Int) {
+    LayoutTestUtilities.pressMouse(interactionManager, MouseEvent.BUTTON1, x1, y1, 0)
+    LayoutTestUtilities.dragMouse(interactionManager, x1, y1, x2, y2, 0)
+    LayoutTestUtilities.releaseMouse(interactionManager, MouseEvent.BUTTON1, x2, y2, 0)
+  }
+
+  @SwingCoordinate
+  private fun SceneComponent.handlePoint(): Point {
+    val rectangle = this.fillRect(null)
+    @SwingCoordinate val x = Coordinates.getSwingXDip(view, rectangle.x + rectangle.width)
+    @SwingCoordinate val y = Coordinates.getSwingXDip(view, rectangle.centerY.toInt())
+    return Point(x, y)
+  }
+
+  @SwingCoordinate
+  private fun SceneComponent.centerPoint(): Point {
+    val rectangle = this.fillRect(null)
+    @SwingCoordinate val x = Coordinates.getSwingXDip(view, rectangle.centerX.toInt())
+    @SwingCoordinate val y = Coordinates.getSwingXDip(view, rectangle.centerY.toInt())
+    return Point(x, y)
+  }
 }

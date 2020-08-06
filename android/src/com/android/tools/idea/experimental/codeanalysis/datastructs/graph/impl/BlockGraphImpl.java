@@ -17,16 +17,15 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.Graph;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.DummyNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.PlaceholderNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.EntryNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.ExitNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphEntryNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.DummyNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.PlaceholderNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Local;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.LocalImpl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiLocalVariable;
@@ -42,7 +41,7 @@ public class BlockGraphImpl implements BlockGraph {
 
   protected ExitNode mExitNode;
 
-  protected DummyNode mUnreachableNode;
+  protected PlaceholderNode mUnreachableNode;
 
   protected BlockGraph mParentGraph;
 
@@ -149,7 +148,7 @@ public class BlockGraphImpl implements BlockGraph {
   public BlockGraphImpl() {
     this.mEntryNode = new BlockGraphEntryNodeImpl(this);
     this.mExitNode = new BlockGraphExitNodeImpl(this);
-    this.mUnreachableNode = new DummyNodeImpl(this);
+    this.mUnreachableNode = new PlaceholderNodeImpl(this);
     this.mParentGraph = null;
     this.mLocalMap = Maps.newHashMap();
     this.mParamMap = Maps.newHashMap();

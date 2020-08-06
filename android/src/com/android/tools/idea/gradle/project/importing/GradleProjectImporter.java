@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.GradleProjectInfo.beginInitializingGradleProjectAt;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
@@ -36,6 +37,7 @@ import com.android.tools.idea.util.ToolWindows;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -60,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -105,7 +108,6 @@ public class GradleProjectImporter {
       setUpLocalProperties(projectFolderPath);
       String projectName = projectFolder.getName();
       newProject = createProject(projectName, projectFolderPath);
-      configureNewProject(newProject);
       importProjectNoSync(new Request(newProject));
       PlatformProjectOpenProcessor.openExistingProject(
         projectFolderPath.toPath(),
@@ -118,13 +120,18 @@ public class GradleProjectImporter {
           newProject,
           null,
           false,
-          false,
           true,
           null,
           null,
           null,
+          null,
+          null,
           -1,
-          -1));
+          -1,
+          true,
+          false,
+          true,
+          false));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -199,19 +206,22 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Creates a new not configured project in a given location. The project needs to be configured to be usable with Android Studio.
-   * See: {@link GradleProjectImporter#configureNewProject(Project)}
+   * Creates a new not configured project in a given location.
    */
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
-    if (newProject == null) {
-      throw new NullPointerException("Failed to create a new project");
+    try (AccessToken ignored = beginInitializingGradleProjectAt(projectFolderPath)) {
+      ProjectManager projectManager = ProjectManager.getInstance();
+      Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
+      if (newProject == null) {
+        throw new NullPointerException("Failed to create a new project");
+      }
+      configureNewProject(newProject);
+      return newProject;
     }
-    return newProject;
   }
 
+  @VisibleForTesting
   public static void configureNewProject(Project newProject) {
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     String externalProjectPath = toCanonicalPath(newProject.getBasePath());
@@ -225,7 +235,9 @@ public class GradleProjectImporter {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    GradleProjectImportUtil.setupGradleSettings(gradleSettings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
+    GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

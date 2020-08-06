@@ -16,7 +16,10 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.idea.transport.DeployableFile
+import com.android.tools.profilers.analytics.FeatureTracker
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Stopwatch
+import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
@@ -26,6 +29,7 @@ import java.io.InputStreamReader
 import java.lang.RuntimeException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 
@@ -33,7 +37,10 @@ import java.util.regex.Pattern
  * This is responsible to manage the lifetime of an instance of the TraceProcessorDaemon,
  * spawning a new one if necessary and properly shutting it down at the end of Studio execution.
  */
-class TraceProcessorDaemonManager(private val executorService: ExecutorService = Executors.newSingleThreadExecutor()): Disposable {
+class TraceProcessorDaemonManager(
+    private val ticker: Ticker,
+    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()): Disposable {
+
   // All access paths to process should be synchronized.
   private var process: Process? = null
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
@@ -96,9 +103,10 @@ class TraceProcessorDaemonManager(private val executorService: ExecutorService =
   }
 
   @Synchronized
-  fun makeSureDaemonIsRunning() {
+  fun makeSureDaemonIsRunning(tracker: FeatureTracker) {
     // Spawn a new one if either we don't have one running already or if the current one is not alive anymore.
     if (!processIsRunning() && !disposed) {
+      val spawnStopwatch = Stopwatch.createStarted(ticker)
       LOGGER.info("TPD Manager: Starting new instance of TPD")
       val newProcess = ProcessBuilder(getExecutablePath())
         .redirectErrorStream(true)
@@ -110,11 +118,16 @@ class TraceProcessorDaemonManager(private val executorService: ExecutorService =
       // wait until we receive the message that the daemon is listening and get the port
       stdoutListener.waitForRunningOrFailed()
 
+      spawnStopwatch.stop()
+      val timeToSpawnMs = spawnStopwatch.elapsed(TimeUnit.MILLISECONDS)
+
       if (stdoutListener.status == DaemonStatus.RUNNING) {
+        tracker.trackTraceProcessorDaemonSpawnAttempt(true, timeToSpawnMs)
         daemonPort = stdoutListener.selectedPort
         process = newProcess
         LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
       } else if(stdoutListener.status == DaemonStatus.FAILED) {
+        tracker.trackTraceProcessorDaemonSpawnAttempt(false, timeToSpawnMs)
         LOGGER.info("TPD Manager: Unable to start TPD instance.")
         // Make sure we clean up our instance to not leave a zombie process
         newProcess?.destroyForcibly()?.waitFor()

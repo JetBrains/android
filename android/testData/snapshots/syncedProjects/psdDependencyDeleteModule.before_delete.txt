@@ -1,5 +1,5 @@
 PROJECT             : testPsdDependencyDeleteModule
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : testPsdDependencyDeleteModule
         ExternalModuleGroup :
@@ -53,11 +53,13 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/free/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFreeDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -87,6 +89,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugUnitTest/out
             JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebug/out
             JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/resValues/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/free/debug
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug
@@ -807,11 +811,13 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/freeDebug/res
             - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/resValues/free/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/resValues/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -841,6 +847,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugUnitTest/out
             JavaSource          : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebug/out
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/resValues/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/mainModule/build/generated/res/resValues/free/debug
             JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug
             JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug
@@ -1289,9 +1297,11 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/resValues/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/resValues/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1321,6 +1331,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugUnitTest/out
             JavaSource          : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debug/out
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/resValues/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleA/build/generated/res/resValues/debug
             JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug
@@ -1697,9 +1709,11 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/resValues/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/resValues/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1729,6 +1743,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugUnitTest/out
             JavaSource          : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debug/out
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/resValues/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleB/build/generated/res/resValues/debug
             JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug
@@ -2099,9 +2115,11 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/rs/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/resValues/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/resValues/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2131,6 +2149,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugUnitTest/out
             JavaSource          : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debug/out
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/resValues/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleC/build/generated/res/resValues/debug
             JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug
             JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug
@@ -2495,11 +2515,13 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/freeDebug/res
             - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/resValues/free/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/resValues/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2529,6 +2551,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugUnitTest/out
             JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebug/out
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/resValues/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/resValues/free/debug
             JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug
             JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug
@@ -2676,9 +2700,11 @@ PROJECT             : testPsdDependencyDeleteModule
             - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/rs/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/resValues/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/resValues/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2708,6 +2734,8 @@ PROJECT             : testPsdDependencyDeleteModule
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugUnitTest/out
             JavaSource          : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debug/out
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/resValues/androidTest/debug
+            JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/resValues/debug
             JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug
             JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug

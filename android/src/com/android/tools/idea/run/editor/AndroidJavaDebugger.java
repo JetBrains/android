@@ -18,8 +18,8 @@ package com.android.tools.idea.run.editor;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.TestOptions;
 import com.android.ddmlib.Client;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
@@ -42,7 +42,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -100,9 +99,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIds, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
-    TestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
+    IdeTestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
       .map(AndroidModuleModel::getTestExecutionStrategy)
-      .orElse(TestOptions.Execution.HOST);
+      .orElse(IdeTestOptions.Execution.HOST);
     switch (executionType) {
       case ANDROID_TEST_ORCHESTRATOR:
       case ANDROIDX_TEST_ORCHESTRATOR:

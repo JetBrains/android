@@ -41,6 +41,7 @@ internal fun ClassDescriptorImpl.createMethod(
   name: String,
   returnType: KotlinType,
   dispatchReceiver: ClassDescriptor,
+  isOperator: Boolean = false,
   valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = { emptyList() },
   sourceElement: SourceElement = this.source.withMethodIcon(name)
 ): SimpleFunctionDescriptorImpl {
@@ -52,7 +53,11 @@ internal fun ClassDescriptorImpl.createMethod(
     Name.identifier(name),
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     sourceElement
-  ) {}
+  ) {
+    override fun isOperator(): Boolean {
+      return isOperator
+    }
+  }
 
   return method.initialize(null, dispatchReceiver.thisAsReceiverParameter, emptyList(),
                            valueParametersProvider(method), returnType, Modality.FINAL, Visibilities.PUBLIC)

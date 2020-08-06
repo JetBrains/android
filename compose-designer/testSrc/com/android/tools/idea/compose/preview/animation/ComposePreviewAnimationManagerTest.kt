@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import androidx.ui.animation.tooling.ComposeAnimation
-import androidx.ui.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.ComposeAnimation
+import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
@@ -33,7 +33,6 @@ import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -43,6 +42,7 @@ import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.net.URL
+import java.util.stream.Collectors
 import javax.swing.JTabbedPane
 
 class ComposePreviewAnimationManagerTest {
@@ -145,26 +145,55 @@ class ComposePreviewAnimationManagerTest {
   fun comboBoxesDisplayComposeAnimationStates() {
     val inspector = createInspector()
 
-    val animationStates = setOf("State1", "State2")
+    val animationStates = setOf("State1", "State2", "State3")
 
     val transitionAnimation = object : ComposeAnimation {
-      override fun getAnimation() = Any()
-      override fun getType() = ComposeAnimationType.TRANSITION_ANIMATION
-      override fun getStates() = animationStates
+      override val animationObject = Any()
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = animationStates
     }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(null, transitionAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val stateComboBox = TreeWalker(inspector).descendantStream().filter { it is ComboBox<*> }.findAny().get() as ComboBox<*>
-    assertEquals(2, stateComboBox.itemCount)
-    val st1 = stateComboBox.getItemAt(0)
-    val st2 = stateComboBox.getItemAt(1)
-    assertTrue(animationStates.contains(st1))
-    assertTrue(animationStates.contains(st2))
-    // Sanity-check the states are different to guarantee we're checking "State1" and "State2"
-    assertNotEquals(st1, st2)
+    val stateComboBoxes = TreeWalker(inspector).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
+    assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
+    val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
+    val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
+
+    assertEquals(3, startStateComboBox.itemCount)
+    assertEquals("State1", startStateComboBox.getItemAt(0))
+    assertEquals("State2", startStateComboBox.getItemAt(1))
+    assertEquals("State3", startStateComboBox.getItemAt(2))
+
+    assertEquals("State1", startStateComboBox.selectedItem)
+    // The "end" combo box does not display the same state as the "start" combo box if possible
+    assertEquals("State2", endStateComboBox.selectedItem)
+  }
+
+  @Test
+  fun tabsAreNamedFromAnimationLabel() {
+    val inspector = createInspector()
+
+    val animation1 = createComposeAnimation("repeatedLabel")
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation1)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val animationWithSameLabel = createComposeAnimation("repeatedLabel")
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithSameLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val animationWithNullLabel = createComposeAnimation()
+    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithNullLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val tabbedPane = inspector.animationsTabbedPane()!!
+    assertEquals(3, tabbedPane.tabCount)
+
+    assertEquals("repeatedLabel #1", tabbedPane.getTitleAt(0))
+    assertEquals("repeatedLabel #2", tabbedPane.getTitleAt(1)) // repeated titles get their index incremented
+    assertEquals("TransitionAnimation #1", tabbedPane.getTitleAt(2)) // null labels use default title
   }
 
   @Test
@@ -201,9 +230,10 @@ class ComposePreviewAnimationManagerTest {
     return ComposePreviewAnimationManager.currentInspector!!
   }
 
-  private fun createComposeAnimation() = object : ComposeAnimation {
-    override fun getAnimation() = Any()
-    override fun getType() = ComposeAnimationType.ANIMATED_VALUE
+  private fun createComposeAnimation(label: String? = null) = object : ComposeAnimation {
+    override val animationObject = Any()
+    override val type = ComposeAnimationType.ANIMATED_VALUE
+    override val label = label
   }
 
   private fun AnimationInspectorPanel.animationsTabbedPane() =

@@ -22,6 +22,7 @@ import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
+import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.TfliteModelException;
 import com.android.utils.StringHelper;
@@ -45,8 +46,10 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
@@ -83,8 +86,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -506,13 +511,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     PsiClass outputsClass = getInnerOutputsClass(modelClass);
+    boolean hasGroupInfo = !modelInfo.getOutputTensorGroups().isEmpty();
     if (outputsClass != null) {
-      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
+      Iterator<String> outputTensorNameIterator = Stream.concat(
+        modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName),
+        modelInfo.getOutputTensorGroups().stream().map(TensorGroupInfo::getIdentifierName)).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         if (psiMethod.isDeprecated()) {
           continue;
         }
         String tensorName = outputTensorNameIterator.next();
+        PsiClass groupClass = getInnerGroupClass(modelClass, psiMethod.getReturnType());
+        if (hasGroupInfo && groupClass == null) {
+          // Skip here because model has groupInfo however this psi method is not related to it.
+          // Only display group info APIs in sample code if exist, which is more user friendly.
+          continue;
+        }
         codeBuilder
           .append(INDENT)
           .append(
@@ -531,6 +545,26 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
             codeBuilder.append(INDENT).append(String.format("Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
             break;
         }
+
+        if (groupClass != null) {
+          Iterator<String> groupNameIterator =
+            getTensorGroupInfoByIdentifierName(modelInfo, StringHelper.usLocaleDecapitalize(groupClass.getName()))
+              .getTensorNames().iterator();
+          codeBuilder
+            .append("\n" + INDENT)
+            .append(String.format(String.format("// Gets result from %s.\n", groupClass.getName())));
+          for (PsiMethod groupMethod : groupClass.getMethods()) {
+            codeBuilder
+              .append(INDENT)
+              .append(
+                String.format(
+                  "%s %s = %s.%s();\n",
+                  Objects.requireNonNull(groupMethod.getReturnType()).getPresentableText(),
+                  groupNameIterator.next(),
+                  tensorName,
+                  groupMethod.getName()));
+          }
+        }
       }
       codeBuilder.append("\n");
     }
@@ -543,9 +577,23 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append("} catch (IOException e) {\n")
       .append(INDENT)
       .append("// TODO Handle the exception\n")
-      .append("}");
+      .append("}\n");
 
     return codeBuilder.toString();
+  }
+
+  @NotNull
+  private static TensorGroupInfo getTensorGroupInfoByIdentifierName(@NotNull ModelInfo modelInfo, @NotNull String identifierName) {
+    Optional<TensorGroupInfo> optional =
+      modelInfo.getOutputTensorGroups().stream().filter(tensorGroupInfo -> tensorGroupInfo.getIdentifierName().equals(identifierName))
+        .findFirst();
+
+    if (!optional.isPresent()) {
+      Logger.getInstance(TfliteModelFileEditor.class)
+        .error(String.format("Model %s doesn't have tensor group with name: %s", modelInfo.getModelName(), identifierName));
+    }
+
+    return optional.get();
   }
 
   @NotNull
@@ -565,13 +613,23 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     PsiClass outputsClass = getInnerOutputsClass(modelClass);
+    boolean hasGroupInfo = !modelInfo.getOutputTensorGroups().isEmpty();
     if (outputsClass != null) {
-      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
+      Iterator<String> outputTensorNameIterator = Stream.concat(
+        modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName),
+        modelInfo.getOutputTensorGroups().stream().map(TensorGroupInfo::getIdentifierName))
+        .iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         if (psiMethod.isDeprecated()) {
           continue;
         }
         String tensorName = outputTensorNameIterator.next();
+        PsiClass groupClass = getInnerGroupClass(modelClass, psiMethod.getReturnType());
+        if (hasGroupInfo && groupClass == null) {
+          // Skip here because model has groupInfo however this psi method is not related to it.
+          // Only display group info APIs in sample code if exist, which is more user friendly.
+          continue;
+        }
         codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
         switch (Objects.requireNonNull(psiMethod.getReturnType()).getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
@@ -580,6 +638,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           case ClassNames.TENSOR_IMAGE:
             codeBuilder.append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
             break;
+        }
+
+        if (groupClass != null) {
+          Iterator<String> groupNameIterator =
+            getTensorGroupInfoByIdentifierName(modelInfo, StringHelper.usLocaleDecapitalize(groupClass.getName()))
+              .getTensorNames().iterator();
+          codeBuilder
+            .append("\n")
+            .append(String.format(String.format("// Gets result from %s.\n", groupClass.getName())));
+          for (PsiMethod groupMethod : groupClass.getMethods()) {
+            codeBuilder
+              .append(
+                String.format(
+                  "val %s = %s.%s;\n",
+                  groupNameIterator.next(),
+                  tensorName,
+                  convertToKotlinPropertyName(groupMethod.getName())));
+          }
         }
       }
       codeBuilder.append("\n");
@@ -689,8 +765,30 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Nullable
   private static PsiClass getInnerOutputsClass(@NotNull PsiClass modelClass) {
+    return getInnerClass(modelClass, MlNames.OUTPUTS);
+  }
+
+  /**
+   * Gets inner group class from {@param returnType} of getter method.
+   * <p>
+   * For each inner group class, it has one specified getter method in output class, so it's safe to extract it from there.
+   */
+  @Nullable
+  private static PsiClass getInnerGroupClass(@NotNull PsiClass modelClass, @Nullable PsiType returnType) {
+    if (returnType instanceof PsiClassType) {
+      PsiType[] psiTypes = ((PsiClassType)returnType).getParameters();
+      if (psiTypes.length == 1) {
+        return getInnerClass(modelClass, psiTypes[0].getPresentableText());
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static PsiClass getInnerClass(@NotNull PsiClass modelClass, @NotNull String innerClassName) {
     for (PsiClass innerClass : modelClass.getInnerClasses()) {
-      if (MlNames.OUTPUTS.equals(innerClass.getName())) {
+      if (innerClassName.equals(innerClass.getName())) {
         return innerClass;
       }
     }

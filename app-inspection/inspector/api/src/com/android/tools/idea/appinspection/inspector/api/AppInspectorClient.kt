@@ -32,14 +32,14 @@ abstract class AppInspectorClient(
   /** Interface for defining a connection that sends basic commands and receives callbacks between studio and inspectors. */
   interface CommandMessenger {
     /**
-     * Disposes the inspector. This suspending function returns when a response to the dispose command is received.
+     * Disposes the inspector.
      *
-     * Upon response this inspector will be considered disposed, no matter if the call succeeded or failed (completed exceptionally with
-     * [AppInspectionConnectionException]). The inspector will be considered unusable in either case. All pending commands at the moment of
-     * disposal are resolved exceptionally.
+     * This is an idempotent operation (no additional effects if called more than once). Upon return this inspector will be considered
+     * disposed, no matter if the actual command succeeded or failed. The inspector will be considered unusable in either case. All pending
+     * commands at the moment of disposal are resolved exceptionally.
      */
     @WorkerThread
-    suspend fun disposeInspector()
+    fun disposeInspector()
 
     /**
      * Sends a raw command using the provided [rawData]. Returns the raw response.

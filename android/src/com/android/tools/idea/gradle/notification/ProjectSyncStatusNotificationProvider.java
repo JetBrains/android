@@ -30,12 +30,10 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.colors.EditorColors;
@@ -45,10 +43,8 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -56,12 +52,9 @@ import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,9 +99,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @NotNull
   NotificationPanel.Type notificationPanelType() {
     if (!myProjectInfo.isBuildWithGradle()) {
-      return NotificationPanel.Type.NONE;
-    }
-    if (!mySyncState.areSyncNotificationsEnabled()) {
       return NotificationPanel.Type.NONE;
     }
     if (mySyncState.isSyncInProgress()) {

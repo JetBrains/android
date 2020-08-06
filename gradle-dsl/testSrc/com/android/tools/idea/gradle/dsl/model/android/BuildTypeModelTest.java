@@ -1279,6 +1279,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs.size(), equalTo(3));
     assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
     assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
+    assertThat(signingConfigs.size(), equalTo(3));
+    assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
+    assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
     signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(2)));
 
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
@@ -1297,7 +1301,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", signingConfigModel));
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
                isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
@@ -1307,7 +1311,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG);
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", signingConfigModel));
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);

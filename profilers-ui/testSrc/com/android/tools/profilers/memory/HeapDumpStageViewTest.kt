@@ -80,7 +80,7 @@ class HeapDumpStageViewTest(val useNewEventPipeline: Boolean) {
   fun testNavigationButtonNameIsCaptureInNewUi() {
     ideProfilerServices.enableSeparateHeapDumpUi(true)
     // Load a fake capture
-    val fakeCapture = FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(
+    val fakeCapture = FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setStartTime(0).setEndTime(
       10).setInfoMessage("Foo").build()
     val stage = createStageWithCaptureLoaded(fakeCapture)
     val view = HeapDumpStageView(profilersView, stage)

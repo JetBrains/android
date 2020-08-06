@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link RepoManager} provided
@@ -212,5 +213,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   @Override
   public List<String> getAllChannels() {
     return ImmutableList.of(STABLE_CHANNEL, PREVIEW_CHANNEL);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return AndroidSdkUtils.isAndroidSdkManagerEnabled();
   }
 }

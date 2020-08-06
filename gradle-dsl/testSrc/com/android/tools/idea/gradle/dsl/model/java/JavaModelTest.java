@@ -76,6 +76,33 @@ public class JavaModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testReadJavaVersionsAssignmentInBlock() throws IOException {
+    isIrrelevantForKotlinScript("Assignment in block already tested");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_ASSIGNMENT_IN_BLOCK);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
+  public void testReadJavaVersionsApplicationInBlock() throws IOException {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_APPLICATION_IN_BLOCK);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
+  public void testReadJavaVersionsNoApplicationAtToplevel() throws IOException {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_NO_APPLICATION_AT_TOPLEVEL);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
   public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
     isIrrelevantForKotlinScript("can't assign numbers to language level properties in KotlinScript");
     writeToBuildFile(TestFile.READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY);
@@ -201,6 +228,9 @@ public class JavaModelTest extends GradleFileModelTestCase {
     READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS("readJavaVersionsAsDoubleQuoteStrings"),
     READ_JAVA_VERSIONS_AS_REFERENCE_STRING("readJavaVersionsAsReferenceString"),
     READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING("readJavaVersionsAsQualifiedReferenceString"),
+    READ_JAVA_VERSIONS_ASSIGNMENT_IN_BLOCK("readJavaVersionsAssignmentInBlock"),
+    READ_JAVA_VERSIONS_APPLICATION_IN_BLOCK("readJavaVersionsApplicationInBlock"),
+    READ_JAVA_VERSIONS_NO_APPLICATION_AT_TOPLEVEL("readJavaVersionsNoApplicationAtToplevel"),
     READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY("readJavaVersionLiteralFromExtProperty"),
     READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY("readJavaVersionReferenceFromExtProperty"),
     SET_SOURCE_COMPATIBILITY("setSourceCompatibility"),

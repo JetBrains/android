@@ -20,6 +20,8 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 
 class CaptureNodeDetailTableTest {
   @Test
@@ -62,6 +64,13 @@ class CaptureNodeDetailTableTest {
     assertThat(viewRange.isSameAs(Range(0.0, 100.0))).isTrue()
     table.selectionModel.setSelectionInterval(1, 1)
     assertThat(viewRange.isSameAs(Range(14.0, 19.0))).isTrue()
+  }
+
+  @Test
+  fun tableCanBeScrollable() {
+    val captureRange = Range(0.0, 100.0)
+    assertThat(CaptureNodeDetailTable(listOf(NODE), captureRange, isScrollable = false).component).isInstanceOf(JPanel::class.java)
+    assertThat(CaptureNodeDetailTable(listOf(NODE), captureRange, isScrollable = true).component).isInstanceOf(JScrollPane::class.java)
   }
 
   companion object {

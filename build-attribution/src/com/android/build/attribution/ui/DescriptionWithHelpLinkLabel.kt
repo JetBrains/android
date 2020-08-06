@@ -15,8 +15,6 @@
  */
 package com.android.build.attribution.ui
 
-import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBPanel
 import java.awt.GridBagConstraints
@@ -32,13 +30,6 @@ class DescriptionWithHelpLinkLabel(
   learnMoreTarget: BuildAnalyzerBrowserLinks,
   linkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit
 ) : JBPanel<JBPanel<*>>(GridBagLayout()) {
-
-  @Deprecated("Used only in old navigation model, to be removed with cleanup.")
-  constructor(
-    text: String,
-    learnMoreTarget: BuildAnalyzerBrowserLinks,
-    analytics: BuildAttributionUiAnalytics
-  ) : this(text, learnMoreTarget, analytics::helpLinkClicked)
 
   init {
     val descriptionTextLabel = htmlTextLabelWithLinesWrap(text)

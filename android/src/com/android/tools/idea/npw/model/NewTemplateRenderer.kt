@@ -30,6 +30,7 @@ import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -150,6 +151,7 @@ fun formatWarningMessage(context: RenderingContext): String {
 }
 
 // TODO(qumeric): update TemplateRenderer and this method
+@Suppress("DEPRECATION")
 @VisibleForTesting
 fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
   "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
@@ -178,7 +180,11 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
-  "Master/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+  "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+  "Watch Face" -> TemplateRenderer.WATCH_FACE
+  "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
+  "Messaging service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
+  "Media service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
@@ -206,6 +212,93 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
 
   else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
+}
+
+@Suppress("DEPRECATION")
+fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
+  return when (titleToTemplateRenderer(title, formFactor)) {
+    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER -> TemplateType.UNKNOWN_TEMPLATE
+    // Note: These values where never added/missing from the old TemplateRenderer
+    TemplateRenderer.CUSTOM_TEMPLATE_RENDERER -> when (title) {
+      "Slice Provider" -> TemplateType.SLICE_PROVIDER
+      "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
+      "Bottom Navigation Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
+      "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
+      "AIDL Folder" -> TemplateType.AIDL_FOLDER
+      "Font Folder" -> TemplateType.FONT_FOLDER
+      "Raw Resources Folder" -> TemplateType.RAW_RESOURCES_FOLDER
+      "Java Resources Folder" -> TemplateType.JAVA_RESOURCES_FOLDER
+      "XML Resources Folder" -> TemplateType.XML_RESOURCES_FOLDER
+      "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
+      "Content Provider" -> TemplateType.CONTENT_PROVIDER
+      "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
+      "App Actions XML File" -> TemplateType.APP_ACTIONS_XML_FILE
+      else -> TemplateType.CUSTOM_TEMPLATE
+    }
+
+    TemplateRenderer.EMPTY_ACTIVITY -> TemplateType.EMPTY_ACTIVITY
+    TemplateRenderer.LAYOUT_XML_FILE -> TemplateType.LAYOUT_XML_FILE
+    TemplateRenderer.FRAGMENT_BLANK -> TemplateType.FRAGMENT_BLANK
+    TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY -> TemplateType.NAVIGATION_DRAWER_ACTIVITY
+    TemplateRenderer.VALUES_XML_FILE -> TemplateType.VALUES_XML_FILE
+    TemplateRenderer.GOOGLE_MAPS_ACTIVITY -> TemplateType.GOOGLE_MAPS_ACTIVITY
+    TemplateRenderer.LOGIN_ACTIVITY -> TemplateType.LOGIN_ACTIVITY
+    TemplateRenderer.ASSETS_FOLDER -> TemplateType.ASSETS_FOLDER
+    TemplateRenderer.TABBED_ACTIVITY -> TemplateType.TABBED_ACTIVITY
+    TemplateRenderer.SCROLLING_ACTIVITY -> TemplateType.SCROLLING_ACTIVITY
+    TemplateRenderer.FULLSCREEN_ACTIVITY -> TemplateType.FULLSCREEN_ACTIVITY
+    TemplateRenderer.SERVICE -> TemplateType.SERVICE
+    TemplateRenderer.SETTINGS_ACTIVITY -> TemplateType.SETTINGS_ACTIVITY
+    TemplateRenderer.FRAGMENT_LIST -> TemplateType.FRAGMENT_LIST
+    TemplateRenderer.MASTER_DETAIL_FLOW -> TemplateType.PRIMARY_DETAIL_FLOW_ACTIVITY
+    TemplateRenderer.BROADCAST_RECEIVER -> TemplateType.BROADCAST_RECEIVER
+    TemplateRenderer.AIDL_FILE -> TemplateType.AIDL_FILE
+    TemplateRenderer.INTENT_SERVICE -> TemplateType.INTENT_SERVICE
+    TemplateRenderer.JNI_FOLDER -> TemplateType.JNI_FOLDER
+    TemplateRenderer.JAVA_FOLDER -> TemplateType.JAVA_FOLDER
+    TemplateRenderer.CUSTOM_VIEW -> TemplateType.CUSTOM_VIEW
+    TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY -> TemplateType.GOOGLE_ADMOBS_ADS_ACTIVITY
+    TemplateRenderer.RES_FOLDER -> TemplateType.RES_FOLDER
+    TemplateRenderer.ANDROID_TV_ACTIVITY -> TemplateType.ANDROID_TV_EMPTY_ACTIVITY
+    TemplateRenderer.BLANK_WEAR_ACTIVITY -> TemplateType.BLANK_WEAR_ACTIVITY
+    TemplateRenderer.BASIC_ACTIVITIY -> TemplateType.BASIC_ACTIVITY
+    TemplateRenderer.APP_WIDGET -> TemplateType.APP_WIDGET
+    TemplateRenderer.FRAGMENT_FULLSCREEN -> TemplateType.FRAGMENT_FULLSCREEN
+    TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS -> TemplateType.FRAGMENT_GOOGLE_ADMOB_ADS
+    TemplateRenderer.FRAGMENT_GOOGLE_MAPS -> TemplateType.FRAGMENT_GOOGLE_MAPS
+    TemplateRenderer.FRAGMENT_LOGIN -> TemplateType.FRAGMENT_LOGIN
+    TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET -> TemplateType.FRAGMENT_MODAL_BOTTOM_SHEET
+    TemplateRenderer.FRAGMENT_SCROLL -> TemplateType.FRAGMENT_SCROLL
+    TemplateRenderer.FRAGMENT_SETTINGS -> TemplateType.FRAGMENT_SETTINGS
+    TemplateRenderer.FRAGMENT_VIEWMODEL -> TemplateType.FRAGMENT_VIEW_MODEL
+    TemplateRenderer.COMPOSE_EMPTY_ACTIVITY -> TemplateType.COMPOSE_EMPTY_ACTIVITY
+    TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE -> TemplateType.AUTOMOTIVE_MEDIA_SERVICE
+    TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE -> TemplateType.AUTOMOTIVE_MESSAGING_SERVICE
+    TemplateRenderer.THINGS_ACTIVITY -> TemplateType.THINGS_EMPTY_ACTIVITY
+    TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY -> TemplateType.WEAR_GOOGLE_MAPS_ACTIVITY
+    TemplateRenderer.WATCH_FACE -> TemplateType.WEAR_FACE_ACTIVITY
+
+    TemplateRenderer.BLANK_ACTIVITY,
+    TemplateRenderer.ANDROID_MODULE,
+    TemplateRenderer.ANDROID_PROJECT,
+    TemplateRenderer.JAVA_LIBRARY,
+    TemplateRenderer.ANDROID_WEAR_MODULE,
+    TemplateRenderer.ANDROID_TV_MODULE,
+    TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY,
+    TemplateRenderer.ANDROID_INSTANT_APP_PROJECT,
+    TemplateRenderer.ANDROID_INSTANT_APP_MODULE,
+    TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT,
+    TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE,
+    TemplateRenderer.BENCHMARK_LIBRARY_MODULE,
+    TemplateRenderer.ANDROID_LIBRARY,
+    TemplateRenderer.DYNAMIC_FEATURE_MODULE,
+    TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE,
+    TemplateRenderer.AUTOMOTIVE_MODULE,
+    TemplateRenderer.THINGS_MODULE,
+    TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
+    TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
+    TemplateRenderer.ANDROID_NATIVE_MODULE -> throw RuntimeException("Invalid Template Title")
+  }
 }
 
 fun logRendering(projectData: ProjectTemplateData, project: Project, templateRenderer: TemplateRenderer) {

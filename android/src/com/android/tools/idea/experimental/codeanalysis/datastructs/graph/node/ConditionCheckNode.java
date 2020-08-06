@@ -35,14 +35,14 @@ public interface ConditionCheckNode extends GraphNode {
   Value getCheckedValue();
 
   /**
-   * Will return a dummy true node
+   * Will return a placeholder true node
    *
    * @return
    */
   GraphNode getTrueBranch();
 
   /**
-   * Will return a dummy false node
+   * Will return a placeholder false node
    *
    * @return
    */

@@ -16,6 +16,7 @@
 package com.android.tools.idea
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -36,6 +37,6 @@ interface AndroidStartupActivity {
    * project system supports it) or when the project is disposed.
    */
   // TODO(b/150626707): Update the JavaDoc when disposing works as intended.
-  @AnyThread
+  @UiThread
   fun runActivity(project: Project, disposable: Disposable)
 }

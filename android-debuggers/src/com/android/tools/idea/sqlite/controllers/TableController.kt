@@ -22,17 +22,14 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
@@ -93,6 +90,10 @@ class TableController(
   private var liveUpdatesEnabled = false
 
   fun setUp(): ListenableFuture<Unit> {
+    if (databaseId !is SqliteDatabaseId.LiveSqliteDatabaseId) {
+      view.setLiveUpdatesState(false)
+    }
+
     view.startTableLoading()
     return databaseRepository.runQuery(databaseId, sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
       view.setEditable(isEditable())
@@ -244,7 +245,11 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
+  private fun isEditable() =
+    tableSupplier() != null &&
+    !liveUpdatesEnabled &&
+    !(tableSupplier()?.isView ?: false) &&
+    databaseId is SqliteDatabaseId.LiveSqliteDatabaseId
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {

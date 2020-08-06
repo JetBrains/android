@@ -30,9 +30,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -75,6 +78,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/idea/.idea/libraries:jaxb-api",
+        "//tools/idea/.idea/libraries:Trove4j",
     ],
 )
 
@@ -135,9 +139,12 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
@@ -156,6 +163,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/.idea/libraries:Trove4j[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module, test]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
@@ -205,6 +213,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
         "//tools/adt/idea/assistant:unb.assistant[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/base/pixelprobe:unb.studio.android.sdktools.pixelprobe[module]",
@@ -275,6 +286,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
         "//tools/adt/idea/assistant:unb.assistant[module]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",

@@ -4,11 +4,13 @@ load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "unb.studio",
+    srcs = ["src"],
     iml_files = ["studio.iml"],
     tags = [
         "manual",
         "unb",
     ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -29,6 +31,40 @@ iml_module(
         "//tools/adt/idea/smali:unb.intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder:unb.test-recorder[module]",
         "//tools/vendor/google/url-assistant:unb.url-assistant[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Compose",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-configurationScript",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-copyright",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-coverage",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-editorconfig",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-filePrediction",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-git4idea",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-github",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-hg4idea",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-IntelliLang",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-decompiler",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-i18n",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-ide-customization",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-maven-model",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties-resource-bundle-editor",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-repository-search",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-settings-repository",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-sh",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-stream-debugger",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-svn4idea",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-tasks",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-terminal",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-testng",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-textmate",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-vcs-changeReminder",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-yaml",
     ],
 )
 
@@ -394,4 +430,23 @@ py_test(
         ":android-studio.win.zip",
     ],
     tags = ["manual"],
+)
+
+java_binary(
+    name = "stamper",
+    srcs = ["src/com/android/tools/Stamper.java"],
+    main_class = "com.android.tools.Stamper",
+    visibility = ["//visibility:public"],
+)
+
+java_test(
+    name = "stamper_tests",
+    srcs = ["testSrc/com/android/tools/StamperTest.java"],
+    test_class = "com.android.tools.StamperTest",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":stamper",
+        "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:junit_junit",
+    ],
 )

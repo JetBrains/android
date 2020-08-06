@@ -809,13 +809,13 @@ class LightBindingClassTest {
       // language=XML
       """
         <resources>
-          <string name="app_name">DummyAppName</string>
+          <string name="app_name">SampleAppName</string>
         </resources>
       """.trimIndent()
     )
 
     // language=XML
-    val dummyXml = """
+    val sampleXml = """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
@@ -826,14 +826,14 @@ class LightBindingClassTest {
     assertThat(noResourcesGroups.size).isEqualTo(0)
     assertThat(noResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
-    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+    fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
 
     val oneResourceGroups = bindingCache.bindingLayoutGroups
     assertThat(oneResourceGroups.size).isEqualTo(1)
     assertThat(oneResourceGroups).isNotSameAs(noResourcesGroups)
     assertThat(oneResourceGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
-    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
     val twoResourcesGroups = bindingCache.bindingLayoutGroups
     assertThat(twoResourcesGroups.size).isEqualTo(2)
     assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
@@ -844,14 +844,14 @@ class LightBindingClassTest {
   @Test
   fun bindingCacheRecoversAfterExitingDumbMode() {
     // language=XML
-    val dummyXml = """
+    val sampleXml = """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
       """.trimIndent()
 
-    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+    fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
 
     // initialize app resources
     ResourceRepositoryManager.getAppResources(facet)
@@ -867,7 +867,7 @@ class LightBindingClassTest {
       .containsExactly("ActivityFirstBinding")
 
     // XML updates are ignored in dumb mode
-    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.intellij.openapi.project.Project;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -114,6 +115,10 @@ public abstract class Device {
   public final Key getKey() {
     return myKey;
   }
+
+  abstract boolean matches(@NotNull Key key);
+
+  abstract boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys);
 
   @Nullable
   final Instant getConnectionTime() {

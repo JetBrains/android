@@ -18,13 +18,16 @@ package com.android.tools.idea.nav.safeargs.module
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
@@ -70,6 +73,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var _directions = emptyList<LightDirectionsClass>()
   val directions: List<LightDirectionsClass>
     get() {
+      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
+
       refreshSafeArgsLightClassesIfNecessary()
       return _directions
     }
@@ -78,6 +83,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var _args = emptyList<LightArgsClass>()
   val args: List<LightArgsClass>
     get() {
+      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
+
       refreshSafeArgsLightClassesIfNecessary()
       return _args
     }

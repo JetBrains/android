@@ -60,7 +60,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -269,7 +268,7 @@ public class RenderService implements Disposable {
    * in the nearby range too.
    *
    * @param view the {@link ViewInfo} to check
-   * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
+   * @return Normally the {@link ViewInfo} itself, but a placeholder 0-bound {@link ViewInfo} if
    * the view bounds are indeed invalid
    */
   @NotNull
@@ -351,7 +350,7 @@ public class RenderService implements Disposable {
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
-    private boolean enableLayoutValidator = false;
+    private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
@@ -415,8 +414,8 @@ public class RenderService implements Disposable {
       return this;
     }
 
-    public RenderTaskBuilder withLayoutValidation(Boolean enableLayoutValidator) {
-      this.enableLayoutValidator = enableLayoutValidator;
+    public RenderTaskBuilder withLayoutScanner(Boolean enableLayoutScanner) {
+      this.enableLayoutScanner = enableLayoutScanner;
       return this;
     }
 
@@ -590,7 +589,7 @@ public class RenderService implements Disposable {
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
-            .setEnableLayoutValidator(enableLayoutValidator);
+            .setEnableLayoutScanner(enableLayoutScanner);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

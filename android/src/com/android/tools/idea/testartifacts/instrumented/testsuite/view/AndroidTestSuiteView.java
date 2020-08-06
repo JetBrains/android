@@ -81,6 +81,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -282,15 +283,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
-    DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
-    testFilterAndSorterActionGroup.addAll(
-      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
-      Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton);
-    myTestStatusFilterPanel.add(
-      ActionManager.getInstance().createActionToolbar(
-        ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-        testFilterAndSorterActionGroup, true).getComponent());
-
     TestArtifactSearchScopes testArtifactSearchScopes = null;
     if (module != null) {
       testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module);
@@ -362,6 +354,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myDeviceFilterComboBox.addItemListener(tableUpdater);
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
+
+    DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
+    testFilterAndSorterActionGroup.addAll(
+      myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
+      Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton,
+      Separator.getInstance(), myTable.createExpandAllAction(), myTable.createCollapseAllAction(),
+      Separator.getInstance(), myTable.createNavigateToPreviousFailedTestAction(), myTable.createNavigateToNextFailedTestAction());
+    myTestStatusFilterPanel.add(
+      ActionManager.getInstance().createActionToolbar(
+        ActionPlaces.ANDROID_TEST_SUITE_TABLE,
+        testFilterAndSorterActionGroup, true).getComponent());
 
     myComponentsSplitter = new JBSplitter();
     myComponentsSplitter.setHonorComponentsMinimumSize(false);
@@ -487,8 +490,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @AnyThread
   public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
-      AndroidTestResults results = myTable.addTestCase(device, testCase);
-      myInsertionOrderMap.computeIfAbsent(results, (unused) -> myInsertionOrderMap.size());
+      myTable.addTestCase(device, testCase).iterator().forEachRemaining(results -> {
+        myInsertionOrderMap.computeIfAbsent(results, (unused) -> myInsertionOrderMap.size());
+      });
       myDetailsView.reloadAndroidTestResults();
     });
   }
@@ -499,6 +503,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
                                  @NotNull AndroidTestSuite testSuite,
                                  @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
+      // Include a benchmark output to a raw output console for backward compatibility.
+      for (String benchmarkOutput : StringsKt.lines(testCase.getBenchmark())) {
+        print("benchmark: " + benchmarkOutput + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+      }
+
       switch (Preconditions.checkNotNull(testCase.getResult())) {
         case PASSED:
           passedTestCases++;

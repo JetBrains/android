@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.util
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
@@ -46,7 +47,7 @@ import java.io.File
  * Utility methods to find APK/Bundle output file or folder.
  */
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("GradleBuildOutputUtil.kt")
 
 enum class OutputType {
   Apk,
@@ -210,6 +211,7 @@ internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAd
  * this should be removed.
  */
 internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
+  @UiThread
   override fun runActivity(project: Project, disposable: Disposable) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {

@@ -28,10 +28,11 @@ import com.android.tools.idea.transport.manager.TransportStreamListener
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asExecutor
 import java.lang.Long.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 
 /**
  * A class that manages processes discovered from transport pipeline.
@@ -46,7 +47,7 @@ import java.util.concurrent.ExecutorService
  */
 @AnyThread
 internal class AppInspectionProcessDiscovery(
-  private val executor: ExecutorService,
+  private val dispatcher: CoroutineDispatcher,
   private val manager: TransportStreamManager
 ) : ProcessNotifier {
 
@@ -107,7 +108,7 @@ internal class AppInspectionProcessDiscovery(
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
-            executor = executor,
+            executor = dispatcher.asExecutor(),
             filter = { it.process.hasProcessStarted() },
             startTime = streamLastEventTimestamp
           ) {
@@ -119,7 +120,7 @@ internal class AppInspectionProcessDiscovery(
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
-            executor = executor,
+            executor = dispatcher.asExecutor(),
             filter = { !it.process.hasProcessStarted() },
             startTime = streamLastEventTimestamp
           ) {
@@ -132,7 +133,7 @@ internal class AppInspectionProcessDiscovery(
       override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
         streamIdMap.remove(streamChannel.stream.streamId)
       }
-    }, executor)
+    }, dispatcher.asExecutor())
   }
 
   private fun setStreamLastActiveTime(streamId: Long, timestamp: Long) {
@@ -173,12 +174,3 @@ internal class AppInspectionProcessDiscovery(
    */
   internal fun getStreamChannel(streamId: Long) = streamIdMap[streamId]
 }
-
-/**
- * Thrown when trying to launch an inspector on a process that no longer exists.
- *
- * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
- * selects a process for inspection on device X right when X is shutting down.
- */
-class ProcessNoLongerExistsException(message: String) : Exception(message)
-

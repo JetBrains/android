@@ -341,7 +341,7 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> NELE_LAYOUT_VALIDATOR_IN_EDITOR = Flag.create(
+  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
     false);
@@ -360,16 +360,6 @@ public final class StudioFlags {
 
   //region Navigation Editor
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
-  public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
-    NAV_EDITOR, "new.component", "Enable the new Component Tree",
-    "Enable the new Component Tree",
-    true);
-
-  public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
-    NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
-    "Support for Dynamic Feature Modules",
-    true);
-
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
@@ -575,13 +565,20 @@ public final class StudioFlags {
     "SQLite files opened from the Device Explorer will be opened in the inspector.",
     true
   );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
+  public static final Flag<Boolean> DATABASE_INSPECTOR_OPEN_FILES_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
-    "files.enabled",
-    "Enable file support in Database Inspector",
-    "If enabled, the Database Inspector tool will be able to open databases from files." +
-    "SQLite files opened from the Device Explorer will open in the inspector.",
+    "open.files.enabled",
+    "Enable support for opening SQLite files in Database Inspector",
+    "If enabled, the Database Inspector tool will be able to open SQLite files." +
+    "eg. SQLite files opened from the Device Explorer will open in the inspector.",
     false
+  );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "offline.enabled",
+    "Enable offline mode in Database Inspector",
+    "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
+    true
   );
   //endregion
 
@@ -704,30 +701,6 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public enum LayoutXmlMode {
-    DEFAULT,
-    /**
-     * Don't run AndroidDomExtender at all, to see how other parts of the XML stack work.
-     */
-    NO_DOM_EXTENDER,
-    /**
-     * Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil.
-     */
-    ATTRIBUTES_FROM_STYLEABLES,
-
-    /**
-     * Use @CustomChildren instead of DomExtender.
-     */
-    CUSTOM_CHILDREN,
-  }
-
-  public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
-    EDITOR,
-    "layout.mode",
-    "Layout XML editing mode",
-    "Controls how XML editing in layout files works.",
-    LayoutXmlMode.DEFAULT);
-
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
     "Enable support for MultiDexKeepFile format",
@@ -780,6 +753,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> CONTENT_ACCESS_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "contentaccess.support.enabled",
+    "Enable editor support for ContentAccess",
+    "If enabled adds ContentAccesss specific inspections and code completion",
+    true
+  );
+
   //endregion
 
   //region Unified App Bundle
@@ -800,12 +780,6 @@ public final class StudioFlags {
     "If enabled, instrumentation output keys (from calling Instrumentation#sendStatus) that begin with 'android.studio.display.' "
     + "will have their values printed after a test has finished running.",
     true
-  );
-
-  public static final Flag<Boolean> KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS = Flag.create(
-    TESTING, "kotlin.incorrect.scope.check", "Checks the scope of classes being used in kotlin test files",
-    "If enabled, an inspection will run that shows an error when a class is used in a kotlin test file that is not is scope.",
-    false
   );
 
   public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
@@ -990,6 +964,13 @@ public final class StudioFlags {
     "Enable the blueprint mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
     false
+  );
+
+  public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
+    COMPOSE, "preview.animated.quick",
+    "Speed up transition between static and animated compose previews",
+    "If enabled, a transition between static and animated compose preview is almost instant",
+    true
   );
   //endregion
 

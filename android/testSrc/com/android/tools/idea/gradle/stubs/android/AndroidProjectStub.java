@@ -37,8 +37,8 @@ import com.android.builder.model.Variant;
 import com.android.builder.model.VariantBuildInformation;
 import com.android.builder.model.ViewBindingOptions;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
@@ -379,6 +379,10 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return IdeAndroidProjectImpl.create(androidProject, new HashMap<>(), new IdeDependenciesFactory(), null, emptyList());
+    return new ModelCache(new HashMap<>()).androidProjectFrom(
+      androidProject,
+      new IdeDependenciesFactory(),
+      null,
+      emptyList());
   }
 }

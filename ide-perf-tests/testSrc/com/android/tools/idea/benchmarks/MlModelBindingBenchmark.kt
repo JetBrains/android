@@ -49,7 +49,7 @@ class MlModelBindingBenchmark {
     gradleRule.load("projects/mlModelBindingApplication")
   }
 
-  // @Test b/156002918
+  @Test
   fun projectHighlighting() {
     disableExpensivePlatformAssertions(gradleRule.fixture)
     enableAllDefaultInspections(gradleRule.fixture)

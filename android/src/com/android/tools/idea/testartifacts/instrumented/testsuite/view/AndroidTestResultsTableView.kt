@@ -32,19 +32,25 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
+import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DataManager
+import com.intellij.ide.DefaultTreeExpander
+import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.ui.AnimatedIcon
@@ -82,15 +88,14 @@ import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
-import javax.swing.RowFilter
 import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
-import javax.swing.table.TableModel
-import javax.swing.table.TableRowSorter
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
 import kotlin.math.max
 
 /**
@@ -104,6 +109,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   private val myModel = AndroidTestResultsTableModel()
   private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
   private val myTableViewContainer = JBScrollPane(myTableView)
+  private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
   /**
    * Adds a device to the table.
@@ -122,13 +128,23 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    *
    * @param device a device which the given [testCase] belongs to
    * @param testCase a test case to be displayed in the table
+   * @return a sequence of AndroidTestResults which are added or updated
    */
   @UiThread
-  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase): AndroidTestResults {
+  fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase): Sequence<AndroidTestResults> {
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
-    return testRow
+    return sequence<AndroidTestResults> {
+      yield(testRow)
+      var parent = testRow.parent
+      while (parent != null) {
+        if (parent is AndroidTestResults) {
+          yield(parent)
+        }
+        parent = parent.parent
+      }
+    }
   }
 
   /**
@@ -138,16 +154,8 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
-    val sorter = myTableView.rowSorter as? TableRowSorter ?: return
-    sorter.rowFilter = object: RowFilter<TableModel, Int>() {
-      override fun include(entry: Entry<out TableModel, out Int>): Boolean {
-        if (entry.valueCount == 0) {
-          return false
-        }
-        val results = entry.getValue(0) as? AndroidTestResults ?: return false
-        return filter(results)
-      }
-    }
+    myModel.setRowFilter(filter)
+    refreshTable()
   }
 
   /**
@@ -157,7 +165,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    */
   @UiThread
   fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
-    myModel.setVisibleCondition(filter)
+    myModel.setColumnFilter(filter)
     refreshTable()
   }
 
@@ -172,6 +180,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
    *
    * @param device a device to retrieve the time or null to hide the string.
    */
+  @UiThread
   fun showTestDuration(device: AndroidDevice?) {
     myTableView.showTestDuration(device)
   }
@@ -215,6 +224,43 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   fun getPreferredFocusableComponent(): JComponent = myTableView
 
   /**
+   * Creates an action which expands all items in the test results tree table.
+   */
+  @UiThread
+  fun createExpandAllAction(): AnAction {
+    val treeExpander = object: DefaultTreeExpander(myTableView.tree) {
+      override fun canCollapse(): Boolean = true
+      override fun canExpand(): Boolean = true
+    }
+    return CommonActionsManager.getInstance().createExpandAllAction(treeExpander, myTableView.tree)
+  }
+
+  /**
+   * Creates an action which expands all items in the test results tree table.
+   */
+  @UiThread
+  fun createCollapseAllAction(): AnAction {
+    val treeExpander = object: DefaultTreeExpander(myTableView.tree) {
+      override fun canCollapse(): Boolean = true
+      override fun canExpand(): Boolean = true
+      override fun collapseAll(tree: JTree, keepSelectionLevel: Int) {
+        collapseAll(tree, false, keepSelectionLevel)
+      }
+    }
+    return CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, myTableView.tree)
+  }
+
+  @UiThread
+  fun createNavigateToPreviousFailedTestAction(): AnAction {
+    return CommonActionsManager.getInstance().createPrevOccurenceAction(failedTestsNavigator)
+  }
+
+  @UiThread
+  fun createNavigateToNextFailedTestAction(): AnAction {
+    return CommonActionsManager.getInstance().createNextOccurenceAction(failedTestsNavigator)
+  }
+
+  /**
    * Returns an internal model class for testing.
    */
   @VisibleForTesting
@@ -242,6 +288,56 @@ interface AndroidTestResultsTableListener {
    */
   fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,
                                       selectedDevice: AndroidDevice?)
+}
+
+private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
+  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.faled.test.action.name")
+  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.faled.test.action.name")
+
+  override fun hasNextOccurence(): Boolean {
+    return getNextFailedTestNode() != null
+  }
+
+  override fun goNextOccurence(): OccurenceNavigator.OccurenceInfo? {
+    val nextNode = getNextFailedTestNode() ?: return null
+    treetableView.tree.selectionPath = TreePath(nextNode.path)
+    treetableView.addSelection(nextNode)
+    return OccurenceNavigator.OccurenceInfo(treetableView.getPsiElement(nextNode) as? Navigatable, -1, -1)
+  }
+
+  override fun hasPreviousOccurence(): Boolean {
+    return getPreviousFailedTestNode() != null
+  }
+
+  override fun goPreviousOccurence(): OccurenceNavigator.OccurenceInfo? {
+    val prevNode = getPreviousFailedTestNode() ?: return null
+    treetableView.addSelection(prevNode)
+    return OccurenceNavigator.OccurenceInfo(treetableView.getPsiElement(prevNode) as? Navigatable, -1, -1)
+  }
+
+  private fun getNextFailedTestNode(): AndroidTestResultsRow? {
+    return getSequence(DefaultMutableTreeNode::getNextNode).firstOrNull()
+  }
+
+  private fun getPreviousFailedTestNode(): AndroidTestResultsRow? {
+    return getSequence(DefaultMutableTreeNode::getPreviousNode).firstOrNull()
+  }
+
+  private fun getSequence(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): Sequence<AndroidTestResultsRow> {
+    return sequence<AndroidTestResultsRow> {
+      if (treetableView.rowCount == 0) {
+        return@sequence
+      }
+      val selectedNode = (treetableView.selectedObject ?: treetableView.getValueAt(0, 0)) as? DefaultMutableTreeNode ?: return@sequence
+      var node = selectedNode.next()
+      while (node != null) {
+        if (node is AndroidTestResultsRow && node.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
+          yield(node)
+        }
+        node = node.next()
+      }
+    }
+  }
 }
 
 /**
@@ -319,7 +415,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
     }
     showHorizontalLines = false
-    rowSorter = DefaultColumnInfoBasedRowSorter(getModel())
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
@@ -392,7 +487,15 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
+    handleSelectionChanged(event)
+  }
 
+  override fun columnSelectionChanged(event: ListSelectionEvent) {
+    super.columnSelectionChanged(event)
+    handleSelectionChanged(event)
+  }
+
+  private fun handleSelectionChanged(event: ListSelectionEvent) {
     // Ignore intermediate values.
     if (event.valueIsAdjusting) {
       return
@@ -434,14 +537,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
         val selectedTestResults = selectedObject ?: return null
-        val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-        val testClasses = selectedTestResults.getFullTestClassName().let {
-          javaPsiFacade.findClasses(it, androidTestSourceScope)
-        }
-        testClasses.mapNotNull {
-          it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
-        }.firstOrNull()?.let { return it }
-        testClasses.firstOrNull()?.let { return it }
+        return getPsiElement(selectedTestResults)
       }
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
@@ -454,6 +550,17 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       else -> null
     }
+  }
+
+  fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
+    val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
+    val testClasses = androidTestResults.getFullTestClassName().let {
+      javaPsiFacade.findClasses(it, androidTestSourceScope)
+    }
+    testClasses.mapNotNull {
+      it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+    }.firstOrNull()?.let { return it }
+    return testClasses.firstOrNull()
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
@@ -514,6 +621,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       column.maxWidth = width
       column.preferredWidth = width
     }
+    model.applyFilter()
     myRowComparator?.let { model.sort(it) }
     model.reload()
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
@@ -535,18 +643,23 @@ private class AndroidTestResultsTableModel :
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
 
+  val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
+
   /**
-   * A current visible condition.
+   * A filter to show and hide columns.
    */
-  private var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
+  private var myColumnFilter: ((AndroidDevice) -> Boolean)? = null
+
+  /**
+   * A filter to show and hide rows.
+   */
+  private var myRowFilter: ((Any) -> Boolean)? = null
 
   /**
    * Creates and adds a new column for a given device.
    */
   fun addDeviceColumn(device: AndroidDevice) {
-    columns += AndroidTestResultsColumn(device).apply {
-      myVisibleCondition = this@AndroidTestResultsTableModel.myVisibleCondition
-    }
+    myDeviceColumns.add(AndroidTestResultsColumn(device))
   }
 
   /**
@@ -569,14 +682,66 @@ private class AndroidTestResultsTableModel :
   /**
    * Sets a visible condition.
    *
-   * @param visibleCondition a predicate which returns true for an column to be displayed
+   * @param columnFilter a predicate which returns true for an column to be displayed
    */
-  fun setVisibleCondition(visibleCondition: (AndroidDevice) -> Boolean) {
-    myVisibleCondition = visibleCondition
-    columnInfos.forEach {
-      if (it is AndroidTestResultsColumn) {
-        it.myVisibleCondition = myVisibleCondition
+  fun setColumnFilter(columnFilter: (AndroidDevice) -> Boolean) {
+    myColumnFilter = columnFilter
+  }
+
+  override fun getColumnClass(column: Int): Class<*> {
+    return columns[column].columnClass
+  }
+
+  override fun getColumnName(column: Int): String {
+    return columns[column].name
+  }
+
+  override fun getColumnCount(): Int {
+    return columns.size
+  }
+
+  override fun getValueAt(value: Any?, column: Int): Any? {
+    return columns[column].valueOf(value)
+  }
+
+  override fun isCellEditable(node: Any?, column: Int): Boolean {
+    return columns[column].isCellEditable(node)
+  }
+
+  override fun getColumnInfos(): Array<ColumnInfo<Any, Any>> {
+    return columns
+  }
+
+  override fun getColumns(): Array<ColumnInfo<Any, Any>> {
+    return arrayOf(*super.getColumns(), *(myDeviceColumns.filter {
+      myColumnFilter?.invoke(it.device) ?: true
+    }.map{
+      it as ColumnInfo<Any, Any>
+    }.toTypedArray()))
+  }
+
+  /**
+   * Sets a filter to hide specific rows from this table.
+   *
+   * @param filter a predicate which returns false for an item to be hidden
+   */
+  fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
+    myRowFilter = {
+      when(it) {
+        is AndroidTestResultsRow -> filter(it)
+        is AggregationRow -> it.childCount > 0
+        else -> true
       }
+    }
+    applyFilter()
+  }
+
+  /**
+   * Applies a row filter to update rows.
+   */
+  fun applyFilter() {
+    myRowFilter?.let {
+      myRootAggregationRow.applyFilter(it)
     }
   }
 
@@ -657,19 +822,12 @@ private class AndroidTestResultsColumn(val device: AndroidDevice) :
   private val myComparator = Comparator<AndroidTestResults> { lhs, rhs ->
     compareValues(lhs.getTestCaseResult(device), rhs.getTestCaseResult(device))
   }
-  var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
   override fun getName(): String = device.getName()
   override fun valueOf(item: AndroidTestResults): AndroidTestResultStats {
     return item.getResultStats(device)
   }
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
-  override fun getWidth(table: JTable): Int {
-    val isVisible = myVisibleCondition?.invoke(device) ?: true
-    // JTable does not support hiding columns natively. We simply set the column
-    // width to 1 px to hide. Note that you cannot set zero here because it will be
-    // ignored. See TableView.updateColumnSizes for details.
-    return if (isVisible) { 120 } else { 1 }
-  }
+  override fun getWidth(table: JTable): Int = 120
   override fun getRenderer(item: AndroidTestResults?): TableCellRenderer {
     return if (item is AggregationRow) {
       AndroidTestAggregatedResultsColumnCellRenderer
@@ -829,11 +987,45 @@ private class AndroidTestResultsRow(override val methodName: String,
   }
 }
 
+private open class FilterableTreeNode : DefaultMutableTreeNode() {
+  private var invisibleNodes: List<TreeNode> = listOf()
+  val allChildren: Sequence<TreeNode>
+    get() = sequence {
+      // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
+      // and this assignment is no longer unchecked.
+      @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
+      children?.let { yieldAll(it as Vector<TreeNode>) }
+      yieldAll(invisibleNodes)
+    }
+
+  /**
+   * Applies a filter to show or hide rows.
+   *
+   * @param filter a predicate which returns false for an item to be hidden
+   */
+  fun applyFilter(filter: (Any) -> Boolean) {
+    if (children == null) {
+      return
+    }
+    children.addAll(invisibleNodes)
+    children.forEach {
+      if (it is FilterableTreeNode) {
+        it.applyFilter(filter)
+      }
+    }
+    // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
+    // and this assignment is no longer unchecked.
+    @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
+    invisibleNodes = children.filterNot(filter) as List<TreeNode>
+    children.retainAll(filter)
+  }
+}
+
 /**
  * A row for displaying aggregated test results. Each row has test results for a device.
  */
 private class AggregationRow(override val packageName: String = "",
-                             override val className: String = "") : AndroidTestResults, DefaultMutableTreeNode() {
+                             override val className: String = "") : AndroidTestResults, FilterableTreeNode() {
   override val methodName: String = ""
   override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = getResultStats(device).getSummaryResult()
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
@@ -842,17 +1034,17 @@ private class AggregationRow(override val packageName: String = "",
     return "${stats.passed + stats.skipped}/${stats.total}"
   }
   override fun getResultStats(): AndroidTestResultStats {
-    return children?.fold(AndroidTestResultStats()) { acc, result ->
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats()?.plus(acc) ?: acc
     }?:AndroidTestResultStats()
   }
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
-    return children?.fold(AndroidTestResultStats()) { acc, result ->
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
     }?:AndroidTestResultStats()
   }
   override fun getLogcat(device: AndroidDevice): String {
-    return children?.fold("") { acc, result ->
+    return allChildren.fold("") { acc, result ->
       val logcat = (result as? AndroidTestResults)?.getLogcat(device)
       if (logcat.isNullOrBlank()) {
         acc
@@ -866,7 +1058,7 @@ private class AggregationRow(override val packageName: String = "",
     }?:""
   }
   override fun getDuration(device: AndroidDevice): Duration? {
-    return  children?.fold(null as Duration?) { acc, result ->
+    return  allChildren.fold(null as Duration?) { acc, result ->
       val childDuration = (result as? AndroidTestResults)?.getDuration(device) ?: return@fold acc
       if (acc == null) {
         childDuration
@@ -876,13 +1068,13 @@ private class AggregationRow(override val packageName: String = "",
     }
   }
   override fun getTotalDuration(): Duration {
-    return Duration.ofMillis(children?.asSequence()?.map {
+    return Duration.ofMillis(allChildren.map {
       (it as? AndroidTestResults)?.getTotalDuration()?.toMillis() ?: 0
-    }?.sum() ?: 0)
+    }.sum())
   }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
   override fun getBenchmark(device: AndroidDevice): String {
-    return children?.fold("") { acc, result ->
+    return allChildren.fold("") { acc, result ->
       val benchmark = (result as? AndroidTestResults)?.getBenchmark(device)
       if (benchmark.isNullOrBlank()) {
         acc
@@ -893,7 +1085,7 @@ private class AggregationRow(override val packageName: String = "",
           "${acc}\n${benchmark}"
         }
       }
-    }?:""
+    }
   }
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 

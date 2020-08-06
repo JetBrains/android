@@ -90,6 +90,12 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     myModules = ModuleManager.getInstance(project).modules
   }
 
+  fun testCommonArguments() {
+    setUpTestProject()
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec())
+    assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
+  }
+
   fun testDeviceSpecificArguments() {
     setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(20, null))
@@ -269,4 +275,4 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 private const val MAX_TIMEOUT_MILLISECONDS: Long = 50_000
 
 private fun deviceSpec(vararg devices: AndroidDevice): AndroidDeviceSpec? =
-  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)

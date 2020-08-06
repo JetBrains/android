@@ -8,9 +8,11 @@
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.ui" />
     <orderEntry type="module" module-name="intellij.android.profilers" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -54,5 +56,6 @@
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>

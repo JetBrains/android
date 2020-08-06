@@ -154,7 +154,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Override
     protected void apply() {
-      // There is nothing to apply here as this is just a dummy dsl element to represent a property.
+      // There is nothing to apply here as this is just a placeholder dsl element to represent a property.
     }
   }
 }

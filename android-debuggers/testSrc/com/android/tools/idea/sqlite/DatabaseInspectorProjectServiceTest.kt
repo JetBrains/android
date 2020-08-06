@@ -17,66 +17,79 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
+import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.concurrency.SameThreadExecutor
 import junit.framework.TestCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.util.function.Consumer
+import org.mockito.Mockito.verifyZeroInteractions
 
-class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
+class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var mockSqliteController: MockDatabaseInspectorController
-  private lateinit var fileOpened: VirtualFile
-  private lateinit var model: MockDatabaseInspectorModel
+  private lateinit var databaseInspectorController: FakeDatabaseInspectorController
+  private lateinit var model: OpenDatabaseInspectorModel
   private lateinit var repository: DatabaseRepositoryImpl
-  private val scope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher())
+  private lateinit var processDescriptor: ProcessDescriptor
+  private lateinit var offlineDatabaseManager: OfflineDatabaseManager
+
+  private val edtExecutor = EdtExecutorService.getInstance()
+  private val taskExecutor = PooledThreadExecutor.INSTANCE
+  private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher())
 
   override fun setUp() {
     super.setUp()
 
-    sqliteUtil = SqliteTestUtil(
-      IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
+
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
 
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     repository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    model = MockDatabaseInspectorModel()
-    mockSqliteController = spy(MockDatabaseInspectorController(repository, model))
-
-    val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
+    model = OpenDatabaseInspectorModel()
+    databaseInspectorController = spy(FakeDatabaseInspectorController(repository, model))
 
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
-      fileOpener = fileOpener,
       model = model,
-      createController = { _, _ -> mockSqliteController }
+      offlineDatabaseManager = offlineDatabaseManager,
+      createController = { _, _, _ -> databaseInspectorController }
     )
+
+    processDescriptor = object : ProcessDescriptor {
+      override val manufacturer = "manufacturer"
+      override val model = "model"
+      override val serial = "serial"
+      override val processName = "processName"
+      override val isEmulator = false
+    }
   }
 
   override fun tearDown() {
@@ -93,13 +106,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       2,
       EdtExecutorService.getInstance()
     )
@@ -109,7 +122,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Act
     runDispatching {
-      databaseInspectorProjectService.stopAppInspectionSession()
+      databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
     }
 
     // Assert
@@ -124,18 +137,18 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
 
-    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
+    runDispatching {
+      databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
+    }
 
     // Act
     runDispatching {
-      databaseInspectorProjectService.stopAppInspectionSession()
+      databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
     }
 
     // Assert
-    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
-    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(null)
-    verify(mockSqliteController).setAppInspectionServices(appInspectionServices)
-    verify(mockSqliteController).setAppInspectionServices(null)
+    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+    verify(databaseInspectorController).stopAppInspectionSession()
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {
@@ -146,7 +159,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Assert
     runBlocking {
-      verify(mockSqliteController).databasePossiblyChanged()
+      verify(databaseInspectorController).databasePossiblyChanged()
     }
   }
 
@@ -157,7 +170,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope),
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )
@@ -189,5 +202,41 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     assertSize(0, model.getOpenDatabaseIds())
     assertSize(1, model.getCloseDatabaseIds())
     assertEquals(databaseId1, model.getCloseDatabaseIds().first())
+  }
+
+  fun testStartSessionsClearsDatabases() {
+    // Prepare
+    val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+    }
+
+    val appInspectionServices = mock(AppInspectionIdeServices::class.java)
+    model.addDatabaseSchema(SqliteDatabaseId.fromLiveDatabase("db", 0), SqliteSchema(emptyList()))
+
+    assertSize(1, model.getAllDatabaseIds())
+
+    // Act
+    runDispatching {
+      databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
+    }
+
+    // Assert
+    assertEmpty(model.getAllDatabaseIds())
+  }
+
+  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
+    // Prepare
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(false)
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorProjectService.stopAppInspectionSession(mock(ProcessDescriptor::class.java))
+    }
+
+    // Assert
+    verifyZeroInteractions(offlineDatabaseManager)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 }

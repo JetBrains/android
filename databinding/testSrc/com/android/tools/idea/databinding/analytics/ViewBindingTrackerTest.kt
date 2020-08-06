@@ -20,13 +20,11 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -76,9 +74,7 @@ class ViewBindingTrackerTest {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
-        syncState.syncSucceeded()
+        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
         val viewBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
@@ -115,9 +111,7 @@ class ViewBindingTrackerTest {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       try {
         UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
-        syncState.syncSucceeded()
+        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
         val viewBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -25,10 +24,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface DeployTarget<S extends DeployTargetState> {
+public interface DeployTarget {
   boolean hasCustomRunProfileState(@NotNull Executor executor);
 
-  RunProfileState getRunProfileState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env, @NotNull S state)
+  RunProfileState getRunProfileState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env, @NotNull DeployTargetState state)
     throws ExecutionException;
 
   /**
@@ -36,9 +35,5 @@ public interface DeployTarget<S extends DeployTargetState> {
    * if an error needs to be displayed, the target chooser should surface it.
    */
   @Nullable
-  DeviceFutures getDevices(@NotNull S state,
-                           @NotNull AndroidFacet facet,
-                           @NotNull DeviceCount deviceCount,
-                           boolean debug,
-                           int runConfigId);
+  DeviceFutures getDevices(@NotNull AndroidFacet facet);
 }

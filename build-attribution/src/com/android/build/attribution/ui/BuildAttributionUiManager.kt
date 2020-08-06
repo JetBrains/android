@@ -30,9 +30,7 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
@@ -178,13 +176,7 @@ class BuildAttributionUiManagerImpl(
     buildAttributionView?.let { existingView -> Disposer.dispose(existingView) }
     if (reportUiData.successfulBuild) {
       val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-      buildAttributionView = if (StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.get()) {
-        NewViewComponentContainer(reportUiData, issueReporter, uiAnalytics)
-      }
-      else {
-        BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
-          .also { newView -> newView.setInitialSelection() }
-      }
+      buildAttributionView = NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
     }
     else {
       buildAttributionView = BuildFailureViewComponentContainer()
@@ -263,6 +255,7 @@ class BuildAttributionUiManagerImpl(
 
 private class NewViewComponentContainer(
   uiData: BuildAttributionReportUiData,
+  project: Project,
   issueReporter: TaskIssueReporter,
   uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
@@ -270,7 +263,7 @@ private class NewViewComponentContainer(
 
   init {
     val model = BuildAnalyzerViewModel(uiData)
-    val controller = BuildAnalyzerViewController(model, uiAnalytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
     view = BuildAnalyzerComboBoxView(model, controller)
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
@@ -28,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.PlatformIcons
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -42,7 +44,6 @@ import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -102,21 +103,23 @@ class LightDirectionsKtClass(
 ) : ClassDescriptorImpl(containingDescriptor, name, Modality.FINAL, ClassKind.CLASS, emptyList(), sourceElement, false, storageManager) {
 
   private val LOG get() = Logger.getInstance(LightDirectionsKtClass::class.java)
-  private val _primaryConstructor = storageManager.createLazyValue { computePrimaryConstructor() }
   private val _companionObject = storageManager.createLazyValue { computeCompanionObject() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = MemberScope.Empty
-  override fun getConstructors() = listOf(_primaryConstructor())
-  override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
+  override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
+  override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
   override fun getCompanionObjectDescriptor() = _companionObject()
-
-  private fun computePrimaryConstructor() = this.createConstructor()
 
   private fun computeCompanionObject(): ClassDescriptor {
     val directionsClassDescriptor = this@LightDirectionsKtClass
-    return object : ClassDescriptorImpl(directionsClassDescriptor, Name.identifier("Companion"), Modality.FINAL,
-                                        ClassKind.OBJECT, emptyList(), directionsClassDescriptor.source, false, storageManager) {
-
+    return object : ClassDescriptorImpl(
+      directionsClassDescriptor,
+      Name.identifier("Companion"),
+      Modality.FINAL,
+      ClassKind.OBJECT,
+      emptyList(),
+      directionsClassDescriptor.source, false, storageManager
+    ) {
       private val companionScope = storageManager.createLazyValue { CompanionObjectScope() }
       private val companionObject = this
       override fun isCompanionObject() = true
@@ -129,30 +132,17 @@ class LightDirectionsKtClass(
           // action methods
           val navDirectionType = directionsClassDescriptor.builtIns.getKotlinType("androidx.navigation.NavDirections", null,
                                                                                   directionsClassDescriptor.module)
-
-          destination.actions
+          destination.resolveActions()
             .asSequence()
             .mapNotNull { action ->
-              val destinationId = action.resolveDestination() ?: return@mapNotNull null
-              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
-                                              ?: emptyList()
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 var index = 0
-
-                // To support a destination argument being overridden in an action
-                (action.arguments + argsFromTargetDestination)
-                  .groupBy { it.name }
-                  .map { entry ->
-                    // Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
-                    if (entry.value.size > 1) checkArguments(entry)
-                    entry.value.first()
-                  }
+                action.arguments
                   .asSequence()
                   .map { arg ->
                     val pName = Name.identifier(arg.name)
-                    val fallbackType = directionsClassDescriptor.builtIns.stringType
                     val pType = directionsClassDescriptor.builtIns
-                      .getKotlinType(arg.type, arg.defaultValue, directionsClassDescriptor.module, arg.isNonNull(), fallbackType)
+                      .getKotlinType(arg.type, arg.defaultValue, directionsClassDescriptor.module, arg.isNonNull())
                     val hasDefaultValue = arg.defaultValue != null
                     ValueParameterDescriptorImpl(method, null, index++, Annotations.EMPTY, pName, pType,
                                                  hasDefaultValue, false, false, null,
@@ -160,9 +150,10 @@ class LightDirectionsKtClass(
                   }
                   .toList()
               }
+
               val methodName = action.id.toCamelCase()
-              val xmlTag = directionsClassDescriptor.source.getPsi() as? XmlTag
-              val resolvedSourceElement = xmlTag?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
+              val resolvedSourceElement = (directionsClassDescriptor.source.getPsi() as? XmlTag)
+                                            ?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
                                             ?.let {
                                               XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
                                             }
@@ -179,11 +170,46 @@ class LightDirectionsKtClass(
             .toList()
         }
 
+        /**
+         * For each of action, besides args from target destination, args from its surrounding action are collected to
+         * support args overrides.
+         * (https://developer.android.com/guide/navigation/navigation-pass-data#override_a_destination_argument_in_an_action)
+         */
+        private fun NavDestinationData.resolveActions(): List<NavActionData> {
+          return this.actions
+            .asSequence()
+            .mapNotNull { action ->
+              val destinationId = action.resolveDestination() ?: return@mapNotNull null
+
+              // Null implies only 'popUpTo' attribute is defined, so no args are supposed to be passed.
+              action.destination ?: return@mapNotNull object : NavActionData by action {
+                override val arguments: List<NavArgumentData> = emptyList()
+              }
+
+              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
+                                              ?: emptyList()
+
+              val resolvedArguments = (action.arguments + argsFromTargetDestination)
+                .groupBy { it.name }
+                .map { entry ->
+                  if (entry.value.size > 1) checkArguments(entry)
+                  entry.value.first()
+                }
+              object : NavActionData by action {
+                override val arguments: List<NavArgumentData> = resolvedArguments
+              }
+            }
+            .toList()
+        }
+
+        /**
+         * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
+         */
         private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
+          val modulePackageName = directionsClassDescriptor.module.toModule()?.let { getPackageName(it) } ?: ""
           val types = entry.value
             .asSequence()
             .map { arg ->
-              val modulePackageName = directionsClassDescriptor.module.fqNameSafe.toString()
               getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue)
             }
             .toSet()
@@ -191,8 +217,10 @@ class LightDirectionsKtClass(
           if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}.")
         }
 
-        override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
-                                               nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
+        override fun getContributedDescriptors(
+          kindFilter: DescriptorKindFilter,
+          nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> {
           return companionMethods().filter { kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name) }
         }
 

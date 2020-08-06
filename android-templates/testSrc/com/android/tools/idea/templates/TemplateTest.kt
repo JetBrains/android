@@ -185,13 +185,13 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
-  fun testNewMasterDetailFlow() {
-    checkCreateTemplate("Master/Detail Flow")
+  fun testNewPrimaryDetailFlow() {
+    checkCreateTemplate("Primary/Detail Flow")
   }
 
   @TemplateCheck
-  fun testNewMasterDetailFlowWithKotlin() {
-    checkCreateTemplate("Master/Detail Flow", withKotlin)
+  fun testNewPrimaryDetailFlowWithKotlin() {
+    checkCreateTemplate("Primary/Detail Flow", withKotlin)
   }
 
   @TemplateCheck
