@@ -413,11 +413,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     showLoading(message("panel.building"))
   }
 
+  /**
+   * Indicates if we are processing frame in the interactive mode (and therefore should not start processing another) or not.
+   */
+  private val processingFrame = AtomicBoolean(false)
   private val ticker = ControllableTicker({
-                                            surface.layoutlibSceneManagers.forEach {
-                                              it.executeCallbacksAndRequestRender(null)
+                                            if (!processingFrame.getAndSet(true)) {
+                                              surface.layoutlibSceneManagers.firstOrNull()?.let {
+                                                it.executeCallbacksAndRequestRender(null).thenRun { processingFrame.set(false) }
+                                              } ?: processingFrame.set(false)
                                             }
-                                          }, Duration.ofMillis(30))
+                                          }, Duration.ofMillis(5))
 
   private val hasSuccessfulBuild = AtomicBoolean(false)
 
