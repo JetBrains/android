@@ -39,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -104,7 +105,7 @@ internal class DefaultAppInspectionTarget(
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
         if (event.appInspectionResponse.status == SUCCESS) {
-          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope)
+          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
           setupEventListener(creator, connection).also { inspectorClient ->
             inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
               override fun onDispose() {
@@ -145,7 +146,7 @@ internal class DefaultAppInspectionTarget(
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T,
                                                         connection: AppInspectorConnection): T {
   val client = creator(connection)
-  connection.setupConnection(client.rawEventListener, client.serviceEventNotifier)
+  connection.setupConnection(client.serviceEventNotifier)
   return client
 }
 

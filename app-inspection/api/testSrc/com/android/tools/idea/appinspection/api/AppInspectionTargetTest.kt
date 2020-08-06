@@ -183,10 +183,6 @@ class AppInspectionTargetTest {
 
     val client1 = target.launchInspector(clientLaunchParams1) { messenger ->
       object : AppInspectorClient(messenger) {
-        override val rawEventListener = object : RawEventListener {
-          override fun onRawEvent(eventData: ByteArray) {
-          }
-        }
       }
     }
 
@@ -199,10 +195,6 @@ class AppInspectionTargetTest {
       })
       target.launchInspector(clientLaunchParams2) { messenger ->
         object : AppInspectorClient(messenger) {
-          override val rawEventListener = object : RawEventListener {
-            override fun onRawEvent(eventData: ByteArray) {
-            }
-          }
         }
       }
     }

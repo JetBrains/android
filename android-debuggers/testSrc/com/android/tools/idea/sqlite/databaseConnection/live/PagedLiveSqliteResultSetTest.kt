@@ -32,6 +32,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 
@@ -48,6 +49,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
       return response
     }
+
+    override val rawEventFlow: Flow<ByteArray>
+      get() = throw NotImplementedError()
   }
 
   fun testColumnsReturnCorrectListOfColumns() = runBlocking<Unit> {

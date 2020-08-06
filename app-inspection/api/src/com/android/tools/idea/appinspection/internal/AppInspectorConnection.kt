@@ -21,7 +21,6 @@ import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
@@ -30,11 +29,17 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
@@ -97,6 +102,23 @@ private fun CoroutineScope.commandSender(commands: ReceiveChannel<InspectorComma
 private fun inspectorDisposedMessage(inspectorId: String) = "Inspector $inspectorId was disposed."
 
 /**
+ * A pass-thru operator that doesn't do anything. However, it will terminate when the provided [job] is completed.
+ */
+private fun <T> Flow<T>.scopeCollection(job: Job): Flow<T> = callbackFlow {
+  job.invokeOnCompletion { cause ->
+    when (cause) {
+      is CancellationException -> this.cancel(cause)
+      null -> close()
+      else -> cancel(cause.message!!, cause)
+    }
+  }
+  collect {
+    send(it)
+  }
+  awaitClose()
+}
+
+/**
  * Two-way connection for the [AppInspectorClient] which implements [AppInspectorClient.CommandMessenger] and dispatches events for the
  * [AppInspectorClient.RawEventListener].
  */
@@ -104,15 +126,13 @@ internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
   private val connectionStartTimeNs: Long,
-  parentScope: CoroutineScope
+  private val scope: CoroutineScope
 ) : AppInspectorClient.CommandMessenger {
-  private val scope = parentScope.createChildScope(false)
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
   private val commandChannel = Channel<InspectorCommand>()
 
-  private lateinit var rawEventListener: AppInspectorClient.RawEventListener
   private lateinit var serviceEventNotifier: AppInspectorClient.ServiceEventNotifier
 
   private val inspectorEventListener = transport.createStreamEventListener(
@@ -122,10 +142,6 @@ internal class AppInspectorConnection(
   ) { event ->
     val appInspectionEvent = event.appInspectionEvent
     when {
-      appInspectionEvent.hasRawEvent() -> {
-        val content = appInspectionEvent.rawEvent.content.toByteArray()
-        rawEventListener.onRawEvent(content)
-      }
       appInspectionEvent.hasCrashEvent() -> {
         // Remove inspector's listener if it crashes
         serviceEventNotifier.notifyCrash(appInspectionEvent.crashEvent.errorMessage)
@@ -133,6 +149,22 @@ internal class AppInspectorConnection(
       }
     }
   }
+
+  override val rawEventFlow = callbackFlow<ByteArray> {
+    val listener = transport.createStreamEventListener(
+      eventKind = APP_INSPECTION_EVENT,
+      filter = { event -> event.hasAppInspectionEvent()
+                          && event.appInspectionEvent.inspectorId == inspectorId
+                          && event.appInspectionEvent.hasRawEvent() },
+      startTimeNs = { connectionStartTimeNs }
+    ) { event ->
+      val appInspectionEvent = event.appInspectionEvent
+      val content = appInspectionEvent.rawEvent.content.toByteArray()
+      sendBlocking(content)
+    }
+    transport.registerEventListener(listener)
+    awaitClose { transport.unregisterEventListener(listener) }
+  }.scopeCollection(scope.coroutineContext[Job]!!)
 
   private val processEndListener = transport.createStreamEventListener(
     eventKind = PROCESS,
@@ -149,9 +181,7 @@ internal class AppInspectorConnection(
    *
    * This has the side effect of starting all relevant transport listeners, so it should only be called as the last stage of client setup.
    */
-  internal fun setupConnection(clientRawEventListener: AppInspectorClient.RawEventListener,
-                               clientServiceEventNotifier: AppInspectorClient.ServiceEventNotifier) {
-    rawEventListener = clientRawEventListener
+  internal fun setupConnection(clientServiceEventNotifier: AppInspectorClient.ServiceEventNotifier) {
     serviceEventNotifier = clientServiceEventNotifier
     transport.registerEventListener(inspectorEventListener)
     transport.registerEventListener(processEndListener)

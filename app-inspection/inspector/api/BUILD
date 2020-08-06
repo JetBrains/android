@@ -44,6 +44,7 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
     ],
 )
 
