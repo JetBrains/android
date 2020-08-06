@@ -25,17 +25,16 @@ import com.android.tools.profilers.systemtrace.ThreadModel
 import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.lang.UnsupportedOperationException
 
 class SystemTraceSurfaceflingerManagerTest {
 
   private companion object {
-    private val SF_PID = 1
+    private const val SF_PID = 1
     private val SF_MAIN_THREAD_MODE = ThreadModel(SF_PID, SF_PID, "surfaceflinger",
                                                   listOf(
-                                                  createEvent(3000, 5000),
-                                                  createEvent(7000, 15000),
-                                                  createEvent(15000, 20000)),
+                                                    createEvent(3000, 5000),
+                                                    createEvent(7000, 15000),
+                                                    createEvent(15000, 20000)),
                                                   listOf())
 
     private val VSYNC_COUNTER = CounterModel("VSYNC-app",
@@ -46,9 +45,18 @@ class SystemTraceSurfaceflingerManagerTest {
                                                20000L to 1.0,
                                                25000L to 0.0))
 
+    private val BUFFER_QUEUE_COUNTER = CounterModel("SurfaceView - com.example.app",
+                                                    sortedMapOf(
+                                                      1000L to 0.0,
+                                                      2000L to 1.0,
+                                                      3000L to 2.0,
+                                                      4000L to 1.0,
+                                                      5000L to 0.0))
+
     private val SF_PROCESS_MODEL = ProcessModel(SF_PID, "/system/bin/surfaceflinger",
                                                 mapOf(SF_PID to SF_MAIN_THREAD_MODE),
-                                                mapOf("VSYNC-app" to VSYNC_COUNTER))
+                                                mapOf("VSYNC-app" to VSYNC_COUNTER,
+                                                      "SurfaceView - com.exmaple.app" to BUFFER_QUEUE_COUNTER))
 
     private val MODEL = TestModel(listOf(SF_PROCESS_MODEL))
 
@@ -97,6 +105,21 @@ class SystemTraceSurfaceflingerManagerTest {
     ).inOrder()
   }
 
+  @Test
+  fun bufferQueueValues() {
+    val sfManager = SystemTraceSurfaceflingerManager(MODEL)
+    val vsyncValues = sfManager.bufferQueueValues
+
+    assertThat(vsyncValues.size).isEqualTo(5)
+    assertThat(vsyncValues).containsExactly(
+      SeriesData(1000, 0L),
+      SeriesData(2000, 1L),
+      SeriesData(3000, 2L),
+      SeriesData(4000, 1L),
+      SeriesData(5000, 0L)
+    ).inOrder()
+  }
+
 
   @Test
   fun sfProcessWithNoName() {
@@ -108,6 +131,8 @@ class SystemTraceSurfaceflingerManagerTest {
     assertThat(sfEvents.size).isEqualTo(6)
     val vsyncValues = sfManager.vsyncCounterValues
     assertThat(vsyncValues.size).isEqualTo(5)
+    val bufferQueueValues = sfManager.bufferQueueValues
+    assertThat(bufferQueueValues.size).isEqualTo(5)
   }
 
   private class TestModel(private val processes: List<ProcessModel>) : SystemTraceModelAdapter {
