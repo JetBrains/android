@@ -18,6 +18,8 @@ package com.android.tools.adtui.model.trackgroup;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DragAndDropListModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +43,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   @Nullable private final BoxSelectionModel myBoxSelectionModel;
 
   private final AspectObserver myObserver = new AspectObserver();
+  private final List<TrackGroupActionListener> myActionListeners = new ArrayList<>();
 
   /**
    * Use builder to instantiate this class.
@@ -123,6 +126,18 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   @Nullable
   public BoxSelectionModel getBoxSelectionModel() {
     return myBoxSelectionModel;
+  }
+
+  /**
+   * Add {@link TrackGroupActionListener} to be fired when a track group action, e.g. moving up, is performed.
+   */
+  public void addActionListener(@NotNull TrackGroupActionListener actionListener) {
+    myActionListeners.add(actionListener);
+  }
+
+  @NotNull
+  public List<TrackGroupActionListener> getActionListeners() {
+    return myActionListeners;
   }
 
   public static Builder newBuilder() {
