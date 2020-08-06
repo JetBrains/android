@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
@@ -25,12 +26,16 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.tabs.JBTabs;
 import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
@@ -83,7 +88,12 @@ public class DetailsViewContentView {
     Disposer.register(parentDisposable, myLogsView);
     logger.addImpressionWhenDisplayed(
       myLogsView.getComponent(), ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW);
-    TabInfo logsTab = new TabInfo(myLogsView.getComponent());
+    NonOpaquePanel logsViewWithVerticalToolbar = new NonOpaquePanel(new BorderLayout());
+    logsViewWithVerticalToolbar.add(myLogsView.getComponent(), BorderLayout.CENTER);
+    ActionToolbar logViewToolbar = ActionManager.getInstance().createActionToolbar(
+      ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_LOG, new DefaultActionGroup(myLogsView.createConsoleActions()), false);
+    logsViewWithVerticalToolbar.add(logViewToolbar.getComponent(), BorderLayout.EAST);
+    TabInfo logsTab = new TabInfo(logsViewWithVerticalToolbar);
     logsTab.setText("Logs");
     logsTab.setTooltipText("Show logcat output");
     tabs.addTab(logsTab);
@@ -91,7 +101,12 @@ public class DetailsViewContentView {
     // Create benchmark tab.
     myBenchmarkView = new ConsoleViewImpl(project, /*viewer=*/true);
     Disposer.register(parentDisposable, myBenchmarkView);
-    myBenchmarkTab = new TabInfo(myBenchmarkView.getComponent());
+    NonOpaquePanel benchmarkViewWithVerticalToolbar = new NonOpaquePanel(new BorderLayout());
+    benchmarkViewWithVerticalToolbar.add(myBenchmarkView.getComponent(), BorderLayout.CENTER);
+    ActionToolbar benchmarkViewToolbar = ActionManager.getInstance().createActionToolbar(
+      ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_BENCHMARK, new DefaultActionGroup(myBenchmarkView.createConsoleActions()), false);
+    benchmarkViewWithVerticalToolbar.add(benchmarkViewToolbar.getComponent(), BorderLayout.EAST);
+    myBenchmarkTab = new TabInfo(benchmarkViewWithVerticalToolbar);
     myBenchmarkTab.setText("Benchmark");
     myBenchmarkTab.setTooltipText("Show benchmark results");
     myBenchmarkTab.setHidden(true);
