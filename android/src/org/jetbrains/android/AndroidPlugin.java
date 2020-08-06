@@ -1,7 +1,6 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
-import com.android.tools.adtui.webp.WebpMetadata;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -18,12 +17,7 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
-import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidPlugin {
@@ -31,7 +25,6 @@ public final class AndroidPlugin {
 
   public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
-    registerWebpSupport();
   }
 
   static final class ActionCustomizer implements ActionConfigurationCustomizer {
@@ -42,16 +35,6 @@ public final class AndroidPlugin {
       }
       setUpActionsUnderFlag(actionManager);
     }
-  }
-
-  private static void registerWebpSupport() {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      FileTypeManager fileTypeManager = FileTypeManager.getInstance();
-      FileType imageFileType = ImageFileTypeManager.getInstance().getImageFileType();
-      fileTypeManager.getAssociations(imageFileType);
-      WriteAction.run(() -> fileTypeManager.associateExtension(imageFileType, WebpMetadata.EXT_WEBP));
-      WebpMetadata.ensureWebpRegistered();
-    });
   }
 
   /**
