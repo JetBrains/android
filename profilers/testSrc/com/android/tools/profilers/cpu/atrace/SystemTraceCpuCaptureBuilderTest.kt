@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
+import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.systemtrace.CounterModel
 import com.android.tools.profilers.systemtrace.CpuCoreModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SchedulingEventModel
@@ -84,6 +86,42 @@ class SystemTraceCpuCaptureBuilderTest {
     // not have a proper equals override.
     assertThat(systemTraceData.getCpuUtilizationSeries().map { "${it.x}-${it.value}" })
       .containsExactly("0-30", "50000-20").inOrder() // First bucket = 30% utilization, Second bucket = 20% utilization.
+  }
+
+  @Test
+  fun buildMainProcessMemoryCountersData() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf(
+          // Will get these:
+          "mem.rss" to CounterModel("rss", sortedMapOf(1L to 5.0, 4L to 6.0, 7L to 4.0)),
+          "mem.locked" to CounterModel("rss", sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 1.0)),
+          // Will not get this, because they doesn't start with "mem."
+          "rss" to CounterModel("rss", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)),
+          "nonmem.rss" to CounterModel("nonmem.rss", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)),
+          "non-memory" to CounterModel("non-memory", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)))))
+
+    val model = TestModel(processes, listOf())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1)
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.getMemoryCounters()).hasSize(2)
+    assertThat(systemTraceData.getMemoryCounters()).containsExactly(
+      "mem.locked", listOf(
+        SeriesData(1, 1L),
+        SeriesData(4, 2L),
+        SeriesData(7, 1L)),
+      "mem.rss", listOf(
+        SeriesData(1, 5L),
+        SeriesData(4, 6L),
+        SeriesData(7, 4L)))
+      .inOrder()
+
+    assertThat(systemTraceData.getMemoryCounters()).doesNotContainKey("non-memory")
   }
 
   private class TestModel(

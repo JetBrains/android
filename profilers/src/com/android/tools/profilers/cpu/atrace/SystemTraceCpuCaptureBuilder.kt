@@ -20,7 +20,7 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
-import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel
+import com.android.tools.profilers.systemtrace.CounterModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.systemtrace.TraceEventModel
@@ -43,12 +43,13 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val captureTreeNodes = buildCaptureTreeNodes(mainProcess)
     val threadState = buildThreadStateData(mainProcess)
     val cpuState = buildCpuStateData(mainProcess)
+    val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 frameManager, sfManager)
+                                 memoryCounters, frameManager, sfManager)
   }
 
   /**
@@ -198,5 +199,17 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     })
 
     return CpuStateData(schedData, utilizationData)
+  }
+
+  private fun buildMainProcessMemoryCountersData(mainProcessModel: ProcessModel): Map<String, List<SeriesData<Long>>> {
+    return mainProcessModel.counterByName.entries
+      .filter { it.key.startsWith("mem.") }
+      .map { it.key to convertCounterToSeriesData(it.value) }
+      .toMap()
+      .toSortedMap()
+  }
+
+  private fun convertCounterToSeriesData(counter: CounterModel): List<SeriesData<Long>> {
+    return counter.valuesByTimestampUs.map { SeriesData(it.key, it.value.toLong()) }.toList()
   }
 }
