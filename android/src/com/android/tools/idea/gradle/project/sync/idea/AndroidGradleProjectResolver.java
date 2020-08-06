@@ -333,9 +333,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         modelCache.androidProjectFrom(
           androidProject,
           myDependenciesFactory,
-          (variantGroup == null) ? null : variantGroup.getVariants(),
+          (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants(),
+          cachedVariants == null ? emptyList() : cachedVariants.getVariants(),
           syncIssues);
-      ideAndroidProject.addVariants(cachedVariants == null ? emptyList() : cachedVariants.getVariants());
       AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
