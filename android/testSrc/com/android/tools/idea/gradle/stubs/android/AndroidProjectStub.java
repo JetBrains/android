@@ -382,7 +382,8 @@ public class AndroidProjectStub implements AndroidProject {
     return new ModelCache(new HashMap<>()).androidProjectFrom(
       androidProject,
       new IdeDependenciesFactory(),
-      null,
+      androidProject.getVariants(),
+      emptyList(),
       emptyList());
   }
 }

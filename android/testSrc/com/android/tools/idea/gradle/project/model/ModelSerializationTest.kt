@@ -123,6 +123,7 @@ class ModelSerializationTest {
       AndroidProjectStub("3.6.0"),
       dependenciesFactory,
       listOf(VariantStub()),
+      emptyList(),
       listOf(SyncIssueStub()))
     AndroidModuleModel.create(
       "moduleName",
@@ -237,6 +238,7 @@ class ModelSerializationTest {
       AndroidProjectStub("3.6.0"),
       dependenciesFactory,
       listOf(VariantStub()),
+      emptyList(),
       listOf(SyncIssueStub()))
   }
 

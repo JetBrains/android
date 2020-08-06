@@ -828,7 +828,8 @@ private fun createAndroidModuleDataNode(
         modelCache.androidProjectFrom(
           androidProjectStub,
           IdeDependenciesFactory(),
-          null,
+          androidProjectStub.variants,
+          ImmutableList.of(),
           ImmutableList.of()),
         selectedVariantName
       ),
