@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.systemtrace.ThreadModel
-import com.google.common.base.Preconditions
 
 /**
  * Surfaceflinger is responsible for compositing all the application and system surfaces into a single buffer on Android. This class
@@ -28,12 +27,12 @@ import com.google.common.base.Preconditions
 class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter) {
   val surfaceflingerEvents: List<SeriesData<SurfaceflingerEvent>>
   val vsyncCounterValues: List<SeriesData<Long>>
+  val bufferQueueValues: List<SeriesData<Long>>
 
   /**
    * Extracts the top level trace events from the main thread and builds a data series for surfaceflinger.
    */
   private fun buildSfEvents(surfaceflingerProcess: ProcessModel): List<SeriesData<SurfaceflingerEvent>> {
-    Preconditions.checkArgument(surfaceflingerProcess.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME))
     val mainThread = surfaceflingerProcess.getMainThread() ?: return emptyList()
     return buildSfEventsFromThread(mainThread)
   }
@@ -64,8 +63,18 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
    * Extracts the VSYNC-sf counter and builds a data series for [vsyncCounterValues].
    */
   private fun buildVsyncCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
-    Preconditions.checkArgument(surfaceflingerProcess.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME))
     val counter = surfaceflingerProcess.counterByName[VSYNC_COUNTER_NAME] ?: return emptyList()
+    return counter.valuesByTimestampUs
+      .map { SeriesData(it.key, it.value.toLong()) }
+      .toList()
+  }
+
+  /**
+   * Extracts the BufferQueue counter and builds a data series for [bufferQueueValues].
+   */
+  private fun buildBufferQueueCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
+    val counter = surfaceflingerProcess.counterByName.filterKeys { it.startsWith(BUFFER_QUEUE_PREFIX) }.values.firstOrNull()
+                  ?: return emptyList()
     return counter.valuesByTimestampUs
       .map { SeriesData(it.key, it.value.toLong()) }
       .toList()
@@ -74,11 +83,13 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
   companion object {
     const val SURFACEFLINGER_PROCESS_NAME = "surfaceflinger"
     private const val VSYNC_COUNTER_NAME = "VSYNC-app"
+    private const val BUFFER_QUEUE_PREFIX = "SurfaceView"
   }
 
   init {
     val sfProcess = systemTraceModel.getProcesses().find { it.getSafeProcessName().endsWith(SURFACEFLINGER_PROCESS_NAME) }
-    surfaceflingerEvents = sfProcess?.let { buildSfEvents(it) } ?: listOf()
-    vsyncCounterValues = sfProcess?.let { buildVsyncCounter(it) } ?: listOf()
+    surfaceflingerEvents = sfProcess?.let { buildSfEvents(it) } ?: emptyList()
+    vsyncCounterValues = sfProcess?.let { buildVsyncCounter(it) } ?: emptyList()
+    bufferQueueValues = sfProcess?.let { buildBufferQueueCounter(it) } ?: emptyList()
   }
 }
