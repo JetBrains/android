@@ -38,6 +38,9 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @NotNull
   private final List<SeriesData<Long>> myCpuUtilizationSeries;
 
+  @NotNull
+  private final Map<String, List<SeriesData<Long>>> myProcessMemoryCountersMap;
+
   private final boolean myIsMissingData;
 
   @NotNull
@@ -52,6 +55,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
                                @NotNull Map<Integer, List<SeriesData<ThreadState>>> threadStateData,
                                @NotNull Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> cpuSchedData,
                                @NotNull List<SeriesData<Long>> cpuUtilizationData,
+                               @NotNull Map<String, List<SeriesData<Long>>> processMemoryCountersMap,
                                @NotNull SystemTraceFrameManager frameManager,
                                @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager) {
     super(traceId, model.getSystemTraceTechnology(),
@@ -61,6 +65,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
     myThreadStateDataSeries = threadStateData;
     myCpuThreadSliceInfoStates = cpuSchedData;
     myCpuUtilizationSeries = cpuUtilizationData;
+    myProcessMemoryCountersMap = processMemoryCountersMap;
     myIsMissingData = model.isCapturePossibleCorrupted();
 
     myFrameManager = frameManager;
@@ -101,6 +106,12 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @Override
   public int getCpuCount() {
     return myCpuThreadSliceInfoStates.size();
+  }
+
+  @NotNull
+  @Override
+  public Map<String, List<SeriesData<Long>>> getMemoryCounters() {
+    return myProcessMemoryCountersMap;
   }
 
   @Override
