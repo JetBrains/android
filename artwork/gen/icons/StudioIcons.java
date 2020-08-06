@@ -92,12 +92,18 @@ public class StudioIcons {
   }
 
   public static class Compose {
-    public static final Icon ANIMATION_INSPECTOR = load("/studio/icons/compose/toolbar/animation-inspector.svg"); // 16x16
-    public static final Icon INSPECT_PREVIEW = load("/studio/icons/compose/toolbar/inspect-preview.svg"); // 16x16
-    public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
-    public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
-    public static final Icon RUN_ON_DEVICE = load("/studio/icons/compose/toolbar/run-on-device.svg"); // 16x16
-    public static final Icon STOP_INTERACTIVE_MODE = load("/studio/icons/compose/toolbar/stop-interactive-mode.svg"); // 16x16
+    public static class Editor {
+      public static final Icon COMPOSABLE_FUNCTION = load("/studio/icons/compose/editor/composable-function.svg"); // 16x16
+    }
+
+    public static class Toolbar {
+      public static final Icon ANIMATION_INSPECTOR = load("/studio/icons/compose/toolbar/animation-inspector.svg"); // 16x16
+      public static final Icon INSPECT_PREVIEW = load("/studio/icons/compose/toolbar/inspect-preview.svg"); // 16x16
+      public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
+      public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
+      public static final Icon RUN_ON_DEVICE = load("/studio/icons/compose/toolbar/run-on-device.svg"); // 16x16
+      public static final Icon STOP_INTERACTIVE_MODE = load("/studio/icons/compose/toolbar/stop-interactive-mode.svg"); // 16x16
+    }
   }
 
   public static class Cursors {
@@ -518,7 +524,6 @@ public class StudioIcons {
 
   public static class Misc {
     public static final Icon BUILD_TYPE = load("/studio/icons/misc/build-type.svg"); // 16x16
-    public static final Icon COMPOSABLE_FUNCTION = load("/studio/icons/misc/composable-function.svg"); // 16x16
     public static final Icon DEPENDENCY_CONSUMER = load("/studio/icons/misc/dependency-consumer.svg"); // 16x16
     public static final Icon DEPENDENCY_PROVIDER = load("/studio/icons/misc/dependency-provider.svg"); // 16x16
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16

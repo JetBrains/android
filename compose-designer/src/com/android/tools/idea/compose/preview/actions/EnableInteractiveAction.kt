@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
-import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
+import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
 /**
  * Action that controls when to enable the Interactive mode.

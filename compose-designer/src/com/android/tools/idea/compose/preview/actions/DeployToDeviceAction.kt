@@ -31,7 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import icons.StudioIcons.Compose.RUN_ON_DEVICE
+import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.util.module
 
 /**
