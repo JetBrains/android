@@ -34,6 +34,7 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.usages.UsageView;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -139,7 +140,9 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     else {
       myJava8SettingsPanel.setVisible(false);
     }
+    myPanel.setMinimumSize(new JBDimension(500, 99));
   }
+
   @Override
   protected @Nullable JComponent createCenterPanel() {
     return myPanel;
