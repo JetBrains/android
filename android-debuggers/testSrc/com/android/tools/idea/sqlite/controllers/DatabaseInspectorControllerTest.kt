@@ -1093,7 +1093,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorView.viewListeners.single().tableNodeActionInvoked(databaseId1, table2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    val savedState = databaseInspectorController.saveState()
     runDispatching {
       databaseInspectorController.closeDatabase(databaseId1)
     }
@@ -1107,7 +1106,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId1, mockDatabaseConnection) }
 
     // Act: restore state and re-add db
-    databaseInspectorController.restoreSavedState(savedState)
     runDispatching {
       databaseInspectorController.addSqliteDatabase(CompletableDeferred(databaseId1))
     }
@@ -1138,10 +1136,55 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       )
   }
 
-  fun testAdHoqQueryTabsAreRestored() {
+  fun testInMemoryDbsTableTabsAreNotRestored() {
     // Prepare
     val table1 = SqliteTable("table1", emptyList(), null, false)
-    val schema = SqliteSchema(listOf(table1))
+    val table2 = SqliteTable("table2", emptyList(), null, false)
+    val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
+    val inMemoryDbId = SqliteDatabaseId.fromLiveDatabase(":memory:", 0)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(inMemoryDbId, mockDatabaseConnection)
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(inMemoryDbId))
+    }
+
+    databaseInspectorView.viewListeners.single().tableNodeActionInvoked(inMemoryDbId, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    databaseInspectorView.viewListeners.single().tableNodeActionInvoked(inMemoryDbId, table1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    databaseInspectorView.viewListeners.single().tableNodeActionInvoked(inMemoryDbId, table2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    runDispatching {
+      databaseInspectorController.closeDatabase(inMemoryDbId)
+    }
+
+    // Assert that tabs closed
+    verify(databaseInspectorView).closeTab(eq(TabId.TableTab(inMemoryDbId, testSqliteTable.name)))
+    verify(databaseInspectorView).closeTab(eq(TabId.TableTab(inMemoryDbId, table1.name)))
+    verify(databaseInspectorView).closeTab(eq(TabId.TableTab(inMemoryDbId, table2.name)))
+    Mockito.reset(databaseInspectorView)
+
+    runDispatching { databaseRepository.addDatabaseConnection(inMemoryDbId, mockDatabaseConnection) }
+
+    // Act: restore db
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(inMemoryDbId))
+    }
+
+    // Assert that tabs are not restored
+    verify(databaseInspectorView, times(0)).openTab(
+      any(TabId::class.java),
+      anyString(),
+      any(Icon::class.java),
+      any(JComponent::class.java)
+    )
+  }
+
+  fun testAdHoqQueryTabsAreRestored() {
+    // Prepare
+    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false)))
     val id = SqliteDatabaseId.LiveSqliteDatabaseId("path", "name", 1)
     runDispatching { databaseRepository.addDatabaseConnection(id, FakeDatabaseConnection(schema)) }
 
@@ -1154,23 +1197,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.runSqlStatement(id, insertStatement)
     }
 
-    // Save state and restart
-    val savedState = databaseInspectorController.saveState()
-    Disposer.dispose(databaseInspectorController)
-    databaseInspectorModel.clearDatabases()
-
-    val newFactory = FakeDatabaseInspectorViewsFactory()
-    databaseInspectorController = DatabaseInspectorControllerImpl(
-      project,
-      databaseInspectorModel,
-      databaseRepository,
-      newFactory,
-      offlineDatabaseManager,
-      edtExecutor,
-      taskExecutor
-    )
-    databaseInspectorController.setUp()
-    databaseInspectorController.restoreSavedState(savedState)
+    // Close database and re-open it
+    runDispatching { databaseInspectorController.closeDatabase(id) }
 
     val restartedDbId = SqliteDatabaseId.LiveSqliteDatabaseId("path", "name", 2)
     val databaseConnection = DatabaseConnectionWrapper(FakeDatabaseConnection(schema))
@@ -1178,13 +1206,13 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(restartedDbId, databaseConnection)
     }
 
-    // Act: restore state and re-add db
     runDispatching {
       databaseInspectorController.addSqliteDatabase(restartedDbId)
     }
 
     // Verify
-    verify(newFactory.databaseInspectorView, times(2))
+    // first 2 invocations are to open the tabs, second two to restore them
+    verify(viewsFactory.databaseInspectorView, times(4))
       .openTab(
         any(TabId.AdHocQueryTab::class.java),
         anyString(),
