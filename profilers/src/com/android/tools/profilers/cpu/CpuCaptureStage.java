@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
@@ -345,6 +346,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private void initTrackGroupList(@NotNull CpuCapture capture) {
     myTrackGroupModels.clear();
 
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
     if (getStudioProfilers().getSession().getPid() != 0) {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
@@ -358,8 +360,30 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     // Thread states and trace events.
-    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(),
-                                                   getStudioProfilers().getIdeServices().getFeatureTracker()));
+    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
+
+    // Add action listener for tracking all track group actions.
+    myTrackGroupModels.forEach(model -> model.addActionListener(new TrackGroupActionListener() {
+      @Override
+      public void onGroupMovedUp(@NotNull String title) {
+        featureTracker.trackMoveTrackGroupUp(title);
+      }
+
+      @Override
+      public void onGroupMovedDown(@NotNull String title) {
+        featureTracker.trackMoveTrackGroupDown(title);
+      }
+
+      @Override
+      public void onGroupCollapsed(@NotNull String title) {
+        featureTracker.trackCollapseTrackGroup(title);
+      }
+
+      @Override
+      public void onGroupExpanded(@NotNull String title) {
+        featureTracker.trackExpandTrackGroup(title);
+      }
+    }));
   }
 
   private static TrackGroupModel createInteractionTrackGroup(@NotNull StudioProfilers studioProfilers, @NotNull Timeline timeline) {
@@ -456,7 +480,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return threads;
   }
 
-  private static TrackGroupModel createCpuCoresTrackGroup(int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+  private static TrackGroupModel createCpuCoresTrackGroup(int mainThreadId,
+                                                          @NotNull CpuSystemTraceData systemTraceData,
+                                                          @NotNull Timeline timeline) {
     int cpuCount = systemTraceData.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
     TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
