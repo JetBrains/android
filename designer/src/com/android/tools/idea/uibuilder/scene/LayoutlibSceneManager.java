@@ -1570,16 +1570,17 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
    */
-  public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+  public CompletableFuture<Void> executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     try {
       if (callback != null) {
         RenderService.getRenderAsyncActionExecutor()
           .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get();
       }
-      executeCallbacks().thenRun(() -> requestRender());
+      return executeCallbacks().thenCompose(b -> requestRender());
     }
     catch (Exception e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
+      return CompletableFuture.completedFuture(null);
     }
   }
 
