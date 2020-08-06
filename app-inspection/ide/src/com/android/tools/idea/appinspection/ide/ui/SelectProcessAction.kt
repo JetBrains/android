@@ -46,7 +46,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
 
     val currentProcess = model.selectedProcess
     val content = currentProcess?.let {
-      "${it.buildDeviceName()} > ${it.processName}"
+      "${it.buildDeviceName()} > ${it.buildProcessName()}"
     } ?: if (model.processes.isEmpty()) {
       AppInspectionBundle.message("no.process.available")
     } else {
@@ -86,7 +86,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
   override fun displayTextInToolbar() = true
 
   class ConnectAction(private val processDescriptor: ProcessDescriptor, private val model: AppInspectionProcessModel) :
-    ToggleAction(processDescriptor.processName) {
+    ToggleAction(processDescriptor.buildProcessName()) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == model.selectedProcess
     }
@@ -140,5 +140,7 @@ private fun ProcessDescriptor.buildDeviceName(): String {
 
   return deviceNameBuilder.toString()
 }
+
+private fun ProcessDescriptor.buildProcessName() = "$processName${if (isRunning) "" else " [DEAD]"}"
 
 private fun ProcessDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE

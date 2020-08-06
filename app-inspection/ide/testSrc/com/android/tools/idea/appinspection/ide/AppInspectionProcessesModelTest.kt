@@ -53,12 +53,19 @@ class AppInspectionProcessesModelTest {
       assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
     assertThat(model.selectedProcess).isNotNull()
+    val selectedName = model.selectedProcess!!.processName
+    assertThat(model.selectedProcess!!.isRunning).isTrue()
 
     testNotifier.fireDisconnected(fakeProcess)
 
-    // Verify the empty model list.
-    assertThat(model.processes.size).isEqualTo(0)
-    assertThat(model.selectedProcess).isNull()
+    // Once disconnected, the process remains but in a terminated state
+    assertThat(model.processes.size).isEqualTo(1)
+    assertThat(model.selectedProcess!!.processName).isEqualTo(selectedName)
+    assertThat(model.selectedProcess!!.isRunning).isFalse()
+
+    // Updating the selected process removes any dead processes
+    model.selectedProcess = null
+    assertThat(model.processes).isEmpty()
   }
 
   @Test
