@@ -19,7 +19,6 @@ import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.An
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
@@ -27,7 +26,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
@@ -55,12 +53,10 @@ import com.intellij.openapi.editor.PlatformEditorBundle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.SortedComboBoxModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.paint.LinePainter2D;
 import com.intellij.ui.scale.JBUIScale;
@@ -70,13 +66,9 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -96,84 +88,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   private static final int MIN_COMPONENT_SIZE_IN_SPLITTER = 48;
 
-  /**
-   * A ComboBox item to be used in API level filter ComboBox.
-   */
-  @VisibleForTesting
-  static final class ApiLevelFilterComboBoxItem implements Comparable<ApiLevelFilterComboBoxItem> {
-    @NotNull final Comparator<AndroidVersion> myComparator = Comparator.nullsFirst(Comparator.naturalOrder());
-    @Nullable final AndroidVersion myVersion;
-
-    /**
-     * @param androidVersion an Android version to be shown or null for "All API versions".
-     */
-    ApiLevelFilterComboBoxItem(@Nullable AndroidVersion androidVersion) {
-      myVersion = androidVersion;
-    }
-
-    @Override
-    public int compareTo(@NotNull ApiLevelFilterComboBoxItem o) {
-      return Objects.compare(myVersion, o.myVersion, myComparator);
-    }
-
-    @Override
-    public String toString() {
-      if (myVersion == null) {
-        return "All API levels";
-      } else {
-        return String.format(Locale.US, "API %s", myVersion.getApiString());
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(myVersion);
-    }
-  }
-
-  /**
-   * A ComboBox item to be used in device filter ComboBox.
-   */
-  @VisibleForTesting
-  static final class DeviceFilterComboBoxItem implements Comparable<DeviceFilterComboBoxItem> {
-    @NotNull final Comparator<String> myComparator = Comparator.nullsFirst(Comparator.naturalOrder());
-    @Nullable final AndroidDevice myDevice;
-
-    /**
-     * @param androidDevice an Android device to be shown or null for "All devices".
-     */
-    DeviceFilterComboBoxItem(@Nullable AndroidDevice androidDevice) {
-      myDevice = androidDevice;
-    }
-
-    @Override
-    public int compareTo(@NotNull DeviceFilterComboBoxItem o) {
-      String lhs = null;
-      if (myDevice != null) {
-        lhs = AndroidDeviceKt.getName(myDevice);
-      }
-      String rhs = null;
-      if (o.myDevice != null) {
-        rhs = AndroidDeviceKt.getName(o.myDevice);
-      }
-      return Objects.compare(lhs, rhs, myComparator);
-    }
-
-    @Override
-    public String toString() {
-      if (myDevice == null) {
-        return "All devices";
-      } else {
-        return AndroidDeviceKt.getName(myDevice);
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(myDevice);
-    }
-  }
-
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
   @VisibleForTesting JProgressBar myProgressBar;
@@ -183,13 +97,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JPanel myStatusPanel;
   private MyItemSeparator myStatusSeparator;
   private JPanel myFilterPanel;
-  private MyItemSeparator myStatusFilterSeparator;
-  private ComboBox<DeviceFilterComboBoxItem> myDeviceFilterComboBox;
-  @VisibleForTesting SortedComboBoxModel<DeviceFilterComboBoxItem> myDeviceFilterComboBoxModel;
-  private MyItemSeparator myDeviceFilterSeparator;
-  private ComboBox<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBox;
   private JPanel myTestStatusFilterPanel;
-  @VisibleForTesting SortedComboBoxModel<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBoxModel;
+  @VisibleForTesting DeviceAndApiLevelFilterComboBoxAction myDeviceAndApiLevelFilterComboBoxAction;
   @VisibleForTesting MyToggleAction myFailedToggleButton;
   @VisibleForTesting MyToggleAction myPassedToggleButton;
   @VisibleForTesting MyToggleAction mySkippedToggleButton;
@@ -229,8 +138,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   private void createUIComponents() {
     myStatusSeparator = new MyItemSeparator();
-    myStatusFilterSeparator = new MyItemSeparator();
-    myDeviceFilterSeparator = new MyItemSeparator();
+
+    myDeviceAndApiLevelFilterComboBoxAction = new DeviceAndApiLevelFilterComboBoxAction();
 
     myFailedToggleButton = new MyToggleAction(
       "Show failed tests", AndroidTestResultsTableViewKt.getIconFor(AndroidTestCaseResult.FAILED, false),
@@ -250,18 +159,6 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     mySortByDurationToggleButton = new MyToggleAction(
       ExecutionBundle.message("junit.runing.info.sort.by.statistics.action.name"), AllIcons.RunConfigurations.SortbyDuration,
       SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY, false);
-
-    myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
-    DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
-    myDeviceFilterComboBoxModel.add(allDevicesItem);
-    myDeviceFilterComboBoxModel.setSelectedItem(allDevicesItem);
-    myDeviceFilterComboBox = new ComboBox<>(myDeviceFilterComboBoxModel);
-
-    myApiLevelFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
-    ApiLevelFilterComboBoxItem allApiLevelsItem = new ApiLevelFilterComboBoxItem(null);
-    myApiLevelFilterComboBoxModel.add(allApiLevelsItem);
-    myApiLevelFilterComboBoxModel.setSelectedItem(allApiLevelsItem);
-    myApiLevelFilterComboBox = new ComboBox<>(myApiLevelFilterComboBoxModel);
   }
 
   /**
@@ -307,22 +204,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       }
       return true;
     });
-    myTable.setColumnFilter(androidDevice -> {
-      DeviceFilterComboBoxItem deviceItem = myDeviceFilterComboBoxModel.getSelectedItem();
-      if (deviceItem != null && deviceItem.myDevice != null) {
-        if (!androidDevice.getId().equals(deviceItem.myDevice.getId())) {
-          return false;
-        }
-      }
-
-      ApiLevelFilterComboBoxItem apiItem = myApiLevelFilterComboBoxModel.getSelectedItem();
-      if (apiItem != null && apiItem.myVersion != null) {
-        if (!androidDevice.getVersion().equals(apiItem.myVersion)) {
-          return false;
-        }
-      }
-      return true;
-    });
+    myTable.setColumnFilter(myDeviceAndApiLevelFilterComboBoxAction.getFilter());
     myTable.setRowComparator(new Comparator<AndroidTestResults>() {
       @Override
       public int compare(AndroidTestResults o1, AndroidTestResults o2) {
@@ -342,19 +224,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
                                myInsertionOrderMap.getOrDefault(o2, Integer.MAX_VALUE));
       }
     });
-    ItemListener tableUpdater = new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        myTable.refreshTable();
-      }
-    };
-    myDeviceFilterComboBox.addItemListener(tableUpdater);
-    myApiLevelFilterComboBox.addItemListener(tableUpdater);
+    myDeviceAndApiLevelFilterComboBoxAction.setListener(() -> myTable.refreshTable());
     myTableViewContainer.add(myTable.getComponent());
 
     DefaultActionGroup testFilterAndSorterActionGroup = new DefaultActionGroup();
     testFilterAndSorterActionGroup.addAll(
       myFailedToggleButton, myPassedToggleButton, mySkippedToggleButton, myInProgressToggleButton,
+      Separator.getInstance(), myDeviceAndApiLevelFilterComboBoxAction,
       Separator.getInstance(), mySortByNameToggleButton, mySortByDurationToggleButton,
       Separator.getInstance(), myTable.createExpandAllAction(), myTable.createCollapseAllAction(),
       Separator.getInstance(), myTable.createNavigateToPreviousFailedTestAction(), myTable.createNavigateToNextFailedTestAction());
@@ -451,16 +327,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @AnyThread
   public void onTestSuiteScheduled(@NotNull AndroidDevice device) {
     AppUIUtil.invokeOnEdt(() -> {
-      DeviceFilterComboBoxItem deviceFilterItem = new DeviceFilterComboBoxItem(device);
-      if (myDeviceFilterComboBoxModel.indexOf(deviceFilterItem) == -1) {
-        myDeviceFilterComboBoxModel.add(deviceFilterItem);
-      }
-
-      ApiLevelFilterComboBoxItem apiLevelFilterItem = new ApiLevelFilterComboBoxItem(device.getVersion());
-      if (myApiLevelFilterComboBoxModel.indexOf(apiLevelFilterItem) == -1) {
-        myApiLevelFilterComboBoxModel.add(apiLevelFilterItem);
-      }
-
+      myDeviceAndApiLevelFilterComboBoxAction.addDevice(device);
       myScheduledDevices++;
       if (myScheduledDevices == 1) {
         myTable.showTestDuration(device);

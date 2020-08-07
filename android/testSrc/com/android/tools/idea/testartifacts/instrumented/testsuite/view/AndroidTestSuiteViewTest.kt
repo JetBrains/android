@@ -29,6 +29,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -327,8 +329,10 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Select "device2" in the device filter ComboBox.
-    view.myDeviceFilterComboBoxModel.selectedItem =
-      AndroidTestSuiteView.DeviceFilterComboBoxItem(device2)
+    val selectDevice2Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
+      it.templateText == "deviceName2"
+    }
+    requireNotNull(selectDevice2Action).actionPerformed(mock())
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
@@ -375,8 +379,11 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Select "API 29" in the API level filter ComboBox.
-    view.myApiLevelFilterComboBoxModel.selectedItem =
-      AndroidTestSuiteView.ApiLevelFilterComboBoxItem(AndroidVersion(29))
+    view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(null)
+    val selectApi29Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
+      it.templateText == "API 29"
+    }
+    requireNotNull(selectApi29Action).actionPerformed(mock())
 
     val tableView = view.tableForTesting.getTableViewForTesting()
     val tableViewModel = view.tableForTesting.getModelForTesting()
@@ -384,6 +391,16 @@ class AndroidTestSuiteViewTest {
     assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
     assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
     assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName1")
+  }
+
+  private fun ActionGroup.flattenedActions(): Sequence<AnAction> = sequence {
+    getChildren(null).forEach {
+      if (it is ActionGroup) {
+        yieldAll(it.flattenedActions())
+      } else {
+        yield(it)
+      }
+    }
   }
 
   @Test
