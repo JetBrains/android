@@ -469,6 +469,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       finally {
         myModelToSceneManagersLock.writeLock().unlock();
       }
+      // Doing the same with SceneViews so that their order respects the order of SceneManagers here
+      manager.getSceneViews().forEach(sceneView -> removeSceneView(sceneView));
+      manager.getSceneViews().forEach(sceneView -> addSceneView(sceneView));
       return manager;
     }
 
