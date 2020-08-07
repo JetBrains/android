@@ -252,4 +252,22 @@ class ComponentTreeLoaderTest {
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
   }
+
+  @Test
+  fun testOtherProblem() {
+    val banner = InspectorBanner(projectRule.project)
+    val client: DefaultInspectorClient = mock()
+    val payload = "samplepicture".toByteArray()
+    `when`(client.getPayload(111)).thenReturn(payload)
+
+    val skiaParser: SkiaParserService = mock()
+    `when`(skiaParser.getViewTree(eq(payload), any(), any())).thenAnswer { throw Exception() }
+
+    ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
+    verify(client).requestScreenshotMode()
+    assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
+    // Metrics shouldn't be logged until we come back with a screenshot
+    verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
+  }
+
 }
