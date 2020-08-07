@@ -22,7 +22,7 @@ import com.android.tools.idea.explorer.DeviceExplorerViewListener;
 import com.android.tools.idea.explorer.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.explorer.DeviceFileEntryNode;
 import com.android.tools.idea.explorer.DeviceFileSystemRendererFactory;
-import com.android.tools.idea.explorer.FutureValuesTracker;
+import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
