@@ -181,8 +181,8 @@ class UtpTestResultAdapterTest {
     val testClass = "ExampleInstrumentedTest"
     val testMethod1 = "useAppContext"
     val testMethod2 = "useAppContext2"
-    val snapshotName1 = "snapshot-${testClass}-${testMethod1}-snapshot.tar"
-    val snapshotName2 = "snapshot-${testClass}-${testMethod2}-snapshot.tar.gz"
+    val snapshotName1 = "snapshot-${testClass}-${testMethod1}-failure0.tar"
+    val snapshotName2 = "snapshot-${testClass}-${testMethod2}-failure1.tar.gz"
     val failedSnapshot1 = temporaryFolder.newFile(snapshotName1)
     val failedSnapshot2 = temporaryFolder.newFile(snapshotName2)
     val protobuf = TestSuiteResultProto.TestSuiteResult.newBuilder()
