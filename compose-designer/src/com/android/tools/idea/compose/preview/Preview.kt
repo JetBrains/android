@@ -287,10 +287,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
-        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this)
+        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+          // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
+          // opening a new one.
+          animationInspectionPreviewElementInstanceId = null
+        }
+        surface.background = INTERACTIVE_BACKGROUND_COLOR
       }
       else {
         // Close the animation inspection panel
+        surface.background = defaultSurfaceBackground
         ComposePreviewAnimationManager.closeCurrentInspector()
         mainPanelSplitter.secondComponent = null
         sceneComponentProvider.enabled = true
