@@ -154,6 +154,9 @@ abstract class LintIdeSupport {
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
   open fun updateAgpToLatest(project: Project) {
   }
+  open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) : Boolean = false
+  open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
+  }
 
   open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
   // Analytics
