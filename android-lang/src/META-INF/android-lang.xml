@@ -164,6 +164,16 @@
     <lang.syntaxHighlighter language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
+    <!-- region ContentAccess support -->
+    <fileType name="ContentAccess"
+              implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessFileType"
+              fieldName="INSTANCE"
+              language="ContentAccess"/>
+    <lang.parserDefinition language="ContentAccess"
+                           implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessParserDefinition"/>
+    <!-- endregion ContentAccess support -->
+
+
     <!-- SQL support -->
     <fileType name="Android Room SQL"
               implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlFileType"
