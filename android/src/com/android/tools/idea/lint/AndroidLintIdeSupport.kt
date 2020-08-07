@@ -20,11 +20,13 @@ import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintIdeClient
@@ -222,6 +224,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
   override fun updateAgpToLatest(project: Project) {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+  }
+
+  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = StudioFlags.AGP_UPGRADE_ASSISTANT.get()
+
+  override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      performDeprecatedConfigurationsUpgrade(project, element)
+    }
   }
 
   override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
