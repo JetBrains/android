@@ -22,12 +22,12 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.ui.components.JBLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.lang.annotation.Retention;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
@@ -41,14 +41,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RetentionView {
   private class RetentionPanel extends JPanel implements DataProvider {
-    private static final String SNAPSHOT_ID = "test_failure_snapshot";
+    private final String retentionArtifactRegrex = ".*-(failure[0-9]+).tar(.gz)?";
+    private final Pattern retentionArtifactPattern = Pattern.compile(retentionArtifactRegrex);
     private File snapshotFile = null;
+    private String snapshotId = "";
     private AndroidDevice device = null;
     public void setAndroidDevice(AndroidDevice device) {
       this.device = device;
     }
     public void setSnapshotFile(File snapshotFile) {
       this.snapshotFile = snapshotFile;
+      snapshotId = "";
+      if (snapshotFile == null) {
+        return;
+      }
+      Matcher matcher = retentionArtifactPattern.matcher(snapshotFile.getName());
+      if (matcher.find()) {
+        snapshotId = matcher.group(1);
+      }
     }
     public File getSnapshotFile() {
       return snapshotFile;
@@ -61,7 +71,7 @@ public class RetentionView {
     @Override
     public Object getData(@NotNull String dataId) {
       if (dataId == RetentionConstantsKt.EMULATOR_SNAPSHOT_ID_KEY.getName()) {
-        return SNAPSHOT_ID;
+        return snapshotId;
       } else if (dataId == RetentionConstantsKt.EMULATOR_SNAPSHOT_FILE_KEY.getName()) {
         return snapshotFile;
       } else if (dataId == RetentionConstantsKt.PACKAGE_NAME_KEY.getName()) {
