@@ -85,6 +85,11 @@ interface InspectorClient {
   }
 
   /**
+   * Refresh the content of the inspector.
+   */
+  fun refresh()
+
+  /**
    * Log events for Studio stats
    */
   fun logEvent(type: DynamicLayoutInspectorEventType)
@@ -136,7 +141,7 @@ object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
     override fun loadComponentTree(
       data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-    ): Pair<ViewNode, Any>? = null
+    ): Triple<ViewNode, Any, Int>? = null
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
@@ -147,6 +152,7 @@ object DisconnectedClient : InspectorClient {
   override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
+  override fun refresh() {}
   override fun logEvent(type: DynamicLayoutInspectorEventType) {}
   override val isConnected = false
   override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()

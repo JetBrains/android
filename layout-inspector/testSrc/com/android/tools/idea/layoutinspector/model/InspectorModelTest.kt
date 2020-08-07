@@ -65,7 +65,7 @@ class InspectorModelTest {
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
     assertFalse(isModified)
@@ -102,7 +102,7 @@ class InspectorModelTest {
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -130,7 +130,7 @@ class InspectorModelTest {
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -162,7 +162,7 @@ class InspectorModelTest {
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     assertSame(origNodes[ROOT], model[ROOT])
@@ -185,7 +185,7 @@ class InspectorModelTest {
     val window1 = view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
       view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
     }
-    model.update(window1, ROOT, listOf(ROOT))
+    model.update(window1, ROOT, listOf(ROOT), 0)
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
@@ -194,7 +194,7 @@ class InspectorModelTest {
     var window2 = view(VIEW2, 2, 4, 6, 8, qualifiedName = "root2Type") {
       view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertNotNull(model[VIEW3])
@@ -205,17 +205,17 @@ class InspectorModelTest {
     window2 = view(VIEW2, 2, 4, 6, 8, qualifiedName = "root2Type") {
       view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
-    model.update(window2, VIEW2, listOf(VIEW2, ROOT))
+    model.update(window2, VIEW2, listOf(VIEW2, ROOT), 0)
     assertEquals(listOf(VIEW2, ROOT), model.root.children.map { it.drawId })
 
     // remove a window
-    model.update(null, 0, listOf(VIEW2))
+    model.update(null, 0, listOf(VIEW2), 0)
     assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
     assertNull(model[VIEW1])
     assertNotNull(model[VIEW3])
 
     // clear
-    model.update(null, 0, listOf<Any>())
+    model.update(null, 0, listOf<Any>(), 0)
     assertEmpty(model.root.children)
     assertTrue(model.isEmpty)
     assertSingleRoot(model)

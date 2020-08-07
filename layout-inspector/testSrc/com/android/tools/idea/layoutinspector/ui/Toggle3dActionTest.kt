@@ -80,7 +80,7 @@ class Toggle3dActionTest {
       image()
       view(2)
     }
-    inspectorModel.update(root, 3, listOf(3))
+    inspectorModel.update(root, 3, listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Rotation not available for devices below API 29"
@@ -92,7 +92,7 @@ class Toggle3dActionTest {
       image()
       view(2)
     }
-    inspectorModel.update(root, 3, listOf(3))
+    inspectorModel.update(root, 3, listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "No compatible renderer found for device image, rotation not available"
@@ -104,7 +104,7 @@ class Toggle3dActionTest {
       image()
       view(2)
     }
-    inspectorModel.update(root, 3, listOf(3))
+    inspectorModel.update(root, 3, listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Device image too large, rotation not available"

@@ -191,7 +191,7 @@ class InspectorModelDescriptor(val project: Project) {
   fun build(): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
-    model.update(windowRoot, windowRoot.drawId, listOf(windowRoot.drawId))
+    model.update(windowRoot, windowRoot.drawId, listOf(windowRoot.drawId), 0)
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationBuilder(strings)
