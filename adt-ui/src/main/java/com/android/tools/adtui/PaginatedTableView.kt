@@ -27,22 +27,18 @@ import java.awt.FlowLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTable
 import javax.swing.event.RowSorterEvent
 import javax.swing.table.TableRowSorter
 
 /**
- * A view that consists of a paginated [JTable] and pagination controls.
+ * A view that consists of a paginated [JBTable] and pagination controls.
  *
  * @param tableModel model to create the paginated table
- * @property table the underlying [JTable]
+ * @property table the underlying [JBTable]
  * @property component view component that wraps a table and the pagination controls.
  */
 class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
-  /**
-   *
-   */
-  val table: JTable
+  val table: JBTable
   val component: JComponent
 
   @VisibleForTesting

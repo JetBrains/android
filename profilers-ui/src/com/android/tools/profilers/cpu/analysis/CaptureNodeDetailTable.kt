@@ -25,7 +25,6 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.RowSorter
 import javax.swing.SortOrder
@@ -43,10 +42,10 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
                              viewRange: Range? = null,
                              pageSize: Int = Int.MAX_VALUE) {
   @VisibleForTesting
-  val table: JTable
+  val table: JBTable
 
   /**
-   * Container of the underlying [JTable], [javax.swing.JScrollPane] if scrollable, [JPanel] otherwise.
+   * Container of the underlying [JBTable], [javax.swing.JScrollPane] if scrollable, [JPanel] otherwise.
    */
   val component: JComponent
 
@@ -76,6 +75,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
     table.apply {
       showVerticalLines = true
       showHorizontalLines = false
+      emptyText.text = "No events in the selected range"
       columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()

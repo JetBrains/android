@@ -31,6 +31,7 @@ class CaptureNodeDetailTableTest {
 
     assertThat(table.rowCount).isEqualTo(1)
     assertThat(table.columnCount).isEqualTo(6)
+    assertThat(table.emptyText.text).isEqualTo("No events in the selected range")
     assertThat(table.getColumnName(0)).isEqualTo("Start Time")
     assertThat(table.getColumnName(1)).isEqualTo("Name")
     assertThat(table.getColumnName(2)).isEqualTo("Wall Duration")
