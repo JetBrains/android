@@ -32,7 +32,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -57,6 +56,9 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.JTabbedPane
+
+private const val KEY_SUPPORTS_OFFLINE = "supports.offline"
 
 class AppInspectionView(
   private val project: Project,
@@ -150,26 +152,37 @@ class AppInspectionView(
     processModel.addSelectedProcessListeners(edtExecutor) {
       // Force a UI update NOW instead of waiting to poll.
       ActivityTracker.getInstance().inc()
-      clearTabs()
-      processModel.selectedProcess?.let {
-        scope.launch {
-          populateTabs(it)
-        }
+
+      val selectedProcess = processModel.selectedProcess
+      if (selectedProcess != null && !selectedProcess.isRunning) {
+        // If a process was just killed, we'll get notified about that by being sent a dead
+        // process. In that case, remove all inspectors except for those that opted-in to stay up
+        // in offline mode.
+        inspectorTabs.removeAllTabs { tab -> tab.getClientProperty(KEY_SUPPORTS_OFFLINE) == false }
+      }
+      else {
+        // If here, either we have no selected process (e.g. we just opened this view) or we got
+        // informed of a new, running process. In this case, clear all tabs to make way for all new
+        // tabs for the new process.
+        inspectorTabs.removeAllTabs()
+      }
+      if (selectedProcess != null && selectedProcess.isRunning) {
+        scope.launch { populateTabs(selectedProcess) }
+      }
+      else {
+        // Note: This is fired by populateTabs in the other case
+        fireTabsChangedListeners()
       }
     }
     updateUi()
   }
 
   @UiThread
-  private fun clearTabs() {
-    // TODO(b/162518342) this is a temporary hack, needed to be able to use offline mode in DBI.
-    //  Should be removed once we implement an offline story in AppInspection.
-    // Not calling `removeAll` works because DBI's component is a singleton,
-    // and JTabbedPane handles the case when you add the same component again. Therefore there won't be multiple tabs added.
-    // This is behind a flag, because it doesn't make sense to not remove tabs without enabling offline mode in DBI.
-    if (!StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()) {
-      inspectorTabs.removeAll()
-      updateUi()
+  private fun JTabbedPane.removeAllTabs(shouldRemove: (JComponent) -> Boolean = { true }) {
+    var i = 0
+    while (i < tabCount) {
+      val tab = getComponentAt(i) as JComponent
+      if (shouldRemove(tab)) remove(i) else ++i
     }
   }
 
@@ -198,6 +211,7 @@ class AppInspectionView(
               invokeAndWaitIfNeeded {
                 provider.createTab(project, ideServices, currentProcess, messenger)
                   .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+                  .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
               }.client
             }
             client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {

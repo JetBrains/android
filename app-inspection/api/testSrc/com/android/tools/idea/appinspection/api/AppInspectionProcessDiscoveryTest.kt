@@ -75,9 +75,7 @@ class AppInspectionProcessDiscoveryTest {
 
   private fun removeFakeProcess() {
     // Removes process from FakeTransportService's internal cache.
-    transportService.removeProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-    // Despite the confusing name, this triggers a process end event.
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     advanceTimer()
   }
 
