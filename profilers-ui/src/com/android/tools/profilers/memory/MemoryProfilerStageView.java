@@ -927,50 +927,6 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     chart.configure(series, new LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
   }
 
-  /**
-   * TODO currently we have slightly different icons for the MemoryClassSetView vs the MemoryInstanceDetailsView.
-   * Re-investigate and see if they should share the same conditions.
-   */
-  @NotNull
-  static Icon getValueObjectIcon(@NotNull ValueObject valueObject) {
-    if (valueObject instanceof FieldObject) {
-      FieldObject field = (FieldObject)valueObject;
-      if (field.getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
-      }
-      else if (field.getValueType().getIsPrimitive()) {
-        return AllIcons.Debugger.Db_primitive;
-      }
-      else {
-        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
-      }
-    }
-    else if (valueObject instanceof ReferenceObject) {
-      ReferenceObject referrer = (ReferenceObject)valueObject;
-      if (referrer.getReferenceInstance().getIsRoot()) {
-        return AllIcons.Hierarchy.Subtypes;
-      }
-      else if (referrer.getReferenceInstance().getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
-      }
-      else {
-        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
-      }
-    }
-    else if (valueObject instanceof InstanceObject) {
-      return getStackedIcon((InstanceObject)valueObject, StudioIcons.Profiler.Overlays.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
-    }
-    else {
-      return PlatformIcons.INTERFACE_ICON;
-    }
-  }
-
-  private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
-    return (instance == null || instance.getCallStackDepth() == 0)
-           ? nonStackedIcon
-           : stackedIcon;
-  }
-
   @VisibleForTesting
   static class LiveAllocationSamplingModeRenderer extends ProfilerComboboxCellRenderer<LiveAllocationSamplingMode> {
     @Override

@@ -16,9 +16,17 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
+import com.android.tools.profilers.memory.adapters.FieldObject
+import com.android.tools.profilers.memory.adapters.InstanceObject
+import com.android.tools.profilers.memory.adapters.ReferenceObject
 import com.android.tools.profilers.memory.adapters.ValueObject
+import com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY
+import com.intellij.icons.AllIcons.Debugger.*
+import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.PlatformIcons.*
+import icons.StudioIcons.Profiler.Overlays.*
 import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JTree
@@ -37,7 +45,7 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
       value.adapter !is ValueObject -> append(value.adapter.name)
       else -> {
         val valueObject = value.adapter as ValueObject
-        setIconColorized(MemoryProfilerStageView.getValueObjectIcon(valueObject))
+        setIconColorized(valueObject.getValueObjectIcon())
         setTextAlign(SwingConstants.LEFT)
 
         val name = valueObject.name
@@ -63,5 +71,24 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
 
   companion object {
     val STRING_ATTRIBUTES = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
+
+    @JvmStatic
+    fun ValueObject.getValueObjectIcon() = when (this) {
+      is FieldObject -> when {
+        valueType == ARRAY -> asInstance.getStackedIcon(ARRAY_STACK, Db_array)
+        valueType.isPrimitive -> Db_primitive
+        else -> asInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+      }
+      is ReferenceObject -> when {
+        referenceInstance.isRoot -> Subtypes
+        referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
+        else -> referenceInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+      }
+      is InstanceObject -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
+      else -> INTERFACE_ICON
+    }
+
+    private fun InstanceObject?.getStackedIcon(stackedIcon: Icon, nonStackedIcon: Icon) =
+      if (this == null || callStackDepth == 0) nonStackedIcon else stackedIcon
   }
 }
