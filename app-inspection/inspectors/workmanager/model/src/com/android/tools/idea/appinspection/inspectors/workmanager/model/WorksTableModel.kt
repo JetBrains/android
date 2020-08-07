@@ -83,7 +83,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
     if (columnIndex == Column.ORDER.ordinal) {
       return rowIndex + 1
     }
-    val work = client.getWorkInfo(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
+    val work = client.getWorkInfoOrNull(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
     return Column.values()[columnIndex].getValueFrom(work)
   }
 }

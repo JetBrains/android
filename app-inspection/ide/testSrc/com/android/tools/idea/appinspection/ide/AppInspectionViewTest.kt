@@ -80,6 +80,7 @@ class AppInspectionViewTest {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
+    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   }
 
   private val ideServices = TestIdeServices()

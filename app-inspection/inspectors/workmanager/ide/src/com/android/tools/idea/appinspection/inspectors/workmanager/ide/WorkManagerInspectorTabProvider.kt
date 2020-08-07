@@ -26,6 +26,8 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkMana
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import javax.swing.JComponent
 
 class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
@@ -43,11 +45,13 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
                          ideServices: AppInspectionIdeServices,
                          processDescriptor: ProcessDescriptor,
                          messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+    val projectScope = AndroidCoroutineScope(project)
+    val moduleScope = CoroutineScope(projectScope.coroutineContext + Job(projectScope.coroutineContext[Job]))
     return object : AppInspectorTab {
       override val client =
-        WorkManagerInspectorClient(messenger, AndroidCoroutineScope(project))
+        WorkManagerInspectorClient(messenger, moduleScope)
 
-      override val component: JComponent = WorkManagerInspectorTab(client).component
+      override val component: JComponent = WorkManagerInspectorTab(client, ideServices, moduleScope).component
     }
   }
 }
