@@ -243,7 +243,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     myNativeAllocationButton
       .addActionListener(e -> {
         getStage().toggleNativeAllocationTracking();
-        myNativeAllocationButton.setEnabled(false);
+        disableRecordingButtons();
       });
     myNativeAllocationButton.setVisible(getStage().isNativeAllocationSamplingEnabled());
     myNativeAllocationAction =
@@ -387,11 +387,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
-      boolean isAlive = profilers.getSessionsManager().isSessionAlive();
-      myForceGarbageCollectionButton.setEnabled(isAlive);
-      myHeapDumpButton.setEnabled(isAlive);
-      myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
+      resetRecordingButtons();
       liveAllocationStatusChanged();  // update myAllocationSamplingRateLabel and myAllocationSamplingRateDropDown
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
@@ -399,6 +395,20 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
                                                         this::liveAllocationStatusChanged);
     toggleButtons.run();
     return panel;
+  }
+
+  private void resetRecordingButtons() {
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    myForceGarbageCollectionButton.setEnabled(isAlive);
+    myHeapDumpButton.setEnabled(isAlive && !getStage().isTrackingAllocations());
+    myAllocationButton.setEnabled(isAlive);
+    myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
+  }
+
+  private void disableRecordingButtons() {
+    myAllocationButton.setEnabled(false);
+    myNativeAllocationButton.setEnabled(false);
+    myHeapDumpButton.setEnabled(false);
   }
 
   @VisibleForTesting
@@ -502,8 +512,6 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
   }
 
   private void allocationTrackingChanged() {
-    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText(STOP_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
@@ -520,10 +528,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myAllocationButton.setToolTipText("Record memory allocations");
       myNativeAllocationButton.setText(RECORD_NATIVE_TEXT);
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
-      myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
+      myNativeAllocationButton.setToolTipText(isSelectedSessionDeviceX86OrX64() ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
-    myHeapDumpButton.setEnabled(isAlive && !getStage().isTrackingAllocations());
-    myNativeAllocationButton.setEnabled(!isX86OrX64Device && isAlive);
+    resetRecordingButtons();
   }
 
   private void updateCaptureElapsedTime() {
@@ -866,11 +873,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     stopLoadingUi();
     myCaptureObject = getStage().getCaptureSelection().getSelectedCapture();
     if (myCaptureObject == null) {
-      boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
-      boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-      myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
-      myHeapDumpButton.setEnabled(isAlive);
+      resetRecordingButtons();
       myLayout.setShowingCaptureUi(false);
       return;
     }
@@ -880,24 +883,19 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       captureObjectFinishedLoading();
     }
     else {
-      myAllocationButton.setEnabled(false);
-      myNativeAllocationButton.setEnabled(false);
-      myHeapDumpButton.setEnabled(false);
+      disableRecordingButtons();
       myLayout.setLoadingUiVisible(true);
     }
   }
 
   private void captureObjectFinishedLoading() {
-    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
-    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-    myAllocationButton.setEnabled(isAlive);
-    myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
+    resetRecordingButtons();
     // If the capture is an imported file, myRangeSelectionComponent is null.
     // If it is part of a profiler session, myRangeSelectionComponent is not null and should obtain the focus.
     if (myRangeSelectionComponent != null) {
       myRangeSelectionComponent.requestFocus();
     }
-    myHeapDumpButton.setEnabled(isAlive);
+
     if (myCaptureObject != getStage().getCaptureSelection().getSelectedCapture() || myCaptureObject == null) {
       return;
     }
