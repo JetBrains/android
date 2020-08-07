@@ -177,11 +177,11 @@ iml_module(
     test_class = "com.android.tools.idea.emulator.EmbeddedEmulatorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/emulator/testData",
         "//tools/idea/java/mockJDK-1.7",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
