@@ -52,7 +52,8 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     assertThat(hyperlink.toHtml()).isEqualTo(EXPECTED_HTML);
   }
 
-  public void testExecute() throws Exception {
+  // b/161618318
+  public void /*test*/Execute() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
 
