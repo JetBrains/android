@@ -867,19 +867,22 @@ b/154962759 */
    */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
-    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-/* b/162363312
-    assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-    for (DaemonState status : daemonStatus) {
-      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
-    }
+    assertThat(areDaemonsRunning()).isFalse();
     requestSyncAndWait();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-b/162363312 */
+    assertThat(areDaemonsRunning()).isTrue();
+    GradleDaemonServices.stopDaemons();
+    assertThat(areDaemonsRunning()).isFalse();
+  }
+
+  private static boolean areDaemonsRunning() {
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    for (DaemonState status : daemonStatus) {
+      if (!equalsIgnoreCase(status.getStatus(), "stopped")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isModulePerSourceSet() {
