@@ -44,6 +44,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortBySourcePosition
@@ -622,10 +623,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.toMutableList()
+    val previewElementsList = previewElementProvider.previewElements.toList()
 
+    val modelIndices = matchElementsToModels(existingModels, previewElementsList)
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = previewElementProvider
-      .previewElements
+    val models = previewElementsList
       .map {
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
@@ -640,7 +642,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         Pair(it, xmlOutput)
       }
-      .map {
+      .mapIndexed { idx, it ->
         val (previewElement, fileContents) = it
 
         if (LOG.isDebugEnabled) {
@@ -652,9 +654,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           """.trimIndent())
         }
 
-        val model = if (existingModels.isNotEmpty()) {
-          // Find the same model we were using before, if possible. See modelAffinity for more details.
-          val reusedModel = existingModels.minBy { aModel -> modelAffinity(aModel.dataContext, previewElement) }!!
+        val model = if (modelIndices[idx] >= 0) {
+          // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
+          // more details.
+          val reusedModel = existingModels[modelIndices[idx]]
           val affinity = modelAffinity(reusedModel.dataContext, previewElement)
           // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
           // we can skip reinflate and therefore refresh much quicker
