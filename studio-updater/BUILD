@@ -39,7 +39,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # Tested via the integration_test target below
     visibility = ["//visibility:public"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar"],
+    runtime_deps = ["//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/8.4.0:jar"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:JUnit4[test]",
