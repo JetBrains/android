@@ -83,6 +83,11 @@ interface CpuSystemTraceData {
   fun getVsyncCounterValues(): List<SeriesData<Long>>
 
   /**
+   * @return a data series with BufferQueue (SurfaceView) counter (0, 1, or 2).
+   */
+  fun getBufferQueueCounterValues(): List<SeriesData<Long>>
+
+  /**
    * Returns the thread id of thread matching name of the render thread.
    */
   fun getRenderThreadId(): Int

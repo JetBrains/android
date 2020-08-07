@@ -382,8 +382,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitle("Display")
       .setTitleHelpText("This section contains display info. " +
                         "<p><b>Frames</b>: when a frame is being drawn. Long frames are colored red.</p>" +
-                        "<p><b>Surfaceflinger</b>: system process responsible for sending buffers to display.</p>" +
-                        "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>")
+                        "<p><b>SurfaceFlinger</b>: system process responsible for sending buffers to display.</p>" +
+                        "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>" +
+                        "<p><b>BufferQueue</b>: how many frame buffers are queued up, waiting for SurfaceFlinger to consume.</p>")
       .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
       .build();
 
@@ -400,12 +401,17 @@ public class CpuCaptureStage extends Stage<Timeline> {
     SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(systemTraceData, timeline.getViewRange());
     SurfaceflingerTooltip sfTooltip = new SurfaceflingerTooltip(timeline, sfModel.getSurfaceflingerEvents());
     display.addTrackModel(
-      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger").setDefaultTooltipModel(sfTooltip));
+      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "SurfaceFlinger").setDefaultTooltipModel(sfTooltip));
 
     // VSYNC
     VsyncTrackModel vsyncModel = new VsyncTrackModel(systemTraceData, timeline.getViewRange());
     VsyncTooltip vsyncTooltip = new VsyncTooltip(timeline, vsyncModel.getVsyncCounterSeries());
     display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
+
+    // Buffer Queue
+    // TODO(b/162354232): add tooltip for the track.
+    BufferQueueTrackModel bufferQueueTrackModel = new BufferQueueTrackModel(systemTraceData, timeline.getViewRange());
+    display.addTrackModel(TrackModel.newBuilder(bufferQueueTrackModel, ProfilerTrackRendererType.BUFFER_QUEUE, "BufferQueue"));
     return display;
   }
 
