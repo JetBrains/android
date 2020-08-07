@@ -45,6 +45,7 @@ import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
@@ -113,6 +114,10 @@ public class NetworkProfilerStageViewTest {
 
   @Test
   public void draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() {
+    if (SystemInfoRt.isWindows) {
+      return; // b/163140665
+    }
+
     NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
 
     TreeWalker stageWalker = new TreeWalker(stageView.getComponent());
