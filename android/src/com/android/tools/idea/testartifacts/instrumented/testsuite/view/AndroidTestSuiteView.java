@@ -292,23 +292,20 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       if (AndroidTestResultsKt.isRootAggregationResult(testResults)) {
         return true;
       }
-      if (myFailedToggleButton.isSelected()
-          && testResults.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
-        return true;
+      switch (testResults.getTestResultSummary()) {
+        case FAILED:
+          return myFailedToggleButton.isSelected();
+        case PASSED:
+          return myPassedToggleButton.isSelected();
+        case SKIPPED:
+          return mySkippedToggleButton.isSelected();
+        case IN_PROGRESS:
+          return myInProgressToggleButton.isSelected();
+        case SCHEDULED:
+        case CANCELLED:
+          return true;
       }
-      if (myPassedToggleButton.isSelected()
-          && testResults.getTestResultSummary() == AndroidTestCaseResult.PASSED) {
-        return true;
-      }
-      if (mySkippedToggleButton.isSelected()
-          && testResults.getTestResultSummary() == AndroidTestCaseResult.SKIPPED) {
-        return true;
-      }
-      if (myInProgressToggleButton.isSelected()
-          && testResults.getTestResultSummary() == AndroidTestCaseResult.IN_PROGRESS) {
-        return true;
-      }
-      return false;
+      return true;
     });
     myTable.setColumnFilter(androidDevice -> {
       DeviceFilterComboBoxItem deviceItem = myDeviceFilterComboBoxModel.getSelectedItem();
