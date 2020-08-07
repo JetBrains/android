@@ -246,7 +246,7 @@ class AgpUpgradeRefactoringProcessor(
         return targets.toArray(PsiElement.EMPTY_ARRAY)
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade AGP from $current to $new"
+      override fun getProcessedElementsHeader() = "AGP Upgrade Assistant"
 
       /** see [ComponentGroupingRuleProvider] for an explanation of this override */
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String = "References considered"
