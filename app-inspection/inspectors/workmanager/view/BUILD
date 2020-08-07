@@ -70,8 +70,11 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
     ],
 )

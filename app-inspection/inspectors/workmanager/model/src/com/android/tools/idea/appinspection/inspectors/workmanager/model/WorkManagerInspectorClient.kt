@@ -23,7 +23,6 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
@@ -32,13 +31,13 @@ import net.jcip.annotations.ThreadSafe
  * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineScope) : AppInspectorClient(messenger) {
+class WorkManagerInspectorClient(messenger: CommandMessenger, clientScope: CoroutineScope) : AppInspectorClient(messenger) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
 
   private val lock = Any()
-  private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+
   @GuardedBy("lock")
   private val works = mutableListOf<WorkInfo>()
 
@@ -63,8 +62,22 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineSc
     works.size
   }
 
-  fun getWorkInfo(index: Int) = synchronized(lock) {
+  /**
+   * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
+   */
+  fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
     works.getOrNull(index)
+  }
+
+  /**
+   * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
+   */
+  fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
+    works.indexOfFirst(predicate)
+  }
+
+  fun getWorkIdsWithUniqueName(uniqueName: String): List<String> = synchronized(lock) {
+    works.filter { it.namesList.contains(uniqueName) }.map { it.id }.toList()
   }
 
   private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {

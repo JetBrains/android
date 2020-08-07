@@ -51,4 +51,20 @@ interface AppInspectionIdeServices {
                        title: String = "",
                        severity: Severity = Severity.INFORMATION,
                        @UiThread hyperlinkClicked: () -> Unit = {})
+
+
+  class CodeLocation private constructor(val fileName: String?, val fqcn: String?, val lineNumber: Int?) {
+    companion object {
+      fun forClass(fqcn: String) = CodeLocation(null, fqcn, null)
+      fun forFile(fileName: String, lineNumber: Int? = null) = CodeLocation(fileName, null, lineNumber)
+    }
+  }
+
+  /**
+   * Navigate to the target code location.
+   *
+   * This method may do expensive work to convert the [CodeLocation] to an actual navigation point before finally doing
+   * the navigation, which is why it is a suspend function and should get launched on a background thread.
+   */
+  suspend fun navigateTo(codeLocation: CodeLocation)
 }
