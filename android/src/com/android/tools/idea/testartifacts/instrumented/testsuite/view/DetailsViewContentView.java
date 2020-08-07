@@ -239,7 +239,16 @@ public class DetailsViewContentView {
             AndroidDeviceKt.getName(myAndroidDevice)));
           break;
 
+        case CANCELLED:
+          myTestResultLabel.setText(String.format(
+            Locale.US,
+            "<html><font color='%s'>Cancelled</font> on %s</html>",
+            ColorUtil.toHtmlColor(statusColor),
+            AndroidDeviceKt.getName(myAndroidDevice)));
+          break;
+
         default:
+          myTestResultLabel.setText("");
           Logger.getInstance(getClass()).warn(
             String.format(Locale.US, "Unexpected result type: %s", myAndroidTestCaseResult));
       }
