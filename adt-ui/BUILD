@@ -111,7 +111,6 @@ java_binary(
 iml_module(
     name = "unb.intellij.android.adt.ui",
     srcs = ["src/main/java"],
-    bundled_deps = ["//tools/adt/idea/adt-ui/lib:unb.libwebp"],
     iml_files = ["intellij.android.adt.ui.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -121,8 +120,8 @@ iml_module(
     ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
@@ -136,7 +135,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
-        "//tools/adt/idea/adt-ui/lib:unb.libwebp",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",

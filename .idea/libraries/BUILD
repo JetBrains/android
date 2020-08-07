@@ -758,3 +758,10 @@ java_import(
     ],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.studio-plugin-webp",
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202:unb.studio-plugin-webp_files"],
+    visibility = ["//visibility:public"],
+)
