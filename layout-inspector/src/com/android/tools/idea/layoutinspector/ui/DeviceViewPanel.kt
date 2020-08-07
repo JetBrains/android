@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
@@ -302,7 +301,7 @@ class DeviceViewPanel(
     leftGroup.add(AlphaSliderAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
-    leftGroup.add(CaptureAction(layoutInspector::currentClient))
+    leftGroup.add(RefreshAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(LayerSpacingSliderAction)
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)

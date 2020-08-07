@@ -31,6 +31,7 @@ class InspectorModel(val project: Project) {
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
+  var lastGeneration = 0
 
   // TODO: store this at the window root
   private fun findSubimages(root: ViewNode?) =
@@ -107,7 +108,7 @@ class InspectorModel(val project: Project) {
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode?, id: Any, allIds: List<*>) {
+  fun update(newRoot: ViewNode?, id: Any, allIds: List<*>, generation: Int) {
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
     val oldRoot = roots[id]
     // changes in DIM_BEHIND will cause a structural change
@@ -136,6 +137,7 @@ class InspectorModel(val project: Project) {
 
     updateRoot(allIds)
     hasSubImages = root.children.any { findSubimages(it) }
+    lastGeneration = generation
     modificationListeners.forEach { it(oldRoot, roots[id], structuralChange) }
   }
 

@@ -78,7 +78,7 @@ class DeviceViewContentPanelTest {
     model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
-      }, ROOT, listOf(ROOT))
+      }, ROOT, listOf(ROOT), 0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -257,7 +257,7 @@ class DeviceViewContentPanelTest {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -299,7 +299,7 @@ class DeviceViewContentPanelTest {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)

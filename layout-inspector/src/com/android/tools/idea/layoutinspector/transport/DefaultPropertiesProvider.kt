@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -57,13 +58,19 @@ private const val FRAMEWORK_INTERPOLATOR_PREFIX = "@android:interpolator"
 
 class DefaultPropertiesProvider(
   private val client: InspectorClient,
-  private val resourceLookup: ResourceLookup
+  private val model: InspectorModel
 ): PropertiesProvider {
 
   private var lastRequestedView: ViewNode? = null
+  private var lastGeneration = 0
+  private val cache = mutableMapOf<Long, PropertiesTable<InspectorPropertyItem>>()
 
   init {
     client.register(Common.Event.EventGroupIds.PROPERTIES, ::loadProperties)
+    model.connectionListeners.add {
+      cache.clear()
+      lastGeneration = 0
+    }
   }
 
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
@@ -75,6 +82,14 @@ class DefaultPropertiesProvider(
       return Futures.immediateFuture(null)
     }
     lastRequestedView = view
+    if (lastGeneration != model.lastGeneration) {
+      cache.clear()
+    }
+    val properties = cache[view.drawId]
+    if (properties != null) {
+      firePropertiesProvided(view, properties)
+      return Futures.immediateFuture(null)
+    }
     val inspectorCommand = LayoutInspectorCommand.newBuilder()
       .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
       .setViewId(view.drawId)
@@ -84,13 +99,24 @@ class DefaultPropertiesProvider(
 
   private fun loadProperties(event: Any) {
     val transportEvent = event as? LayoutInspectorEvent ?: return
-    val view = lastRequestedView
-    if (view == null || transportEvent.properties.viewId != view.drawId) {
+    if (!transportEvent.hasProperties()) {
       return
     }
-    val generator = Generator(transportEvent.properties, view, resourceLookup)
+    val view = model[transportEvent.properties.viewId] ?: return
+    val generation = transportEvent.properties.generation
+    if (generation < lastGeneration) {
+      return
+    }
+    val generator = Generator(transportEvent.properties, view, model.resourceLookup)
     val properties = PropertiesTable.create(generator.generate())
-    firePropertiesProvided(view, properties)
+    if (generation > lastGeneration) {
+      cache.clear()
+      lastGeneration = generation
+    }
+    cache[view.drawId] = properties
+    if (lastRequestedView === view) {
+      firePropertiesProvided(view, properties)
+    }
   }
 
   private fun firePropertiesProvided(view: ViewNode, properties: PropertiesTable<InspectorPropertyItem>) {

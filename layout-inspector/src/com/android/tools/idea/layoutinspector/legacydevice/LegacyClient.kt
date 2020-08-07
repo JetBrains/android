@@ -173,6 +173,10 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
     return true
   }
 
+  override fun refresh() {
+    reloadAllWindows()
+  }
+
   /**
    * Load all windows.
    *

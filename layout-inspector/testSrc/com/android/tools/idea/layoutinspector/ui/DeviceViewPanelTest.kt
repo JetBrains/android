@@ -114,7 +114,7 @@ class DeviceViewPanelTest {
       }
     }
 
-    model.update(newModel.root, ROOT, listOf(ROOT))
+    model.update(newModel.root, ROOT, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
     assertThat(viewSettings.scalePercent).isEqualTo(135)
@@ -129,7 +129,7 @@ class DeviceViewPanelTest {
         }
       }
     }
-    model.update(newModel2.root, ROOT, listOf(ROOT))
+    model.update(newModel2.root, ROOT, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
     assertThat(viewSettings.scalePercent).isEqualTo(200)

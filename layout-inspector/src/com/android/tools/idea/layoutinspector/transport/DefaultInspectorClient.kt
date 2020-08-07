@@ -38,6 +38,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
@@ -112,7 +113,7 @@ class DefaultInspectorClient(
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
 
-  override val provider = DefaultPropertiesProvider(this, model.resourceLookup)
+  override val provider = DefaultPropertiesProvider(this, model)
 
   private var loggedInitialRender = false
 
@@ -165,7 +166,7 @@ class DefaultInspectorClient(
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
 
-  override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
+  override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {
     listeners.add(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
       executor = MoreExecutors.directExecutor(),
@@ -176,7 +177,8 @@ class DefaultInspectorClient(
       val rootId = it.layoutInspectorEvent?.tree?.root?.drawId
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
-          it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE)) {
+          (it.groupId == EventGroupIds.PROPERTIES.number.toLong() ||
+           it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE))) {
         try {
           callback(it.layoutInspectorEvent)
         }
@@ -337,6 +339,12 @@ class DefaultInspectorClient(
       return null
     }
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
+  }
+
+  override fun refresh() {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      execute(LayoutInspectorCommand.Type.REFRESH)
+    }
   }
 
   override fun logEvent(type: DynamicLayoutInspectorEventType) {

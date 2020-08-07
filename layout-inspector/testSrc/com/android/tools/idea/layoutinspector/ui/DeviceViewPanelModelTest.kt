@@ -183,7 +183,7 @@ class DeviceViewPanelModelTest {
         }
       }
 
-    model.update(model2, VIEW3, listOf(VIEW3))
+    model.update(model2, VIEW3, listOf(VIEW3), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isTrue()
@@ -195,7 +195,7 @@ class DeviceViewPanelModelTest {
         view(VIEW1)
       }
 
-    model.update(legacyModel, VIEW2, listOf(VIEW2))
+    model.update(legacyModel, VIEW2, listOf(VIEW2), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isFalse()
