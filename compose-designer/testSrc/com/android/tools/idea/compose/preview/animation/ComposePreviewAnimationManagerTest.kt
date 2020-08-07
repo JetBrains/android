@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import org.junit.After
@@ -95,10 +94,7 @@ class ComposePreviewAnimationManagerTest {
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
     val inspector = createInspector()
 
-    fun noAnimationsPanel() = TreeWalker(inspector).descendantStream().filter { it is JBLabel }.filter {
-      it as JBLabel
-      it.text.contains("no animations that can be inspected")
-    }.getIfSingle()
+    fun noAnimationsPanel() = TreeWalker(inspector).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
 
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
     assertNotNull(noAnimationsPanel())
