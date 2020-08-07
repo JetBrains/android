@@ -37,6 +37,7 @@ import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -104,10 +105,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private val tabNamesCount = HashMap<String, Int>()
 
   /**
-   * Panel displayed when the preview has no animations subscribed.
+   * Loading panel displayed when the preview has no animations subscribed.
    */
-  private val noAnimationsPanel = JPanel(BorderLayout()).apply {
-    add(JBLabel(message("animation.inspector.no.animations.panel.message"), SwingConstants.CENTER), BorderLayout.CENTER)
+  private val noAnimationsPanel = JBLoadingPanel(BorderLayout(), this).apply {
+    name = "Loading Animations Panel"
+    setLoadingText(message("animation.inspector.loading.animations.panel.message"))
     border = MatteBorder(1, 0, 0, 0, JBColor.border())
   }
 
@@ -132,6 +134,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     add(composableTitle, TabularLayout.Constraint(0, 0))
+    noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
   }
 
@@ -160,6 +163,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   private fun showNoAnimationsPanel() {
     remove(tabbedPane)
+    noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
     tabNamesCount.clear()
@@ -171,6 +175,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   internal fun addTab(animation: ComposeAnimation) {
     if (tabbedPane.tabCount == 0) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
+      noAnimationsPanel.stopLoading()
       remove(noAnimationsPanel)
       add(tabbedPane, TabularLayout.Constraint(1, 0, 2))
     }
