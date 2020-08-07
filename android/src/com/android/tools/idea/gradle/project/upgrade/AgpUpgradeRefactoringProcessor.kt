@@ -118,6 +118,7 @@ import com.intellij.util.ThreeState.YES
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.toArray
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.Arrays
@@ -262,10 +263,9 @@ class AgpUpgradeRefactoringProcessor(
     //  in findUsages() but calling findComponentUsages() from here.
     buildModel.reparse()
     val usages = ArrayList<UsageInfo>()
-    targets.clear()
 
     usages.addAll(classpathRefactoringProcessor.findUsages())
-    targets.addAll(usages.mapNotNull { it.element })
+    targets.ifEmpty { targets.apply { addAll(usages.mapNotNull { it.element }) } }
 
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
