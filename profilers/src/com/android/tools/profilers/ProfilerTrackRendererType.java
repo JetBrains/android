@@ -28,17 +28,21 @@ public enum ProfilerTrackRendererType {
    */
   APP_LIFECYCLE,
   /**
-   * For Atrace frame rendering data.
+   * For System Trace frame rendering data.
    */
   FRAMES,
   /**
-   * For Atrace Surfaceflinger events.
+   * For System Trace Surfaceflinger events.
    */
   SURFACEFLINGER,
   /**
-   * For Atrace VSYNC signals.
+   * For System Trace VSYNC signals.
    */
   VSYNC,
+  /**
+   * For System Trace BufferQueue signals.
+   */
+  BUFFER_QUEUE,
   /**
    * For CPU thread states and trace events.
    */

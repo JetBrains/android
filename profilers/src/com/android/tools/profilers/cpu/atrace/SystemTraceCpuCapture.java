@@ -137,6 +137,12 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
     return mySurfaceflingerManager.getVsyncCounterValues();
   }
 
+  @NotNull
+  @Override
+  public List<SeriesData<Long>> getBufferQueueCounterValues() {
+    return mySurfaceflingerManager.getBufferQueueValues();
+  }
+
   @Override
   public int getRenderThreadId() {
     return myFrameManager.getRenderThreadId();
