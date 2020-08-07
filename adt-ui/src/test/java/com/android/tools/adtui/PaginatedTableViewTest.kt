@@ -72,4 +72,13 @@ class PaginatedTableViewTest {
     assertThat(tableView.table.getValueAt(0, 0)).isEqualTo(3)
     assertThat(tableView.table.getValueAt(1, 0)).isEqualTo(2)
   }
+
+  @Test
+  fun emptyTable() {
+    val tableView = PaginatedTableView(PaginatedListModel(10, mutableListOf()))
+    assertThat(tableView.firstPageButton.isEnabled).isFalse()
+    assertThat(tableView.prevPageButton.isEnabled).isFalse()
+    assertThat(tableView.nextPageButton.isEnabled).isFalse()
+    assertThat(tableView.lastPageButton.isEnabled).isFalse()
+  }
 }

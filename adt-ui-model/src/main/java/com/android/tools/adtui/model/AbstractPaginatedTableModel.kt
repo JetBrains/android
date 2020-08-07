@@ -18,6 +18,7 @@ package com.android.tools.adtui.model
 import javax.swing.RowSorter
 import javax.swing.table.AbstractTableModel
 import kotlin.math.ceil
+import kotlin.math.max
 
 /**
  * A table model the supports pagination.
@@ -25,6 +26,7 @@ import kotlin.math.ceil
  * The model extends [AbstractTableModel] to expose only [pageSize] rows from the data set are displayed in a table.
  *
  * @param pageSize page size of the model. Must be a positive number.
+ * @property pageCount number of total pages based on the given [pageSize]. At least 1 even if the data set is empty.
  */
 abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableModel() {
   init {
@@ -33,7 +35,7 @@ abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableMod
 
   private var pageIndex = 0
 
-  val pageCount get() = ceil(getDataSize().toDouble() / pageSize).toInt()
+  val pageCount get() = max(1, ceil(getDataSize().toDouble() / pageSize).toInt())
   val isOnFirstPage get() = pageIndex == 0
   val isOnLastPage get() = pageIndex == pageCount - 1
 

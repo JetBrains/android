@@ -61,6 +61,12 @@ class AbstractPaginatedTableModelTest {
     thrown.expectMessage("Page size must be positive, was -1")
     PaginatedListModel(-1, mutableListOf())
   }
+
+  @Test
+  fun tableWithEmptyDataShouldHaveZeroRows() {
+    val model = PaginatedListModel(10, mutableListOf())
+    assertThat(model.rowCount).isEqualTo(0)
+  }
 }
 
 class PaginatedListModel(pageSize: Int, val data: MutableList<Int>) : AbstractPaginatedTableModel(pageSize) {
