@@ -820,7 +820,8 @@ b/154962759 */
     assertFalse(rootModel.isKaptEnabled());
   }
 
-  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+  // b/161618318
+  public void /*test*/ExceptionsCreateFailedBuildFinishedEvent() throws Exception {
     loadSimpleApplication();
     SyncViewManager viewManager = mock(SyncViewManager.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
