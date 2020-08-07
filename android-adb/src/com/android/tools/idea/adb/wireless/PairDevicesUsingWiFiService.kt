@@ -63,8 +63,8 @@ class PairDevicesUsingWiFiService(private val project: Project) {
         return false
       }
 
-      // TODO(b/163043414): mDNS is not supported on Windows at this point in time
-      if (SystemInfo.isWindows) {
+      // TODO(b/163043414): mDNS is not supported on Windows (and Linux) at this point in time
+      if (SystemInfo.isWindows || SystemInfo.isLinux) {
         // If the flag is currently overridden (from user or test), don't check
         if (!StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.isOverridden) {
           return false
