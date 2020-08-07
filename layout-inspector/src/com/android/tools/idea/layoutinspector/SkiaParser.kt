@@ -63,6 +63,7 @@ import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
 import kotlin.math.max
+import kotlin.math.min
 
 private const val PARSER_PACKAGE_NAME = "skiaparser"
 private const val INITIAL_DELAY_MILLI_SECONDS = 10L
@@ -452,7 +453,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
         }
         Thread.sleep(delay)
         tries++
-        delay = max(2 * delay, MAX_DELAY_MILLI_SECONDS)
+        delay = min(2 * delay, MAX_DELAY_MILLI_SECONDS)
         lastException = ex
       }
     }

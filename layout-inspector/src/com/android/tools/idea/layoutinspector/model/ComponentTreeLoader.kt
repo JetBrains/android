@@ -178,6 +178,10 @@ private class ComponentTreeLoaderImpl(
       errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
       null
     }
+    catch (ex: Exception) {
+      errorMessage = "Problem launching renderer. Rotation disabled."
+      null
+    }
     return Pair(inspectorView, errorMessage)
   }
 
