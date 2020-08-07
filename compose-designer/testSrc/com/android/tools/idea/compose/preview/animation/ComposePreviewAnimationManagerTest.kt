@@ -67,10 +67,12 @@ class ComposePreviewAnimationManagerTest {
 
   @Test
   fun subscribeAndUnsubscribe() {
+    createAndOpenInspector()
+
     val animation = createComposeAnimation()
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), animation)
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     val otherAnimation = createComposeAnimation()
@@ -83,7 +85,9 @@ class ComposePreviewAnimationManagerTest {
 
   @Test
   fun closingInspectorClearsSubscriptions() {
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, createComposeAnimation())
+    createAndOpenInspector()
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), createComposeAnimation())
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     ComposePreviewAnimationManager.closeCurrentInspector()
@@ -92,7 +96,7 @@ class ComposePreviewAnimationManagerTest {
 
   @Test
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
-    val inspector = createInspector()
+    val inspector = createAndOpenInspector()
 
     fun noAnimationsPanel() = TreeWalker(inspector).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
 
@@ -102,7 +106,7 @@ class ComposePreviewAnimationManagerTest {
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     assertNull(noAnimationsPanel())
     assertNotNull(inspector.animationsTabbedPane())
@@ -116,17 +120,18 @@ class ComposePreviewAnimationManagerTest {
 
   @Test
   fun oneTabPerSubscribedAnimation() {
-    val inspector = createInspector()
+    val inspector = createAndOpenInspector()
     assertNull(inspector.animationsTabbedPane())
 
     val animation1 = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation1)
+    val clock = Any()
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     var tabbedPane = inspector.animationsTabbedPane()!!
     assertEquals(1, tabbedPane.tabCount)
 
     val animation2 = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation2)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation2)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     tabbedPane = inspector.animationsTabbedPane()!!
     assertEquals(2, tabbedPane.tabCount)
@@ -138,8 +143,44 @@ class ComposePreviewAnimationManagerTest {
   }
 
   @Test
+  fun subscriptionNewClockClearsPreviousClockAnimations() {
+    val inspector = createAndOpenInspector()
+    assertNull(inspector.animationsTabbedPane())
+
+    val clock = Any()
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    var tabbedPane = inspector.animationsTabbedPane()!!
+    assertEquals(1, tabbedPane.tabCount)
+
+    val anotherClock = Any()
+    ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    tabbedPane = inspector.animationsTabbedPane()!!
+    assertEquals(1, tabbedPane.tabCount)
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    tabbedPane = inspector.animationsTabbedPane()!!
+    assertEquals(2, tabbedPane.tabCount)
+  }
+
+  @Test
+  fun onOpenNewInspectorCallbackClearedWhenClosingInspector() {
+    var callbackCalls = 0
+    ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) { callbackCalls++ }
+    ComposePreviewAnimationManager.onAnimationInspectorOpened()
+    ComposePreviewAnimationManager.onAnimationInspectorOpened()
+    assertEquals(2, callbackCalls)
+
+    ComposePreviewAnimationManager.closeCurrentInspector()
+    ComposePreviewAnimationManager.onAnimationInspectorOpened()
+    assertEquals(2, callbackCalls)
+  }
+
+  @Test
   fun comboBoxesDisplayComposeAnimationStates() {
-    val inspector = createInspector()
+    val inspector = createAndOpenInspector()
 
     val animationStates = setOf("State1", "State2", "State3")
 
@@ -149,7 +190,7 @@ class ComposePreviewAnimationManagerTest {
       override val states = animationStates
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, transitionAnimation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), transitionAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     // We can get any of the combo boxes, since "from" and "to" states should be the same.
@@ -170,18 +211,19 @@ class ComposePreviewAnimationManagerTest {
 
   @Test
   fun tabsAreNamedFromAnimationLabel() {
-    val inspector = createInspector()
+    val inspector = createAndOpenInspector()
+    val clock = Any()
 
     val animation1 = createComposeAnimation("repeatedLabel")
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animation1)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     val animationWithSameLabel = createComposeAnimation("repeatedLabel")
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithSameLabel)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithSameLabel)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     val animationWithNullLabel = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(null, animationWithNullLabel)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animationWithNullLabel)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     val tabbedPane = inspector.animationsTabbedPane()!!
@@ -206,6 +248,7 @@ class ComposePreviewAnimationManagerTest {
         return loadClassFromNonProjectDependency("androidx.ui.tooling.preview.animation.PreviewAnimationClock")
       }
     }
+    createAndOpenInspector()
 
     val previewAnimationClockClassLoader = PreviewAnimationClockClassLoader()
     val previewAnimationClock = previewAnimationClockClassLoader.loadPreviewAnimationClock()
@@ -219,9 +262,9 @@ class ComposePreviewAnimationManagerTest {
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
   }
 
-  private fun createInspector(): AnimationInspectorPanel {
+  private fun createAndOpenInspector(): AnimationInspectorPanel {
     assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
-    ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable)
+    ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) { }
     assertTrue(ComposePreviewAnimationManager.isInspectorOpen())
     return ComposePreviewAnimationManager.currentInspector!!
   }

@@ -31,15 +31,11 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
-  private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
-
-  private fun isInteractive() = getComposePreviewManager()?.interactivePreviewElementInstanceId != null
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    val isAnimationInspectorOpen = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
-    e.presentation.isEnabled = !isAnimationInspectorOpen
-    e.presentation.isVisible = !isInteractive()
+    e.presentation.isEnabled = true
+    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar()
   }
 
   override fun actionPerformed(e: AnActionEvent) {

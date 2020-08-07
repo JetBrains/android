@@ -27,32 +27,32 @@ internal class AnimationClock(val clock: Any) {
   /**
    * Function `getAnimatedProperties` of [clock].
    */
-  val getAnimatedPropertiesFunction = findClockFunction("getAnimatedProperties")
+  val getAnimatedPropertiesFunction by lazy { findClockFunction("getAnimatedProperties") }
 
   /**
    * Function `getMaxDuration` of [clock].
    */
-  val getMaxDurationFunction = findClockFunction("getMaxDuration")
+  val getMaxDurationFunction by lazy { findClockFunction("getMaxDuration") }
 
   /**
    * Function `getMaxDurationPerIteration` of [clock].
    */
-  val getMaxDurationPerIteration = findClockFunction( "getMaxDurationPerIteration")
+  val getMaxDurationPerIteration by lazy {findClockFunction("getMaxDurationPerIteration") }
 
   /**
    * Function `setClockTime` of [clock].
    */
-  val setClockTimeFunction = findClockFunction("setClockTime")
+  val setClockTimeFunction by lazy { findClockFunction("setClockTime") }
 
   /**
    * Function `updateAnimationStates` of [clock].
    */
-  val updateAnimationStatesFunction = findClockFunction("updateAnimationStates")
+  val updateAnimationStatesFunction by lazy { findClockFunction("updateAnimationStates") }
 
   /**
    * Function `updateSeekableAnimation` of [clock].
    */
-  val updateSeekableAnimationFunction = findClockFunction("updateSeekableAnimation")
+  val updateSeekableAnimationFunction by lazy { findClockFunction("updateSeekableAnimation") }
 
   private fun findClockFunction(functionName: String): Method =
     clock::class.java.methods.single { it.name == functionName }.apply { isAccessible = true }

@@ -80,8 +80,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * but have their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   private val tabbedPane = CommonTabbedPane().apply {
-    border = MatteBorder(1, 0, 0, 0, JBColor.border())
-
     addChangeListener {
       if (selectedIndex < 0) return@addChangeListener
 
@@ -110,7 +108,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private val noAnimationsPanel = JBLoadingPanel(BorderLayout(), this).apply {
     name = "Loading Animations Panel"
     setLoadingText(message("animation.inspector.loading.animations.panel.message"))
-    border = MatteBorder(1, 0, 0, 0, JBColor.border())
   }
 
   private val timeline = TransitionDurationTimeline()
@@ -128,12 +125,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
   init {
     name = "Animation Inspector"
-    border = MatteBorder(1, 0, 1, 0, JBColor.border())
-    var composableTitle = JBLabel(message("animation.inspector.panel.title")).apply {
-      border = JBUI.Borders.empty(5)
-    }
+    border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
-    add(composableTitle, TabularLayout.Constraint(0, 0))
     noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
   }
@@ -273,7 +266,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       val toState = endStateComboBox.selectedItem
 
       clock.updateSeekableAnimationFunction.invoke(clock.clock, animation, startState, toState)
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender { clock.updateAnimationStatesFunction.invoke(clock.clock) }
+      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+        clock.updateAnimationStatesFunction.invoke(clock.clock)
+      }
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
 
@@ -673,7 +668,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     fun setClockTime(newValue: Int) {
-      if (animationClock == null || selectedTab == null) return
+      val clock = animationClock ?: return
+      val tab = selectedTab ?: return
 
       var clockTimeMs = newValue.toLong()
       if (playInLoop) {
@@ -681,10 +677,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         clockTimeMs += slider.maximum * loopCount
       }
 
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
-        animationClock!!.setClockTimeFunction.invoke(animationClock!!.clock, clockTimeMs)
+      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+        clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
       }
-      selectedTab!!.updateProperties()
+      tab.updateProperties()
     }
 
     /**
