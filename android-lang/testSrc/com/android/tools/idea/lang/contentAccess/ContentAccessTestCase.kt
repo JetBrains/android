@@ -63,8 +63,9 @@ abstract class ContentAccessTestCase : JavaCodeInsightFixtureTestCase() {
       @Retention(AnnotationRetention.BINARY)
       @Target(AnnotationTarget.FUNCTION)
       annotation class ContentDelete(
-          val selection: String,
-          val uri: String
+          val where: String = "",
+          val uri: String = "",
+          val contentEntity: KClass<*> = Void::class
       )
 
       @Retention(AnnotationRetention.BINARY)
