@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
+import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -315,5 +316,43 @@ class AppInspectionViewTest {
       notificationData.hyperlinkClicked()
     }
     tabsAdded.join()
+  }
+
+  @Test
+  fun ifTabSupportsOfflineModeTabStaysOpenAfterProcessIsTerminated() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val supportsOfflineInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+        override fun supportsOffline() = true
+      }
+
+      inspectionView = AppInspectionView(
+        projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
+        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      inspectionView.tabsChangedOneShotListener = {
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(3)
+        tabsAdded.complete(Unit)
+      }
+
+      transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+      transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    }
+
+    tabsAdded.join()
+
+    val tabsUpdated = CompletableDeferred<Unit>()
+    inspectionView.tabsChangedOneShotListener = {
+      assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(1) // Only the offline tab remains
+      tabsUpdated.complete(Unit)
+    }
+
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    tabsUpdated.join()
   }
 }

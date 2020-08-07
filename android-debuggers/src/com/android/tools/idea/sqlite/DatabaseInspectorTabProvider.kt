@@ -45,6 +45,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     return DatabaseInspectorFlagController.isFeatureEnabled
   }
 
+  override fun supportsOffline() = DatabaseInspectorFlagController.isOfflineModeEnabled
+
   override fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
