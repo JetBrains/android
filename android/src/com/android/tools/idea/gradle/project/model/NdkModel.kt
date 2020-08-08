@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.builder.model.NativeSettings
-import com.android.builder.model.NativeToolchain
-import com.android.builder.model.v2.models.ndk.NativeAbi
-import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -194,8 +190,6 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
   private val /* `val` declaration needed for serialization */ agpVersion: String,
   val nativeModule: IdeNativeModule
 ) : NdkModel() {
-
-  constructor (agpVersion: String, nativeModuleArg: NativeModule) : this(agpVersion, IdeNativeModuleImpl(nativeModuleArg))
 
   @Transient
   override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(agpVersion))

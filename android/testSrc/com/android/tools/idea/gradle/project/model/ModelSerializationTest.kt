@@ -21,12 +21,6 @@ import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
 import com.android.ide.common.gradle.model.impl.ModelCache
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeFileImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
@@ -128,7 +122,8 @@ class ModelSerializationTest {
 
   @Test
   fun v1NdkModel() = assertSerializable {
-    V1NdkModel(IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()), listOf(IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache)))
+    V1NdkModel(modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub()),
+               listOf(modelCache.nativeVariantAbiFrom(NativeVariantAbiStub())))
   }
 
   @Test
@@ -136,6 +131,16 @@ class ModelSerializationTest {
     V2NdkModel(
       "agpVersion",
       IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile")))
+  }
+
+  @Test
+  fun ndkModuleModel() = assertSerializable {
+    NdkModuleModel(
+      "moduleName",
+      File("some/path"),
+      modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub()),
+      listOf()
+    )
   }
 
   @Test
@@ -287,32 +292,32 @@ class ModelSerializationTest {
 
   @Test
   fun nativeAndroidProjectImpl() = assertSerializable {
-    IdeNativeAndroidProjectImpl(NativeAndroidProjectStub())
+    modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub())
   }
 
   @Test
   fun nativeArtifact() = assertSerializable {
-    IdeNativeArtifactImpl(NativeArtifactStub(), modelCache)
+    modelCache.nativeArtifactFrom(NativeArtifactStub())
   }
 
   @Test
   fun nativeFile() = assertSerializable {
-    IdeNativeFileImpl(NativeFileStub())
+    modelCache.nativeFileFrom(NativeFileStub())
   }
 
   @Test
   fun nativeSettings() = assertSerializable {
-    IdeNativeSettingsImpl(NativeSettingsStub())
+    modelCache.nativeSettingsFrom(NativeSettingsStub())
   }
 
   @Test
   fun nativeToolchain() = assertSerializable {
-    IdeNativeToolchainImpl(NativeToolchainStub())
+    modelCache.nativeToolchainFrom(NativeToolchainStub())
   }
 
   @Test
   fun nativeVariantAbi() = assertSerializable {
-    IdeNativeVariantAbiImpl(NativeVariantAbiStub(), modelCache)
+    modelCache.nativeVariantAbiFrom(NativeVariantAbiStub())
   }
 
   @Test
