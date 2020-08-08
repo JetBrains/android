@@ -18,10 +18,8 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.ui.UIUtil
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory
-import com.intellij.ui.svg.SaxSvgDocumentFactory
 import com.intellij.util.ui.ImageUtil
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory
 import org.apache.batik.transcoder.TranscoderException
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
@@ -58,38 +56,37 @@ class SVGAssetRenderer : DesignAssetRenderer {
       "${file.path} content is not supported by the SVG Loader\n ${ex.localizedMessage}"
     )
   }
+}
 
-  private class SVGLoader(
-    inputStream: InputStream,
-    private val width: Int,
-    private val height: Int
-  ) {
+private class SVGLoader(
+  inputStream: InputStream,
+  private val width: Int,
+  private val height: Int
+) {
+  private var img: BufferedImage? = null
+  private val transcoderInput = TranscoderInput(
+    SAXSVGDocumentFactory(
+      XMLResourceDescriptor.getXMLParserClassName()
+    ).createDocument(null, inputStream)
+  )
 
-    private var img: BufferedImage? = null
-    private val transcoderInput = TranscoderInput(
-      SAXSVGDocumentFactory(
-        XMLResourceDescriptor.getXMLParserClassName()
-      ).createDocument(null, inputStream)
-    )
-
-    private inner class MyTranscoder : ImageTranscoder() {
-      override fun createImage(w: Int, h: Int): BufferedImage {
-        return ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
-      }
-
-      @Throws(TranscoderException::class)
-      override fun writeImage(img: BufferedImage, output: TranscoderOutput?) {
-        this@SVGLoader.img = img
-      }
+  private inner class MyTranscoder : ImageTranscoder() {
+    override fun createImage(w: Int, h: Int): BufferedImage {
+      return ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
     }
 
     @Throws(TranscoderException::class)
-    internal fun createImage(): BufferedImage? {
-      val transcoder = MyTranscoder()
-      transcoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, width.toFloat())
-      transcoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, height.toFloat())
-      transcoder.transcode(transcoderInput, null)
-      return img
+    override fun writeImage(img: BufferedImage, output: TranscoderOutput?) {
+      this@SVGLoader.img = img
     }
+  }
+
+  @Throws(TranscoderException::class)
+  fun createImage(): BufferedImage? {
+    val transcoder = MyTranscoder()
+    transcoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, width.toFloat())
+    transcoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, height.toFloat())
+    transcoder.transcode(transcoderInput, null)
+    return img
   }
 }
