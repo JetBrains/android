@@ -162,7 +162,7 @@ def update_xml_file(workspace, jdk, sdk, jars):
   idea_home = sdk + "/linux/android-studio"
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
-    if lib.startswith("studio_plugin_") and lib.endswith(".xml"):
+    if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
   for plugin in os.listdir(idea_home + "/plugins"):
@@ -171,6 +171,9 @@ def update_xml_file(workspace, jdk, sdk, jars):
     jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
     gen_lib(project_dir, "studio-plugin-" + plugin, jars, [sdk + "/android-studio-sources.zip"])
 
+  updater_jar = sdk + "/updater-full.jar"
+  if os.path.exists(updater_jar):
+    gen_lib(project_dir, "intellij-updater", [updater_jar], [sdk + "/android-studio-sources.zip"])
 
 def update_files(workspace, version):
   project_dir = workspace + "/tools/adt/idea/"
@@ -184,15 +187,11 @@ def update_files(workspace, version):
 
 
 def check_artifacts(dir):
-  linux = None
-  mac = None
-  win = None
-  sources = None
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
   regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.zip|.tar.gz|.win.zip)$")
-  files = [file for file in files if regex.match(file)]
+  files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
   match = regex.match(files[0])
@@ -204,6 +203,7 @@ def check_artifacts(dir):
       "android-studio-%s.%s.%s.mac.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.tar.gz" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.win.zip" % (version_major, version_minor, bid),
+      "updater-full.jar",
   ]
   if files != expected:
     print("Expected:")
@@ -212,7 +212,7 @@ def check_artifacts(dir):
     print(files)
     sys.exit("Unexpected artifacts in " + dir)
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3]
+  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4]
 
 
 def download(workspace, bid):
@@ -223,9 +223,9 @@ def download(workspace, bid):
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["-sources.zip", ".mac.zip", ".tar.gz", ".win.zip"]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar"]:
     os.system(
-        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk 'android-studio-*%s' %s"
+        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk '%s' %s"
         % (bid, artifact, dir))
 
   return dir
@@ -264,7 +264,7 @@ def preserve_old(old_path, new_path):
 
 
 def extract(workspace, dir, delete_after):
-  version, sources, mac, linux, win = check_artifacts(dir)
+  version, sources, mac, linux, win, updater = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
@@ -274,6 +274,7 @@ def extract(workspace, dir, delete_after):
     os.rename(path, old_path)
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
+  shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
 
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks

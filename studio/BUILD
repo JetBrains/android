@@ -449,3 +449,36 @@ java_test(
         "//tools/base/third_party:junit_junit",
     ],
 )
+
+java_binary(
+    name = "updater",
+    main_class = "com.intellij.updater.Runner",
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # Uses jars directly to avoid pulling in all dependencies.
+        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.8.6:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/29.0-jre:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/nothome/javaxdelta/2.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
+        "//prebuilts/tools/common/m2/repository/log4j/log4j/1.2.17:jar",
+        "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna-platform/5.5.0:jar",
+        "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna/5.5.0:jar",
+        "//tools/adt/idea/.idea/libraries:unb.intellij-updater",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/studio-updater:unb.intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater
+        "//tools/analytics-library/shared:analytics-shared.jar",
+        "//tools/analytics-library/tracker:analytics-tracker.jar",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations.jar",
+        "//tools/base/common:unb.studio.android.sdktools.common.jar",
+    ],
+)
