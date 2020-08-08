@@ -30,10 +30,8 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
-
-import org.jetbrains.android.AndroidTestCase;
-
 import javax.swing.*;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Tests for {@link SystemImagePreview}
@@ -105,7 +103,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     JLabel iconLabel = imagePreview.getReleaseIcon();
     assertTrue("No icon fetched for non-preview API", iconLabel != null && iconLabel.getIcon() != null);
     String iconUrl = iconLabel.getIcon().toString();
-    assertTrue("Wrong icon fetched for non-preview API", iconUrl.endsWith("Marshmallow.png"));
+    assertTrue("Wrong icon fetched for non-preview API (iconUrl="+iconUrl+")", iconUrl.contains("Marshmallow.png"));
 
     imagePreview.setImage(mNPreviewImageDescr);
     iconLabel = imagePreview.getReleaseIcon();
@@ -113,6 +111,6 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     iconUrl = iconLabel.getIcon().toString();
     // For an actual Preview, the URL will be Default.png, but
     // we now know that N-Preview became Nougat.
-    assertTrue("Wrong icon fetched for Preview API", iconUrl.endsWith("Nougat.png"));
+    assertTrue("Wrong icon fetched for Preview API", iconUrl.contains("Nougat.png"));
   }
 }

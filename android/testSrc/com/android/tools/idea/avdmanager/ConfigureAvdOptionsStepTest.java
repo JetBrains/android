@@ -16,6 +16,17 @@
 
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.GpuMode.OFF;
+import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
+import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.emulator.SnapshotOuterClass;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -38,22 +49,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.android.AndroidTestCase;
-import org.junit.rules.TemporaryFolder;
-
-import javax.swing.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.sdklib.internal.avd.GpuMode.*;
-import static com.android.sdklib.repository.targets.SystemImage.*;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.*;
+import org.jetbrains.android.AndroidTestCase;
+import org.junit.rules.TemporaryFolder;
 
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
@@ -247,7 +250,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     Icon icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     String iconUrl = icon.toString();
-    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
+    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.contains("Marshmallow_32.png"));
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
@@ -259,7 +262,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     iconUrl = icon.toString();
     // For an actual Preview, the URL will be Default_32.png, but
     // we now know that N-Preview became Nougat.
-    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
+    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Nougat_32.png"));
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
@@ -269,7 +272,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-    assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.endsWith("Default_32.png"));
+    assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.contains("Default_32.png"));
   }
 
   public void testPopulateSnapshotList() throws Exception {
