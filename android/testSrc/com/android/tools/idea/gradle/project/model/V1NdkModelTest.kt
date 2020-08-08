@@ -23,8 +23,6 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.serialization.ObjectSerializer
@@ -93,7 +91,7 @@ class V1NdkModelTest {
     }
 
   @Mock
-  private val mockDebugX86Artifact = IdeNativeArtifactImpl(_mockDebugX86Artifact, modelCache)
+  private val mockDebugX86Artifact = modelCache.nativeArtifactFrom(_mockDebugX86Artifact)
 
   @Mock
   private val _mockDebugArm64Artifact = mock(NativeArtifact::class.java).apply {
@@ -106,10 +104,10 @@ class V1NdkModelTest {
     }
 
   @Mock
-  private val mockDebugArm64Artifact = IdeNativeArtifactImpl(_mockDebugArm64Artifact,  modelCache)
+  private val mockDebugArm64Artifact = modelCache.nativeArtifactFrom(_mockDebugArm64Artifact)
 
   private val fullSyncV1NdkModel = V1NdkModel(
-    IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
+    modelCache.nativeAndroidProjectFrom(object : NativeAndroidProject {
       override fun getBuildFiles(): Collection<File> = listOf(File("buildFile1"), File("buildFile2"))
       override fun getSettings(): Collection<NativeSettings> = listOf(mockNativeSettings1, mockNativeSettings2)
       override fun getName() = "" // not needed
@@ -134,7 +132,7 @@ class V1NdkModelTest {
   )
 
   private val singleVariantSyncV1NdkModel = V1NdkModel(
-    IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
+    modelCache.nativeAndroidProjectFrom(object : NativeAndroidProject {
       override fun getBuildFiles(): Collection<File> = listOf(File("buildFile1"), File("buildFile2"))
       override fun getSettings(): Collection<NativeSettings> = emptyList()
       override fun getName() = "" // not needed
@@ -157,7 +155,7 @@ class V1NdkModelTest {
       )
     }),
     listOf(
-      IdeNativeVariantAbiImpl(object : NativeVariantAbi {
+      modelCache.nativeVariantAbiFrom(object : NativeVariantAbi {
         override fun getBuildFiles(): Collection<File> = emptyList()
         override fun getAbi(): String = "x86"
         override fun getSettings(): Collection<NativeSettings> = listOf(
