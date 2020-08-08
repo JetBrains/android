@@ -19,14 +19,16 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.google.wireless.android.sdk.stats.AtfAuditResult
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
 class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScannerControl {
 
-  override val scanner = NlLayoutScanner(surface.issueModel, surface)
-
-  private val metricTracker = NlLayoutScannerMetricTracker()
+  private val metricTracker = NlLayoutScannerMetricTracker(surface)
+  override val scanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
 
   /** Listener for issue panel open/close */
   private val issuePanelListener = IssuePanel.MinimizeListener {
@@ -41,6 +43,7 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
     }
     else if (!check.isLayoutScannerEnabled) {
       check.isLayoutScannerEnabled = true
+      metricTracker.trackTrigger(AtfAuditResult.Trigger.ISSUE_PANEL)
       surface.forceUserRequestedRefresh()
     }
   }
@@ -89,6 +92,7 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
     manager.layoutScannerConfig?.isLayoutScannerEnabled = true
     manager.forceReinflate()
     surface.requestRender()
+    metricTracker.trackTrigger(AtfAuditResult.Trigger.USER)
     return scannerResult!!
   }
 }
