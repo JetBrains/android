@@ -32,7 +32,10 @@ import com.intellij.openapi.util.Disposer
  * Validator for [NlDesignSurface].
  * It retrieves validation results from the [RenderResult] and update the lint accordingly.
  */
-class NlLayoutScanner(issueModel: IssueModel, parent: Disposable): Disposable {
+class NlLayoutScanner(
+  issueModel: IssueModel,
+  parent: Disposable,
+  private val metricTracker: NlLayoutScannerMetricTracker): Disposable {
 
   interface Listener {
     fun lintUpdated(result: ValidatorResult?)
@@ -83,12 +86,17 @@ class NlLayoutScanner(issueModel: IssueModel, parent: Disposable): Disposable {
       }
       val root = components[0]
       buildComponentToViewMap(root)
-      validatorResult.issues.forEach { lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap)) }
+      validatorResult.issues.forEach {
+        lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap))
+        metricTracker.trackIssue(it)
+      }
       lintIntegrator.populateLints()
       result = validatorResult
     } finally {
       viewToComponent.clear()
       idToComponent.clear()
+      metricTracker.trackResult(renderResult)
+      metricTracker.logEvents()
       listeners.forEach { it.lintUpdated(result) }
     }
   }

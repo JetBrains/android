@@ -229,6 +229,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
+  /** Time it took to render. It does not account for inflation time. */
+  private long myRenderTimeMs = 0;
+
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
       return null;
@@ -874,6 +877,11 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  /** Returns time it took to render. It does not account for inflation time. */
+  public long getTotalRenderTime() {
+    return myRenderTimeMs;
+  }
+
   private void updateHierarchy(@Nullable RenderResult result) {
     try {
       myUpdateHierarchyLock.acquire();
@@ -1289,7 +1297,8 @@ public class LayoutlibSceneManager extends SceneManager {
               updateHierarchy(result);
             }
             if (result != null) {
-              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, System.currentTimeMillis() - startRenderTimeMs, false);
+              myRenderTimeMs = System.currentTimeMillis() - startRenderTimeMs;
+              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, myRenderTimeMs, false);
             }
             return result;
           });
