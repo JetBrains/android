@@ -368,8 +368,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
                                  @NotNull AndroidTestCase testCase) {
     AppUIUtil.invokeOnEdt(() -> {
       // Include a benchmark output to a raw output console for backward compatibility.
-      for (String benchmarkOutput : StringsKt.lines(testCase.getBenchmark())) {
-        print("benchmark: " + benchmarkOutput + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+      String benchmarkOutput = testCase.getBenchmark();
+      if (!StringsKt.isBlank(benchmarkOutput)) {
+        for (String line : StringsKt.lines(benchmarkOutput)) {
+          print("benchmark: " + line + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+        }
       }
 
       switch (Preconditions.checkNotNull(testCase.getResult())) {
