@@ -763,5 +763,31 @@ java_import(
 java_import(
     name = "unb.studio-plugin-webp",
     jars = ["//prebuilts/studio/intellij-sdk/AI-202:unb.studio-plugin-webp_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.intellij-updater",
+    jars = ["//prebuilts/studio/intellij-sdk/AI-202:unb.intellij-updater_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.assertJ",
+    jars = ["//prebuilts/tools/common/m2/repository/org/assertj/assertj-core/3.13.2:unb.assertJ_files"],
+    tags = [
+        "manual",
+        "unb",
+    ],
     visibility = ["//visibility:public"],
 )

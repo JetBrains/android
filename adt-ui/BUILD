@@ -129,6 +129,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-webp[test]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
