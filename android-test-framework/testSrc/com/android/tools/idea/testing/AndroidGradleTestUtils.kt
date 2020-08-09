@@ -253,6 +253,7 @@ data class AndroidProjectBuilder(
 
   fun withAgpProjectFlags(agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags) =
     copy(agpProjectFlags = agpProjectFlags)
+
   fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
     copy(defaultConfig = defaultConfig)
 
@@ -384,6 +385,7 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub() =
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub() =
   SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml")
+
 fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub() =
   AndroidGradlePluginProjectFlagsStub(mapOf(ML_MODEL_BINDING to mlModelBindingEnabled))
 

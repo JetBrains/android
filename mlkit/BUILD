@@ -154,6 +154,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module, test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
     ],
 )
 
