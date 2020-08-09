@@ -20,7 +20,6 @@ import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
-import com.android.tools.idea.sqlite.model.getGlobalUserPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -58,9 +57,9 @@ class OfflineDatabaseManagerImpl(
   ): DatabaseFileData {
     val deviceId = "${processDescriptor.model} [${processDescriptor.serial}]"
 
-    val filePath = databaseToDownload.getGlobalUserPath()
+    val path = databaseToDownload.path
     // Room uses write-ahead-log, so we need to download these additional files to open the db
-    val pathsToDownload = listOf(filePath, "$filePath-shm", "$filePath-wal")
+    val pathsToDownload = listOf(path, "$path-shm", "$path-wal")
 
     val disposableDownloadProgress = DisposableDownloadProgress(coroutineContext[Job]!!)
     Disposer.register(project, disposableDownloadProgress)
@@ -71,9 +70,9 @@ class OfflineDatabaseManagerImpl(
       throw IOException("Can't download database '${databaseToDownload.path}', device '$deviceId' not found.", e)
     }
 
-    val mainFile = files[filePath] ?: throw FileNotFoundException("Can't download database '${databaseToDownload.path}'")
-    val shmFile = files["$filePath-shm"]
-    val walFile = files["$filePath-wal"]
+    val mainFile = files[path] ?: throw FileNotFoundException("Can't download database '${databaseToDownload.path}'")
+    val shmFile = files["$path-shm"]
+    val walFile = files["$path-wal"]
 
     val additionalFiles = listOfNotNull(shmFile, walFile)
     return DatabaseFileData(mainFile, additionalFiles)

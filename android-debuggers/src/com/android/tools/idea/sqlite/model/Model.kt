@@ -24,28 +24,35 @@ sealed class SqliteDatabaseId {
 
   companion object {
     fun fromFileDatabase(databaseFileData: DatabaseFileData): SqliteDatabaseId {
-      val path = databaseFileData.mainFile.path
-      val name = databaseFileData.mainFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
-                 ?: databaseFileData.mainFile.path
+      val path =
+        "/data/data" +
+        (databaseFileData.mainFile.path.split("data/data").getOrNull(1) ?: databaseFileData.mainFile.path)
+
+      val name = path.substringAfterLast("/")
       return FileSqliteDatabaseId(path, name, databaseFileData)
     }
 
     fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
-      return LiveSqliteDatabaseId(path, name, connectionId)
+
+      /**
+       * Converts the path of the database from user/0 to the global user
+       * User 0 path looks like this: /data/user/0/com.example.package/databases/db-file
+       * Global user path looks like this: /data/data/com.example.package/databases/db-file
+       *
+       * This won't work if the file is stored in another user's memory space, but multi user is not supported across studio: b/163315855
+       */
+      val systemUserPath = path
+        .replace("/user/0", "/data")
+        .replace("/storage/emulated/0", "/sdcard")
+
+      return LiveSqliteDatabaseId(systemUserPath, name, connectionId)
     }
   }
 
   data class LiveSqliteDatabaseId(override val path: String, override val name: String, val connectionId: Int) : SqliteDatabaseId()
   data class FileSqliteDatabaseId(override val path: String, override val name: String, val databaseFileData: DatabaseFileData) : SqliteDatabaseId()
 }
-
-/**
- * Converts the path of the database from user/0 to the global user
- * User 0 path looks like this: /data/user/0/com.example.package/databases/db-file
- * Global user path looks like this: /data/data/com.example.package/databases/db-file
- */
-fun SqliteDatabaseId.LiveSqliteDatabaseId.getGlobalUserPath() = "/data" + path.replace("user/0/", "")
 
 /**
  * Groups together files necessary to open a file-based database.
