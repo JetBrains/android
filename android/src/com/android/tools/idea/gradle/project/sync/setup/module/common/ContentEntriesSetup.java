@@ -15,30 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.ContentEntries.isPathInContentEntry;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
-import com.android.utils.FileUtils;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.Key;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.java.JavaResourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-import org.jetbrains.plugins.groovy.lang.resolve.api.Applicability;
 
 public abstract class ContentEntriesSetup {
   @NotNull protected final ModifiableRootModel myModuleModel;
@@ -73,12 +67,6 @@ public abstract class ContentEntriesSetup {
                                       @NotNull File folderPath,
                                       @NotNull JpsModuleSourceRootType type,
                                       boolean generated) {
-    if (ApplicationManager.getApplication().isUnitTestMode() &&
-        Objects.equals(
-          contentEntry.getRootModel().getModule().getProject().getUserData(FORCE_CREATE_DIRS_KEY), true)) {
-      FileUtils.mkdirs(folderPath);
-    }
-
     String url = pathToIdeaUrl(folderPath);
     SourceFolder sourceFolder = contentEntry.addSourceFolder(url, type);
 
