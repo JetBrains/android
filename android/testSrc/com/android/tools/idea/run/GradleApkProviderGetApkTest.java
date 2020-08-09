@@ -30,15 +30,19 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.impl.ModelCache;
+import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -77,10 +81,11 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, configuration);
     AndroidModel.set(myAndroidFacet, androidModel);
 
-    List<IdeAndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(IdeAndroidArtifactOutput.class));
-    List<IdeAndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(IdeAndroidArtifactOutput.class));
-    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> input);
-    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> input);
+    ModelCache modelCache = new ModelCache();
+    List<OutputFile> mainOutputs2 = ImmutableList.of(new AndroidArtifactOutputStub("main", myApkFile));
+    List<OutputFile> testOutputs2 = ImmutableList.of(new AndroidArtifactOutputStub("test", myTestApkFile));
+    List<IdeAndroidArtifactOutput> mainOutputs = Lists.transform(mainOutputs2, modelCache::androidArtifactOutputFrom);
+    List<IdeAndroidArtifactOutput> testOutputs = Lists.transform(testOutputs2, modelCache::androidArtifactOutputFrom);
 
     IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
