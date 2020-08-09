@@ -38,6 +38,7 @@ import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -51,6 +52,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -118,6 +120,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
@@ -131,6 +134,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
@@ -367,51 +371,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     String failure = requestSyncAndGetExpectedFailure();
     assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=74259
-  public void testWithCentralBuildDirectoryInRootModule() throws Exception {
-    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
-    // outside the content root of the "app" module.
-    File projectRootPath = prepareProjectForImport(CENTRAL_BUILD_DIRECTORY);
-
-    // The bug appears only when the central build folder does not exist.
-    File centralBuildDirPath = new File(projectRootPath, join("central", "build"));
-    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
-    delete(centralBuildParentDirPath);
-
-    Project project = getProject();
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.forceCreateDirs = true;
-    AndroidGradleTests.importProject(project, request, null);
-    Module app = TestModuleUtil.findAppModule(getProject());
-
-    // Now we have to make sure that if project import was successful, the build folder has included source folders.
-    File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
-      (Computable<File[]>)() -> {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          Collection<ContentEntry> contentEntries =
-            findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
-
-          List<File> paths = Lists.newArrayList();
-
-          for (SourceFolder source : contentEntries.stream().flatMap(contentEntry -> Arrays.stream(contentEntry.getSourceFolders()))
-            .collect(Collectors.toSet())) {
-            String path = urlToPath(source.getUrl());
-            if (isNotEmpty(path)) {
-              paths.add(toSystemDependentPath(path));
-            }
-          }
-          return paths.toArray(new File[paths.size()]);
-        }
-        finally {
-          rootModel.dispose();
-        }
-      });
-
-    assertThat(sourceFolderPaths).isNotEmpty();
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {

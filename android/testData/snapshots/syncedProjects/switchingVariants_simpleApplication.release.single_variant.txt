@@ -52,7 +52,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -76,35 +76,12 @@ PROJECT             : testSwitchingVariants_simpleApplication
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaSource          : file://<PROJECT>/app/src/main/aidl
-            JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
-            JavaSource          : file://<PROJECT>/app/src/main/jni
-            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
-            JavaResource        : file://<PROJECT>/app/src/main/resources
-            JavaSource          : file://<PROJECT>/app/src/main/rs
-            JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
-            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
-            JavaResource (test) : file://<PROJECT>/app/src/test/ml
-            JavaResource (test) : file://<PROJECT>/app/src/test/res
-            JavaResource (test) : file://<PROJECT>/app/src/test/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/test/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out [-]
             Generated           : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out [-]
@@ -119,6 +96,14 @@ PROJECT             : testSwitchingVariants_simpleApplication
             Generated           : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/release [-]
             Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/java [-]
@@ -128,6 +113,13 @@ PROJECT             : testSwitchingVariants_simpleApplication
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/java [-]
@@ -137,6 +129,14 @@ PROJECT             : testSwitchingVariants_simpleApplication
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/java [-]
