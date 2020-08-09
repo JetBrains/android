@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:utils.bzl", "flat_archive")
 
 # managed by go/iml_to_build
 iml_module(
@@ -72,5 +73,36 @@ iml_module(
         "//tools/base/repository:unb.studio.android.sdktools.repository[module]",
         "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
+    ],
+)
+
+java_binary(
+    name = "patcher",
+    main_class = "com.intellij.updater.Runner",
+    stamp = 0,
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        ":unb.intellij.android.updater.ui.jar",
+        "//tools/adt/idea/.idea/libraries:unb.intellij-updater",
+    ],
+)
+
+flat_archive(
+    name = "sdk-patcher",
+    ext = "zip",
+    files = {
+        ":source.properties": "sdk-patcher/source.properties",
+        ":patcher_deploy.jar": "sdk-patcher/patcher.jar",
+    },
+    tags = [
+        "manual",
+        "no_mac",
+        "no_windows",
     ],
 )
