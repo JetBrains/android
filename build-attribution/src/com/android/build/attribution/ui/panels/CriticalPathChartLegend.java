@@ -66,14 +66,6 @@ public interface CriticalPathChartLegend {
     }
   }
 
-  static JPanel createTasksLegendPanel() {
-    JPanel panel = new JPanel(new HorizontalLayout(10));
-    panel.add(new JBLabel("Android/Java/Kotlin Plugin", new ColorIcon(10, androidPluginColor.baseColor), SwingConstants.RIGHT));
-    panel.add(new JBLabel("Other Plugin", new ColorIcon(10, externalPluginColor.baseColor), SwingConstants.RIGHT));
-    panel.add(new JBLabel("Project Customization", new ColorIcon(10, buildsrcPluginColor.baseColor), SwingConstants.RIGHT));
-    return panel;
-  }
-
   static ChartColor resolveTaskColor(TaskUiData taskData) {
     switch (taskData.getSourceType()) {
       case BUILD_SRC:
