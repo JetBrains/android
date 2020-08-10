@@ -26,6 +26,7 @@ import com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES
 import com.android.tools.lint.checks.CheckResultDetector
 import com.android.tools.lint.checks.PermissionDetector
 import com.android.tools.lint.checks.ViewTypeDetector
+import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.Detector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
@@ -55,6 +56,10 @@ import kotlin.text.Charsets.UTF_8
  * it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
  */
 class LintInspectionRegistrationTest : AndroidTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
+
   fun testAllLintChecksRegistered() {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
