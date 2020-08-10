@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
@@ -39,6 +40,8 @@ interface WarningsDataPageModel {
 
   /** The root of the tree that should be shown now. View is supposed to set this root in the Tree on update. */
   val treeRoot: DefaultMutableTreeNode
+
+  var groupByPlugin: Boolean
 
   /** Currently selected node. Can be null in case of an empty tree. */
   val selectedNode: WarningsTreeNode?
@@ -78,7 +81,17 @@ class WarningsDataPageModelImpl(
   override var filter: WarningsFilter = WarningsFilter.default()
     set(value) {
       field = value
-      treeStructure.updateStructure(value)
+      treeStructure.updateStructure(groupByPlugin, value)
+      dropSelectionIfMissing()
+      treeStructureChanged = true
+      modelChanged = true
+      notifyModelChanges()
+    }
+
+  override var groupByPlugin: Boolean = false
+    set(value) {
+      field = value
+      treeStructure.updateStructure(value, filter)
       dropSelectionIfMissing()
       treeStructureChanged = true
       modelChanged = true
@@ -86,11 +99,11 @@ class WarningsDataPageModelImpl(
     }
 
   private val treeStructure = WarningsTreeStructure(reportData).apply {
-    updateStructure(filter)
+    updateStructure(groupByPlugin, filter)
   }
 
   override val treeRoot: DefaultMutableTreeNode
-    get() = treeStructure.groupedByTypeNodes
+    get() = treeStructure.treeRoot
 
   // True when there are changes since last listener call.
   private var modelChanged = false
@@ -155,25 +168,37 @@ private class WarningsTreeStructure(
     pageIdToNode[descriptor.pageId] = this
   }
 
-  var groupedByTypeNodes = DefaultMutableTreeNode()
+  var treeRoot = DefaultMutableTreeNode()
 
-  fun updateStructure(filter: WarningsFilter) {
+  fun updateStructure(groupByPlugin: Boolean, filter: WarningsFilter) {
     pageIdToNode.clear()
-    groupedByTypeNodes.let { rootNode ->
+    treeRoot.let { rootNode ->
       rootNode.removeAllChildren()
-      reportData.issues.asSequence()
+      val taskWarnings = reportData.issues.asSequence()
         .flatMap { it.issues.asSequence() }
-        .map { TaskWarningDetailsNodeDescriptor(it) }
-        .filter { filter.acceptTaskIssue(it.issueData) }
-        .groupBy { it.issueData.type }
-        .forEach {
-          val warningTypeGroupingNodeDescriptor = TaskWarningTypeNodeDescriptor(it.key, it.value.map { it.issueData })
+        .filter { filter.acceptTaskIssue(it) }
+        .toList()
+
+      if (groupByPlugin) {
+        taskWarnings.groupBy { it.task.pluginName }.forEach { (pluginName, warnings) ->
+          val warningsByTask = warnings.groupBy { it.task }
+          val pluginTreeGroupingNode = treeNode(PluginGroupingWarningNodeDescriptor(pluginName, warningsByTask))
+          rootNode.add(pluginTreeGroupingNode)
+          warningsByTask.forEach { (task, warnings) ->
+            pluginTreeGroupingNode.add(treeNode(TaskUnderPluginDetailsNodeDescriptor(task, warnings)))
+          }
+        }
+      }
+      else {
+        taskWarnings.groupBy { it.type }.forEach { (type, warnings) ->
+          val warningTypeGroupingNodeDescriptor = TaskWarningTypeNodeDescriptor(type, warnings)
           val warningTypeGroupingNode = treeNode(warningTypeGroupingNodeDescriptor)
           rootNode.add(warningTypeGroupingNode)
-          it.value.forEach { taskIssueNodeDescriptor ->
+          warnings.map { TaskWarningDetailsNodeDescriptor(it) }.forEach { taskIssueNodeDescriptor ->
             warningTypeGroupingNode.add(treeNode(taskIssueNodeDescriptor))
           }
         }
+      }
       reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
         .map { AnnotationProcessorDetailsNodeDescriptor(it) }
         .filter { filter.acceptAnnotationProcessorIssue(it.annotationProcessorData) }
@@ -197,6 +222,8 @@ enum class WarningsPageType {
   EMPTY_SELECTION,
   TASK_WARNING_DETAILS,
   TASK_WARNING_TYPE_GROUP,
+  TASK_UNDER_PLUGIN,
+  TASK_WARNING_PLUGIN_GROUP,
   ANNOTATION_PROCESSOR_DETAILS,
   ANNOTATION_PROCESSOR_GROUP
 }
@@ -206,10 +233,14 @@ data class WarningsPageId(
   val id: String
 ) {
   companion object {
-    fun warning(warning: TaskIssueUiData) = WarningsPageId(WarningsPageType.TASK_WARNING_DETAILS,
-                                                           "${warning.type}-${warning.task.taskPath}")
+    fun warning(warning: TaskIssueUiData) =
+      WarningsPageId(WarningsPageType.TASK_WARNING_DETAILS, "${warning.type}-${warning.task.taskPath}")
+
+    fun task(task: TaskUiData) = WarningsPageId(WarningsPageType.TASK_UNDER_PLUGIN, task.taskPath)
 
     fun warningType(warningType: TaskIssueType) = WarningsPageId(WarningsPageType.TASK_WARNING_TYPE_GROUP, warningType.name)
+    fun warningPlugin(warningPluginName: String) = WarningsPageId(WarningsPageType.TASK_WARNING_PLUGIN_GROUP, warningPluginName)
+
     fun annotationProcessor(annotationProcessorData: AnnotationProcessorUiData) = WarningsPageId(
       WarningsPageType.ANNOTATION_PROCESSOR_DETAILS, annotationProcessorData.className)
 
@@ -261,6 +292,43 @@ class TaskWarningDetailsNodeDescriptor(
       mainText = issueData.task.taskPath,
       nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(issueData.task.executionTime.timeMs)
+    )
+}
+
+class PluginGroupingWarningNodeDescriptor(
+  val pluginName: String,
+  val presentedTasksWithWarnings: Map<TaskUiData, List<TaskIssueUiData>>
+
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.warningPlugin(pluginName)
+
+  override val analyticsPageType = PageType.PLUGIN_WARNINGS_ROOT
+
+  private val warningsCount = presentedTasksWithWarnings.values.sumBy { it.size }
+
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = pluginName,
+      suffix = warningsCountString(warningsCount),
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs })
+    )
+}
+
+/** Descriptor for the task warning page node. */
+class TaskUnderPluginDetailsNodeDescriptor(
+  val taskData: TaskUiData,
+  val filteredWarnings: List<TaskIssueUiData>
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.task(taskData)
+
+  // TODO (b/150295612): add new page type, there is no matching one in the old model.
+  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = taskData.taskPath,
+      nodeIconState = NodeIconState.WARNING_ICON,
+      suffix = warningsCountString(filteredWarnings.size),
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(taskData.executionTime.timeMs)
     )
 }
 

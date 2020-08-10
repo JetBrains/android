@@ -20,10 +20,13 @@ import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
+import com.android.build.attribution.ui.model.PluginGroupingWarningNodeDescriptor
+import com.android.build.attribution.ui.model.TaskUnderPluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsDataPageModel
@@ -77,36 +80,53 @@ class WarningsViewDetailPagesFactory(
 
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningType, nodeDescriptor.presentedWarnings)
-    is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData)
+    is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData.task)
+    is PluginGroupingWarningNodeDescriptor -> createPluginDetailsPage(nodeDescriptor.pluginName, nodeDescriptor.presentedTasksWithWarnings)
+    is TaskUnderPluginDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.taskData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
 
+  private fun createPluginDetailsPage(pluginName: String, tasksWithWarnings: Map<TaskUiData, List<TaskIssueUiData>>) = JPanel().apply {
+    layout = BorderLayout()
+    val timeContribution = tasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
+    val tableRows = tasksWithWarnings.map { (task, _) ->
+      // TODO add warning count for the task to the table
+      "<td>${task.taskPath}</td><td>${task.executionTime.durationString()}</td>"
+    }
+    val content = """
+      <b>${pluginName}</b><br/>
+      Duration: ${durationString(timeContribution)} <br/>
+      <br/>
+      <b>${warningsCountString(tasksWithWarnings.size)}</b>
+      <table>
+      ${tableRows.joinToString(separator = "\n") { "<tr>$it</tr>" }}
+      </table>
+    """.trimIndent()
+    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
+  }
 
   private fun createTaskWarningTypeDetailsPage(warningType: TaskIssueType, warnings: List<TaskIssueUiData>) = JPanel().apply {
     layout = BorderLayout()
-
     val timeContribution = warnings.sumByLong { it.task.executionTime.timeMs }
-    val text = """
+    val tableRows = warnings.map { "<td>${it.task.taskPath}</td><td>${it.task.executionTime.durationString()}</td>" }
+    val content = """
       <b>${warningType.uiName}</b><br/>
-      Duration: ${durationString(timeContribution)}<br/>
+      Duration: ${durationString(timeContribution)} <br/>
       <br/>
       <b>${warningsCountString(warnings.size)}</b>
+      <table>
+      ${tableRows.joinToString(separator = "\n") { "<tr>$it</tr>" }}
+      </table>
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text), BorderLayout.NORTH)
-    add(JPanel().apply {
-      layout = TabularLayout("Fit,30px,Fit")
-      warnings.forEachIndexed { index, issue ->
-        add(JBLabel(issue.task.taskPath), TabularLayout.Constraint(index, 0))
-        add(JBLabel(issue.task.executionTime.durationString()), TabularLayout.Constraint(index, 2))
-      }
-    }, BorderLayout.CENTER)
+    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
   }
 
-  private fun createWarningDetailsPage(issueData: TaskIssueUiData) = taskDetailsPage(
-    issueData.task,
+
+  private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(
+    taskData,
     helpLinkListener = actionHandlers::helpLinkClicked,
     generateReportClickedListener = actionHandlers::generateReportClicked
   )
