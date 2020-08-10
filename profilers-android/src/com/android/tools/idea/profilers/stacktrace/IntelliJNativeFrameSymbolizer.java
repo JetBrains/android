@@ -67,6 +67,12 @@ public class IntelliJNativeFrameSymbolizer implements NativeFrameSymbolizer {
     return builder.build();
   }
 
+  @Override
+  public void stop() {
+    // When stop is called we call stop on the native symbolizer indicating it is optimal to shutdown the process.
+    mySymbolizer.stop();
+  }
+
   private long getOffsetOfPreviousInstruction(long offset) {
     // In non-bottom frames native backtrace contains addresses where the execution will
     // continue after a function call. After symbolization such addresses often resolved
