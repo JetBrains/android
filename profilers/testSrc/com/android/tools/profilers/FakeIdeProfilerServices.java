@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
@@ -66,9 +67,21 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
+  private NativeFrameSymbolizer myFakeSymbolizer = new NativeFrameSymbolizer() {
+    @NotNull
+    @Override
+    public Memory.NativeCallStack.NativeFrame symbolize(String abi,
+                                                        Memory.NativeCallStack.NativeFrame unsymbolizedFrame) {
+      return unsymbolizedFrame;
+    }
+
+    @Override
+    public void stop() {
+
+    }
+  };
 
   /**
    * Toggle for including an energy profiler in our profiler view.
