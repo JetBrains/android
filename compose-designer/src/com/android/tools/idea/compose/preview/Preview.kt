@@ -248,9 +248,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // but we want to stop the loop first and then change the composable when disabled
       if (isInteractive) { // Enable interactive
         interactiveMode = InteractiveMode.STARTING
+        val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
         previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
-        forceRefresh(StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()).invokeOnCompletion {
+        forceRefresh(quickRefresh).invokeOnCompletion {
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
 
@@ -854,8 +855,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
    * where it's crucial not to share the state (which includes the compose framework).
    */
-  private fun usePrivateClassLoader() =
-    interactiveMode.isStartingOrReady() || animationInspection.get() || StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()
+  private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
   private fun forceRefresh(quickRefresh: Boolean = false): Job {
     previewElements = emptyList() // This will just force a refresh
@@ -865,4 +865,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
+
+  /**
+   * We will only do quick refresh if there is a single preview.
+   */
+  private fun shouldQuickRefresh() = StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements.count() == 1
 }
