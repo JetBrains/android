@@ -70,6 +70,18 @@ class AppInspectionView(
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
+  /**
+   * If set, this listener will be triggered once tabs are (re)populated, after which it will be
+   * cleared.
+   *
+   * In its current form, this API is only designed for use by tests.
+   *
+   * Note: Listeners will be dispatched on the UI thread, so they can safely query the state of
+   * this view.
+   */
+  @VisibleForTesting
+  var tabsChangedOneShotListener: (() -> Unit)? = null
+
   @VisibleForTesting
   val inspectorTabs = CommonTabbedPane(object : CommonTabbedPaneUI() {
     // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
@@ -232,7 +244,13 @@ class AppInspectionView(
     jobs.joinAll()
     withContext(uiDispatcher) {
       updateUi()
+      fireTabsChangedListeners()
     }
+  }
+
+  private fun fireTabsChangedListeners() {
+    tabsChangedOneShotListener?.let { listener -> listener() }
+    tabsChangedOneShotListener = null
   }
 
   private fun updateUi() {
