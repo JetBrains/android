@@ -190,7 +190,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
       }
     }
     else if (model.selectedData == BuildAnalyzerViewModel.DataSet.WARNINGS) {
-      model.warningsPageModel.selectedNode?.let {
+      model.warningsPageModel.selectedNode.let {
+        if (it == null) return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, ""))
         return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
       }
     }

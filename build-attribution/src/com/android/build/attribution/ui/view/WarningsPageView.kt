@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModel
+import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
@@ -55,7 +56,7 @@ private const val SPLITTER_PROPERTY = "BuildAnalyzer.WarningsView.Splitter.Propo
 class WarningsPageView(
   val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers,
-  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(actionHandlers)
+  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers)
 ) : BuildAnalyzerDataPageView {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
@@ -81,14 +82,14 @@ class WarningsPageView(
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
 
-  val detailsPanel = object : CardLayoutPanel<WarningsTreePresentableNodeDescriptor, WarningsTreePresentableNodeDescriptor, JComponent>() {
-    override fun prepare(key: WarningsTreePresentableNodeDescriptor): WarningsTreePresentableNodeDescriptor = key
+  val detailsPanel = object : CardLayoutPanel<WarningsPageId, WarningsPageId, JComponent>() {
+    override fun prepare(key: WarningsPageId): WarningsPageId = key
 
-    override fun create(node: WarningsTreePresentableNodeDescriptor): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
-      name = "details-${node.pageId}"
+    override fun create(pageId: WarningsPageId): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
+      name = "details-${pageId}"
       val scrollPane = JBScrollPane().apply {
         border = JBUI.Borders.empty()
-        setViewportView(detailPagesFactory.createDetailsPage(node))
+        setViewportView(detailPagesFactory.createDetailsPage(pageId))
       }
       add(scrollPane, BorderLayout.CENTER)
     }
@@ -140,9 +141,15 @@ class WarningsPageView(
     if (tree.model.root != model.treeRoot) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)
     }
-    model.selectedNode?.let {
-      detailsPanel.select(it.descriptor, true)
-      TreeUtil.selectNode(tree, it)
+
+    model.selectedNode.let { selectedNode ->
+      if (selectedNode != null) {
+        detailsPanel.select(selectedNode.descriptor.pageId, true)
+        TreeUtil.selectNode(tree, selectedNode)
+      }
+      else {
+        detailsPanel.select(WarningsPageId.emptySelection, true)
+      }
     }
     fireActionHandlerEvents = true
   }
