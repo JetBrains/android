@@ -49,6 +49,7 @@ import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
@@ -156,8 +157,8 @@ class AppInspectionView(
     // This is behind a flag, because it doesn't make sense to not remove tabs without enabling offline mode in DBI.
     if (!StudioFlags.DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED.get()) {
       inspectorTabs.removeAll()
+      updateUi()
     }
-    updateUi()
   }
 
   @UiThread
@@ -165,15 +166,12 @@ class AppInspectionView(
     apiServices.disposeClients(project.name)
     currentProcess = process
     launchInspectorTabsForCurrentProcess()
-    withContext(uiDispatcher) {
-      updateUi()
-    }
   }
 
-  private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) {
-    getTabProviders()
+  private suspend fun launchInspectorTabsForCurrentProcess(force: Boolean = false) {
+    val jobs = getTabProviders()
       .filter { provider -> provider.isApplicable() }
-      .forEach { provider ->
+      .map { provider ->
         scope.launch {
           try {
             val client = apiServices.launcher.launchInspector(
@@ -188,7 +186,6 @@ class AppInspectionView(
               invokeAndWaitIfNeeded {
                 provider.createTab(project, ideServices, currentProcess, messenger)
                   .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                  .also { updateUi() }
               }.client
             }
             client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
@@ -223,8 +220,7 @@ class AppInspectionView(
               severity = AppInspectionIdeServices.Severity.ERROR
             ) {
               AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-              launchInspectorTabsForCurrentProcess(true)
-              updateUi()
+              scope.launch { launchInspectorTabsForCurrentProcess(true) }
             }
           }
           catch (e: Exception) {
@@ -232,6 +228,11 @@ class AppInspectionView(
           }
         }
       }
+
+    jobs.joinAll()
+    withContext(uiDispatcher) {
+      updateUi()
+    }
   }
 
   private fun updateUi() {
