@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
 import com.android.ide.common.build.SplitOutputMatcher;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.google.common.base.Joiner;
 import com.intellij.util.containers.ContainerUtil;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class BestOutputFinder {
   @NotNull
-  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull List<? extends OutputFile> outputs)
+  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull List<IdeAndroidArtifactOutput> outputs)
     throws ApkProvisionException {
     if (outputs.isEmpty()) {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
@@ -53,7 +54,7 @@ class BestOutputFinder {
   @NotNull
   private static File doFindBestOutput(@NotNull IdeVariant variant,
                                        @NotNull IDevice device,
-                                       @Nullable List<? extends OutputFile> outputs,
+                                       @Nullable List<IdeAndroidArtifactOutput> outputs,
                                        @Nullable GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
     Set<String> variantAbiFilters = variant.getMainArtifact().getAbiFilters();
@@ -62,7 +63,7 @@ class BestOutputFinder {
     int outputCount = 0;
     if (outputs != null) {
       apkFiles =
-        ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, abis), OutputFile::getOutputFile);
+        ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, abis), IdeAndroidArtifactOutput::getOutputFile);
       outputCount = outputs.size();
     }
     if (builtArtifact != null) {

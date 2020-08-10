@@ -88,7 +88,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     @SuppressWarnings("deprecation")
     List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
     assertNotEmpty(outputs);
-    assertThat(outputs.iterator().next().getMainOutputFile().getOutputFile().getName()).isEqualTo("app-debug.apk");
+    assertThat(outputs.iterator().next().getOutputFile().getName()).isEqualTo("app-debug.apk");
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {

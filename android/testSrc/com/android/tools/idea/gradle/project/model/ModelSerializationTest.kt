@@ -22,7 +22,6 @@ import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
-import com.android.ide.common.gradle.model.impl.IdeOutputFileImpl
 import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
 import com.android.ide.common.gradle.model.impl.IdeVariantImpl
 import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
@@ -57,7 +56,6 @@ import com.android.ide.common.gradle.model.stubs.NativeFileStub
 import com.android.ide.common.gradle.model.stubs.NativeSettingsStub
 import com.android.ide.common.gradle.model.stubs.NativeToolchainStub
 import com.android.ide.common.gradle.model.stubs.NativeVariantAbiStub
-import com.android.ide.common.gradle.model.stubs.OutputFileStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SigningConfigStub
@@ -335,11 +333,6 @@ class ModelSerializationTest {
   @Test
   fun nativeVariant() = assertSerializable {
     IdeNativeVariantImpl("name", emptyList())
-  }
-
-  @Test
-  fun outputFile() = assertSerializable {
-    IdeOutputFileImpl(OutputFileStub(), modelCache)
   }
 
   @Test
