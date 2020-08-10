@@ -46,7 +46,7 @@ interface ViewActionHandlers {
    */
   fun changeViewToWarningsLinkClicked()
 
-  /** Called when selection in tasks grouping combo box is changed by the user. */
+  /** Called when selection in tasks grouping control is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 
   /** Called on tasks page tree node selection. */
@@ -69,4 +69,7 @@ interface ViewActionHandlers {
 
   /** Called when user changes filters selection on warnings page. */
   fun applyWarningsFilter(filter: WarningsFilter)
+
+  /** Called when selection in warnings grouping control is changed by the user. */
+  fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean)
 }

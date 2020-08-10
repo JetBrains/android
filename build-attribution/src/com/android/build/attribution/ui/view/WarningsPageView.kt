@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
+import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -65,6 +66,14 @@ class WarningsPageView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
+  val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
+    name = "warningsGroupingCheckBox"
+    addActionListener { event ->
+      if (fireActionHandlerEvents) {
+        actionHandlers.warningsGroupingSelectionUpdated(isSelected)
+      }
+    }
+  }
 
   override val additionalControls = JPanel().apply {
     name = "warnings-view-additional-controls"
@@ -73,6 +82,8 @@ class WarningsPageView(
     val warningsFilterActions = warningsFilterActions(model, actionHandlers)
     val defaultActionGroup = DefaultActionGroup().apply { add(warningsFilterActions) }
     val filtersDropdown = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
+
+    add(groupingCheckBox)
     add(filtersDropdown.component)
   }
 
@@ -149,6 +160,7 @@ class WarningsPageView(
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {
     fireActionHandlerEvents = false
+    groupingCheckBox.isSelected = model.groupByPlugin
     treeHeaderLabel.text = model.treeHeaderText
     if (treeStructureChanged) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)

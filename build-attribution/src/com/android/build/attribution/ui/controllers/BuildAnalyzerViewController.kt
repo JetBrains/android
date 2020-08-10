@@ -115,6 +115,11 @@ class BuildAnalyzerViewController(
 
   override fun applyWarningsFilter(filter: WarningsFilter) {
     model.warningsPageModel.filter = filter
-    //TODO (b/150297387) Add analytics.
+    //TODO (b/150297387) Add analytics reporting.
+  }
+
+  override fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean) {
+    model.warningsPageModel.groupByPlugin = groupByPlugin
+    //TODO (b/150295612): Add analytics reporting.
   }
 }
