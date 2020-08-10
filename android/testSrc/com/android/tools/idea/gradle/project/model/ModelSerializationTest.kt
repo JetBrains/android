@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
-import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
-import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
-import com.android.ide.common.gradle.model.impl.IdeVariantImpl
-import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
@@ -277,12 +272,12 @@ class ModelSerializationTest {
 
   @Test
   fun lintOptions() = assertSerializable {
-    IdeLintOptionsImpl.createFrom(LintOptionsStub(), gradleVersion)
+    modelCache.lintOptionsFrom(LintOptionsStub(), gradleVersion)
   }
 
   @Test
   fun androidGradlePluginProjectFlags() = assertSerializable {
-    IdeAndroidGradlePluginProjectFlagsImpl.createFrom(AndroidGradlePluginProjectFlagsStub())
+    modelCache.androidGradlePluginProjectFlagsFrom(AndroidGradlePluginProjectFlagsStub())
   }
 
   @Test
@@ -352,7 +347,7 @@ class ModelSerializationTest {
 
   @Test
   fun sourceProvider() = assertSerializable {
-    IdeSourceProviderImpl.createFrom(SourceProviderStub(), deduplicate = { this })
+    modelCache.sourceProviderFrom(SourceProviderStub())
   }
 
   @Test
@@ -377,7 +372,7 @@ class ModelSerializationTest {
 
   @Test
   fun variant() = assertSerializable {
-    IdeVariantImpl.createFrom(VariantStub(), modelCache, dependenciesFactory, gradleVersion)
+    modelCache.variantFrom(VariantStub(), dependenciesFactory, gradleVersion)
   }
 
   @Test
@@ -387,7 +382,7 @@ class ModelSerializationTest {
 
   @Test
   fun viewBindingOptions() = assertSerializable {
-    IdeViewBindingOptionsImpl.createFrom(ViewBindingOptionsStub())
+    modelCache.viewBindingOptionsFrom(ViewBindingOptionsStub())
   }
 
   @Test
