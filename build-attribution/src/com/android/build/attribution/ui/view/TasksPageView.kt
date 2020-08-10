@@ -36,11 +36,13 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Component
 import java.awt.Font
 import javax.swing.JCheckBox
@@ -93,6 +95,15 @@ class TasksPageView(
   }
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
+  val tasksLegendPanel = JPanel().apply {
+    border = JBUI.Borders.emptyRight(5)
+    layout = HorizontalLayout(10)
+    isOpaque = false
+    fun legendItem(name: String, color: Color) = JBLabel(name, ColorIcon(10,color), SwingConstants.RIGHT)
+    add(legendItem("Android/Java/Kotlin Plugin",CriticalPathChartLegend.androidPluginColor.baseColor), HorizontalLayout.RIGHT)
+    add(legendItem("Other Plugin", CriticalPathChartLegend.externalPluginColor.baseColor), HorizontalLayout.RIGHT)
+    add(legendItem("Project Customization", CriticalPathChartLegend.buildsrcPluginColor.baseColor), HorizontalLayout.RIGHT)
+  }
 
   val detailsPanel = object : CardLayoutPanel<TasksTreePresentableNodeDescriptor, TasksTreePresentableNodeDescriptor, JComponent>() {
     override fun prepare(key: TasksTreePresentableNodeDescriptor): TasksTreePresentableNodeDescriptor = key
@@ -118,6 +129,9 @@ class TasksPageView(
         treeHeaderLabel.border = JBUI.Borders.empty(5, 20)
         treeHeaderLabel.alignmentX = Component.LEFT_ALIGNMENT
         add(treeHeaderLabel, BorderLayout.CENTER)
+        if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+          add(tasksLegendPanel, BorderLayout.SOUTH)
+        }
       }
       add(treeHeaderPanel, BorderLayout.NORTH)
       val treeComponent: Component = if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
@@ -178,6 +192,7 @@ class TasksPageView(
     fireActionHandlerEvents = false
     groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
     treeHeaderLabel.text = model.treeHeaderText
+    tasksLegendPanel.isVisible = model.selectedGrouping == TasksDataPageModel.Grouping.UNGROUPED
     if (tree.model.root != model.treeRoot) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)
     }
