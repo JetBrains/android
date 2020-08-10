@@ -38,6 +38,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
@@ -65,6 +66,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -355,13 +357,14 @@ public class GradleApkProvider implements ApkProvider {
                                @NotNull IDevice device,
                                @NotNull AndroidFacet facet,
                                boolean fromTestArtifact) throws ApkProvisionException {
-    List<OutputFile> outputs = new ArrayList<>();
+    List<IdeAndroidArtifactOutput> outputs = new ArrayList<>();
 
     PostBuildModel outputModels = myOutputModelProvider.getPostBuildModel();
     if (outputModels == null) {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
 
+    ModelCache modelCache = new ModelCache();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
       if (outputModel == null) {
@@ -371,7 +374,7 @@ public class GradleApkProvider implements ApkProvider {
 
       for (InstantAppVariantBuildOutput instantAppVariantBuildOutput : outputModel.getInstantAppVariantsBuildOutput()) {
         if (instantAppVariantBuildOutput.getName().equals(variant.getName())) {
-          outputs.add(instantAppVariantBuildOutput.getOutput());
+          outputs.add(modelCache.androidArtifactOutputFrom(instantAppVariantBuildOutput.getOutput()));
         }
       }
     }
@@ -396,13 +399,13 @@ public class GradleApkProvider implements ApkProvider {
                   throw new ApkProvisionException(
                     "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
                 }
-                outputs.addAll(testVariantBuildOutput.getOutputs());
+                outputs.addAll(ContainerUtil.map(testVariantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
               }
             }
           }
           else {
             // Get the output from the main artifact
-            outputs.addAll(variantBuildOutput.getOutputs());
+            outputs.addAll(ContainerUtil.map(variantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
           }
         }
       }

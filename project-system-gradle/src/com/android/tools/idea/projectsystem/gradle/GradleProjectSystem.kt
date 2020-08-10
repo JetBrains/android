@@ -87,7 +87,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
           sequenceOf(getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, OutputType.Apk, false))
         }
         else {
-          androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.mainOutputFile.outputFile }
+          androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.outputFile }
         }
       }
       .filterNotNull()
