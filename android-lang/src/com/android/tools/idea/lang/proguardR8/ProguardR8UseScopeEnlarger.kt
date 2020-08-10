@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMember
+import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.UseScopeEnlarger
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
@@ -31,10 +35,14 @@ import org.jetbrains.kotlin.psi.KtProperty
 class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
     if (element is PsiMember || element is KtProperty) {
-      return GlobalSearchScope.getScopeRestrictedByFileTypes(
-        GlobalSearchScope.allScope(element.project),
-        ProguardR8FileType.INSTANCE
-      )
+      val project = element.project
+
+      val cachedValuesManager = CachedValuesManager.getManager(project)
+      val files = cachedValuesManager.getCachedValue(project) {
+        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
+        CachedValueProvider.Result(proguardFiles, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+      }
+      if (files.isEmpty()) return null else GlobalSearchScope.filesScope(project, files)
     }
     return null
   }
