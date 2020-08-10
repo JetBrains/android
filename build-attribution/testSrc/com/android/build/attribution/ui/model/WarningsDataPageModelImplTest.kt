@@ -47,7 +47,7 @@ class WarningsDataPageModelImplTest {
   fun testInitialSelection() {
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
@@ -119,7 +119,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
@@ -141,7 +141,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:resources
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
@@ -162,7 +162,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE

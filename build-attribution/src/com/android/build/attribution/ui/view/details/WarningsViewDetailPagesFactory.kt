@@ -26,6 +26,8 @@ import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDesc
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
+import com.android.build.attribution.ui.model.WarningsDataPageModel
+import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.percentageString
@@ -39,14 +41,39 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 /**
  * This class creates task detail pages from the node provided.
  */
 class WarningsViewDetailPagesFactory(
+  val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) {
+
+  fun createDetailsPage(pageId: WarningsPageId): JComponent = if (pageId == WarningsPageId.emptySelection) {
+    JPanel().apply {
+      layout = BorderLayout()
+      val messageLabel = JLabel("Select page for details").apply {
+        verticalAlignment = SwingConstants.CENTER
+        horizontalAlignment = SwingConstants.CENTER
+      }
+      add(messageLabel, BorderLayout.CENTER)
+    }
+  }
+  else {
+    //TODO (mlazeba): this kinda breaks the nice safety provided by sealed classes before... what can I do about it?
+    //  The solution might be actually to get rid of PageId. What do I need it for? It is actually mimic the TreePath in some way.
+    //  Otherwise pageId will not be unique in a tree. I think initially it was not meant to be unique in the tree.
+    //  It defines the page, not the tree node. (There can be several nodes for the same page, e.g. task has 2 warnings and shown under both types)
+    //  Ha, that basically means that I need page descriptor, not Node descriptor here!
+    //  However that might be wrong pattern, might be better and easier to keep 1-1 relation here.
+    model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
+      createDetailsPage(nodeDescriptor)
+    } ?: JPanel()
+  }
 
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningTypeData)

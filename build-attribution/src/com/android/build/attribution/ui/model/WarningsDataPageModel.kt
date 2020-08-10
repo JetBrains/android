@@ -57,6 +57,9 @@ interface WarningsDataPageModel {
 
   /** Install the listener that will be called on model state changes. */
   fun setModelUpdatedListener(listener: () -> Unit)
+
+  /** Retrieve node descriptor by it's page id. Null if node does not exist in currently presented tree structure. */
+  fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor?
 }
 
 class WarningsDataPageModelImpl(
@@ -77,19 +80,21 @@ class WarningsDataPageModelImpl(
   // True when there are changes since last listener call.
   private var modelChanged = false
 
-  override var selectedNode: WarningsTreeNode? = treeStructure.defaultNode
+  private var selectedPageId: WarningsPageId = WarningsPageId.emptySelection
     private set(value) {
-      if (value != null && value != field) {
+      if (value != field) {
         field = value
         modelChanged = true
       }
     }
+  override val selectedNode: WarningsTreeNode?
+    get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
     get() = reportData.totalIssuesCount == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode) {
-    selectedNode = warningsTreeNode
+    selectedPageId = warningsTreeNode.descriptor.pageId
     notifyModelChanges()
   }
 
@@ -100,6 +105,9 @@ class WarningsDataPageModelImpl(
   override fun setModelUpdatedListener(listener: () -> Unit) {
     modelUpdatedListener = listener
   }
+
+  override fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor? =
+    treeStructure.pageIdToNode[pageId]?.descriptor
 
   private fun notifyModelChanges() {
     if (modelChanged) {
@@ -135,8 +143,6 @@ private class WarningsTreeStructure(
       })
     }
   }
-
-  val defaultNode: WarningsTreeNode? = groupedByTypeNodes.nextNode as? WarningsTreeNode
 }
 
 class WarningsTreeNode(
@@ -144,6 +150,7 @@ class WarningsTreeNode(
 ) : DefaultMutableTreeNode(descriptor)
 
 enum class WarningsPageType {
+  EMPTY_SELECTION,
   TASK_WARNING_DETAILS,
   TASK_WARNING_TYPE_GROUP,
   ANNOTATION_PROCESSOR_DETAILS,
@@ -163,6 +170,7 @@ data class WarningsPageId(
       WarningsPageType.ANNOTATION_PROCESSOR_DETAILS, annotationProcessorData.className)
 
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
+    val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
 
