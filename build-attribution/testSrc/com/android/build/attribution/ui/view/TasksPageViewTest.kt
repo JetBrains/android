@@ -74,11 +74,9 @@ class TasksPageViewTest {
     assertThat(view.groupingCheckBox.isSelected).isFalse()
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
-    val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
-    assertThat(selectedNode).isEqualTo(model.selectedNode)
-    assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
-    assertThat(view.chartsPanel.key).isEqualTo(selectedNode.descriptor.pageId)
-    assertThat(findVisibleChartNames(view.chartsPanel)).isEqualTo("task-chart-selected-:app:compile")
+    assertThat(view.tree.selectionPath).isNull()
+    assertThat(view.chartsPanel.key).isEqualTo(TasksPageId.emptySelection(TasksDataPageModel.Grouping.UNGROUPED))
+    assertThat(findVisibleChartNames(view.chartsPanel)).isEqualTo("task-chart-selected-empty")
     Mockito.verifyZeroInteractions(mockHandlers)
   }
 

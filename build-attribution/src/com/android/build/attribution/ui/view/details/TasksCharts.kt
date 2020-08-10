@@ -81,16 +81,16 @@ class ChartsPanel(
   override fun prepare(key: TasksPageId): TasksPageId = key
 
   override fun create(id: TasksPageId): Component? = when (id.grouping) {
-    TasksDataPageModel.Grouping.UNGROUPED -> pageIdToTaskChartElement[id]?.let {
+    TasksDataPageModel.Grouping.UNGROUPED -> pageIdToTaskChartElement[id].let {
       JPanel().apply {
         layout = VerticalLayout(0, SwingConstants.LEFT)
-        name = "task-chart-selected-${it.text()}"
+        name = "task-chart-selected-${it?.text() ?: "empty"}"
         add(TimeDistributionChart(ungroupedChartItems, it, false))
         add(tasksLegend())
       }
     }
-    TasksDataPageModel.Grouping.BY_PLUGIN -> pageIdToPluginChartElement[id]?.let {
-      TimeDistributionChart(pluginChartItems, it, false).apply { name = "plugin-chart-selected-${it.text()}" }
+    TasksDataPageModel.Grouping.BY_PLUGIN -> pageIdToPluginChartElement[id].let {
+      TimeDistributionChart(pluginChartItems, it, false).apply { name = "plugin-chart-selected-${it?.text() ?: "empty"}" }
     }
   }
 

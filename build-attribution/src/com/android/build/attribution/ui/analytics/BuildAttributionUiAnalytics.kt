@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.analytics
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -181,21 +182,27 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   fun getStateFromModel(model: BuildAnalyzerViewModel): BuildAttributionUiEvent.Page {
-    if (model.selectedData == BuildAnalyzerViewModel.DataSet.OVERVIEW) {
-      return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY, BuildAnalyzerViewModel.DataSet.OVERVIEW.uiName))
-    }
-    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.TASKS) {
-      model.tasksPageModel.selectedNode?.let {
-        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
+    return toPage(
+      when (model.selectedData) {
+        BuildAnalyzerViewModel.DataSet.OVERVIEW ->
+          AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY, BuildAnalyzerViewModel.DataSet.OVERVIEW.uiName)
+        BuildAnalyzerViewModel.DataSet.TASKS ->
+          model.tasksPageModel.selectedNode.let {
+            if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
+            else AnalyticsPageId(
+              when (model.tasksPageModel.selectedGrouping) {
+                TasksDataPageModel.Grouping.UNGROUPED -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
+                TasksDataPageModel.Grouping.BY_PLUGIN -> BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
+              },
+              ""
+            )
+          }
+        BuildAnalyzerViewModel.DataSet.WARNINGS -> model.warningsPageModel.selectedNode.let {
+          if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
+          else AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, "")
+        }
       }
-    }
-    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.WARNINGS) {
-      model.warningsPageModel.selectedNode.let {
-        if (it == null) return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, ""))
-        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
-      }
-    }
-    return unknownPage
+    )
   }
 
   data class AnalyticsPageId(

@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksFilter
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
@@ -66,6 +67,9 @@ interface ViewActionHandlers {
 
   /** Called on 'Open memory settings' button click from gradle daemon high gc warning. */
   fun openMemorySettings()
+
+  /** Called when user changes filters selection on tasks page. */
+  fun applyTasksFilter(filter: TasksFilter)
 
   /** Called when user changes filters selection on warnings page. */
   fun applyWarningsFilter(filter: WarningsFilter)
