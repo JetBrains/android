@@ -103,7 +103,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
     init {
       val (preferredProcesses, otherProcesses) = model.processes
         .filter { it.serial == processDescriptor.serial }
-        .partition { model.isProcessPreferred(it) }
+        .partition { model.isProcessPreferred(it, includeDead = true) }
 
       for (process in preferredProcesses) {
         add(ConnectAction(process, model))

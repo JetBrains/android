@@ -113,4 +113,30 @@ class SelectProcessActionTest {
     assertThat(processes[1]).isInstanceOf(Separator::class.java)
     assertThat(processes[2].templateText).isEqualTo("A")
   }
+
+  @Test
+  fun deadProcessesShowUpInProcessList() {
+    val testNotifier = TestProcessNotifier()
+    val model = AppInspectionProcessModel(testNotifier) { listOf("A") }
+    val selectProcessAction = SelectProcessAction(model)
+
+    val fakeStream = createFakeStream()
+    val process = fakeStream.createFakeProcess("A", 100)
+
+    testNotifier.fireConnected(process)
+    run {
+      selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+      val deviceAction = selectProcessAction.getChildren(null)[0]
+      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      assertThat(processAction.templateText).isEqualTo("A")
+    }
+
+    testNotifier.fireDisconnected(process)
+    run {
+      selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+      val deviceAction = selectProcessAction.getChildren(null)[0]
+      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      assertThat(processAction.templateText).isEqualTo("A [DEAD]")
+    }
+  }
 }

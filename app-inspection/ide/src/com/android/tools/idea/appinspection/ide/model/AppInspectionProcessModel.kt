@@ -111,6 +111,9 @@ class AppInspectionProcessModel(private val executor: Executor,
     processNotifier.removeProcessListener(processListener)
   }
 
-  fun isProcessPreferred(processDescriptor: ProcessDescriptor?) =
-    processDescriptor != null && processDescriptor.isRunning && getPreferredProcessNames().contains(processDescriptor.processName)
+  fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
+    return processDescriptor != null
+           && (processDescriptor.isRunning || includeDead)
+           && getPreferredProcessNames().contains(processDescriptor.processName)
+  }
 }
