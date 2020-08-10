@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -51,6 +52,8 @@ interface TasksDataPageModel {
   /** Can be null in case of empty tree. */
   val selectedNode: TasksTreeNode?
 
+  val filter: TasksFilter
+
   /** True if there are no tasks to show. */
   val isEmpty: Boolean
 
@@ -58,18 +61,22 @@ interface TasksDataPageModel {
   fun selectGrouping(newSelectedGrouping: Grouping)
 
   /**
-   * Selects node in a tree to provided.
-   * In case provided node is from another grouping tree updates the selected grouping.
-   * Provided node object should be the one created in this model and exist in the trees it holds.
+   * Takes [TasksPageId] from the provided node and selects it as described in [selectPageById].
    * Notifies listener if model state changes.
    */
   fun selectNode(tasksTreeNode: TasksTreeNode)
 
-  /** Looks for the tree node by it's pageId and selects it as described in [selectNode] if found. */
+  /**
+   * Selects node in a tree to the one with provided id.
+   * In case provided [tasksPageId] is from another grouping tree updates the selected grouping first.
+   * Check if such node exists in current tree, fallbacks to empty selection otherwise.
+   * Notifies listener if model state changes.
+   */
   fun selectPageById(tasksPageId: TasksPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: () -> Unit)
+  fun setModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
+  fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor?
 
   enum class Grouping(
     val uiName: String
@@ -77,6 +84,8 @@ interface TasksDataPageModel {
     UNGROUPED("Ungrouped"),
     BY_PLUGIN("By Plugin")
   }
+
+  fun applyFilter(newFilter: TasksFilter)
 }
 
 class TasksDataPageModelImpl(
@@ -84,30 +93,27 @@ class TasksDataPageModelImpl(
 ) : TasksDataPageModel {
 
   @VisibleForTesting
-  var modelUpdatedListener: (() -> Unit)? = null
+  var modelUpdatedListener: ((treeStructureChanged: Boolean) -> Unit)? = null
     private set
 
-  // True when there are changes since last listener call.
-  private var modelChanged = false
-
-  override var selectedGrouping: TasksDataPageModel.Grouping = TasksDataPageModel.Grouping.UNGROUPED
-    set(value) {
-      if (value != field) {
-        field = value
-        modelChanged = true
-        updateSelectedNodeOnGroupingChange()
-      }
-    }
+  override val selectedGrouping: TasksDataPageModel.Grouping
+    get() = selectedPageId.grouping
 
   override val treeHeaderText: String
     get() = when (selectedGrouping) {
       TasksDataPageModel.Grouping.UNGROUPED -> "Tasks determining build duration" +
-                                               " - ${reportData.criticalPathTasks.criticalPathDuration.durationString()}" +
-                                               warningsSuffixFromCount(reportData.criticalPathTasks.warningCount)
+                                               " - Total: $totalTimeString, Filtered: $filteredTimeString" +
+                                               warningsSuffixFromCount(treeStructure.treeStats.visibleWarnings)
       TasksDataPageModel.Grouping.BY_PLUGIN -> "Plugins with tasks determining build duration" +
-                                               " - ${reportData.criticalPathPlugins.criticalPathDuration.durationString()}" +
-                                               warningsSuffixFromCount(reportData.criticalPathPlugins.warningCount)
+                                               " - Total: $totalTimeString, Filtered: $filteredTimeString" +
+                                               warningsSuffixFromCount(treeStructure.treeStats.visibleWarnings)
     }
+
+  private val totalTimeString: String
+    get() = durationString(treeStructure.treeStats.totalTasksTimeMs)
+
+  private val filteredTimeString: String
+    get() = durationString(treeStructure.treeStats.filteredTasksTimeMs)
 
   private fun warningsSuffixFromCount(warningCount: Int): String = when (warningCount) {
     0 -> ""
@@ -115,58 +121,85 @@ class TasksDataPageModelImpl(
     else -> " - $warningCount Warnings"
   }
 
-  private val treeStructure = TasksTreeStructure(reportData)
+  override val treeRoot: DefaultMutableTreeNode
+    get() = treeStructure.treeRoot
 
-  override var selectedNode: TasksTreeNode? = treeStructure.defaultNode
+  override val selectedNode: TasksTreeNode?
+    get() = treeStructure.pageIdToNode[selectedPageId]
+
+  override var filter: TasksFilter = TasksFilter.default()
     private set(value) {
-      // We can not have have empty selection by design. The type is nullable to support empty tree state.
-      if (value == null) throw IllegalArgumentException("Setting selected node to null is not supported.")
-      if (value != field) {
-        field = value
-        modelChanged = true
-        selectedGrouping = value.descriptor.pageId.grouping
-      }
+      field = value
+      treeStructure.updateStructure(selectedGrouping, value)
+      treeStructureChanged = true
+      modelChanged = true
     }
 
   override val isEmpty: Boolean
     get() = reportData.criticalPathTasks.size == 0
 
-  override val treeRoot: DefaultMutableTreeNode
-    get() = when (selectedGrouping) {
-      TasksDataPageModel.Grouping.UNGROUPED -> treeStructure.ungroupedTasksNodes
-      TasksDataPageModel.Grouping.BY_PLUGIN -> treeStructure.groupedByPluginTasksNodes
+  // True when there are changes since last listener call.
+  private var modelChanged = false
+
+  // True when tree changed it's structure since last listener call.
+  private var treeStructureChanged = false
+
+  private var selectedPageId: TasksPageId = TasksPageId.emptySelection(TasksDataPageModel.Grouping.UNGROUPED)
+    private set(value) {
+      val newSelectedGrouping = value.grouping
+      if (newSelectedGrouping != field.grouping) {
+        treeStructure.updateStructure(newSelectedGrouping, filter)
+        treeStructureChanged = true
+        modelChanged = true
+      }
+      val newSelectedPageId = if (treeStructure.pageIdToNode.containsKey(value)) value else TasksPageId.emptySelection(newSelectedGrouping)
+      if (newSelectedPageId != field) {
+        field = newSelectedPageId
+        modelChanged = true
+      }
     }
 
-  private fun updateSelectedNodeOnGroupingChange() {
-    val oldSelectedNode = selectedNode
-    if (oldSelectedNode != null) {
-      val currentPageId = oldSelectedNode.descriptor.pageId
-      val newPageId = currentPageId.copy(grouping = selectedGrouping)
-      selectedNode = treeStructure.pageIdToNode[newPageId] ?: treeStructure.defaultNode
-    }
+  private val treeStructure = TasksTreeStructure(reportData).apply {
+    updateStructure(selectedGrouping, filter)
   }
 
   override fun selectGrouping(newSelectedGrouping: TasksDataPageModel.Grouping) {
-    selectedGrouping = newSelectedGrouping
+    val currentPageId = selectedPageId
+    val newSelectedPageId = if (
+      currentPageId.pageType == TaskDetailsPageType.PLUGIN_DETAILS &&
+      newSelectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
+    ) TasksPageId.emptySelection(newSelectedGrouping)
+    else currentPageId.copy(grouping = newSelectedGrouping)
+
+    selectedPageId = newSelectedPageId
     notifyModelChanges()
   }
 
   override fun selectNode(tasksTreeNode: TasksTreeNode) {
-    selectedNode = tasksTreeNode
+    selectedPageId = tasksTreeNode.descriptor.pageId
     notifyModelChanges()
   }
 
   override fun selectPageById(tasksPageId: TasksPageId) {
-    treeStructure.pageIdToNode[tasksPageId]?.let { selectNode(it) }
+    selectedPageId = tasksPageId
+    notifyModelChanges()
   }
 
-  override fun setModelUpdatedListener(listener: () -> Unit) {
+  override fun applyFilter(newFilter: TasksFilter) {
+    filter = newFilter
+    notifyModelChanges()
+  }
+
+  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
     modelUpdatedListener = listener
   }
 
+  override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? = treeStructure.pageIdToNode[pageId]?.descriptor
+
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke()
+      modelUpdatedListener?.invoke(treeStructureChanged)
+      treeStructureChanged = false
       modelChanged = false
     }
   }
@@ -178,26 +211,61 @@ private class TasksTreeStructure(
 
   val pageIdToNode: MutableMap<TasksPageId, TasksTreeNode> = mutableMapOf()
 
-  val ungroupedTasksNodes = DefaultMutableTreeNode().apply {
-    reportData.criticalPathTasks.tasks.forEach {
-      add(treeNode(TaskDetailsNodeDescriptor(it, TasksDataPageModel.Grouping.UNGROUPED)))
-    }
-  }
+  var treeRoot = DefaultMutableTreeNode()
 
-  val groupedByPluginTasksNodes = DefaultMutableTreeNode().apply {
-    reportData.criticalPathPlugins.plugins.forEach { pluginUiData ->
-      add(treeNode(PluginDetailsNodeDescriptor(pluginUiData)).apply {
-        pluginUiData.criticalPathTasks.tasks.forEach { taskUiData ->
-          add(treeNode(TaskDetailsNodeDescriptor(taskUiData, TasksDataPageModel.Grouping.BY_PLUGIN)))
-        }
-      })
-    }
-  }
-
-  val defaultNode: TasksTreeNode? = ungroupedTasksNodes.nextNode as? TasksTreeNode
+  var treeStats: TreeStats = TreeStats()
 
   private fun treeNode(descriptor: TasksTreePresentableNodeDescriptor): TasksTreeNode = TasksTreeNode(descriptor).apply {
     pageIdToNode[descriptor.pageId] = this
+  }
+
+  fun updateStructure(grouping: TasksDataPageModel.Grouping, filter: TasksFilter) {
+    pageIdToNode.clear()
+    treeStats = TreeStats()
+    treeRoot.removeAllChildren()
+    when (grouping) {
+      TasksDataPageModel.Grouping.UNGROUPED -> createUngroupedNodes(filter, treeStats)
+      TasksDataPageModel.Grouping.BY_PLUGIN -> createGroupedByPluginNodes(filter, treeStats)
+    }
+    treeStats.filteredTaskTimesDistribution.seal()
+    treeStats.totalTasksTimeMs = reportData.criticalPathTasks.tasks.sumByLong { it.executionTime.timeMs }
+  }
+
+  private fun createUngroupedNodes(filter: TasksFilter, treeStats: TreeStats) {
+    treeRoot.removeAllChildren()
+    reportData.criticalPathTasks.tasks.asSequence()
+      .filter { filter.acceptTask(it) }
+      .map { TaskDetailsNodeDescriptor(it, TasksDataPageModel.Grouping.UNGROUPED, treeStats.filteredTaskTimesDistribution) }
+      .forEach {
+        if (it.taskData.hasWarning) treeStats.visibleWarnings++
+        treeRoot.add(treeNode(it))
+      }
+  }
+
+  private fun createGroupedByPluginNodes(filter: TasksFilter, treeStats: TreeStats) {
+    treeRoot.removeAllChildren()
+    val filteredPluginTimesDistribution = TimeDistributionBuilder()
+    reportData.criticalPathPlugins.plugins.forEach { pluginUiData ->
+      val filteredTasksForPlugin = pluginUiData.criticalPathTasks.tasks.filter { filter.acceptTask(it) }
+      if (filteredTasksForPlugin.isNotEmpty()) {
+        val pluginNode = treeNode(PluginDetailsNodeDescriptor(pluginUiData, filteredTasksForPlugin, filteredPluginTimesDistribution))
+        filteredTasksForPlugin.forEach {
+          if (it.hasWarning) treeStats.visibleWarnings++
+          pluginNode.add(
+            treeNode(TaskDetailsNodeDescriptor(it, TasksDataPageModel.Grouping.BY_PLUGIN, treeStats.filteredTaskTimesDistribution)))
+        }
+        treeRoot.add(pluginNode)
+      }
+    }
+    filteredPluginTimesDistribution.seal()
+  }
+
+  class TreeStats {
+    var visibleWarnings: Int = 0
+    var totalTasksTimeMs: Long = 0
+    val filteredTaskTimesDistribution = TimeDistributionBuilder()
+    val filteredTasksTimeMs: Long
+      get() = filteredTaskTimesDistribution.totalTime
   }
 }
 
@@ -211,6 +279,7 @@ class TasksTreeNode(
 }
 
 enum class TaskDetailsPageType {
+  EMPTY_SELECTION,
   TASK_DETAILS,
   PLUGIN_DETAILS
 }
@@ -226,6 +295,9 @@ data class TasksPageId(
 
     fun plugin(plugin: CriticalPathPluginUiData) =
       TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, plugin.name)
+
+    fun emptySelection(grouping: TasksDataPageModel.Grouping) =
+      TasksPageId(grouping, TaskDetailsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
 
@@ -249,42 +321,77 @@ sealed class TasksTreePresentableNodeDescriptor {
 /** Tasks tree node descriptor that holds task node data and presentation. */
 class TaskDetailsNodeDescriptor(
   val taskData: TaskUiData,
-  grouping: TasksDataPageModel.Grouping
+  grouping: TasksDataPageModel.Grouping,
+  timeDistributionBuilder: TimeDistributionBuilder
 ) : TasksTreePresentableNodeDescriptor() {
   override val pageId = TasksPageId.task(taskData, grouping)
   override val analyticsPageType = when (grouping) {
     TasksDataPageModel.Grouping.UNGROUPED -> PageType.CRITICAL_PATH_TASK_PAGE
     TasksDataPageModel.Grouping.BY_PLUGIN -> PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
   }
+  val filteredTaskTime = timeDistributionBuilder.registerTimeEntry(taskData.executionTime.timeMs)
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
-      rightAlignedSuffix = taskData.executionTime.toRightAlignedNodeDurationText(),
+      rightAlignedSuffix = filteredTaskTime.toRightAlignedNodeDurationText(),
       nodeIconState = if (taskData.hasWarning) WARNING_ICON else EMPTY_PLACEHOLDER
     )
 
   override val relativeWeight: Double
-    get() = taskData.executionTime.percentage
+    get() = filteredTaskTime.toTimeWithPercentage().percentage
   override val chartItemColor: Color
     get() = CriticalPathChartLegend.resolveTaskColor(taskData).baseColor
 }
 
 /** Tasks tree node descriptor that holds plugin node data and presentation. */
 class PluginDetailsNodeDescriptor(
-  val pluginData: CriticalPathPluginUiData
+  val pluginData: CriticalPathPluginUiData,
+  val filteredTaskNodes: List<TaskUiData>,
+  timeDistributionBuilder: TimeDistributionBuilder
 ) : TasksTreePresentableNodeDescriptor() {
+  private val filteredWarningCount = filteredTaskNodes.count { it.hasWarning }
+  val filteredPluginTime = timeDistributionBuilder.registerTimeEntry(filteredTaskNodes.sumByLong { it.executionTime.timeMs })
   override val pageId = TasksPageId.plugin(pluginData)
   override val analyticsPageType = PageType.PLUGIN_PAGE
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
-      suffix = warningsCountString(pluginData.warningCount),
-      rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText()
+      suffix = warningsCountString(filteredWarningCount),
+      rightAlignedSuffix = filteredPluginTime.toRightAlignedNodeDurationText()
     )
   override val relativeWeight: Double
-    get() = pluginData.criticalPathDuration.percentage
+    get() = filteredPluginTime.toTimeWithPercentage().percentage
   override val chartItemColor: Color
     get() = CriticalPathChartLegend.pluginColorPalette.getColor(pluginData.name).baseColor
 }
 
 private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%.1fs %4.1f%%".format(timeS, percentage)
+
+// TODO (mlazeba): It might be a good idea to replace all current usage of TimeWithPercentage to such way of distribution building.
+//  But it is quite a lot of places so will do later if this works fine.
+class TimeDistributionBuilder {
+  var totalTime: Long = 0
+    private set
+  private var sealed: Boolean = false
+
+  fun registerTimeEntry(timeMs: Long): TimeEntry {
+    if (sealed) {
+      throw UnsupportedOperationException("This distribution is already sealed and cannot be changed.")
+    }
+    totalTime += timeMs
+    return TimeEntry(timeMs)
+  }
+
+  fun seal() {
+    sealed = true
+  }
+
+  inner class TimeEntry(val timeMs: Long) {
+    fun toTimeWithPercentage() = if (sealed)
+      TimeWithPercentage(timeMs, totalTime)
+    else
+      throw UnsupportedOperationException("Shouldn't be called before distribution is sealed.")
+
+    fun toRightAlignedNodeDurationText() = toTimeWithPercentage().toRightAlignedNodeDurationText()
+  }
+}

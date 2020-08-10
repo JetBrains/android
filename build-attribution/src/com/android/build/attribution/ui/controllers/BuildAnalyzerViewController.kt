@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
+import com.android.build.attribution.ui.model.TasksFilter
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
@@ -113,9 +114,14 @@ class BuildAnalyzerViewController(
     ShowSettingsUtil.getInstance().showSettingsDialog(project, MemorySettingsConfigurable::class.java)
   }
 
+  override fun applyTasksFilter(filter: TasksFilter) {
+    model.tasksPageModel.applyFilter(filter)
+    //TODO (b/150297440): Add analytics reporting.
+  }
+
   override fun applyWarningsFilter(filter: WarningsFilter) {
     model.warningsPageModel.filter = filter
-    //TODO (b/150297387) Add analytics reporting.
+    //TODO (b/150297387): Add analytics reporting.
   }
 
   override fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean) {
