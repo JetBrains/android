@@ -73,8 +73,7 @@ class RenderTemplateModel private constructor(
   val androidFacet: AndroidFacet?,
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
-  private val wizardContext: WizardUiContext,
-  val createdFiles: MutableList<File> = arrayListOf()
+  private val wizardContext: WizardUiContext
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -101,6 +100,8 @@ class RenderTemplateModel private constructor(
     get() = androidFacet?.module
 
   val hasActivity: Boolean get() = newTemplate != Template.NoActivity
+
+  val createdFiles: MutableList<File> = arrayListOf()
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(TemplateRenderer())
