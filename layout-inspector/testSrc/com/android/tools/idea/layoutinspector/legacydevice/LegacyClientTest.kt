@@ -43,7 +43,7 @@ class LegacyClientTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, parentDisposable -> listOf(LegacyClient(ResourceLookup(projectRule.project), parentDisposable)) },
+    { model, parentDisposable -> listOf(LegacyClient(model, parentDisposable)) },
     InspectorClient.Companion::clientFactory)
 
   @Test

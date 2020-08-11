@@ -205,7 +205,7 @@ class LayoutInspectorTransportRule(
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
   fun withLegacyClient() = apply { inspectorClientFactory = {
-    LegacyClient(inspectorModel.resourceLookup, projectRule.fixture.projectDisposable) }
+    LegacyClient(inspectorModel, projectRule.fixture.projectDisposable) }
   }
 
   /**

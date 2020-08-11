@@ -155,6 +155,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       xOff = 0.0
       yOff = 0.0
     }
+    if (xOff == 0.0 && yOff == 0.0) {
+      model.stats.rotation.toggledTo2D()
+    }
+    else {
+      model.stats.rotation.toggledTo3D()
+    }
     if (model.isEmpty) {
       rootBounds = Rectangle()
       maxDepth = 0

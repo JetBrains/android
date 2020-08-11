@@ -51,6 +51,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -89,6 +90,7 @@ class DefaultInspectorClient(
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
 ) : InspectorClient, Disposable {
   private val project = model.project
+  private val stats = model.stats
   private val client = TransportClient(channelNameForTest)
   private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
@@ -258,8 +260,14 @@ class DefaultInspectorClient(
     val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
 
     when (command.type) {
-      LayoutInspectorCommand.Type.STOP -> isCapturing = false
-      LayoutInspectorCommand.Type.START -> isCapturing = true
+      LayoutInspectorCommand.Type.STOP -> {
+        isCapturing = false
+        stats.live.toggledToRefresh()
+      }
+      LayoutInspectorCommand.Type.START -> {
+        isCapturing = true
+        stats.live.toggledToLive()
+      }
       else -> {}
     }
   }
@@ -374,10 +382,13 @@ class DefaultInspectorClient(
         }
 
         override fun onSuccess(bridge: AndroidDebugBridge?) {
+          val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(eventType)
+          if (eventType == SESSION_DATA) {
+            stats.save(inspectorEvent.sessionBuilder)
+          }
           val builder = AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-            .setDynamicLayoutInspectorEvent(
-              DynamicLayoutInspectorEvent.newBuilder().setType(eventType))
+            .setDynamicLayoutInspectorEvent(inspectorEvent)
           if (bridge != null) {
             findDevice(bridge, stream)?.let {
               builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it))
@@ -432,6 +443,7 @@ class DefaultInspectorClient(
 
   private fun disconnectNow() {
     var didDisconnect = false
+    val oldStream = selectedStream
     synchronized(SELECTION_LOCK) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance()) {
@@ -446,6 +458,7 @@ class DefaultInspectorClient(
       }
     }
     if (didDisconnect) {
+      logEvent(SESSION_DATA, oldStream)
       processChangedListeners.forEach { it() }
       SkiaParser.shutdownAll()
     }

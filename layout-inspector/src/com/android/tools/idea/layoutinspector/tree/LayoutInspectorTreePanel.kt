@@ -61,7 +61,12 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     componentTree = tree
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
-    selectionModel.addSelectionListener { layoutInspector?.layoutInspectorModel?.selection = it.firstOrNull() as? ViewNode }
+    selectionModel.addSelectionListener {
+      layoutInspector?.layoutInspectorModel?.apply {
+        selection = it.firstOrNull() as? ViewNode
+        stats.selectionMadeFromComponentTree()
+      }
+    }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
   }
 
