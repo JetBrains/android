@@ -42,9 +42,6 @@
   </application-components>
   <project-components>
     <component>
-      <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
     </component>
     <component>
@@ -302,6 +299,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
+    <projectService serviceImplementation="org.jetbrains.android.AndroidPropertyFilesUpdater" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
@@ -1005,6 +1003,8 @@
               topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
     <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
               topic="com.intellij.execution.ExecutionListener"/>
+    <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
+              topic="com.intellij.openapi.roots.ModuleRootListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->

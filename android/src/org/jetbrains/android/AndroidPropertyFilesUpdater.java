@@ -4,7 +4,6 @@ package org.jetbrains.android;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
@@ -16,6 +15,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -63,14 +63,16 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   private final SingleAlarm myAlarm;
   private final Project myProject;
 
+  public static class ModuleRootListenerImpl implements ModuleRootListener {
+    @Override
+    public void rootsChanged(@NotNull final ModuleRootEvent event) {
+      ServiceManager.getService(event.getProject(), AndroidPropertyFilesUpdater.class).onRootsChanged();
+    }
+  }
+
   private AndroidPropertyFilesUpdater(Project project) {
     myAlarm = new SingleAlarm(this::updatePropertyFilesIfNecessary, 50, this);
     myProject = project;
-
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&
-        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      addProjectPropertiesUpdatingListener();
-    }
   }
 
   @Override
@@ -81,13 +83,11 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     myAlarm.cancel();
   }
 
-  private void addProjectPropertiesUpdatingListener() {
-    myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull final ModuleRootEvent event) {
-        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
-      }
-    });
+  private void onRootsChanged() {
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
+    }
   }
 
   private void updatePropertyFilesIfNecessary() {
