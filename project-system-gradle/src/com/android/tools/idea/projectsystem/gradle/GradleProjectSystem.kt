@@ -123,15 +123,17 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
+    val version = targetDeviceSpec?.version
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
     if (runConfiguration !is AndroidRunConfigurationBase) return null
     val facet = AndroidFacet.getInstance(module)!!
 
-    fun outputKind() =
-      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceSpec)) {
+    fun outputKind(): GradleApkProvider.OutputKind {
+      return when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, version)) {
         true -> GradleApkProvider.OutputKind.AppBundleOutputModel
         false -> GradleApkProvider.OutputKind.Default
       }
+    }
 
     return GradleApkProvider(
       facet,
