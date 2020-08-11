@@ -42,9 +42,6 @@
   </application-components>
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.stats.ProjectSizeUsageTracker</implementation-class>
-    </component>
-    <component>
       <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
     </component>
     <component>
@@ -316,6 +313,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
