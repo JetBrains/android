@@ -106,6 +106,15 @@ class ComponentTreeModelImpl(
   }
 
   /**
+   * Compute the depth of the specified [node]
+   *
+   * Do not use Tree.getPathForRow(row) since it may return null on first draw.
+   */
+  fun computeDepth(node: Any?): Int {
+    return generateSequence(node) { parent(it) }.count()
+  }
+
+  /**
    * Clear the renderer cache.
    */
   fun clearRendererCache() {

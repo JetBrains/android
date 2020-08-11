@@ -151,6 +151,15 @@ class ComponentTreeModelImplTest {
     assertThat(selectionModel.currentSelection).containsExactly(item2)
   }
 
+  @Test
+  fun testComputeDepth() {
+    assertThat(model.computeDepth(item1)).isEqualTo(1)
+    assertThat(model.computeDepth(item2)).isEqualTo(2)
+    assertThat(model.computeDepth(item3)).isEqualTo(2)
+    assertThat(model.computeDepth(style1)).isEqualTo(3)
+    assertThat(model.computeDepth(style2)).isEqualTo(4)
+  }
+
   private class NotificationCount : ComponentTreeModelListener {
     var inserted = 0
     var structureChanges = 0

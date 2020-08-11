@@ -15,14 +15,17 @@
  */
 package com.android.tools.componenttree.impl
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ex.WindowManagerEx
-import com.intellij.ui.AbstractExpandableItemsHandler
+import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
@@ -33,6 +36,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import javax.swing.JComponent
+import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import javax.swing.ToolTipManager
 import javax.swing.event.TreeModelEvent
@@ -54,12 +58,15 @@ class TreeImpl(
 
   private var initialized = false
   private var hasApplicationFocus = { withinApplicationFocus() }
+  @VisibleForTesting
+  var expandableTreeItemsHandler: ExpandableItemsHandler<Int> = TreeImplExpandableItemsHandler(this)
 
   init {
-    name = componentName  // For UI tests
+    name = componentName // For UI tests
     isRootVisible = true
     showsRootHandles = false
     toggleClickCount = 2
+    super.setExpandableItemsEnabled(false) // Disable the expandableItemsHandler from Tree.java
     ToolTipManager.sharedInstance().registerComponent(this)
     TreeUtil.installActions(this)
     addMouseListener(object : PopupHandler() {
@@ -119,15 +126,16 @@ class TreeImpl(
     }
   }
 
+  override fun getExpandableItemsHandler(): ExpandableItemsHandler<Int> =
+    expandableTreeItemsHandler
+
   /**
    * Return true if the specified row is currently being expanded by the expandableItemsHandler of the tree.
    *
    * Note: no nodes are left in an expanded state when the tree doesn't have focus.
    */
-  fun isRowCurrentlyExpanded(row: Int): Boolean {
-    val expandableItemsHandler = expandableItemsHandler as? AbstractExpandableItemsHandler<*, *> ?: return false
-    return expandableItemsHandler.expandedItems.contains(row) && hasApplicationFocus()
-  }
+  fun isRowCurrentlyExpanded(row: Int): Boolean =
+    expandableTreeItemsHandler.expandedItems.contains(row) && hasApplicationFocus()
 
   /**
    * Hook for overriding withinApplicationFocus in tests.
@@ -137,6 +145,50 @@ class TreeImpl(
     get() = hasApplicationFocus
     @TestOnly
     set(value) { hasApplicationFocus = value }
+
+  /**
+   * Compute the max render width which is the visible width of the view port minus indents and badges.
+   */
+  fun computeMaxRenderWidth(nodeDepth: Int): Int =
+    computeBadgePosition() - computeLeftOffset(nodeDepth)
+
+  /**
+   * Compute the x position of the badges relative to this tree.
+   */
+  fun computeBadgePosition(): Int {
+    val viewPort = parent as? JViewport
+    return (viewPort?.let { it.width + it.viewPosition.x } ?: width) - computeBadgesWidth() - insets.right
+  }
+
+  /**
+   * Return the width of all the badges.
+   */
+  fun computeBadgesWidth(): Int =
+    badges.size * EmptyIcon.ICON_16.iconWidth
+
+  /**
+   * Repaint the specified [row].
+   */
+  fun repaintRow(row: Int) =
+    getRowBounds(row)?.let { repaint(it) }
+
+  /**
+   * Expand a repaint request to the entire row.
+   *
+   * This ensures repaint of badges during various events like selection changes & focus changes.
+   */
+  override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) =
+    super.repaint(tm, 0, y, this.width, height)
+
+  /**
+   * Compute the left offset of a row with the specified [nodeDepth] in the tree.
+   *
+   * Note: This code is based on the internals of the UI for the tree e.g. the method [BasicTreeUI.getRowX].
+   */
+  private fun computeLeftOffset(nodeDepth: Int): Int {
+    val ourUi = ui as BasicTreeUI
+    return insets.left + (ourUi.leftChildIndent + ourUi.rightChildIndent) * (nodeDepth - 1)
+  }
 
   /**
    * Return true if the current application currently has focus.
@@ -222,15 +274,18 @@ class TreeImpl(
    * Examples: tooltips, context menus, mouse clicks etc.
    */
   private fun lookupRenderComponentAt(x: Int, y: Int): Pair<JComponent, Any>? {
-    val row = getRowForLocation(x, y)
     val renderer = getCellRenderer() ?: return null
-    val path = getPathForRow(row) ?: return null
+    val path = getClosestPathForLocation(x, y) ?: return null
+    val row = getRowForPath(path)
     val item = path.lastPathComponent
+    val depth = model!!.computeDepth(item)
     val renderComponent = renderer.getTreeCellRendererComponent(
       this, item, isRowSelected(row), isExpanded(row), model!!.isLeaf(item), row, true) as? JComponent ?: return null
     val bounds = getPathBounds(path) ?: return null
+    bounds.width = computeMaxRenderWidth(depth) + badges.size * EmptyIcon.ICON_16.iconWidth
     renderComponent.bounds = bounds
-    renderComponent.doLayout()
+    // TODO(b/171255033): It is possible that with the presence of a peer this can be replaced by: renderComponent.revalidate()
+    TreeWalker(renderComponent).descendantStream().forEach { component: Component -> component.doLayout() }
     val component = SwingUtilities.getDeepestComponentAt(renderComponent, x - bounds.x, y - bounds.y) as JComponent? ?: return null
     return Pair(component, item)
   }
