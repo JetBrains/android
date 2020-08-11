@@ -20,8 +20,8 @@ import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHom
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFile;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
@@ -46,7 +46,7 @@ import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<NativeArtifact>> implements FolderGroupNode {
+public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<IdeNativeArtifact>> implements FolderGroupNode {
 
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
@@ -57,7 +57,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   public NdkLibraryEnhancedHeadersNode(@NotNull Project project,
                                        @NotNull String nativeLibraryName,
                                        @NotNull String nativeLibraryType,
-                                       @NotNull Collection<NativeArtifact> artifacts,
+                                       @NotNull Collection<IdeNativeArtifact> artifacts,
                                        @NotNull NativeIncludes nativeIncludes,
                                        @NotNull ViewSettings settings) {
     super(project, artifacts, settings);
@@ -69,11 +69,11 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   @NotNull
   private static Collection<AbstractTreeNode<?>> getSourceFolderNodes(
     @NotNull Project project,
-    @NotNull Collection<NativeArtifact> artifacts,
+    @NotNull Collection<IdeNativeArtifact> artifacts,
     @NotNull ViewSettings settings) {
     TreeMap<String, RootFolder> rootFolders = new TreeMap<>();
 
-    for (NativeArtifact artifact : artifacts) {
+    for (IdeNativeArtifact artifact : artifacts) {
       addSourceFolders(rootFolders, artifact);
       addSourceFiles(rootFolders, artifact);
     }
@@ -97,7 +97,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
     return children;
   }
 
-  private static void addSourceFolders(@NotNull TreeMap<String, RootFolder> rootFolders, @NotNull NativeArtifact artifact) {
+  private static void addSourceFolders(@NotNull TreeMap<String, RootFolder> rootFolders, @NotNull IdeNativeArtifact artifact) {
     for (VirtualFile sourceFolder : getSourceFolders(artifact)) {
       String path = sourceFolder.getPath();
       if (rootFolders.containsKey(path)) {
@@ -110,14 +110,14 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   }
 
   @NotNull
-  private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
+  private static List<VirtualFile> getSourceFolders(@NotNull IdeNativeArtifact artifact) {
     List<File> sourceFolders = new ArrayList<>(artifact.getExportedHeaders());
 
     return convertToVirtualFiles(sourceFolders);
   }
 
 
-  private static void addSourceFiles(@NotNull TreeMap<String, RootFolder> rootFolders, @NotNull NativeArtifact artifact) {
+  private static void addSourceFiles(@NotNull TreeMap<String, RootFolder> rootFolders, @NotNull IdeNativeArtifact artifact) {
     for (VirtualFile sourceFile : getSourceFiles(artifact)) {
       VirtualFile sourceFolder = sourceFile.getParent();
       String path = sourceFolder.getPath();
@@ -127,9 +127,9 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   }
 
   @NotNull
-  private static List<VirtualFile> getSourceFiles(@NotNull NativeArtifact artifact) {
+  private static List<VirtualFile> getSourceFiles(@NotNull IdeNativeArtifact artifact) {
     List<File> sourceFiles = new ArrayList<>();
-    for (NativeFile sourceFile : artifact.getSourceFiles()) {
+    for (IdeNativeFile sourceFile : artifact.getSourceFiles()) {
       File source = sourceFile.getFilePath();
       sourceFiles.add(source);
     }
@@ -272,7 +272,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    for (NativeArtifact artifact : getArtifacts()) {
+    for (IdeNativeArtifact artifact : getArtifacts()) {
       for (VirtualFile folder : getSourceFolders(artifact)) {
         if (VfsUtilCore.isAncestor(folder, file, false)) {
           return true;
@@ -306,7 +306,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
     PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
     List<PsiDirectory> folders = new ArrayList<>();
 
-    for (NativeArtifact artifact : getArtifacts()) {
+    for (IdeNativeArtifact artifact : getArtifacts()) {
       for (VirtualFile f : getSourceFolders(artifact)) {
         PsiDirectory dir = psiManager.findDirectory(f);
         if (dir != null) {
@@ -324,8 +324,8 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
   }
 
   @NotNull
-  private Collection<NativeArtifact> getArtifacts() {
-    Collection<NativeArtifact> artifacts = getValue();
+  private Collection<IdeNativeArtifact> getArtifacts() {
+    Collection<IdeNativeArtifact> artifacts = getValue();
     assert artifacts != null;
     return artifacts;
   }

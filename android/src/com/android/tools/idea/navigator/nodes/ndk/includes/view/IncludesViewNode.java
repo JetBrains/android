@@ -18,9 +18,9 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static java.util.Collections.emptyList;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeSettings;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
@@ -88,15 +88,15 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
 
     // Then include folders from the settings
     Set<String> settingsSeen = new HashSet<>();
-    for (NativeArtifact artifact : nativeIncludes.myArtifacts) {
-      for (NativeFile sourceFile : artifact.getSourceFiles()) {
+    for (IdeNativeArtifact artifact : nativeIncludes.myArtifacts) {
+      for (IdeNativeFile sourceFile : artifact.getSourceFiles()) {
         File workingDirectory = sourceFile.getWorkingDirectory();
         String settingsName = sourceFile.getSettingsName();
         if (settingsSeen.contains(settingsName)) {
           continue;
         }
         settingsSeen.add(settingsName);
-        NativeSettings settings = nativeIncludes.findExpectedSettings(settingsName);
+        IdeNativeSettings settings = nativeIncludes.findExpectedSettings(settingsName);
         set.addIncludesFromCompilerFlags(settings.getCompilerFlags(), workingDirectory);
       }
     }

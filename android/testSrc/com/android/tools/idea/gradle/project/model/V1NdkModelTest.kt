@@ -83,26 +83,30 @@ class V1NdkModelTest {
   private val modelCache = ModelCache()
 
   @Mock
-  private val mockDebugX86Artifact = IdeNativeArtifactImpl(
-    mock(NativeArtifact::class.java).apply {
+  private val _mockDebugX86Artifact = mock(NativeArtifact::class.java).apply {
       `when`(name).thenReturn("artifact1")
       `when`(groupName).thenReturn("debug")
       `when`(abi).thenReturn("x86")
       `when`(outputFile).thenReturn(x86SoFile)
       `when`(toolChain).thenReturn("toolchain1")
       `when`(targetName).thenReturn("target1")
-    }, modelCache)
+    }
 
   @Mock
-  private val mockDebugArm64Artifact = IdeNativeArtifactImpl(
-    mock(NativeArtifact::class.java).apply {
+  private val mockDebugX86Artifact = IdeNativeArtifactImpl(_mockDebugX86Artifact, modelCache)
+
+  @Mock
+  private val _mockDebugArm64Artifact = mock(NativeArtifact::class.java).apply {
       `when`(name).thenReturn("artifact2")
       `when`(groupName).thenReturn("debug")
       `when`(abi).thenReturn("arm64-v8a")
       `when`(outputFile).thenReturn(arm64V8aSoFile)
       `when`(toolChain).thenReturn("toolchain2")
       `when`(targetName).thenReturn("target2")
-    }, modelCache)
+    }
+
+  @Mock
+  private val mockDebugArm64Artifact = IdeNativeArtifactImpl(_mockDebugArm64Artifact,  modelCache)
 
   private val fullSyncV1NdkModel = V1NdkModel(
     IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
@@ -110,7 +114,7 @@ class V1NdkModelTest {
       override fun getSettings(): Collection<NativeSettings> = listOf(mockNativeSettings1, mockNativeSettings2)
       override fun getName() = "" // not needed
       override fun getFileExtensions(): Map<String, String> = emptyMap() // not needed
-      override fun getArtifacts(): Collection<NativeArtifact> = listOf(mockDebugX86Artifact, mockDebugArm64Artifact)
+      override fun getArtifacts(): Collection<NativeArtifact> = listOf(_mockDebugX86Artifact, _mockDebugArm64Artifact)
       override fun getDefaultNdkVersion(): String = "21.1.12345"
       override fun getBuildSystems(): Collection<String> = listOf("cmake")
       override fun getApiVersion(): Int = 0 // not needed
@@ -164,8 +168,7 @@ class V1NdkModelTest {
         override fun getToolChains(): Collection<NativeToolchain> = listOf(
           mockNativeToolchain1)
 
-        override fun getArtifacts(): Collection<NativeArtifact> = listOf(
-          mockDebugX86Artifact)
+        override fun getArtifacts(): Collection<NativeArtifact> = listOf(_mockDebugX86Artifact)
       })
     )
   )

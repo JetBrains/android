@@ -178,7 +178,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
-  @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
 
@@ -188,7 +187,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectFinder(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+    this(new CommandLineArgs(), new ProjectFinder(),
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
@@ -196,12 +195,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
-                               @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
     myProjectFinder = projectFinder;
-    myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
   }
@@ -309,6 +306,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     CachedVariants cachedVariants = findCachedVariants(gradleModule);
+    ModelCache modelCache = new ModelCache(myStrings);
 
     // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
@@ -328,7 +326,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
 
-      ModelCache modelCache = new ModelCache(myStrings);
       IdeAndroidProjectImpl ideAndroidProject =
         modelCache.androidProjectFrom(
           androidProject,
@@ -368,7 +365,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
 
       if (nativeAndroidProject != null) {
-        IdeNativeAndroidProject nativeProjectCopy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+        IdeNativeAndroidProject nativeProjectCopy = new IdeNativeAndroidProjectImpl(nativeAndroidProject, modelCache);
         List<IdeNativeVariantAbi> ideNativeVariantAbis;
         if (variantGroup != null) {
           ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbiImpl::new);

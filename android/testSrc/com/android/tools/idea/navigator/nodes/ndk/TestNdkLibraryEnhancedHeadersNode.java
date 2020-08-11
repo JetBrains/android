@@ -17,7 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.NativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
 
   public void testEquals() throws IOException {
-    List<NativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<IdeNativeArtifact> nativeArtifacts = Lists.newArrayList();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
@@ -71,7 +71,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   }
 
   public void testSimplest() throws IOException {
-    List<NativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<IdeNativeArtifact> nativeArtifacts = Lists.newArrayList();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
