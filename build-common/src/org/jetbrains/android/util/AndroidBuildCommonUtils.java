@@ -2,13 +2,13 @@
 package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
+import com.android.io.FileWrapper;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.PkgProps;
-import com.android.tools.idea.io.BufferingFileWrapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
@@ -434,7 +434,7 @@ public final class AndroidBuildCommonUtils {
       new File(sdkDirOsPath + File.separatorChar + packageDirName + File.separatorChar + SdkConstants.FN_SOURCE_PROP);
     if (propFile.exists() && propFile.isFile()) {
       Map<String, String> map =
-        ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
+        ProjectProperties.parsePropertyFile(new FileWrapper(propFile), new MessageBuildingSdkLog());
       if (map == null) {
         return null;
       }
