@@ -127,7 +127,7 @@ interface InspectorClient {
      */
     @VisibleForTesting
     var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
-      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model.resourceLookup, parentDisposable))
+      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model, parentDisposable))
     }
 
     /**

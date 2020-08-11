@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
@@ -31,6 +33,7 @@ class InspectorModel(val project: Project) {
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
+  val stats = SessionStatistics()
   var lastGeneration = 0
 
   // TODO: store this at the window root
@@ -93,16 +96,23 @@ class InspectorModel(val project: Project) {
     }
   }
 
-  fun updateConnection(client: InspectorClient?) {
+  fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
     updateConnectionNotification(client)
+    updateStats(client)
   }
 
-  private fun updateConnectionNotification(client: InspectorClient?) {
+  private fun updateConnectionNotification(client: InspectorClient) {
     InspectorBannerService.getInstance(project).notification =
       if (client is LegacyClient && client.selectedStream.device.apiLevel >= 29)
         StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
       else null
+  }
+
+  private fun updateStats(client: InspectorClient) {
+    if (client != DisconnectedClient) {
+      stats.start(client.isCapturing)
+    }
   }
 
   /**

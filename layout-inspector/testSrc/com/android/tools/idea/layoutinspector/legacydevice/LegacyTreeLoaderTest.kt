@@ -26,6 +26,7 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -147,9 +148,8 @@ DONE.
     responseBytes.putInt(window2.length)
     ByteBufferUtil.putString(responseBytes, window2)
     val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
-    val resourceLookup = mock(ResourceLookup::class.java)
 
-    val legacyClient = LegacyClient(resourceLookup, disposableRule.disposable)
+    val legacyClient = LegacyClient(model {}, disposableRule.disposable)
     legacyClient.selectedClient = ddmClient
 
     val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)

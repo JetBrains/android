@@ -127,5 +127,8 @@ private class SelectViewAction(
 
   override fun actionPerformed(unused: AnActionEvent) {
     inspectorModel.selection = view
+
+    // This action is only performed from mouse clicks on the image
+    inspectorModel.stats.selectionMadeFromImage()
   }
 }
