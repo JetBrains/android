@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -50,7 +49,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
@@ -97,20 +95,21 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveGeneralEvent() = runBlocking<Unit> {
-    assertThat(
-      suspendCoroutine<ByteArray> { cont ->
-        val eventListener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
-          override fun onRawEvent(eventData: ByteArray) {
-            super.onRawEvent(eventData)
-            cont.resume(eventData)
-          }
-        }
-        launch {
-          appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
-          appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
-        }
+
+    val eventDataDeferred = CompletableDeferred<ByteArray>()
+    val eventListener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
+      override fun onRawEvent(eventData: ByteArray) {
+        super.onRawEvent(eventData)
+        eventDataDeferred.complete(eventData)
       }
-    ).isEqualTo(byteArrayOf(0x12, 0x15))
+    }
+    launch {
+      appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
+      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
+    }
+
+    val eventData = eventDataDeferred.await()
+    assertThat(eventData).isEqualTo(byteArrayOf(0x12, 0x15))
   }
 
   @Test
@@ -126,15 +125,15 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    connection.messenger.disposeInspector()
+    val disposed = CompletableDeferred<Unit>()
+    connection.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onDispose() {
+        disposed.complete(Unit)
+      }
+    }, MoreExecutors.directExecutor())
 
-    suspendCoroutine<Unit> { cont ->
-      connection.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, MoreExecutors.directExecutor())
-    }
+    connection.messenger.disposeInspector()
+    disposed.join()
 
     // connection should be closed
     try {
@@ -175,20 +174,20 @@ class AppInspectorConnectionTest {
   fun sendCommandUsingClosedConnectionThrowsException() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
+    val disposed = CompletableDeferred<Unit>()
+    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onDispose() {
+        disposed.complete(Unit)
+      }
+    }, appInspectionRule.executorService)
+
     appInspectionRule.addEvent(
       Event.newBuilder()
         .setKind(PROCESS)
         .setIsEnded(true)
         .build()
     )
-
-    suspendCoroutine<Unit> { cont ->
-      client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, appInspectionRule.executorService)
-    }
+    disposed.join()
 
     // connection should be closed
     try {
@@ -254,22 +253,26 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(staleEventData))
 
     timer.currentTimeNs = 5
-    suspendCoroutine<Unit> { cont ->
-      val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
-        override fun onRawEvent(eventData: ByteArray) {
-          assertThat(eventData).isEqualTo(freshEventData)
-          super.onRawEvent(eventData)
-          cont.resumeWith(Result.success(Unit))
-        }
-      }
-      launch {
-        appInspectionRule.launchInspectorConnection(
-          inspectorId = INSPECTOR_ID,
-          eventListener = listener
-        )
-        appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
+
+
+    val eventReceived = CompletableDeferred<Unit>()
+    val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
+      override fun onRawEvent(eventData: ByteArray) {
+        assertThat(eventData).isEqualTo(freshEventData)
+        super.onRawEvent(eventData)
+        eventReceived.complete(Unit)
       }
     }
+
+    launch {
+      appInspectionRule.launchInspectorConnection(
+        inspectorId = INSPECTOR_ID,
+        eventListener = listener
+      )
+      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
+    }
+
+    eventReceived.join()
   }
 
   @ExperimentalCoroutinesApi
@@ -342,34 +345,31 @@ class AppInspectorConnectionTest {
   fun scopeCancellation() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
-    lateinit var job: Job
-    suspendCoroutine<Unit> { cont ->
-      // create some pending commands
-      transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
-        override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
-          cont.resume(Unit)
-        }
-      })
-      job = launch {
-        try {
-          client.messenger.sendRawCommand(byteArrayOf(0x12, 0x15))
-          fail()
-        }
-        catch (e: AppInspectionConnectionException) {
-          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
-        }
+    val sendRawCommandCalled = CompletableDeferred<Unit>()
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+        sendRawCommandCalled.complete(Unit)
+      }
+    })
+
+    val disposed = CompletableDeferred<Unit>()
+    launch {
+      try {
+        // This next line should get stuck (because of the disabled handler above) until the
+        // `scope.cancel` call below, which should cause the exception to get thrown.
+        client.messenger.sendRawCommand(byteArrayOf(0x12, 0x15))
+        fail()
+      }
+      catch (e: AppInspectionConnectionException) {
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
+        disposed.complete(Unit)
       }
     }
 
+    sendRawCommandCalled.join()
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     appInspectionRule.scope.cancel()
 
-    suspendCoroutine<Unit> { cont ->
-      client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, MoreExecutors.directExecutor())
-    }
+    disposed.join()
   }
 }
