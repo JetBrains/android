@@ -25,6 +25,7 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.checks.WrongIdDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
@@ -271,6 +272,14 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                 issue == GradleDetector.DEPRECATED ||
                 issue == GradleDetector.DEPRECATED_CONFIGURATION) {
               type = ProblemHighlightType.LIKE_DEPRECATED;
+            } else if (issue == WrongIdDetector.UNKNOWN_ID || issue == WrongIdDetector.UNKNOWN_ID_LAYOUT) {
+              type = ProblemHighlightType.ERROR; // like unknown symbol
+            } else if (severity == HighlightSeverity.ERROR) {
+              // In recent versions of IntelliJ, HighlightInfo.convertSeverityToProblemHighlight
+              // maps HighlightSeverity.ERROR to ProblemHighlightType.ERROR which is now documented
+              // to be like ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, which gives the wrong
+              // impression for most errors; see https://issuetracker.google.com/159532832
+              type = ProblemHighlightType.GENERIC_ERROR;
             } else {
               type = HighlightInfo.convertSeverityToProblemHighlight(severity);
             }
