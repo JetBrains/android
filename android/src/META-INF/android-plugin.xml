@@ -814,12 +814,35 @@
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector" />
 
     <runningApplicationUpdaterProvider implementation="com.android.tools.idea.run.ui.ApplyChangesAction$UpdaterProvider"/>
-    <notificationAllowlist groupIds="Heap Dump Analysis;Memory Settings Notification;Android Gradle Upgrade Notification;
-    Render error panel notifications;Convert to WebP;SDK Install;Gradle Initializer;Thanks for the feedback!;Wrote Baseline;
-    Gradle Build (Balloon);Gradle Build (Logging);Gradle KTS build files;Android Notification Group;Android Notification Log-Only Group;
-    Android Property Files Updating;Android Module Importing;APK Analyzer (Important);APK Analyzer (Info);UnifiedDeployTask;
-    JDK Location different to JAVA_HOME;Gradle Sync;Android;Invalid Sketch file;Device File Explorer;Emulator;Screen Capture;
-    Low Memory;Importing Error;Android Autogeneration;"/>
+    <notificationGroup id="APK Analyzer (Important)" displayType="BALLOON"/>
+    <notificationGroup id="Gradle Build (Balloon)" displayType="BALLOON"/>
+    <notificationGroup id="Gradle KTS build files" displayType="BALLOON"/>
+    <notificationGroup id="Android Notification Group" displayType="BALLOON"/>
+    <notificationGroup id="Android Property Files Updating" displayType="BALLOON"/>
+    <notificationGroup id="Android Module Importing" displayType="BALLOON"/>
+    <notificationGroup id="APK Analyzer (Info)" displayType="NONE"/>
+    <notificationGroup id="Gradle Build (Logging)" displayType="NONE"/>
+    <notificationGroup id="Android Notification Log-Only Group" displayType="NONE"/>
+    <notificationGroup id="Gradle Sync" displayType="NONE"/>
+    <notificationGroup id="JDK Location different to JAVA_HOME" displayType="NONE"/>
+    <notificationGroup id="UnifiedDeployTask" displayType="TOOL_WINDOW" toolWindowId="Run"/>
+    <notificationGroup id="Invalid Sketch file" displayType="BALLOON"/>
+    <notificationGroup id="Android" displayType="BALLOON"/>
+    <notificationGroup id="Device File Explorer" displayType="BALLOON"/>
+    <notificationGroup id="Compose Project Notification" displayType="STICKY_BALLOON"/>
+    <notificationGroup id="Memory Settings Notification" displayType="STICKY_BALLOON"/>
+    <notificationGroup id="Render error panel notifications" displayType="BALLOON" isLogByDefault="false"/>
+    <notificationGroup id="Convert to WebP" displayType="BALLOON"/>
+    <notificationGroup id="SDK Install" displayType="STICKY_BALLOON" isLogByDefault="false"/>
+    <notificationGroup id="Gradle Initializer" displayType="STICKY_BALLOON"/>
+    <notificationGroup id="Emulator" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.emulator"/>
+    <notificationGroup id="Screen Capture" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.ddms.actions.screenshot"/>
+    <notificationGroup id="Low Memory" displayType="BALLOON" bundle="messages.IdeBundle" key="low.memory.notification.title"/>
+    <notificationGroup id="Android Autogeneration" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.autogeneration.notification.group"/>
+    <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
+    <notificationGroup id="Heap Dump Analysis" displayType="STICKY_BALLOON"/>
+    <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON"/>
+    <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
 
     <webHelpProvider implementation="com.android.tools.idea.help.StudioWebHelpProvider" />
   </extensions>
