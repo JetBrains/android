@@ -52,14 +52,13 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
    * @return true if upon return no processes related to an app are running.
    */
   public boolean killApp(@NotNull LaunchStatus launchStatus) {
+    myIDevice.forceStop(myApplicationId);
     myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
     if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
       myProcessKilledLatch.countDown();
     }
     else {
       AndroidDebugBridge.addDeviceChangeListener(this);
-      myClientsToWaitFor.forEach(Client::kill);
-      myIDevice.kill(myApplicationId);
       checkDone();
     }
 
