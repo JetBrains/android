@@ -16,11 +16,12 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
-import com.android.builder.model.SourceProvider
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.run.PostBuildModelProvider
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFileOrFolderFromListingFile
 import com.android.tools.idea.log.LogWrapper
@@ -39,7 +40,16 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.run.AndroidDeviceSpec
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.GradleApkProvider
+import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.util.androidFacet
+import com.intellij.execution.configurations.ModuleBasedConfiguration
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -47,6 +57,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
@@ -101,6 +112,34 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
+  }
+
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
+    val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
+    return GradleApplicationIdProvider(
+      androidFacet,
+      PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) }
+    )
+  }
+
+  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
+    val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
+    if (runConfiguration !is AndroidRunConfigurationBase) return null
+    val facet = AndroidFacet.getInstance(module)!!
+
+    fun outputKind() =
+      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceSpec)) {
+        true -> GradleApkProvider.OutputKind.AppBundleOutputModel
+        false -> GradleApkProvider.OutputKind.Default
+      }
+
+    return GradleApkProvider(
+      facet,
+      getApplicationIdProvider(runConfiguration) ?: return null,
+      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
+      runConfiguration.isTestConfiguration,
+      Computable { outputKind() }
+    )
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders

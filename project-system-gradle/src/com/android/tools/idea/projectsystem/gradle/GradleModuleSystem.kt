@@ -31,7 +31,6 @@ import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
@@ -57,12 +56,7 @@ import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.GradleApkProvider
-import com.android.tools.idea.run.GradleApkProvider.OutputKind
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
@@ -70,7 +64,6 @@ import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -79,7 +72,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -477,35 +469,9 @@ class GradleModuleSystem(
     return getPackageNameByParsingPrimaryManifest(facet)
   }
 
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-    return GradleApplicationIdProvider(
-      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"),
-      { (runConfiguration as? UserDataHolder)?.let { it.getUserData(GradleApkProvider.POST_BUILD_MODEL) } }
-    )
-  }
-
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
     return GradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
-    )
-  }
-
-  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase) return null
-    val facet = AndroidFacet.getInstance(module) ?: return null
-
-    fun outputKind() =
-      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceSpec)) {
-        true -> OutputKind.AppBundleOutputModel
-        false -> OutputKind.Default
-      }
-
-    return GradleApkProvider(
-      facet,
-      getApplicationIdProvider(runConfiguration),
-      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
-      runConfiguration.isTestConfiguration,
-      Computable { outputKind() }
     )
   }
 
