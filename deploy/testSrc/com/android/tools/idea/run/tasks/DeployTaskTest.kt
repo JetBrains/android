@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
 import com.intellij.mock.MockApplication
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -44,12 +45,14 @@ class DeployTaskTest {
   @Mock private lateinit var project: Project
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
+  @Mock private lateinit var notificationGroupManager: NotificationGroupManager
 
   @Before
   fun setup() {
     ApplicationManager.setApplication(application, rootDisposable)
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
+    application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
   }
 
   @After
