@@ -149,6 +149,28 @@ class AppInspectorConnectionTest {
   fun receiveCrashEventClosesConnection() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
+    val sendRawCommandCalled = CompletableDeferred<Unit>()
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+        sendRawCommandCalled.complete(Unit)
+      }
+    })
+
+    val crashed = CompletableDeferred<Unit>()
+    launch {
+      try {
+        // This next line should get stuck (because of the disabled handler above) until the
+        // crash event occurs below, which should cause the exception to get thrown.
+        client.messenger.sendRawCommand(ByteArray(0))
+        fail()
+      }
+      catch (e: AppInspectionConnectionException) {
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
+        crashed.complete(Unit)
+      }
+    }
+
+    sendRawCommandCalled.join()
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
         .setInspectorId(INSPECTOR_ID)
@@ -160,14 +182,7 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    // connection should be closed
-    try {
-      client.messenger.sendRawCommand(ByteArray(0))
-      fail()
-    }
-    catch (e: AppInspectionConnectionException) {
-      assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
-    }
+    crashed.join()
   }
 
   @Test
@@ -253,7 +268,6 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(staleEventData))
 
     timer.currentTimeNs = 5
-
 
     val eventReceived = CompletableDeferred<Unit>()
     val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
