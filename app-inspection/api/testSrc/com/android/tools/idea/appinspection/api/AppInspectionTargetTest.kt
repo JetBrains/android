@@ -31,14 +31,14 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
@@ -150,32 +150,32 @@ class AppInspectionTargetTest {
     // Verify there is one new client.
     assertThat(target.clients).hasSize(1)
 
-    suspendCoroutine<Unit> { cont ->
-      client.addServiceEventListener(
-        object : AppInspectorClient.ServiceEventListener {
-          override fun onDispose() {
-            cont.resume(Unit)
-          }
-        }, appInspectionRule.executorService)
+    val disposed = CompletableDeferred<Unit>()
+    client.addServiceEventListener(
+      object : AppInspectorClient.ServiceEventListener {
+        override fun onDispose() {
+          disposed.complete(Unit)
+        }
+      }, appInspectionRule.executorService)
 
-      // Fake target termination to dispose of client.
-      transportService.addEventToStream(
-        FakeTransportService.FAKE_DEVICE_ID,
-        Common.Event.newBuilder()
-          .setTimestamp(timer.currentTimeNs)
-          .setKind(Common.Event.Kind.PROCESS)
-          .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
-          .setPid(FakeTransportService.FAKE_PROCESS.pid)
-          .setIsEnded(true)
-          .build()
-      )
-    }
+    // Fake target termination to dispose of client.
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setTimestamp(timer.currentTimeNs)
+        .setKind(Common.Event.Kind.PROCESS)
+        .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setIsEnded(true)
+        .build()
+    )
 
+    disposed.await()
     assertThat(target.clients).isEmpty()
   }
 
   @Test
-  fun disposeTarget() = runBlocking<Unit> {
+  fun disposeTargetCancelsAllInspectors() = runBlocking<Unit> {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
     val clientLaunchParams1 = createFakeLaunchParameters(inspectorId = "a")
@@ -190,7 +190,8 @@ class AppInspectionTargetTest {
       }
     }
 
-    val jobForClient2 = launch {
+    // This job will only finish after its client gets cancelled
+    val client2Launched = launch {
       transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
           // Keep client2 hanging so we can verify its cancellation.
@@ -206,16 +207,14 @@ class AppInspectionTargetTest {
       }
     }
 
+    val client1Disposed = CompletableDeferred<Unit>()
+    client1.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onDispose() {
+        client1Disposed.complete(Unit)
+      }
+    }, MoreExecutors.directExecutor())
+
     target.dispose()
-
-    suspendCoroutine<Unit> { cont ->
-      client1.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, MoreExecutors.directExecutor())
-    }
-
-    jobForClient2.join()
+    listOf(client2Launched, client1Disposed).joinAll()
   }
 }
