@@ -38,7 +38,9 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
       listeners.forEach { it.onScanAnotherQrCodeDeviceAction() }
     }
     Disposer.register(dlg.disposable, Disposable {
-      listeners.forEach { it.onClose() }
+      // Note: Create a copy of the listener list in case one of the listener removes
+      //       itself in its [onClose] implementation.
+      listeners.toList().forEach { it.onClose() }
     })
   }
 
