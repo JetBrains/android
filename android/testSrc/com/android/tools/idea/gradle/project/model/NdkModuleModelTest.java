@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import nl.jqno.equalsverifier.EqualsVerifier;
-
-import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
-import static com.google.common.truth.Truth.assertThat;
 
 public class NdkModuleModelTest extends AndroidGradleTestCase {
   public void testVariantAbiNames() throws Exception {
@@ -34,7 +34,6 @@ public class NdkModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void testEqualsHash() {
-    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(IncludeSet.class);
-    equalsVerifier.verify();
+    EqualsVerifier.forClass(IncludeSet.class).verify();
   }
 }

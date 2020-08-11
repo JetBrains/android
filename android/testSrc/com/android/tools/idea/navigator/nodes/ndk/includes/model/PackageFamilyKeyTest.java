@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.io.File;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
-
-import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class PackageFamilyKeyTest {
 
@@ -76,7 +75,6 @@ public class PackageFamilyKeyTest {
 
   @Test
   public void testEqualsHash() {
-    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageFamilyKey.class);
-    equalsVerifier.verify();
+    EqualsVerifier.forClass(PackageFamilyKey.class).verify();
   }
 }
