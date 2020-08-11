@@ -13,8 +13,10 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.ide.common.gradle.model.IdeBaseConfig
 import com.android.ide.common.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
@@ -195,9 +197,9 @@ open class PsProductFlavor(
 
     val signingConfig: SimpleProperty<PsProductFlavor, Unit> = property(
       "Signing Config",
-      resolvedValueGetter = { null },
+      resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
       parsedPropertyGetter = { signingConfig() },
-      getter = { asUnit() },
+      getter = ResolvedPropertyModel::asUnit,
       setter = {},
       parser = ::parseReferenceOnly,
       formatter = ::formatUnit,
