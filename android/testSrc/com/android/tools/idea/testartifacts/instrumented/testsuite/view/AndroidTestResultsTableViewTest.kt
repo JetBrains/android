@@ -94,7 +94,6 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
 
     // Assert columns.
-    table.getTableViewForTesting().tableHeader.columnModel
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
     assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
     assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Status")
