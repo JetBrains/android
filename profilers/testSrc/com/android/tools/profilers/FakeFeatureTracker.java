@@ -218,6 +218,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackZoomToSelection() { }
+
+  @Override
   public void trackToggleStreaming() {
 
   }
@@ -492,7 +495,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorMemoryData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA,
       TraceProcessorDaemonQueryStats.newBuilder()
@@ -501,6 +504,21 @@ public final class FakeFeatureTracker implements FeatureTracker {
         .setGrpcQueryDurationMs(queryTimeMs)
         .build()));
   }
+
+  @Override
+  public void trackMoveTrackGroupUp(@NotNull String title) { }
+
+  @Override
+  public void trackMoveTrackGroupDown(@NotNull String title) { }
+
+  @Override
+  public void trackExpandTrackGroup(@NotNull String title) { }
+
+  @Override
+  public void trackCollapseTrackGroup(@NotNull String title) { }
+
+  @Override
+  public void trackSelectBox(long durationUs, int trackCount) { }
 
   @NotNull
   public List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> getTraceProcessorQueryMetrics() {
