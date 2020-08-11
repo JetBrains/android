@@ -164,6 +164,11 @@ public interface FeatureTracker {
   void trackResetZoom();
 
   /**
+   * Track when the user takes an action to zoom to the current selection.
+   */
+  void trackZoomToSelection();
+
+  /**
    * Track the user toggling whether the profiler should stream or not.
    */
   void trackToggleStreaming();
@@ -425,4 +430,40 @@ public interface FeatureTracker {
    */
   void trackTraceProcessorMemoryData(
     @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track when a track group is moved up.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackMoveTrackGroupUp(@NotNull String title);
+
+  /**
+   * Track when a track group is moved down.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackMoveTrackGroupDown(@NotNull String title);
+
+  /**
+   * Track when a track group is expanded.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackExpandTrackGroup(@NotNull String title);
+
+  /**
+   * Track when a track group is collapsed.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackCollapseTrackGroup(@NotNull String title);
+
+  /**
+   * Track when a box selection is performed.
+   *
+   * @param durationUs box selection duration in microseconds.
+   * @param trackCount number fo tracks included in the selection.
+   */
+  void trackSelectBox(long durationUs, int trackCount);
 }
