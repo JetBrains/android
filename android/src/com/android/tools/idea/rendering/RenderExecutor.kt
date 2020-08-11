@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.Lock
@@ -77,6 +78,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   private val renderingExecutor: ExecutorService = executorProvider(threadFactory)
   private val timeoutExecutor: ScheduledExecutorService = timeoutExecutorProvider()
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
+  private val isBusy = AtomicBoolean(false)
 
   fun shutdown() {
     timeoutExecutor.shutdownNow()
@@ -151,26 +153,32 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       }
     }
     renderingExecutor.execute {
-      queueTimeoutFuture?.cancel(false)
-      pendingActionsQueueLock.withLock {
-        pendingActionsQueue.remove(future)
-      }
-
-      if (future.isDone) return@execute
-
-      val actionTimeoutFuture = scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
-        future.completeExceptionally(
-          createRenderTimeoutException("The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"))
-      }
-      future.whenComplete { _, _ ->  actionTimeoutFuture.cancel(false) }
-
-      // The request got called, so reset the timeout counter.
-      accumulatedTimeoutExceptions.set(0)
+      isBusy.set(true)
       try {
-        future.complete(callable.call())
+        queueTimeoutFuture?.cancel(false)
+        pendingActionsQueueLock.withLock {
+          pendingActionsQueue.remove(future)
+        }
+
+        if (future.isDone) return@execute
+
+        val actionTimeoutFuture = scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
+          future.completeExceptionally(
+            createRenderTimeoutException("The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"))
+        }
+        future.whenComplete { _, _ -> actionTimeoutFuture.cancel(false) }
+
+        // The request got called, so reset the timeout counter.
+        accumulatedTimeoutExceptions.set(0)
+        try {
+          future.complete(callable.call())
+        }
+        catch (t: Throwable) {
+          future.completeExceptionally(t)
+        }
       }
-      catch (t: Throwable) {
-        future.completeExceptionally(t)
+      finally {
+        isBusy.set(false)
       }
     }
     return future
@@ -207,6 +215,11 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   @get:TestOnly
   val accumulatedTimeouts: Int
     get() = accumulatedTimeoutExceptions.get()
+
+  /**
+   * Returns true if the render thread is busy running some code, false otherwise.
+   */
+  fun isBusy() = isBusy.get()
 
   companion object {
     @JvmStatic

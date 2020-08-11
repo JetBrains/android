@@ -251,6 +251,13 @@ public class RenderService implements Disposable {
   }
 
   /**
+   * @return true if the underlying {@link RenderExecutor} is busy, false otherwise.
+   */
+  public static boolean isBusy() {
+    return ourExecutor.isBusy();
+  }
+
+  /**
    * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides
    * valid bounds. This is normally the case. However, there are known scenarios, where
    * for various reasons, the View is left in a state where some of its bounds (left, right, top
