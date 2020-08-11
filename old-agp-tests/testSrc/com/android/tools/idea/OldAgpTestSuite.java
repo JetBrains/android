@@ -16,6 +16,8 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationOldAgpTest;
+import com.android.tools.idea.run.AndroidRunConfigurationGradleOldAgpTest;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
@@ -25,6 +27,8 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   OldAgpTestSuite.class,  // a suite mustn't contain itself
+  IdeAndroidProjectIntegrationOldAgpTest.class, // Disabled due to https://github.com/gradle/gradle/issues/8431
+  AndroidRunConfigurationGradleOldAgpTest.class, // Disabled due to https://github.com/gradle/gradle/issues/8431
 })
 public class OldAgpTestSuite extends IdeaTestSuiteBase {
 

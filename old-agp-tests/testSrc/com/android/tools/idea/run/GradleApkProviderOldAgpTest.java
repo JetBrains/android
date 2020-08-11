@@ -61,7 +61,8 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link GradleApkProvider} that use old version of AGP.
  */
 public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
-  public void testOutputModelForInstantApp() throws Exception {
+  // Disabled because of b/163602530
+  public void /*test*/OutputModelForInstantApp() throws Exception {
     // Use a plugin with instant app support
     loadProject(INSTANT_APP, null, null, "3.5.0");
     File apk = mock(File.class);
@@ -165,7 +166,8 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
       .containsExactly("base", "feature1", "feature2");
   }
 
-  public void testOutputModelForDynamicFeatureInstrumentedTest() throws Exception {
+  // Disabled because of b/163602530
+  public void /*test*/OutputModelForDynamicFeatureInstrumentedTest() throws Exception {
     loadProject(DYNAMIC_APP, "feature1", null, "3.5.0");
     // Get base-app Android Facet
     Module baseModule = TestModuleUtil.findAppModule(getProject());
@@ -221,7 +223,8 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     provider.getApks(mock(IDevice.class));
   }
 
-  public void testOutputModel() throws Exception {
+  // Disabled because of b/163602530
+  public void /*test*/OutputModel() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY, null, null, "3.5.0");
     File apk = mock(File.class);
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
@@ -233,7 +236,8 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     assertEquals(apk, apks.iterator().next().getFile());
   }
 
-  public void testOutputModelForTestOnlyModules() throws Exception {
+  // Disabled because of b/163602530
+  public void /*test*/OutputModelForTestOnlyModules() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test", null, "3.5.0");
     File apk = mock(File.class);
     File testedApk = mock(File.class);

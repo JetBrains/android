@@ -81,7 +81,6 @@ iml_module(
     test_tags = [
         "cpu:3",
         "block-network",
-        "manual",  # b/161634903
         "no_test_mac",
         "no_test_windows",
     ],

@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import java.util.List;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
   private boolean myUseSingleVariantSync;
@@ -41,6 +46,16 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
     finally {
       super.tearDown();
     }
+  }
+
+  static boolean areGradleDaemonsRunning() {
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    for (DaemonState status : daemonStatus) {
+      if (!equalsIgnoreCase(status.getStatus(), "stopped")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   protected boolean useSingleVariantSyncInfrastructure() {
