@@ -50,6 +50,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       EdtExecutorService.getInstance(),
       queue -> queue.setPassThrough(true),
       new LayoutlibSceneManagerHierarchyProvider(),
+      null,
       LayoutScannerConfiguration.getDISABLED());
     myDefaultProperties = new HashMap<>();
   }
