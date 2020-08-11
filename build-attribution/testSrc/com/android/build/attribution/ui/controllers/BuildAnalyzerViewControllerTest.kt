@@ -347,11 +347,10 @@ class BuildAnalyzerViewControllerTest {
 
     // Verify
     Mockito.verify(showSettingsUtilMock).showSettingsDialog(eq(projectRule.project), eq(MemorySettingsConfigurable::class.java))
-    // TODO (b/155317033): update to verify proper type when added
-    //val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    //buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
-    //  assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
-    //}
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+    }
   }
 
   private fun BuildAttributionUiEvent.verifyComboBoxPageChangeEvent(
