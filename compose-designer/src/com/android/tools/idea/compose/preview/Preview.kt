@@ -61,6 +61,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -417,15 +418,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     showLoading(message("panel.building"))
   }
 
-  /**
-   * Indicates if we are processing frame in the interactive mode (and therefore should not start processing another) or not.
-   */
-  private val processingFrame = AtomicBoolean(false)
   private val ticker = ControllableTicker({
-                                            if (!processingFrame.getAndSet(true)) {
-                                              surface.layoutlibSceneManagers.firstOrNull()?.let {
-                                                it.executeCallbacksAndRequestRender(null).thenRun { processingFrame.set(false) }
-                                              } ?: processingFrame.set(false)
+                                            if (!RenderService.isBusy()) {
+                                              surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(5))
 
