@@ -22,14 +22,14 @@ import java.util.ArrayList
  * Model used for pairing devices
  */
 @UiThread
-class AdbDevicePairingModel {
-  var qrCodeServices: List<MdnsService> = emptyList()
+open class AdbDevicePairingModel {
+  open var qrCodeServices: List<MdnsService> = emptyList()
     set(value) {
       field = value
       listeners.forEach { it.qrCodeServicesDiscovered(value) }
     }
 
-  var pinCodeServices: List<MdnsService> = emptyList()
+  open var pinCodeServices: List<MdnsService> = emptyList()
     set(value) {
       field = value
       listeners.forEach { it.pinCodeServicesDiscovered(value) }
@@ -41,7 +41,7 @@ class AdbDevicePairingModel {
   /**
    * The last [QrCodeImage] generated. It may be `null` if no image has been generated yet.
    */
-  var qrCodeImage : QrCodeImage? = null
+  open var qrCodeImage : QrCodeImage? = null
     set(value) {
       field = value
       value?.let { newImage ->
@@ -49,11 +49,11 @@ class AdbDevicePairingModel {
       }
     }
 
-  fun addListener(listener: AdbDevicePairingModelListener) {
+  open fun addListener(listener: AdbDevicePairingModelListener) {
     listeners.add(listener)
   }
 
-  fun removeListener(listener: AdbDevicePairingModelListener) {
+  open fun removeListener(listener: AdbDevicePairingModelListener) {
     listeners.remove(listener)
   }
 }

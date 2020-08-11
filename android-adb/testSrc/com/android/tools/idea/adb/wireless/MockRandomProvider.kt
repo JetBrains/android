@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import java.util.Random
+
 class MockRandomProvider : RandomProvider() {
-  var nextValue: Int = 0
+  private var random = Random(0)
+  var seed: Long = 0
+    set(value) {
+      field = value
+      random = Random(value)
+    }
 
   override fun nextInt(bound: Int): Int {
-    return nextValue
+    return random.nextInt(bound)
   }
 }
