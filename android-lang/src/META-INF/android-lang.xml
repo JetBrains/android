@@ -173,7 +173,7 @@
                            implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessParserDefinition"/>
     <!-- Delete when  https://youtrack.jetbrains.com/issue/KT-40924 is fixed  -->
     <multiHostInjector id ="CommentLanguageInjector" implementation="com.android.tools.idea.lang.contentAccess.ContentAccessInjectorImpl"/>
-
+    <moduleService serviceImplementation="com.android.tools.idea.lang.contentAccess.ContentAccessSchemaManager"/>
     <!-- endregion ContentAccess support -->
 
 
