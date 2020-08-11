@@ -60,9 +60,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
-    </component>
-    <component>
       <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
     </component>
   </project-components>
@@ -1006,6 +1003,10 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
+              topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
+              topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
