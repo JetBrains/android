@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.build.OutputFile;
-import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -37,28 +35,29 @@ import org.jetbrains.annotations.Nullable;
  */
 class BestOutputFinder {
   @NotNull
-  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull List<IdeAndroidArtifactOutput> outputs)
+  File findBestOutput(@NotNull IdeVariant variant,
+                      @NotNull List<String> abis,
+                      @NotNull List<IdeAndroidArtifactOutput> outputs)
     throws ApkProvisionException {
     if (outputs.isEmpty()) {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
     }
-    return doFindBestOutput(variant, device, outputs, null);
+    return doFindBestOutput(variant, abis, outputs, null);
   }
 
   @NotNull
-  File findBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull GenericBuiltArtifacts builtArtifact)
+  File findBestOutput(@NotNull IdeVariant variant, @NotNull List<String> abis, @NotNull GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
-    return doFindBestOutput(variant, device, null, builtArtifact);
+    return doFindBestOutput(variant, abis, null, builtArtifact);
   }
 
   @NotNull
   private static File doFindBestOutput(@NotNull IdeVariant variant,
-                                       @NotNull IDevice device,
+                                       @NotNull List<String> abis,
                                        @Nullable List<IdeAndroidArtifactOutput> outputs,
                                        @Nullable GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
     Set<String> variantAbiFilters = variant.getMainArtifact().getAbiFilters();
-    List<String> abis = device.getAbis();
     List<File> apkFiles = new ArrayList<>();
     int outputCount = 0;
     if (outputs != null) {
