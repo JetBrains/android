@@ -33,7 +33,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -79,9 +78,7 @@ import org.mockito.Mock;
 public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectFinder myProjectFinder;
-  @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @Mock private NativeAndroidProject myNativeAndroidProject;
-  @Mock private IdeNativeAndroidProject myIdeNativeAndroidProject;
 
   private IdeaProjectStub myProjectModel;
   private IdeaModuleStub myAndroidModuleModel;
@@ -103,7 +100,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     myAndroidProjectStub = TestProjects.createBasicProject(myProjectModel.getRootDir());
 
     when(myNativeAndroidProject.getName()).thenReturn("app");
-    when(myNativeAndroidProjectFactory.create(myNativeAndroidProject)).thenReturn(myIdeNativeAndroidProject);
 
     myAndroidModuleModel = myProjectModel.addModule(myAndroidProjectStub.getName(), "androidTask");
     myNativeAndroidModuleModel = myProjectModel.addModule(myNativeAndroidProject.getName(), "nativeAndroidTask");
@@ -126,7 +122,7 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     };
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myNativeAndroidProjectFactory,
+    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder,
                                                          myIdeaJavaModuleModelFactory, new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
