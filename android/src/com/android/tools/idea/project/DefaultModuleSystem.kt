@@ -219,29 +219,9 @@ class DefaultModuleSystem(override val module: Module) :
     return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
   }
 
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-    return NonGradleApplicationIdProvider(
-      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
-  }
-
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
     return NonGradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
-  }
-
-  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
-    val forTests: Boolean = (runConfiguration as? AndroidRunConfigurationBase)?.isTestConfiguration ?: false
-    val facet = AndroidFacet.getInstance(module)!!
-    val applicationIdProvider = getApplicationIdProvider(runConfiguration)
-    if (forTests) {
-      return NonGradleApkProvider(facet, applicationIdProvider, null)
-    }
-    val apkFacet = ApkFacet.getInstance(module)
-    return when {
-      apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
-      runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
-      else -> null
-    }
   }
 
   private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {

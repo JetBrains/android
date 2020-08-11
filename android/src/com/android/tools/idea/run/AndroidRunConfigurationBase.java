@@ -45,7 +45,6 @@ import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -190,7 +189,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    ApkProvider apkProvider = getApkProvider(facet, null);
+    if (getApplicationIdProvider() == null) {
+      errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.applicationid", getId())));
+    }
+
+    ApkProvider apkProvider = getApkProvider(null);
     if (apkProvider != null) {
       errors.addAll(apkProvider.validate());
     }
@@ -322,7 +325,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
 
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    if (applicationIdProvider == null) {
+      throw new RuntimeException("Cannot get ApplicationIdProvider");
+    }
 
     LaunchOptions.Builder launchOptions = getLaunchOptions()
       .setDebug(isDebugging);
@@ -332,7 +338,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices());
-    ApkProvider apkProvider = getApkProvider(facet, targetDeviceSpec);
+    ApkProvider apkProvider = getApkProvider(targetDeviceSpec);
     if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
@@ -383,32 +389,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   public ApplicationIdProvider getApplicationIdProvider() {
-    final Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return null;
-    }
-
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-
-    if (facet.isDisposed()) {
-      Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Facet already disposed");
-      return null;
-    }
-
-    return getApplicationIdProvider(facet);
-  }
-
-  @NotNull
-  public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    return ProjectSystemUtil.getModuleSystem(facet).getApplicationIdProvider(this);
+    return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
   }
 
   @Nullable
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    return ProjectSystemUtil.getModuleSystem(facet).getApkProvider(this, targetDeviceSpec);
+  protected ApkProvider getApkProvider(@Nullable AndroidDeviceSpec targetDeviceSpec) {
+    return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this, targetDeviceSpec);
   }
 
   public abstract boolean isTestConfiguration();

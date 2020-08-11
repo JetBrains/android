@@ -73,7 +73,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 19);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, deviceSpec(devices));
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -91,7 +91,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, deviceSpec(devices));
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -109,9 +109,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    AndroidFacet runConfigurationTargetAndroidFacet =
-      AndroidFacet.getInstance(androidTestRunConfiguration.getConfigurationModule().getModule());
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(runConfigurationTargetAndroidFacet, deviceSpec(devices));
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
