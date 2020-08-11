@@ -819,7 +819,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     for (NlComponent component : selected) {
       if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEW) ||
           NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEWGROUP)) {
-        builder.append(component.getId()).append(",");
+        String id = component.getId();
+        if (id != null) {
+          builder.append(component.getId()).append(",");
+        }
       }
     }
     if (builder.length() == 0) {
