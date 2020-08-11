@@ -36,7 +36,7 @@ class ComposeSceneComponentProvider: SceneManager.SceneComponentHierarchyProvide
   private val LOG = Logger.getInstance(ComposeSceneComponentProvider::class.java)
 
   /**
-   * When true. we will map the existing Composables to SceneComponents. If false, we disable the mapping.
+   * When true, we will map the existing Composables to SceneComponents. If false, we disable the mapping.
    */
   var enabled = true
   private val hitProvider = DefaultHitProvider()

@@ -39,6 +39,7 @@ import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
@@ -327,7 +328,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setSceneManagerProvider { surface, model -> LayoutlibSceneManager(model, surface, sceneComponentProvider)}
+    .setSceneManagerProvider { surface, model ->
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener())
+    }
     .setEditable(true)
     .setDelegateDataProvider {
       return@setDelegateDataProvider when (it) {

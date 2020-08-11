@@ -333,6 +333,11 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
    */
   abstract val instanceId: String
 
+  /**
+   * Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector.
+   */
+  var hasAnimations = false
+
   override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)

@@ -38,23 +38,26 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
 
   private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
 
+  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
+
   override fun isSelected(e: AnActionEvent) = isSelected
 
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
-    val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    manager.animationInspectionPreviewElementInstance = if (isSelected) {
-      ComposePreviewAnimationManager.onAnimationInspectorOpened()
-      (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)
-    }
-    else {
-      null
+    getComposePreviewManager()?.let {
+      it.animationInspectionPreviewElementInstance = if (isSelected) {
+        ComposePreviewAnimationManager.onAnimationInspectorOpened()
+        getPreviewElement()
+      }
+      else {
+        null
+      }
     }
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabled = true
-    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar()
+    // Only display the animation inspector icon if there are animations to be inspected.
+    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar() && getPreviewElement()?.hasAnimations == true
   }
 }

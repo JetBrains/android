@@ -273,18 +273,21 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
-   *                                   requests.
-   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
-   *                                   {@link SceneComponent}s.
+   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle
+   *                                   render requests.
+   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider} providing the mapping from
+   *                                   {@link NlComponent} to {@link SceneComponent}s.
+   * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
+   * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                                  @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
-    super(model, designSurface, false, sceneComponentProvider);
+    super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
@@ -301,6 +304,7 @@ public class LayoutlibSceneManager extends SceneManager {
     List<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
       NlComponent rootComponent = components.get(0).getRoot();
+
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
       List<SceneComponent> hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent);
@@ -330,13 +334,15 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
-                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                               @NotNull SceneManager.SceneUpdateListener sceneUpdateListener) {
     this(
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       sceneComponentProvider,
+      sceneUpdateListener,
       LayoutScannerConfiguration.getDISABLED());
   }
 
@@ -354,6 +360,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
+      null,
       LayoutScannerConfiguration.getDISABLED());
   }
 
@@ -370,6 +377,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
+      null,
       config);
   }
 
