@@ -139,6 +139,7 @@ object GuiTestLauncher {
       "-Xms256m",
       "-Xmx4096m",
       "-XX:ReservedCodeCacheSize=240m",
+      "-XX:+UseG1GC",
       "-XX:SoftRefLRUPolicyMSPerMB=50",
       "-Dsun.io.useCanonCaches=false",
       "-Djava.net.preferIPv4Stack=true",
@@ -175,7 +176,6 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
-      options += "-XX:+UseG1GC"
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
                             "bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {
@@ -185,8 +185,6 @@ object GuiTestLauncher {
       } else {
         println("BLeak JVMTI agent not found. Falling back to Java implementation: application threads will not be paused, and traversal roots will be different")
       }
-    } else {
-      options += "-XX:+UseConcMarkSweepGC"
     }
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
