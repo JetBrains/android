@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
@@ -45,7 +46,8 @@ fun buildGradle(
   wearProjectName: String = "wear",
   formFactorNames: Map<FormFactor, List<String>>,
   hasTests: Boolean = true,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  viewBindingSupport: ViewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
@@ -63,7 +65,8 @@ fun buildGradle(
     packageName,
     hasTests = hasTests,
     canUseProguard = true,
-    addLintOptions = addLintOptions
+    addLintOptions = addLintOptions,
+    viewBindingSupport = viewBindingSupport
   )
 
   if (isDynamicFeature) {

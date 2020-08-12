@@ -29,6 +29,7 @@ import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
+import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.util.toIoFile
@@ -41,6 +42,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.ThemesData
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -67,7 +69,11 @@ private fun getRelativePath(base: File, file: File): String? =
  *
  * Extracts information from various data sources.
  */
-class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder, val isNewModule: Boolean) {
+class ModuleTemplateDataBuilder(
+  val projectTemplateDataBuilder: ProjectTemplateDataBuilder,
+  val isNewModule: Boolean,
+  private val viewBindingSupport: ViewBindingSupport
+) {
   var srcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null
@@ -232,7 +238,8 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     formFactor!!,
     themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
     baseFeature,
-    apis!!
+    apis!!,
+    viewBindingSupport = viewBindingSupport
   )
 }
 
@@ -247,7 +254,7 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     overridePathCheck = false
   }
 
-  return ModuleTemplateDataBuilder(projectStateBuilder, true).apply {
+  return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported()).apply {
     name = "Fake module state"
     packageName = ""
     val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths

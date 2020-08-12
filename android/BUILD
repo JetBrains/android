@@ -659,6 +659,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/cursoradapter/cursoradapter/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/customview/customview/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/customview/customview/1.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/databinding/viewbinding/4.2.0-dev:aar",
         "//prebuilts/tools/common/m2/repository/androidx/documentfile/documentfile/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/drawerlayout/drawerlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/drawerlayout/drawerlayout/1.1.0:aar",
