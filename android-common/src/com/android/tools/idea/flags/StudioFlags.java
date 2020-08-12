@@ -538,7 +538,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED = Flag.create(
     GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
     "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
-    false);
+    true);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
