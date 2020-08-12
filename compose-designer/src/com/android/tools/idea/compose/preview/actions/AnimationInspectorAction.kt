@@ -34,7 +34,7 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   ToggleAction(message("action.animation.inspector.title"), message("action.animation.inspector.description"), ANIMATION_INSPECTOR) {
 
   private val isSelected: Boolean
-    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
+    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstance != null
 
   private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
 
@@ -43,9 +43,9 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    manager.animationInspectionPreviewElementInstanceId = if (isSelected) {
+    manager.animationInspectionPreviewElementInstance = if (isSelected) {
       ComposePreviewAnimationManager.onAnimationInspectorOpened()
-      (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)?.instanceId
+      (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)
     }
     else {
       null

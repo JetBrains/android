@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
 
@@ -85,14 +86,14 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * Name of a [com.android.tools.idea.compose.preview.util.PreviewElement] to run in interactive mode or null if not in interactive mode.
+   * [PreviewElementInstance] to run in the interactive mode or null if not in interactive mode.
    */
-  var interactivePreviewElementInstanceId: String?
+  var interactivePreviewElementInstance: PreviewElementInstance?
 
   /**
-   * Represents the `instanceId` of the `PreviewElementInstance` open in the Animation Inspector. Null if no preview is being inspected.
+   * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
    */
-  var animationInspectionPreviewElementInstanceId: String?
+  var animationInspectionPreviewElementInstance: PreviewElementInstance?
 }
 
 /**

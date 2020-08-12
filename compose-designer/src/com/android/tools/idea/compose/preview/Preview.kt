@@ -41,6 +41,7 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
@@ -240,7 +241,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var interactiveMode = InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
-  override var interactivePreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var interactivePreviewElementInstance:
+    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
       val isInteractive = newValue != null
@@ -249,7 +251,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       if (isInteractive) { // Enable interactive
         interactiveMode = InteractiveMode.STARTING
         val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
-        previewElementProvider.instanceIdFilter = newValue
+        previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         forceRefresh(quickRefresh).invokeOnCompletion {
           ticker.start()
@@ -280,18 +282,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val animationInspection = AtomicBoolean(false)
 
-  override var animationInspectionPreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var animationInspectionPreviewElementInstance:
+    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       animationInspection.set(newValue != null)
       if (animationInspection.get()) {
         LOG.debug("Animation Inspector open for preview: $newValue")
-        previewElementProvider.instanceIdFilter = newValue
+        previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
         mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
           // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
           // opening a new one.
-          animationInspectionPreviewElementInstanceId = null
+          animationInspectionPreviewElementInstance = null
         }
         surface.background = INTERACTIVE_BACKGROUND_COLOR
       }
@@ -301,7 +304,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         ComposePreviewAnimationManager.closeCurrentInspector()
         mainPanelSplitter.secondComponent = null
         sceneComponentProvider.enabled = true
-        previewElementProvider.instanceIdFilter = null
+        previewElementProvider.instanceFilter = null
       }
       forceRefresh()
     }
@@ -521,7 +524,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun dispose() {
-    animationInspectionPreviewElementInstanceId = null
+    animationInspectionPreviewElementInstance = null
   }
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()

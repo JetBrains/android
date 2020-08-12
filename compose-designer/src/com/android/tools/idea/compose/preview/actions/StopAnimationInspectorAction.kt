@@ -33,11 +33,11 @@ class StopAnimationInspectorAction: AnActionButton(message("action.stop.animatio
   override fun updateButton(e: AnActionEvent) {
     e.presentation.isEnabled = true
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      it.animationInspectionPreviewElementInstanceId != null
+      it.animationInspectionPreviewElementInstance != null
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.animationInspectionPreviewElementInstanceId = null }
+    findComposePreviewManagersForContext(e.dataContext).forEach { it.animationInspectionPreviewElementInstance = null }
   }
 }
