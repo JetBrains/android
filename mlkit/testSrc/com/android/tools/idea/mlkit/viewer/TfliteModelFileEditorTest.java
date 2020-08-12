@@ -155,7 +155,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "\n" +
                  "// Runs model inference and gets result.\n" +
                  "val outputs = model.process(image)\n" +
-                 "val detectionResult = outputs.detectionResultList\n" +
+                 "val detectionResult = outputs.detectionResultList.get(0)\n" +
                  "\n" +
                  "// Gets result from DetectionResult.\n" +
                  "val locations = detectionResult.locationsAsRectF;\n" +
@@ -175,7 +175,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "\n" +
                  "    // Runs model inference and gets result.\n" +
                  "    MyModel.Outputs outputs = model.process(image);\n" +
-                 "    List<DetectionResult> detectionResult = outputs.getDetectionResultList();\n" +
+                 "    DetectionResult detectionResult = outputs.getDetectionResultList().get(0);\n" +
                  "\n" +
                  "    // Gets result from DetectionResult.\n" +
                  "    RectF locations = detectionResult.getLocationsAsRectF();\n" +
