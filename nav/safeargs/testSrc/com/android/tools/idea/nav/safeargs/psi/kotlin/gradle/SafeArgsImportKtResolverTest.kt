@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.psi.kotlin
+package com.android.tools.idea.nav.safeargs.psi.kotlin.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
@@ -21,10 +21,10 @@ import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.setText
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -36,7 +36,7 @@ import org.junit.rules.RuleChain
 import java.io.File
 
 @RunsInEdt
-class HighlightingTest {
+class SafeArgsImportKtResolverTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -53,15 +53,20 @@ class HighlightingTest {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.SIMPLE_KOTLIN_PROJECT) { projectRoot ->
-      // Create a placeholder class that we can use as a hook to replace with various
-      // versions throughout these tests.
       File(projectRoot, "app/src/main/java/com/example/myapplication/FooClass.kt").apply {
         parentFile.mkdirs()
         createNewFile()
         writeText(
           // language=kotlin
           """
-            class FooClass
+            package com.example.myapplication
+
+            class FooClass {
+                fun myTest() {
+                    val argsClass1 = First${caret}FragmentArgs.
+                    val argsClass2 = FirstFragmentArgs().
+                }
+            }
           """.trimIndent())
       }
     }
@@ -69,25 +74,82 @@ class HighlightingTest {
   }
 
   @Test
-  fun testDestructuringDeclaration() {
+  fun testImportFixWithSingleSuggestion() {
+    projectRule.requestSyncAndWait()
+
+    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    fixture.configureFromExistingVirtualFile(file!!)
+
+    // Before auto import fix
+    val unresolvedReferences = fixture.doHighlighting()
+      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+
+    assertThat(unresolvedReferences).hasSize(2)
+
+    // Apply auto import fix
+    fixture.getAvailableIntention("Import")?.invoke(fixture.project, fixture.editor, fixture.file)
+
+    // After fix
+    fixture.checkResult(
+      // language=kotlin
+      """
+        package com.example.myapplication
+        
+        import com.example.mylibrary.FirstFragmentArgs
+        
+        class FooClass {
+            fun myTest() {
+                val argsClass1 = First${caret}FragmentArgs.
+                val argsClass2 = FirstFragmentArgs().
+            }
+        }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testImportFixWithAmbiguities() {
     projectRule.requestSyncAndWait()
 
     val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.setText(
-        // language=kotlin
+        //language=kotlin
         """
-          package com.example.mylibrary
           class FooClass {
               fun myTest() {
-                  val (arg1, arg2) = FirstFragmentArgs(1, 2)
+                  val argsClass1 = Second${caret}FragmentArgs.
+                  val argsClass2 = SecondFragmentArgs().
               }
           }
         """.trimIndent(),
         fixture.project)
     }
     fixture.configureFromExistingVirtualFile(file!!)
-    val highlightInfos = fixture.doHighlighting(HighlightSeverity.ERROR)
-    assertThat(highlightInfos).isEmpty()
+
+    // Before auto import fix
+    val unresolvedReferences = fixture.doHighlighting()
+      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+
+    assertThat(unresolvedReferences).hasSize(2)
+
+    // Apply auto import fix: though first option is selected by default if it's unit test.
+    // In this test, it has 2 options, 'import com.example.mylibrary.SecondFragmentArgs'
+    // and 'import com.example.myapplication.SecondFragmentArgs', as package name is missing
+    // here.
+    fixture.getAvailableIntention("Import")?.invoke(fixture.project, fixture.editor, fixture.file)
+
+    // After fix
+    fixture.checkResult(
+      // language=kotlin
+      """
+        import com.example.mylibrary.SecondFragmentArgs
+        
+        class FooClass {
+            fun myTest() {
+                val argsClass1 = Second${caret}FragmentArgs.
+                val argsClass2 = SecondFragmentArgs().
+            }
+        }
+      """.trimIndent())
   }
 }

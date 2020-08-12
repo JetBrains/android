@@ -4,8 +4,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": ".gradle",
+        },
+        "non-gradle": {},
+    },
     tags = [
-        "no_test_mac",  # b/152941757
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
@@ -195,7 +202,6 @@ iml_module(
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
         "manual",
-        "no_test_mac",  # b/152941757
         "no_test_windows",
         "unb",
     ],
