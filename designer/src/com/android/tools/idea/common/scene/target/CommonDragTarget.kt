@@ -377,7 +377,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
       newSelectedComponents = draggedComponents
     }
-    draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
+    draggedComponents.forEach { it.authoritativeNlComponent.attributeTransaction?.commit() }
     draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
