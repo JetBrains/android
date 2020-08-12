@@ -541,26 +541,26 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
-        val module = testArtifactSearchScopes?.module
-        if (module == null) {
-          PsiLocation.fromPsiElement(psiElement)
-        } else {
-          PsiLocation.fromPsiElement(psiElement, module)
-        }
+        PsiLocation.fromPsiElement(psiElement, testArtifactSearchScopes?.module)
       }
       else -> null
     }
   }
 
+  private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = mutableMapOf()
+
   fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
     val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-    val testClasses = androidTestResults.getFullTestClassName().let {
-      javaPsiFacade.findClasses(it, androidTestSourceScope)
-    }
-    testClasses.mapNotNull {
-      it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
-    }.firstOrNull()?.let { return it }
-    return testClasses.firstOrNull()
+    return myPsiElementCache.getOrPut(androidTestResults) {
+      lazy<PsiElement?> {
+        val testClasses = androidTestResults.getFullTestClassName().let {
+          javaPsiFacade.findClasses(it, androidTestSourceScope)
+        }
+        testClasses.mapNotNull {
+          it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+        }.firstOrNull() ?: testClasses.firstOrNull()
+      }
+    }.value
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
