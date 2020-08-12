@@ -64,8 +64,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     assertEquals(1, dupBounds.size)
   }
 
-  // b/163768441
-  fun ignored_testTextContrastSimple() {
+  fun testTextContrastSimple() {
     val result = renderAndResult(TEXT_COLOR_CONTRAST_SIMPLE)
     val validatorResult = result.validatorResult as ValidatorResult
 
@@ -73,8 +72,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     assertEquals(1, textContrast.size)
   }
 
-  // b/163768441
-  fun ignored_testTextContrastComplex() {
+  fun testTextContrastComplex() {
     val result = renderAndResult(TEXT_COLOR_CONTRAST_COMPLEX)
     val validatorResult = result.validatorResult as ValidatorResult
 
