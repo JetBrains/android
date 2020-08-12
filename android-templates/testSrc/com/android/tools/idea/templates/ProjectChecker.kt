@@ -51,6 +51,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
@@ -74,8 +75,9 @@ data class ProjectChecker(
   private val usageTracker: TestUsageTracker
 ) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
-  fun checkProject(moduleName: String, vararg customizers: ProjectStateCustomizer) {
-    val modifiedModuleName = getModifiedModuleName(moduleName)
+
+  fun checkProject(moduleName: String, avoidModifiedModuleName: Boolean = false, vararg customizers: ProjectStateCustomizer) {
+    val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
     val fixture = setUpFixtureForProject(modifiedModuleName)
     val project = fixture.project!!
     moduleState = getDefaultModuleState(project)
@@ -160,7 +162,8 @@ data class ProjectChecker(
     val moduleRecipe: Recipe = when (template.formFactor) {
       // TODO(qumeric): support C++
       // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
-      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8, true) }
+      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(
+        data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8, ViewBindingSupport.SUPPORTED_4_0_MORE) }
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }

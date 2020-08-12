@@ -31,7 +31,6 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.util.SystemInfo
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
@@ -87,7 +86,8 @@ open class TemplateTest : AndroidGradleTestCase() {
     vararg customizers: ProjectStateCustomizer,
     templateStateCustomizer: TemplateStateCustomizer = mapOf(),
     category: Category? = null,
-    formFactor: FormFactor? = null
+    formFactor: FormFactor? = null,
+    avoidModifiedModuleName: Boolean = false
   ) {
     if (DISABLED || isBroken(name)) {
       return
@@ -115,7 +115,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectChecker.checkProject(projectName, *customizers)
+      projectChecker.checkProject(projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }
@@ -141,7 +141,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
-    checkCreateTemplate("Basic Activity", withKotlin)
+    checkCreateTemplate("Basic Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -562,7 +562,8 @@ open class TemplateTest : AndroidGradleTestCase() {
       vararg customizers: ProjectStateCustomizer,
       templateStateCustomizer: TemplateStateCustomizer,
       category: Category?,
-      formFactor: FormFactor?
+      formFactor: FormFactor?,
+      avoidModifiedModuleName: Boolean
     ) {
       templatesChecked.add(name)
     }

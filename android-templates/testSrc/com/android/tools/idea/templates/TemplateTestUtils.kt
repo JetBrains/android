@@ -38,6 +38,7 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ThemesData
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.lint.checks.ManifestDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
@@ -113,9 +114,13 @@ internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignore
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
-internal fun getModifiedModuleName(moduleName: String): String {
+internal fun getModifiedModuleName(moduleName: String, avoidModifiedModuleName: Boolean): String {
   if (SystemInfo.isWindows){
     if (moduleName.startsWith("Native C++")) return moduleName // cmake can't handle especial path chars
+  }
+  if (avoidModifiedModuleName) {
+    // Avoid special chars if view binding is used because kapt doesn't recognize special chars b/156452586
+    return moduleName
   }
   return "$moduleName$specialChars,$nonAsciiChars"
 }
@@ -234,8 +239,10 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
   }
 
-  return ModuleTemplateDataBuilder(projectStateBuilder, true).apply {
-    name = "Template test module"
+  return ModuleTemplateDataBuilder(
+    projectStateBuilder,
+    isNewModule = true,
+    viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE).apply { name = "Template test module"
     packageName = defaultPackage
     val paths = createDefaultTemplateAt(project.basePath!!, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
