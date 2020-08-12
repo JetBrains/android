@@ -76,6 +76,7 @@ iml_module(
         "//tools/idea/.idea/libraries:perfetto-proto",
         "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
@@ -142,5 +143,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
     ],
 )

@@ -27,8 +27,6 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.Paths
-
 
 class SimpleperfSampleReporterTest {
 
@@ -37,11 +35,9 @@ class SimpleperfSampleReporterTest {
 
   private lateinit var sampleReporter: SimpleperfSampleReporter
 
-  private val ideaHome = Paths.get(TestUtils.getWorkspaceRoot().absolutePath, "tools", "idea")
-
   @Before
   fun setUp() {
-    sampleReporter = SimpleperfSampleReporter(ideaHome.toString())
+    sampleReporter = SimpleperfSampleReporter()
   }
 
   @Test
@@ -79,14 +75,13 @@ class SimpleperfSampleReporterTest {
   @Test
   fun unknownSymbolsSymbolizedWhenProvidingSymDir() {
     val symDir = listOf(TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData").absolutePath)
-    val reporter = SimpleperfSampleReporter(ideaHome.toString())
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
-    assertThat(reporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
+    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
-    FileOutputStream(trace).use { out -> out.write(reporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
+    FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
     val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
 
     val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
@@ -96,15 +91,14 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenSymDirNotProvided() {
-    val reporter = SimpleperfSampleReporter(ideaHome.toString())
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When not providing a path to SimpleperfSampleReporter, we shouldn't include the --symdir flag in the report-sample command.
-    assertThat(reporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), emptyList())).doesNotContain(
+    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), emptyList())).doesNotContain(
       "--symdir")
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
-    FileOutputStream(trace).use { out -> out.write(reporter.preProcessTrace(rawTrace, emptyList()).toByteArray()) }
+    FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, emptyList()).toByteArray()) }
     val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
 
     val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
@@ -116,15 +110,14 @@ class SimpleperfSampleReporterTest {
   fun unknownSymbolsNotSymbolizedWhenProvidingInvalidSymDir() {
     val symDir = listOf(
       TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces").absolutePath) // Dir without valid .so files
-    val reporter = SimpleperfSampleReporter(ideaHome.toString())
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
     // That happens even if the path does not contain valid .so files.
-    assertThat(reporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
+    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
-    FileOutputStream(trace).use { out -> out.write(reporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
+    FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
     val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
 
     val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
@@ -137,12 +130,11 @@ class SimpleperfSampleReporterTest {
     val symDir1 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/cputraces")
     val symDir2 = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData")
     // Passing a linked set is important for this test so we have predictable iteration order and can make the index checks below
-    val reporter = SimpleperfSampleReporter(ideaHome.toString())
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing multiples path to SimpleperfSampleReporter, we should include a --symdir flag in the report-sample command
     // corresponding to each directory passed.
-    val command = reporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true),
+    val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true),
                                                   listOf(symDir1.absolutePath, symDir2.absolutePath))
     assertThat(command.count { it == "--symdir" }).isEqualTo(2)
 
