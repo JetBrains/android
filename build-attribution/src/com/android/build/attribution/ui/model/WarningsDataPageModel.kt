@@ -27,7 +27,6 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
-import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import javax.swing.tree.DefaultMutableTreeNode
@@ -75,8 +74,10 @@ class WarningsDataPageModelImpl(
   var modelUpdatedListener: ((Boolean) -> Unit)? = null
     private set
 
-  override val treeHeaderText: String =
-    "${reportData.totalIssuesCount} ${StringUtil.pluralize("Warning", reportData.totalIssuesCount)}"
+  override val treeHeaderText: String
+    get() = treeStructure.treeStats.let { treeStats ->
+      "Warnings - Total: ${treeStats.totalWarningsCount}, Filtered: ${treeStats.filteredWarningsCount}"
+    }
 
   override var filter: WarningsFilter = WarningsFilter.default()
     set(value) {
@@ -164,6 +165,8 @@ private class WarningsTreeStructure(
 
   val pageIdToNode: MutableMap<WarningsPageId, WarningsTreeNode> = mutableMapOf()
 
+  val treeStats: TreeStats = TreeStats()
+
   private fun treeNode(descriptor: WarningsTreePresentableNodeDescriptor) = WarningsTreeNode(descriptor).apply {
     pageIdToNode[descriptor.pageId] = this
   }
@@ -172,12 +175,14 @@ private class WarningsTreeStructure(
 
   fun updateStructure(groupByPlugin: Boolean, filter: WarningsFilter) {
     pageIdToNode.clear()
+    treeStats.clear()
     treeRoot.let { rootNode ->
       rootNode.removeAllChildren()
       val taskWarnings = reportData.issues.asSequence()
         .flatMap { it.issues.asSequence() }
         .filter { filter.acceptTaskIssue(it) }
         .toList()
+      treeStats.filteredWarningsCount += taskWarnings.size
 
       if (groupByPlugin) {
         taskWarnings.groupBy { it.task.pluginName }.forEach { (pluginName, warnings) ->
@@ -199,9 +204,10 @@ private class WarningsTreeStructure(
           }
         }
       }
+      treeStats.totalWarningsCount += reportData.issues.sumBy { it.warningCount }
       reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+        .filter { filter.acceptAnnotationProcessorIssue(it) }
         .map { AnnotationProcessorDetailsNodeDescriptor(it) }
-        .filter { filter.acceptAnnotationProcessorIssue(it.annotationProcessorData) }
         .toList()
         .ifNotEmpty {
           val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
@@ -209,7 +215,19 @@ private class WarningsTreeStructure(
           forEach {
             annotationProcessorsRootNode.add(treeNode(it))
           }
+          treeStats.filteredWarningsCount += size
         }
+      treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
+    }
+  }
+
+  class TreeStats {
+    var totalWarningsCount: Int = 0
+    var filteredWarningsCount: Int = 0
+
+    fun clear() {
+      totalWarningsCount = 0
+      filteredWarningsCount = 0
     }
   }
 }
