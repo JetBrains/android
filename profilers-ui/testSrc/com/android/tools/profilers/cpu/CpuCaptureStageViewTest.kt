@@ -24,6 +24,7 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -206,6 +207,12 @@ class CpuCaptureStageViewTest {
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+
+    // Validate feature tracking
+    val featureTracker = profilersView.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
+    featureTracker.resetZoomToSelectionCallCount()
+    profilersView.zoomToSelectionButton.doClick()
+    assertThat(featureTracker.zoomToSelectionCallCount).isEqualTo(1)
   }
 
   @Test
