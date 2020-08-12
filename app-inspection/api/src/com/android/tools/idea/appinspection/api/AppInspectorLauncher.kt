@@ -19,7 +19,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
-import com.google.common.util.concurrent.ListenableFuture
 
 interface AppInspectorLauncher {
   /**
@@ -54,5 +53,5 @@ interface AppInspectorLauncher {
    * [params] contains information such as the inspector's id and dex location, as well as the targeted process's descriptor.
    * [creator] is a callback used to set up a client's [AppInspectorClient.rawEventListener].
    */
-  suspend fun <C: AppInspectorClient> launchInspector(params: LaunchParameters, creator: (AppInspectorClient.CommandMessenger) -> C): C
+  suspend fun launchInspector(params: LaunchParameters): AppInspectorClient
 }

@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -53,7 +53,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorClient.CommandMessenger
+    inspectorClient: AppInspectorClient
   ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -69,8 +69,10 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
         databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
 
-      override val client = DatabaseInspectorClient(
-        messenger,
+      override val client = inspectorClient
+
+      private val dbClient = DatabaseInspectorClient(
+        inspectorClient,
         project,
         handleError,
         openDatabase,
@@ -84,14 +86,14 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       val databaseInspectorClientCommands = object : DatabaseInspectorClientCommandsChannel {
-        override fun keepConnectionsOpen(keepOpen: Boolean) = client.keepConnectionsOpen(keepOpen)
+        override fun keepConnectionsOpen(keepOpen: Boolean) = dbClient.keepConnectionsOpen(keepOpen)
       }
 
       init {
         databaseInspectorProjectService.projectScope.launch {
           databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices)
-          client.startTrackingDatabaseConnections()
-          client.messenger.awaitForDisposal()
+          dbClient.startTrackingDatabaseConnections()
+          inspectorClient.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
             databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
           }

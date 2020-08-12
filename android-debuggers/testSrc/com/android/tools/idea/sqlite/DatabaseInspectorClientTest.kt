@@ -38,7 +38,7 @@ import java.util.concurrent.Executors
 
 class DatabaseInspectorClientTest : LightPlatformTestCase() {
   private lateinit var databaseInspectorClient: DatabaseInspectorClient
-  private lateinit var mockMessenger: AppInspectorClient.CommandMessenger
+  private lateinit var mockMessenger: AppInspectorClient
 
   private lateinit var openDatabaseFunction: (SqliteDatabaseId, DatabaseConnection) -> Unit
   private var openDatabaseInvoked = false
@@ -58,7 +58,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.rawEventFlow).thenReturn(emptyFlow())
     openDatabaseInvoked = false
     openDatabaseFunction = { _, _ -> openDatabaseInvoked = true }

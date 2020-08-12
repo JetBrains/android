@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
@@ -144,9 +143,8 @@ class AppInspectionServiceRule(
     parentScope: CoroutineScope = scope
   ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope.createChildScope(false)) {
-      TestInspectorClient(it)
-    }.also { timer.currentTimeNs += 1 }
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope.createChildScope(false))
+      .also { timer.currentTimeNs += 1 }
   }
 
   fun addEvent(event: Common.Event) {

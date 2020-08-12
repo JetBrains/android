@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -55,18 +54,14 @@ class AppInspectionTargetManagerTest {
 
     val target = appInspectionRule.launchTarget(otherProcessDescriptor, TEST_PROJECT)
     val disposeTarget = appInspectionRule.launchTarget(terminateProcessDescriptor, "dispose")
-    target.launchInspector(AppInspectionTestUtils.createFakeLaunchParameters(otherProcessDescriptor, project = TEST_PROJECT)) {
-      StubTestAppInspectorClient(it)
-    }
+    target.launchInspector(AppInspectionTestUtils.createFakeLaunchParameters(otherProcessDescriptor, project = TEST_PROJECT))
     val disposeClient = disposeTarget.launchInspector(
-      AppInspectionTestUtils.createFakeLaunchParameters(terminateProcessDescriptor, project = "dispose")) {
-      StubTestAppInspectorClient(it)
-    }
+      AppInspectionTestUtils.createFakeLaunchParameters(terminateProcessDescriptor, project = "dispose"))
 
     assertThat(appInspectionRule.targetManager.targets).hasSize(2)
 
     appInspectionRule.targetManager.disposeClients("dispose")
-    disposeClient.messenger.awaitForDisposal()
+    disposeClient.awaitForDisposal()
 
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
     assertThat(appInspectionRule.targetManager.targets.values.first().targetDeferred.await()).isSameAs(target)

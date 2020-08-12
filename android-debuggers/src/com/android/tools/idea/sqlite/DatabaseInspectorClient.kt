@@ -41,7 +41,7 @@ import java.util.concurrent.Executor
  * The job in this scope must be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient constructor(
-  messenger: CommandMessenger,
+  private val client: AppInspectorClient,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
   private val onDatabaseAddedListener: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit,
@@ -50,12 +50,12 @@ class DatabaseInspectorClient constructor(
   private val taskExecutor: Executor,
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
-) : AppInspectorClient(messenger) {
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
+) {
+  private val dbMessenger = DatabaseInspectorMessenger(client, scope, taskExecutor, errorsSideChannel)
 
   init {
     scope.launch {
-      messenger.rawEventFlow.collect { eventData ->
+      client.rawEventFlow.collect { eventData ->
         onRawEvent(eventData)
       }
     }

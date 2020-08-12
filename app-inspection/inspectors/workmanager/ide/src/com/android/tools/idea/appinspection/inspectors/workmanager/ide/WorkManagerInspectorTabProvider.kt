@@ -44,14 +44,14 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override fun createTab(project: Project,
                          ideServices: AppInspectionIdeServices,
                          processDescriptor: ProcessDescriptor,
-                         messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  client: AppInspectorClient): AppInspectorTab {
     val projectScope = AndroidCoroutineScope(project)
     val moduleScope = CoroutineScope(projectScope.coroutineContext + Job(projectScope.coroutineContext[Job]))
     return object : AppInspectorTab {
-      override val client =
-        WorkManagerInspectorClient(messenger, moduleScope)
+      override val client = client
+      private val wmClient = WorkManagerInspectorClient(client, moduleScope)
 
-      override val component: JComponent = WorkManagerInspectorTab(client, ideServices, moduleScope).component
+      override val component: JComponent = WorkManagerInspectorTab(wmClient, ideServices, moduleScope).component
     }
   }
 }

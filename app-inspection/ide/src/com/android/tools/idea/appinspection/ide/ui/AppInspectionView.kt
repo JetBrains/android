@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -38,7 +38,6 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -212,16 +211,15 @@ class AppInspectionView(
                 project.name,
                 force
               )
-            ) { messenger ->
-              invokeAndWaitIfNeeded {
-                provider.createTab(project, ideServices, currentProcess, messenger)
-                  .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                  .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
-              }.client
+            )
+            withContext(uiDispatcher) {
+              provider.createTab(project, ideServices, currentProcess, client)
+                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+                .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
             }
             scope.launch {
-              client.messenger.awaitForDisposal()
-              if (client.messenger.crashMessage != null) {
+              client.awaitForDisposal()
+              if (client.crashMessage != null) {
                 AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
                 // Wait until AFTER we're disposed before showing the notification. This ensures if
                 // the user hits restart, which requests launching a new inspector, it won't reuse

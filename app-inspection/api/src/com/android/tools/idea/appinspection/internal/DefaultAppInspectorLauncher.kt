@@ -24,10 +24,9 @@ import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 internal class DefaultAppInspectorLauncher(private val targetManager: AppInspectionTargetManager,
                                            private val discovery: AppInspectionProcessDiscovery,
                                            private val createJarCopier: JarCopierCreator) : AppInspectorLauncher {
-  override suspend fun <C: AppInspectorClient> launchInspector(
-    params: AppInspectorLauncher.LaunchParameters,
-    creator: (AppInspectorClient.CommandMessenger) -> C
-  ): C {
+  override suspend fun launchInspector(
+    params: AppInspectorLauncher.LaunchParameters
+  ): AppInspectorClient {
     val processDescriptor = params.processDescriptor.toTransportImpl()
     val jarCopierCreator = createJarCopier(processDescriptor.stream.device) ?: throw RuntimeException("Cannot find ADB device.")
     val streamChannel = discovery.getStreamChannel(processDescriptor.stream.streamId)
@@ -35,6 +34,6 @@ internal class DefaultAppInspectorLauncher(private val targetManager: AppInspect
                           "Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}")
     return targetManager
       .attachToProcess(params.processDescriptor, jarCopierCreator, streamChannel, params.projectName)
-      .launchInspector(params, creator)
+      .launchInspector(params)
   }
 }

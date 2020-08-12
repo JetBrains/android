@@ -64,7 +64,7 @@ class AppInspectorConnectionTest {
   fun disposeInspectorSucceeds() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    connection.messenger.scope.cancel()
+    connection.scope.cancel()
   }
 
   @Test
@@ -73,14 +73,14 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    connection.messenger.scope.cancel()
+    connection.scope.cancel()
   }
 
   @Test
   fun sendRawCommandSucceedWithCallback() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray())).isEqualTo("TestData".toByteArray())
+    assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("TestData".toByteArray())
   }
 
   @Test
@@ -89,7 +89,7 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
+    assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
   }
 
 
@@ -98,16 +98,16 @@ class AppInspectorConnectionTest {
     val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    assertThat(connection.messenger.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify the flow is cold.
-    assertThat(connection.messenger.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify flow collection when inspector is disposed.
-    connection.messenger.scope.cancel()
+    connection.scope.cancel()
 
     try {
-      connection.messenger.rawEventFlow.single()
+      connection.rawEventFlow.single()
       fail()
     }
     catch (e: CancellationException) {
@@ -118,12 +118,12 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    connection.messenger.scope.cancel()
-    connection.messenger.awaitForDisposal()
+    connection.scope.cancel()
+    connection.awaitForDisposal()
 
     // connection should be closed
     try {
-      connection.messenger.sendRawCommand("Test".toByteArray())
+      connection.sendRawCommand("Test".toByteArray())
       fail()
     }
     catch (e: AppInspectionConnectionException) {
@@ -147,7 +147,7 @@ class AppInspectorConnectionTest {
       try {
         // This next line should get stuck (because of the disabled handler above) until the
         // crash event occurs below, which should cause the exception to get thrown.
-        client.messenger.sendRawCommand(ByteArray(0))
+        client.sendRawCommand(ByteArray(0))
         fail()
       }
       catch (e: AppInspectionConnectionException) {
@@ -182,11 +182,11 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    client.messenger.awaitForDisposal()
+    client.awaitForDisposal()
 
     // connection should be closed
     try {
-      client.messenger.sendRawCommand("Data".toByteArray())
+      client.sendRawCommand("Data".toByteArray())
       fail()
     }
     catch (e: AppInspectionConnectionException) {
@@ -207,7 +207,7 @@ class AppInspectorConnectionTest {
     )
 
     supervisorScope {
-      val commandDeferred = async { client.messenger.sendRawCommand("Blah".toByteArray()) }
+      val commandDeferred = async { client.sendRawCommand("Blah".toByteArray()) }
 
       val checkResults = async {
         try {
@@ -251,7 +251,7 @@ class AppInspectorConnectionTest {
 
     val client = appInspectionRule.launchInspectorConnection()
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
-    val rawData = client.messenger.rawEventFlow.take(1).single()
+    val rawData = client.rawEventFlow.take(1).single()
     assertThat(rawData).isEqualTo(freshEventData)
   }
 
@@ -266,7 +266,7 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
 
     var count = 0
-    val flow = client.messenger.rawEventFlow.map { eventData ->
+    val flow = client.rawEventFlow.map { eventData ->
       count++
       eventData
     }
@@ -305,7 +305,7 @@ class AppInspectorConnectionTest {
       }
     })
 
-    val sendJob = launch { client.messenger.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()) }
+    val sendJob = launch { client.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()) }
     cancelReadyDeferred.await()
     sendJob.cancel()
     cancelCompletedDeferred.await()
@@ -326,7 +326,7 @@ class AppInspectorConnectionTest {
       try {
         // This next line should get stuck (because of the disabled handler above) until the
         // `scope.cancel` call below, which should cause the exception to get thrown.
-        client.messenger.sendRawCommand(byteArrayOf(0x12, 0x15))
+        client.sendRawCommand(byteArrayOf(0x12, 0x15))
         fail()
       }
       catch (e: AppInspectionConnectionException) {
@@ -338,16 +338,16 @@ class AppInspectorConnectionTest {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     appInspectionRule.scope.cancel()
 
-    client.messenger.awaitForDisposal()
+    client.awaitForDisposal()
   }
 
   @Test
   fun verifyCrashMessage() = runBlocking<Unit> {
     // Scope cancellation
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
-    client.messenger.scope.cancel()
-    client.messenger.awaitForDisposal()
-    assertThat(client.messenger.crashMessage).isNull()
+    client.scope.cancel()
+    client.awaitForDisposal()
+    assertThat(client.crashMessage).isNull()
 
     // Process ended
     val client2 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -357,8 +357,8 @@ class AppInspectorConnectionTest {
         .setIsEnded(true)
         .build()
     )
-    client2.messenger.awaitForDisposal()
-    assertThat(client2.messenger.crashMessage).isNull()
+    client2.awaitForDisposal()
+    assertThat(client2.crashMessage).isNull()
 
     // Crash
     val client3 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -372,7 +372,7 @@ class AppInspectorConnectionTest {
         )
         .build()
     )
-    client3.messenger.awaitForDisposal()
-    assertThat(client3.messenger.crashMessage).isNotNull()
+    client3.awaitForDisposal()
+    assertThat(client3.crashMessage).isNotNull()
   }
 }
