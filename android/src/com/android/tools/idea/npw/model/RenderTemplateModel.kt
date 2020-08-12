@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getPackageForApplication
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -64,6 +65,7 @@ private class ExistingNewModuleModelData(
     throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
   override val isLibrary: Boolean = false
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
+  override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
 }
 
 /**
@@ -121,6 +123,8 @@ class RenderTemplateModel private constructor(
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
       }
+
+      sendModuleMetrics.set(!hasActivity)
 
       moduleTemplateDataBuilder.apply {
         // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)

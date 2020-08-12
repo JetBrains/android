@@ -97,6 +97,12 @@ interface ModuleModelData : ProjectModelData {
   val loggingEvent: RenderLoggingEvent
 
   val wizardContext: WizardUiContext
+
+  /**
+   * Modules with a component Render that sends metrics, should set this value to false (otherwise metrics will be duplicated).
+   * Modules without any Component Render or that have a "No Activity" selected, should leave this field set to true.
+   **/
+  val sendModuleMetrics: BoolValueProperty
 }
 
 class NewAndroidModuleModel(
