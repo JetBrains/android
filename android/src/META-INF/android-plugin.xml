@@ -51,9 +51,6 @@
       <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
-    </component>
-    <component>
       <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
     </component>
   </project-components>
@@ -300,6 +297,7 @@
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
     <projectService serviceImplementation="org.jetbrains.android.AndroidPropertyFilesUpdater" />
+    <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
@@ -992,9 +990,8 @@
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
-  </projectListeners>
-
-  <projectListeners>
+    <listener class="com.android.tools.idea.project.SyncTimestampListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
