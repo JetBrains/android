@@ -28,6 +28,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
@@ -36,7 +37,14 @@ class NewLibraryModuleModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel("lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker), moduleParent = moduleParent) {
+) : ModuleModel(
+  name = "lib",
+  commandName = "New Library Module",
+  isLibrary = true,
+  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+  moduleParent = moduleParent,
+  wizardContext = NEW_MODULE
+) {
   @JvmField
   val className = StringValueProperty("MyClass")
 

@@ -23,13 +23,21 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 
 class NewBenchmarkModuleModel(
   project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel("benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker), moduleParent = moduleParent) {
+) : ModuleModel(
+  name = "benchmark",
+  commandName = "New Benchmark Module",
+  isLibrary = true,
+  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+  moduleParent = moduleParent,
+  wizardContext = NEW_MODULE
+) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData, useGradleKts.get()) }
 

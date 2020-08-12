@@ -51,7 +51,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, isLibrary)
-      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name, NEW_MODULE)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 
@@ -98,7 +98,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, FormFactor.Mobile, true)
-      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name, NEW_MODULE)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 }
