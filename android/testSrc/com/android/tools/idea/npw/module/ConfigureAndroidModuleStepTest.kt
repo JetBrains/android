@@ -74,7 +74,7 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title", NEW_MODULE)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -100,7 +100,7 @@ class ConfigureAndroidModuleStepTest {
     val basePackage = "com.example"
     val parentName = ":libs"
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title", NEW_MODULE)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -130,7 +130,7 @@ class ConfigureAndroidModuleStepTest {
     val basePackage = "com.example"
     val parentName = ""
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title", NEW_MODULE)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -159,7 +159,7 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title", NEW_MODULE)
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)

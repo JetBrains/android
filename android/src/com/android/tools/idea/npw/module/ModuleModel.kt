@@ -34,6 +34,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -49,7 +50,8 @@ abstract class ModuleModel(
   _template: NamedModuleTemplate = with(projectModelData) {
     createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
   },
-  val moduleParent: String
+  val moduleParent: String,
+  override val wizardContext: WizardUiContext
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
