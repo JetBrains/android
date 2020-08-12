@@ -53,6 +53,23 @@ import org.jetbrains.annotations.NotNull;
  * @see LightModelClass
  */
 public class LightModelOutputsClass extends AndroidLightClassBase {
+  /**
+   * Tag for normal getter methods in output class. For each output tensor we have a getter method
+   * called {@code getTensorNameAsType}.
+   * <p>
+   * This tag is used to distinguish with method with {@link #TAG_GROUP_METHOD}.
+   */
+  @NotNull
+  public static final String TAG_NORMAL_METHOD = "normal method";
+  /**
+   * Tag for group getter methods in output class. If output class has {@link TensorGroupInfo}, it has a method
+   * called {@code getTensorGroupName}.
+   * <p>
+   * This tag is used to distinguish with method with {@link #TAG_NORMAL_METHOD}.
+   */
+  @NotNull
+  public static final String TAG_GROUP_METHOD = "group method";
+
   @NotNull
   private final PsiClass containingClass;
   @NotNull
@@ -91,7 +108,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
 
         if (myAPIVersion.isAtLeastVersion(APIVersion.API_VERSION_2)) {
           // Generated API added in version 2.
-          for(TensorGroupInfo tensorGroupInfo : modelInfo.getOutputTensorGroups()) {
+          for (TensorGroupInfo tensorGroupInfo : modelInfo.getOutputTensorGroups()) {
             methods.add(buildGroupGetterMethod(tensorGroupInfo));
           }
         }
@@ -132,6 +149,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
       .setContainingClass(this)
       .setNavigationElement(this);
     method.setDeprecated(usedForFallback);
+    method.setOriginInfo(TAG_NORMAL_METHOD);
     return method;
   }
 
@@ -151,6 +169,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this)
       .setNavigationElement(this);
+    method.setOriginInfo(TAG_GROUP_METHOD);
     return method;
   }
 
