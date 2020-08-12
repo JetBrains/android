@@ -60,12 +60,6 @@
       <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
