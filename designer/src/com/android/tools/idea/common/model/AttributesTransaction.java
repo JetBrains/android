@@ -184,6 +184,11 @@ public class AttributesTransaction implements NlAttributesHolder {
     return myComponent;
   }
 
+  /**
+   * Close this transaction and rollback all pending attributes which are not applied yet.
+   *
+   * @see #apply()
+   */
   boolean finishTransaction() {
     assert isValid;
     isValid = false;
