@@ -111,7 +111,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   /**
    * Checks that there are no undisposed Android-related objects.
    */
-  private static void checkUndisposedAndroidRelatedObjects() {
+  public static void checkUndisposedAndroidRelatedObjects() {
     Ref<Disposable> firstLeak = new Ref<>();
     DisposerExplorer.visitTree(disposable -> {
       if (allLeakedDisposables.contains(disposable) ||
