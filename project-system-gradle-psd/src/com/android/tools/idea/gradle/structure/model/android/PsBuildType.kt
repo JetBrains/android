@@ -71,10 +71,8 @@ open class PsBuildType(
   override val path: PsBuildTypeNavigationPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
-  var embedMicroApp by BuildTypeDescriptors.embedMicroApp
   var jniDebuggable by BuildTypeDescriptors.jniDebuggable
   var minifyEnabled by BuildTypeDescriptors.minifyEnabled
-  var pseudoLocalesEnabled by BuildTypeDescriptors.pseudoLocalesEnabled
   var renderscriptDebuggable by BuildTypeDescriptors.renderscriptDebuggable
   var renderscriptOptimLevel by BuildTypeDescriptors.renderscriptOptimLevel
   var testCoverageEnabled by BuildTypeDescriptors.testCoverageEnabled
@@ -142,19 +140,6 @@ open class PsBuildType(
       knownValuesGetter = ::booleanValues
     )
 
-    val embedMicroApp: SimpleProperty<PsBuildType, Boolean> = property(
-      "Embed Micro App",
-      preferredVariableName = { variableName("$name-embed-micro-app") },
-      // See: com.android.build.gradle.internal.dsl.BuildType#init
-      defaultValueGetter = { it.name != DEBUG_BUILD_TYPE_NAME },
-      resolvedValueGetter = { isEmbedMicroApp },
-      parsedPropertyGetter = { embedMicroApp() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
-
     val jniDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Jni Debuggable",
       preferredVariableName = { variableName("$name-jni-debuggable") },
@@ -184,18 +169,6 @@ open class PsBuildType(
       preferredVariableName = { variableName("$name-multi-dex-enabled") },
       resolvedValueGetter = { multiDexEnabled },
       parsedPropertyGetter = { multiDexEnabled() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
-
-    val pseudoLocalesEnabled: SimpleProperty<PsBuildType, Boolean> = property(
-      "Pseudo Locales Enabled",
-      preferredVariableName = { variableName("$name-pseudo-locales-enabled") },
-      defaultValueGetter = { false },
-      resolvedValueGetter = { isPseudoLocalesEnabled },
-      parsedPropertyGetter = { pseudoLocalesEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
       parser = ::parseBoolean,
@@ -240,7 +213,7 @@ open class PsBuildType(
       "Test Coverage Enabled",
       preferredVariableName = { variableName("$name-test-coverage-enabled") },
       defaultValueGetter = { false },
-      resolvedValueGetter = { isTestCoverageEnabled },
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testCoverageEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
@@ -312,7 +285,7 @@ open class PsBuildType(
     )
 
     override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =
-      listOf(applicationIdSuffix, debuggable, embedMicroApp, jniDebuggable, minifyEnabled, multiDexEnabled, pseudoLocalesEnabled,
+      listOf(applicationIdSuffix, debuggable, jniDebuggable, minifyEnabled, multiDexEnabled,
              renderscriptDebuggable, renderscriptOptimLevel, signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled,
              matchingFallbacks, consumerProGuardFiles, proGuardFiles, manifestPlaceholders)
   }

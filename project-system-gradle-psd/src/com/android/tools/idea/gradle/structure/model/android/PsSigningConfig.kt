@@ -108,16 +108,6 @@ class PsSigningConfig(
       parser = ::parseString
     )
 
-    val storeType: SimpleProperty<PsSigningConfig, String> = property(
-      "Store Type",
-      resolvedValueGetter = { storeType },
-      // TODO: Properly handle other password types.
-      parsedPropertyGetter = { storeType() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
-
     val keyAlias: SimpleProperty<PsSigningConfig, String> = property(
       "Key Alias",
       resolvedValueGetter = { keyAlias },
@@ -139,6 +129,6 @@ class PsSigningConfig(
     )
 
     override val properties: Collection<ModelProperty<PsSigningConfig, *, *, *>> =
-      listOf(storeFile, storePassword, storeType, keyAlias, keyPassword)
+      listOf(storeFile, storePassword, keyAlias, keyPassword)
   }
 }

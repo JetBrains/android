@@ -217,17 +217,19 @@ public class AndroidLintIdeClient extends LintIdeClient {
           GradleVersion version = model.getModelVersion();
           if (version != null && version.isAtLeast(2, 1, 0)) {
             String buildToolsVersion = model.getAndroidProject().getBuildToolsVersion();
-            AndroidSdkHandler sdk = getSdk();
-            if (sdk != null) {
-              try {
-                Revision revision = Revision.parseRevision(buildToolsVersion);
-                BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
-                if (buildToolInfo != null) {
-                  return buildToolInfo.getRevision();
+            if (buildToolsVersion != null) {
+              AndroidSdkHandler sdk = getSdk();
+              if (sdk != null) {
+                try {
+                  Revision revision = Revision.parseRevision(buildToolsVersion);
+                  BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
+                  if (buildToolInfo != null) {
+                    return buildToolInfo.getRevision();
+                  }
                 }
-              }
-              catch (NumberFormatException ignore) {
-                // Fall through and use the latest
+                catch (NumberFormatException ignore) {
+                  // Fall through and use the latest
+                }
               }
             }
           }
