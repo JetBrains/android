@@ -107,7 +107,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setGetSchema(schema)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(schemaResponse.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -165,7 +165,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       )
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -235,7 +235,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       )
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -301,7 +301,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       )
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -340,7 +340,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testExecuteStatementWithParameters() = runBlocking<Unit> {
     // Prepare
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     val sqliteStatement = SqliteStatement(
       SqliteStatementType.UNKNOWN,
       "fake query",
@@ -376,7 +376,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     // Prepare
     val cursor = Response.newBuilder().build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -408,7 +408,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -439,7 +439,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -470,7 +470,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -504,7 +504,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -535,7 +535,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -566,7 +566,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -598,7 +598,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val mockMessenger = mock(AppInspectorClient::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(cursor.toByteArray())
 
     liveDatabaseConnection = createLiveDatabaseConnection(mockMessenger)
@@ -609,7 +609,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     verifyNoMoreInteractions(mockTrackerService)
   }
 
-  private fun createLiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger): LiveDatabaseConnection {
+  private fun createLiveDatabaseConnection(messenger: AppInspectorClient): LiveDatabaseConnection {
     return LiveDatabaseConnection(
       testRootDisposable,
       DatabaseInspectorMessenger(messenger, scope, taskExecutor, createErrorSideChannel(project)),

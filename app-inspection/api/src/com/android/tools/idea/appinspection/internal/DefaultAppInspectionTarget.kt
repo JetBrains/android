@@ -88,10 +88,9 @@ internal class DefaultAppInspectionTarget(
   @VisibleForTesting
   internal val clientDisposalJobs = ConcurrentHashMap<String, Job>()
 
-  override suspend fun <C : AppInspectorClient> launchInspector(
-    params: AppInspectorLauncher.LaunchParameters,
-    creator: (AppInspectorClient.CommandMessenger) -> C
-  ): C {
+  override suspend fun launchInspector(
+    params: AppInspectorLauncher.LaunchParameters
+  ): AppInspectorClient {
     val clientDeferred = clients.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
@@ -111,14 +110,13 @@ internal class DefaultAppInspectionTarget(
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
         if (event.appInspectionResponse.status == SUCCESS) {
-          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-          setupEventListener(creator, connection).also { inspectorClient ->
-            clientDisposalJobs[params.inspectorId] = scope.launch {
-              inspectorClient.messenger.awaitForDisposal()
-              clients.remove(params.inspectorId)
-              clientDisposalJobs.remove(params.inspectorId)
-            }
+          val client = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+          clientDisposalJobs[params.inspectorId] = scope.launch {
+            client.awaitForDisposal()
+            clients.remove(params.inspectorId)
+            clientDisposalJobs.remove(params.inspectorId)
           }
+          client
         }
         else {
           throw AppInspectionLaunchException(
@@ -127,9 +125,7 @@ internal class DefaultAppInspectionTarget(
       }
     }
     try {
-      // We always know the exact type of the client because it gets created via the passed-in creator
-      @Suppress("UNCHECKED_CAST")
-      return clientDeferred.await() as C
+      return clientDeferred.await()
     }
     catch (e: CancellationException) {
       throw e
@@ -149,21 +145,12 @@ internal class DefaultAppInspectionTarget(
   }
 }
 
-private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T,
-                                                        connection: AppInspectorConnection): T {
-  val client = creator(connection)
-  connection.setupConnection()
-  return client
-}
-
 @VisibleForTesting
-fun <T : AppInspectorClient> launchInspectorForTest(
+fun launchInspectorForTest(
   inspectorId: String,
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
-  scope: CoroutineScope,
-  creator: (AppInspectorClient.CommandMessenger) -> T
-): T {
-  val connection = AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
-  return setupEventListener(creator, connection)
+  scope: CoroutineScope
+): AppInspectorClient {
+  return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
 }

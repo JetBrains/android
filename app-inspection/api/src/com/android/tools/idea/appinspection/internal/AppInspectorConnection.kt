@@ -127,8 +127,8 @@ internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
   private val connectionStartTimeNs: Long,
-  private val parentScope: CoroutineScope
-) : AppInspectorClient.CommandMessenger {
+  parentScope: CoroutineScope
+) : AppInspectorClient {
   override val scope = parentScope.createChildScope(false)
   private var _crashMessage: String? = null
   override val crashMessage: String?
@@ -154,9 +154,11 @@ internal class AppInspectorConnection(
   override val rawEventFlow = callbackFlow<ByteArray> {
     val listener = transport.createStreamEventListener(
       eventKind = APP_INSPECTION_EVENT,
-      filter = { event -> event.hasAppInspectionEvent()
-                          && event.appInspectionEvent.inspectorId == inspectorId
-                          && event.appInspectionEvent.hasRawEvent() },
+      filter = { event ->
+        event.hasAppInspectionEvent()
+        && event.appInspectionEvent.inspectorId == inspectorId
+        && event.appInspectionEvent.hasRawEvent()
+      },
       startTimeNs = { connectionStartTimeNs }
     ) { event ->
       val appInspectionEvent = event.appInspectionEvent
@@ -178,11 +180,10 @@ internal class AppInspectorConnection(
   }
 
   /**
-   * Sets the active [AppInspectorClient.RawEventListener] and [AppInspectorClient.ServiceEventNotifier] for this connection.
-   *
-   * This has the side effect of starting all relevant transport listeners, so it should only be called as the last stage of client setup.
+   * Sets the crash and process-end listeners for this inspector. It also starts the [commandSender] actor that facilitates two-way
+   * communication between client and the inspector on device.
    */
-  internal fun setupConnection() {
+  init {
     transport.registerEventListener(inspectorEventListener)
     transport.registerEventListener(processEndListener)
     scope.launch(start = CoroutineStart.ATOMIC) {

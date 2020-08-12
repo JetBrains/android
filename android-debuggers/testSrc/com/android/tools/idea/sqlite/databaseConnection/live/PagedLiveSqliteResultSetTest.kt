@@ -42,7 +42,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val edtExecutor = EdtExecutorService.getInstance()
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
-  class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient.CommandMessenger {
+  class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)
       assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
@@ -295,11 +295,11 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   private fun createPagedLiveSqliteResultSet(
     statement: SqliteStatement,
-    messenger: AppInspectorClient.CommandMessenger
+    client: AppInspectorClient
   ): LiveSqliteResultSet {
     val liveSqliteResultSet = PagedLiveSqliteResultSet(
       statement,
-      DatabaseInspectorMessenger(messenger, scope, taskExecutor),
+      DatabaseInspectorMessenger(client, scope, taskExecutor),
       0,
       taskExecutor
     )

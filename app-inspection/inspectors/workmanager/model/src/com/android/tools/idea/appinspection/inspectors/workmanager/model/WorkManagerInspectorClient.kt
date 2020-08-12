@@ -30,10 +30,10 @@ import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 
 /**
- * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
+ * Class used to send commands to and handle events from the on-device work manager inspector through its [client].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(messenger: CommandMessenger, private val clientScope: CoroutineScope) : AppInspectorClient(messenger) {
+class WorkManagerInspectorClient(private val client: AppInspectorClient, private val clientScope: CoroutineScope) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -49,10 +49,10 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, private val client
   init {
     val command = Command.newBuilder().setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance()).build()
     clientScope.launch {
-      messenger.sendRawCommand(command.toByteArray())
+      client.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      messenger.rawEventFlow.collect { eventData ->
+      client.rawEventFlow.collect { eventData ->
         handleEvent(eventData)
       }
     }
@@ -84,7 +84,7 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, private val client
     val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
     val command = Command.newBuilder().setCancelWork(cancelCommand).build()
     clientScope.launch {
-      messenger.sendRawCommand(command.toByteArray())
+      client.sendRawCommand(command.toByteArray())
     }
   }
 

@@ -101,7 +101,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   override fun tearDown() {
     try {
       sqliteUtil.tearDown()
-    } finally {
+    }
+    finally {
       super.tearDown()
     }
   }
@@ -112,13 +113,13 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
       2,
       EdtExecutorService.getInstance()
     )
@@ -176,7 +177,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )
@@ -256,7 +257,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )

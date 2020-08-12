@@ -16,6 +16,19 @@
 package com.android.tools.idea.appinspection.inspector.api.test
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
-class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
+class StubTestAppInspectorClient : AppInspectorClient {
+  override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+    throw NotImplementedError()
+  }
+
+  override val scope: CoroutineScope
+    get() = throw NotImplementedError()
+
+  override val rawEventFlow: Flow<ByteArray> = emptyFlow()
+
+  override val crashMessage = null
 }
