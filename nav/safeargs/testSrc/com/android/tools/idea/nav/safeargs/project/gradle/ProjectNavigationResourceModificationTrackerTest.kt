@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.cache
+package com.android.tools.idea.nav.safeargs.project.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
-import com.android.tools.idea.nav.safeargs.extensions.getContents
+import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
+import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.search.PsiShortNamesCache
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -31,8 +32,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+/**
+ * Test that our project-wide modification tracker works across multiple modules.
+ *
+ * This needs to be a gradle test because that's the only way right now we can support multi-module configurations
+ */
 @RunsInEdt
-class ShortNamesCacheTestMultiJavaModules {
+class ProjectNavigationResourceModificationTrackerTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -52,46 +58,33 @@ class ShortNamesCacheTestMultiJavaModules {
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
   }
 
-  /**
-   *  Project structure:
-   *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
-   *
-   *  So light classes from lib2 module should be exposed, but light classes from lib1 should not be exposed.
-   */
+/**
+ *  Project structure:
+ *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
+ */
   @Test
-  fun multiModuleTest() {
+  fun multiModuleModificationTrackerTest() {
     projectRule.requestSyncAndWait()
-    val cache = PsiShortNamesCache.getInstance(fixture.project)
+    val baseLineNumber = ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
 
-    // Check light arg classes
-    assertThat(cache.getContents("FirstFragmentArgs", fixture.project)).containsExactly(
-      "com.example.myapplication.FirstFragmentArgs",
-      "com.example.mylibrary2.FirstFragmentArgs"
-    )
+    val navFileInBaseAppModule = projectRule.project.baseDir.findFileByRelativePath(
+      "app/src/main/res/navigation/nav_graph.xml")!!
 
-    assertThat(cache.getContents("SecondFragmentArgs", fixture.project)).containsExactly(
-      "com.example.myapplication.SecondFragmentArgs"
-    )
+    val navFileInDepModule = projectRule.project.baseDir.findFileByRelativePath(
+      "mylibrary2/src/main/res/navigation/libnav_graph.xml")!!
 
+    // modify a nav file in base-app module without saving
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      navFileInBaseAppModule.replaceWithoutSaving("FirstFragment", "FirstFragmentChanged", fixture.project)
+    }
+    // picked up 1 document change
+    assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 1)
 
-    // Check light direction classes
-    assertThat(cache.getContents("FirstFragmentDirections", fixture.project)).containsExactly(
-      "com.example.myapplication.FirstFragmentDirections",
-      "com.example.mylibrary2.FirstFragmentDirections"
-    )
-
-    assertThat(cache.getContents("SecondFragmentDirections", fixture.project)).containsExactly(
-      "com.example.myapplication.SecondFragmentDirections"
-    )
-
-    // Check light builder classes
-    assertThat(cache.getContents("Builder", fixture.project)).containsAllOf(
-      "com.example.myapplication.FirstFragmentArgs.Builder",
-      "com.example.mylibrary2.FirstFragmentArgs.Builder"
-    )
-
-    assertThat(cache.getContents("Builder", fixture.project)).contains(
-      "com.example.myapplication.SecondFragmentArgs.Builder"
-    )
+    // modify a nav file in dep module without saving
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      navFileInDepModule.replaceWithoutSaving("FirstFragment", "FirstFragmentChanged", fixture.project)
+    }
+    // picked up 1 document change
+    assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 2)
   }
 }

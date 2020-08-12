@@ -15,7 +15,7 @@
  */
 @file:Suppress("UElementAsPsi")
 
-package com.android.tools.idea.nav.safeargs.codegen
+package com.android.tools.idea.nav.safeargs.codegen.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.blame.Message

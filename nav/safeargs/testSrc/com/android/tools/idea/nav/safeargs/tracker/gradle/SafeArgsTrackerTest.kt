@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.tracker
+package com.android.tools.idea.nav.safeargs.tracker.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.VirtualTimeScheduler

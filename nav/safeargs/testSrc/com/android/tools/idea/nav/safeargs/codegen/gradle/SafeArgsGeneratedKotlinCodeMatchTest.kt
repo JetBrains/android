@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.codegen
+package com.android.tools.idea.nav.safeargs.codegen.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.blame.Message
