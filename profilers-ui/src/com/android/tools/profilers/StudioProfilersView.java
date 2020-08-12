@@ -372,9 +372,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myZoomToSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
     myZoomToSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
-    myZoomToSelection.addActionListener(
-      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange())
-    );
+    myZoomToSelection.addActionListener(event -> {
+      myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange());
+      myProfiler.getIdeServices().getFeatureTracker().trackZoomToSelection();
+    });
     myZoomToSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myZoomToSelection.doClick(0))
