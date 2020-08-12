@@ -23,5 +23,5 @@ import com.intellij.openapi.actionSystem.DataContext
  */
 internal fun DataContext.shouldHideToolbar(): Boolean {
   val previewManager = getData(COMPOSE_PREVIEW_MANAGER) ?: return false
-  return previewManager.animationInspectionPreviewElementInstanceId != null || previewManager.interactivePreviewElementInstanceId != null
+  return previewManager.animationInspectionPreviewElementInstance != null || previewManager.interactivePreviewElementInstance != null
 }

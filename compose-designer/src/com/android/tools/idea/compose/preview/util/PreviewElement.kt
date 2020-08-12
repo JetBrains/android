@@ -351,7 +351,7 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
     return xmlBuilder
   }
 
-  override fun equals(other: Any?): Boolean {
+  final override fun equals(other: Any?): Boolean {
     // PreviewElement objects can be repeated in the same element. They are considered equals only if they annotate exactly the same
     // element with the same configuration.
     if (this === other) return true

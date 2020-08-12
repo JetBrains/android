@@ -71,7 +71,7 @@ class PreviewFiltersTest {
     // Set an instance filter
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview", "PreviewMethod2", "AMethod", "Instance1", "Instance2"),
                       previewFilters.previewNamesArray())
-    previewFilters.instanceIdFilter = "PreviewMethod1"
+    previewFilters.instanceFilter = (staticPreviewProvider.previewElements.first() as SinglePreviewElementInstance)
     assertEquals("PreviewMethod1", previewFilters.previewElements.single().instanceId)
     assertArrayEquals(arrayOf("GroupA"), previewFilters.filteredGroupNamesArray())
 
@@ -83,18 +83,19 @@ class PreviewFiltersTest {
     assertEquals("PreviewMethod1", previewFilters.previewElements.single().instanceId)
 
     // Remove instance filter
-    previewFilters.instanceIdFilter = null
+    previewFilters.instanceFilter = null
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview", "PreviewMethod2", "AMethod", "Instance1", "Instance2"),
                       previewFilters.previewNamesArray())
 
     // Now filter a group
     previewFilters.groupNameFilter = PreviewGroup.namedGroup("GroupA")
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview"), previewFilters.previewNamesArray())
-    previewFilters.instanceIdFilter = "SeparatePreview"
+    previewFilters.instanceFilter =
+      (staticPreviewProvider.previewElements.first { it.composableMethodFqn == "SeparatePreview" } as SinglePreviewElementInstance)
     // This should filter and keep the group
     assertEquals("SeparatePreview", previewFilters.previewElements.single().instanceId)
     assertEquals("GroupA", previewFilters.groupNameFilter.name)
-    previewFilters.instanceIdFilter = null
+    previewFilters.instanceFilter = null
     assertEquals("GroupA", previewFilters.groupNameFilter.name)
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview"), previewFilters.previewNamesArray())
   }
