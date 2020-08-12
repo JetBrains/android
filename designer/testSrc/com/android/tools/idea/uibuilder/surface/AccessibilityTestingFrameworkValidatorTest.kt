@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
+import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.google.common.util.concurrent.Futures
@@ -27,6 +28,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Assert
+import java.util.EnumSet
 import java.util.stream.Collectors
 
 class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
@@ -35,12 +37,19 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     RenderTestUtil.beforeRenderTestCase()
+    val policy = ValidatorData.Policy(
+      EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
+                 ValidatorData.Type.RENDER),
+      EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING)
+    )
+    LayoutValidator.updatePolicy(policy)
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
       RenderTestUtil.afterRenderTestCase()
+      LayoutValidator.updatePolicy(LayoutValidator.DEFAULT_POLICY)
     }
     finally {
       FrameworkResourceRepositoryManager.getInstance().clearCache()
