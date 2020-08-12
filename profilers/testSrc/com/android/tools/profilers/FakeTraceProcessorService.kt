@@ -32,30 +32,44 @@ import java.io.ObjectInputStream
 class FakeTraceProcessorService: TraceProcessorService {
 
   companion object {
-    private val validTraces = setOf(
-      CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
-      CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace")
-    )
-
-    // If we are using FakeTraceProcessorService, then we pre-load both model maps so we don't slowdown tests.
-    private val modelMapCache: Map<String, Map<Int, SystemTraceModelAdapter>> by lazy {
-      mapOf(
-        "perfetto.trace" to loadModelMapFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace")),
-        "perfetto_cpu_usage.trace" to loadModelMapFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"))
+    private val validTraces by lazy {
+      setOf(
+        CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
+        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace")
       )
     }
 
+    // Keep the loaded traces in a static JVM cache, so we can re-use across the same test suite.
+    private val loadedModelProcessList: MutableMap<String, List<ProcessModel>> = mutableMapOf()
+    private val loadedModelMapCache: MutableMap<String, Map<Int, SystemTraceModelAdapter>> = mutableMapOf()
+
+    private fun loadProcessModelListFor(traceFile: File): List<ProcessModel> {
+      val cacheKey = traceFile.name
+
+      if (!loadedModelMapCache.containsKey(cacheKey)) {
+        val serializedProcessModelList = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_process_list")
+        val ois = ObjectInputStream(FileInputStream(serializedProcessModelList))
+        @Suppress("UNCHECKED_CAST")
+        loadedModelProcessList[cacheKey] = ois.readObject() as List<ProcessModel>
+        ois.close()
+      }
+
+      return loadedModelProcessList[cacheKey] ?: error("$cacheKey should be present in the loadedModelProcessList")
+    }
+
     // For each known trace we store a map for each possible process id to the generated model.
-    // This is to account for that during test we can not reparse the trace, so we need to have all possibilities ready.
-    private fun loadModelMapFor(traceFile: File): Map<Int, SystemTraceModelAdapter> {
-      val serializedModelMap = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_tpd_model")
+    private fun getModelMapFor(traceFile: File): Map<Int, SystemTraceModelAdapter> {
+      val cacheKey = traceFile.name
 
-      val ois = ObjectInputStream(FileInputStream(serializedModelMap))
-      @Suppress("UNCHECKED_CAST")
-      val modelMap = ois.readObject() as Map<Int, SystemTraceModelAdapter>
-      ois.close()
+      if (!loadedModelMapCache.containsKey(cacheKey)) {
+        val serializedModelMap = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_tpd_model")
+        val ois = ObjectInputStream(FileInputStream(serializedModelMap))
+        @Suppress("UNCHECKED_CAST")
+        loadedModelMapCache[cacheKey] = ois.readObject() as Map<Int, SystemTraceModelAdapter>
+        ois.close()
+      }
 
-      return modelMap
+      return loadedModelMapCache[cacheKey] ?: error("$cacheKey should be present in the modelMapCache")
     }
   }
 
@@ -78,21 +92,10 @@ class FakeTraceProcessorService: TraceProcessorService {
     }
   }
 
-  private fun loadProcessModelListFor(traceFile: File): List<ProcessModel> {
-    val serializedProcessModelList = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_process_list")
-
-    val ois = ObjectInputStream(FileInputStream(serializedProcessModelList))
-    @Suppress("UNCHECKED_CAST")
-    val processList = ois.readObject() as List<ProcessModel>
-    ois.close()
-
-    return processList
-  }
-
   override fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter {
     if (loadedTraces.containsKey(traceId)) {
-      val cacheKey = loadedTraces[traceId]!!.name
-      val model: Map<Int, SystemTraceModelAdapter> = modelMapCache[cacheKey] ?: error("$cacheKey should be present in the modelMapCache")
+      val trace = loadedTraces[traceId]!!
+      val model: Map<Int, SystemTraceModelAdapter> = getModelMapFor(trace)
       // The pid of the main process is always the first one in the list.
       val pid = processIds[0]
       return model[pid] ?: error("$pid process should be present in model")
