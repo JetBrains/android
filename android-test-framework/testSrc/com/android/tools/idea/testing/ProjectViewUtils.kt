@@ -45,8 +45,11 @@ fun <T : Any> Project.dumpAndroidProjectView(
     val userHomePath = System.getProperty("user.home")
     val androidSdkAbsolutePath = androidSdk.absolutePath
     val androidSdkUserRootedPath = androidSdk.absolutePath.replace(userHomePath, "~")
+    // Some tools (for example ndk-build) follows symlinks created by bazel and write down canonical path of stuff inside the SDK.
+    val androidSdkCanonicalPath = androidSdk.resolve("platform-tools/adb").canonicalFile.parentFile.parentFile.path
     return replace(androidSdkAbsolutePath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(androidSdkUserRootedPath, "<ANDROID_SDK>", ignoreCase = false)
+      .replace(androidSdkCanonicalPath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(userHomePath, "<HOME>", ignoreCase = false)
       .replace(x64platformPattern, "<x64_PLATFORM>")
   }
