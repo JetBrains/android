@@ -48,9 +48,6 @@
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
     </component>
     <component>
@@ -309,6 +306,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
+    <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
