@@ -676,7 +676,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
           // we can skip reinflate and therefore refresh much quicker
           val forceReinflate = !(affinity == 0 && quickRefresh)
-          existingModels.remove(reusedModel)
 
           LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
           reusedModel.updateFileContentBlocking(fileContents)
@@ -727,6 +726,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         model to previewElement
       }
       .toList()
+
+    existingModels.removeAll(models.map { it.first })
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
