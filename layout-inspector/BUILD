@@ -209,7 +209,7 @@ iml_module(
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
     tags = [
         "manual",
-        "no_test_windows",  # local cygwin error => missing dependencies
+        "no_mac",
         "unb",
     ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
