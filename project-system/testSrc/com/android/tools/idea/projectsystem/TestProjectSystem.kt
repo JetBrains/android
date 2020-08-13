@@ -22,11 +22,13 @@ import com.android.ide.common.util.PathString
 import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -151,13 +153,6 @@ class TestProjectSystem @JvmOverloads constructor(
         return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
       }
 
-      override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-        return object : ApplicationIdProvider {
-          override fun getPackageName(): String = this@TestAndroidModuleSystemImpl.getPackageName()!!
-          override fun getTestPackageName(): String? = null
-        }
-      }
-
       override fun getManifestOverrides() = ManifestOverrides()
 
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
@@ -166,6 +161,15 @@ class TestProjectSystem @JvmOverloads constructor(
     }
 
     return TestAndroidModuleSystemImpl()
+  }
+
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
+    return object : ApplicationIdProvider {
+      override fun getPackageName(): String = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let { module ->
+        getModuleSystem(module).getPackageName()
+      } ?: throw ApkProvisionException("Not supported run configuration")
+      override fun getTestPackageName(): String? = null
+    }
   }
 
   fun emulateSync(result: SyncResult) {

@@ -27,7 +27,7 @@ import icons.StudioIcons
  */
 class StopInteractivePreviewAction: AnActionButton(message("action.stop.interactive.title"),
                                                    message("action.stop.interactive.description"),
-                                                   StudioIcons.Compose.STOP_INTERACTIVE_MODE) {
+                                                   StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
@@ -38,6 +38,6 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.interactivePreviewElementInstanceId = null }
+    findComposePreviewManagersForContext(e.dataContext).forEach { it.interactivePreviewElementInstance = null }
   }
 }

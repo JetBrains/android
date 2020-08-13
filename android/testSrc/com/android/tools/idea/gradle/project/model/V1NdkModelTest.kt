@@ -23,8 +23,6 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.serialization.ObjectSerializer
@@ -83,34 +81,38 @@ class V1NdkModelTest {
   private val modelCache = ModelCache()
 
   @Mock
-  private val mockDebugX86Artifact = IdeNativeArtifactImpl(
-    mock(NativeArtifact::class.java).apply {
+  private val _mockDebugX86Artifact = mock(NativeArtifact::class.java).apply {
       `when`(name).thenReturn("artifact1")
       `when`(groupName).thenReturn("debug")
       `when`(abi).thenReturn("x86")
       `when`(outputFile).thenReturn(x86SoFile)
       `when`(toolChain).thenReturn("toolchain1")
       `when`(targetName).thenReturn("target1")
-    }, modelCache)
+    }
 
   @Mock
-  private val mockDebugArm64Artifact = IdeNativeArtifactImpl(
-    mock(NativeArtifact::class.java).apply {
+  private val mockDebugX86Artifact = modelCache.nativeArtifactFrom(_mockDebugX86Artifact)
+
+  @Mock
+  private val _mockDebugArm64Artifact = mock(NativeArtifact::class.java).apply {
       `when`(name).thenReturn("artifact2")
       `when`(groupName).thenReturn("debug")
       `when`(abi).thenReturn("arm64-v8a")
       `when`(outputFile).thenReturn(arm64V8aSoFile)
       `when`(toolChain).thenReturn("toolchain2")
       `when`(targetName).thenReturn("target2")
-    }, modelCache)
+    }
+
+  @Mock
+  private val mockDebugArm64Artifact = modelCache.nativeArtifactFrom(_mockDebugArm64Artifact)
 
   private val fullSyncV1NdkModel = V1NdkModel(
-    IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
+    modelCache.nativeAndroidProjectFrom(object : NativeAndroidProject {
       override fun getBuildFiles(): Collection<File> = listOf(File("buildFile1"), File("buildFile2"))
       override fun getSettings(): Collection<NativeSettings> = listOf(mockNativeSettings1, mockNativeSettings2)
       override fun getName() = "" // not needed
       override fun getFileExtensions(): Map<String, String> = emptyMap() // not needed
-      override fun getArtifacts(): Collection<NativeArtifact> = listOf(mockDebugX86Artifact, mockDebugArm64Artifact)
+      override fun getArtifacts(): Collection<NativeArtifact> = listOf(_mockDebugX86Artifact, _mockDebugArm64Artifact)
       override fun getDefaultNdkVersion(): String = "21.1.12345"
       override fun getBuildSystems(): Collection<String> = listOf("cmake")
       override fun getApiVersion(): Int = 0 // not needed
@@ -130,7 +132,7 @@ class V1NdkModelTest {
   )
 
   private val singleVariantSyncV1NdkModel = V1NdkModel(
-    IdeNativeAndroidProjectImpl(object : NativeAndroidProject {
+    modelCache.nativeAndroidProjectFrom(object : NativeAndroidProject {
       override fun getBuildFiles(): Collection<File> = listOf(File("buildFile1"), File("buildFile2"))
       override fun getSettings(): Collection<NativeSettings> = emptyList()
       override fun getName() = "" // not needed
@@ -153,7 +155,7 @@ class V1NdkModelTest {
       )
     }),
     listOf(
-      IdeNativeVariantAbiImpl(object : NativeVariantAbi {
+      modelCache.nativeVariantAbiFrom(object : NativeVariantAbi {
         override fun getBuildFiles(): Collection<File> = emptyList()
         override fun getAbi(): String = "x86"
         override fun getSettings(): Collection<NativeSettings> = listOf(
@@ -164,8 +166,7 @@ class V1NdkModelTest {
         override fun getToolChains(): Collection<NativeToolchain> = listOf(
           mockNativeToolchain1)
 
-        override fun getArtifacts(): Collection<NativeArtifact> = listOf(
-          mockDebugX86Artifact)
+        override fun getArtifacts(): Collection<NativeArtifact> = listOf(_mockDebugX86Artifact)
       })
     )
   )

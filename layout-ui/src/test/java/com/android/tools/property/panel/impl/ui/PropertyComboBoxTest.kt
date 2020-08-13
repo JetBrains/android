@@ -195,7 +195,7 @@ class PropertyComboBoxTest {
   private class FakeComboBoxUI : DarculaComboBoxUI() {
     override fun installUI(component: JComponent) {
       @Suppress("UNCHECKED_CAST")
-      comboBox = component as JComboBox<*>
+      comboBox = component as JComboBox<Any>
       popup = MyComboPopup(comboBox)
       installListeners()
       installComponents()
@@ -214,7 +214,7 @@ class PropertyComboBoxTest {
     override fun isPopupVisible(comboBox: JComboBox<*>?): Boolean = popup.isVisible
   }
 
-  private class MyComboPopup(private val comboBox: JComboBox<*>): ComboPopup {
+  private class MyComboPopup(private val comboBox: JComboBox<Any>): ComboPopup {
     private var visible = false
     private val list = JBList(comboBox.model)
     private val mouseListener = object : MouseAdapter() {}
@@ -249,7 +249,7 @@ class PropertyComboBoxTest {
 
     override fun isVisible(): Boolean = visible
 
-    override fun getList(): JList<*> = list
+    override fun getList(): JList<Any> = list
 
     override fun uninstallingUI() {}
   }

@@ -55,7 +55,7 @@ class CommonComboBoxTest {
   @Test
   fun testErrorStateIsSetAndResetOnComboBox() {
     // Only the Darcula UI supplies a ErrorBorderCapable border.
-    comboBox.ui = DarculaComboBoxUI()
+    comboBox.setUI(DarculaComboBoxUI())
 
     // Show outline based on the value when not editing:
     model.value = "Error"
@@ -82,7 +82,7 @@ class CommonComboBoxTest {
   fun testKeyboardNavigationWithAction() {
     var actionCount = 0
     comboBox.addActionListener { actionCount++ }
-    comboBox.ui = FakeComboBoxUI()
+    comboBox.setUI(FakeComboBoxUI())
     comboBox.showPopup()
     val editor = comboBox.editor.editorComponent
     val ui = FakeUi(editor)
@@ -97,7 +97,7 @@ class CommonComboBoxTest {
     var actionCount = 0
     comboBox.actionOnKeyNavigation = false
     comboBox.addActionListener { actionCount++ }
-    comboBox.ui = FakeComboBoxUI()
+    comboBox.setUI(FakeComboBoxUI())
     comboBox.showPopup()
     val editor = comboBox.editor.editorComponent
     val ui = FakeUi(editor)
@@ -110,7 +110,7 @@ class CommonComboBoxTest {
 
   @Test
   fun testTypingWillClosePopup() {
-    comboBox.ui = FakeComboBoxUI()
+    comboBox.setUI(FakeComboBoxUI())
     comboBox.showPopup()
     val editor = comboBox.editor.editorComponent
     val ui = FakeUi(editor)

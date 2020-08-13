@@ -15,27 +15,115 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AtfAuditResult
+import com.google.wireless.android.sdk.stats.AtfAuditResult.AtfResultCount.CheckResultType
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import java.util.function.Consumer
+import java.util.stream.Stream
 
 /**
  * Metric tracker for results from accessibility testing framework
  */
-class NlLayoutScannerMetricTracker {
+class NlLayoutScannerMetricTracker(
+  private val surface: NlDesignSurface) {
+  @VisibleForTesting
+  val metric = ScannerMetrics()
 
-  fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
-    // TODO: Once .proto file is updated, add the metrics here..
+  /** Tracks who triggered the scanner */
+  fun trackTrigger(trigger: AtfAuditResult.Trigger) {
+    metric.trigger = trigger
   }
 
-  fun trackResult(result: ValidatorResult) {
-    /*
-     * TODO: Add tracking in efficient way. b/158119426
-     * - (if not too expensive) elapsed time result.metric.mElapsedMs
-     * - (if not too expensive) memory usage result.metric.mImageMemoryBytes
-     * - Number of times 1+ atf findings
-     * - (if possible) Number of occurrences of each type of check result,
-     *      (e.g. N issues by TouchTargetSizeCheck, N1 errors, N2 warnings)
-     */
+  /** Tracks scanning result */
+  fun trackResult(result: RenderResult) {
+    val validatorResult = result.validatorResult as ValidatorResult?
 
+    metric.renderMs = (surface.sceneManager as LayoutlibSceneManager).totalRenderTime
+    metric.scanMs = validatorResult?.metric?.mElapsedMs ?: 0
+    metric.componentCount = result.rootViews.stream().flatMap {
+      Stream.concat(it.children.stream(), Stream.of(it)) }.count().toInt()
+    metric.errorCounts = surface.issueModel.issueCount
+    metric.isRenderResultSuccess = result.renderResult.isSuccess
+  }
+
+  /** Log all metrics gathered */
+  fun logEvents() {
+    metric.logEvent(CommonUsageTracker.getInstance(surface))
+  }
+
+  /** Tracks issues expanded */
+  fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
+    // TODO: Actually track this separately.
+  }
+
+  /** Tracks individual issue */
+  fun trackIssue(issue: ValidatorData.Issue) {
+    val countBuilder = AtfAuditResult.AtfResultCount.newBuilder()
+      .setResultType(convert(issue.mLevel))
+      .setCheckName(issue.mSourceClass)
+    metric.counts.add(countBuilder)
+  }
+
+  /** Convert from layoutlib understood level to proto understood level */
+  private fun convert(level: ValidatorData.Level): CheckResultType {
+    return when(level) {
+      ValidatorData.Level.ERROR -> CheckResultType.ERROR
+      ValidatorData.Level.WARNING -> CheckResultType.WARNING
+      ValidatorData.Level.INFO -> CheckResultType.INFO
+      ValidatorData.Level.VERBOSE -> CheckResultType.NOT_RUN
+    }
+  }
+}
+
+/** Data class for all scanner related metrics */
+data class ScannerMetrics(
+  var trigger: AtfAuditResult.Trigger = AtfAuditResult.Trigger.UNKNOWN_TRIGGER,
+  var scanMs: Long = 0,
+  var renderMs: Long = 0,
+  var errorCounts: Int = 0,
+  var isRenderResultSuccess: Boolean = true,
+  var componentCount: Int = 0
+) {
+  val counts = ArrayList<AtfAuditResult.AtfResultCount.Builder>()
+
+  /** Logs events using the usage tracker passed, and clear. */
+  fun logEvent(usageTracker: CommonUsageTracker) {
+    usageTracker.logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
+      Consumer<LayoutEditorEvent.Builder> { event ->
+        val atfResultBuilder = AtfAuditResult.newBuilder()
+        counts.forEach { countBuilder ->
+          atfResultBuilder.addCounts(countBuilder)
+        }
+        atfResultBuilder
+          .setTrigger(trigger)
+          .setComponentCount(componentCount)
+          .setRenderResult(isRenderResultSuccess)
+          .setAuditDurationMs(scanMs)
+          .setTotalRenderTimeMs(renderMs)
+          .setErrorCount(errorCounts)
+
+        event.setAtfAuditResult(atfResultBuilder)
+      })
+
+    clear()
+  }
+
+  /** Remove any previous events */
+  private fun clear() {
+    trigger = AtfAuditResult.Trigger.UNKNOWN_TRIGGER
+    scanMs = 0
+    renderMs = 0
+    errorCounts = 0
+    isRenderResultSuccess = true
+    componentCount = 0
+    counts.clear()
   }
 }

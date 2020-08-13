@@ -97,8 +97,7 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
     else {
       androidModel.selectedVariant.mainArtifact
     }
-    @Suppress("DEPRECATION")
-    return artifact?.outputs?.firstOrNull()?.mainOutputFile?.outputFile
+    return artifact?.outputs?.firstOrNull()?.outputFile
   }
 }
 

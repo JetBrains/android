@@ -25,6 +25,7 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
+import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildAction
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
@@ -65,6 +66,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
     listOfNotNull(
       StopInteractivePreviewAction(),
+      StopAnimationInspectorAction(),
       GroupSwitchAction(),
       if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
       ForceCompileAndRefreshAction(surface),

@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.OfflineDatabaseManager
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
@@ -191,17 +190,17 @@ class DatabaseInspectorControllerImpl(
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
     val openDatabases = model.getOpenDatabaseIds()
     val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == databaseId) {
-      // close all tabs
-      resultSetControllers.keys.toList()
+      // close all tabs (AdHoc and Table tabs) if we're closing the last open database
+      // the call to `toMap` is to pass a copy of this collection, to avoid concurrent modification exceptions later on
+      resultSetControllers.toMap()
     }
     else {
       // only close tabs associated with this database
-      resultSetControllers.keys
-        .filterIsInstance<TabId.TableTab>()
-        .filter { it.databaseId == databaseId }
+      resultSetControllers.filterKeys { it is TabId.TableTab && it.databaseId == databaseId }
     }
 
-    tabsToClose.forEach { closeTab(it) }
+    tabsToClose.forEach { closeTab(it.key) }
+    saveTabsToRestore(tabsToClose)
 
     model.removeDatabaseSchema(databaseId)
     databaseRepository.closeDatabase(databaseId)
@@ -217,37 +216,6 @@ class DatabaseInspectorControllerImpl(
   @UiThread
   override fun showError(message: String, throwable: Throwable?) {
     view.reportError(message, throwable)
-  }
-
-  override fun restoreSavedState(previousState: SavedUiState?) {
-    val savedState = previousState as? SavedUiStateImpl
-    tabsToRestore.clear()
-    savedState?.let {
-      val (tabsNotRequiringDb, tabsRequiringDb) = savedState.tabs.partition { it is TabDescription.AdHocQuery && it.databasePath == null }
-
-      // tabs associated with a database will be opened when the database is opened
-      tabsToRestore.addAll(tabsRequiringDb)
-
-      // tabs not associated with a db can be opened immediately
-      tabsNotRequiringDb
-        .map { (it as TabDescription.AdHocQuery).query }
-        .forEach {
-          openNewEvaluatorTab(EvaluationParams(null, it))
-        }
-    }
-  }
-
-  override fun saveState(): SavedUiState {
-    val tabs = resultSetControllers.mapNotNull {
-      when (val tabId = it.key) {
-        is TabId.TableTab -> TabDescription.Table(tabId.databaseId.path, tabId.tableName)
-        is TabId.AdHocQueryTab -> {
-          val params = (it.value as SqliteEvaluatorController).saveEvaluationParams()
-          TabDescription.AdHocQuery(params.databaseId?.path, params.statementText)
-        }
-      }
-    }
-    return SavedUiStateImpl(tabs)
   }
 
   override fun startAppInspectionSession(
@@ -306,7 +274,25 @@ class DatabaseInspectorControllerImpl(
     restoreTabs(databaseId, sqliteSchema)
   }
 
+  private fun saveTabsToRestore(tabsToSave: Map<TabId, DatabaseInspectorController.TabController>) {
+    val tabs = tabsToSave
+      .mapNotNull {
+        when (val tabId = it.key) {
+          is TabId.TableTab -> TabDescription.Table(tabId.databaseId.path, tabId.tableName)
+          is TabId.AdHocQueryTab -> {
+            val params = (it.value as SqliteEvaluatorController).saveEvaluationParams()
+            TabDescription.AdHocQuery(params.databaseId?.path, params.statementText)
+          }
+        }
+      }
+      // don't restore tabs for in-memory dbs
+      .filter { it.databasePath != ":memory:" }
+
+    tabsToRestore.addAll(tabs)
+  }
+
   private fun restoreTabs(databaseId: SqliteDatabaseId, schema: SqliteSchema) {
+    // open tabs associated with this database
     tabsToRestore.filter { it.databasePath == databaseId.path }
       .also { tabsToRestore.removeAll(it) }
       .forEach { tabDescription ->
@@ -317,6 +303,14 @@ class DatabaseInspectorControllerImpl(
             openNewEvaluatorTab(EvaluationParams(databaseId, tabDescription.query))
           }
         }
+      }
+
+    // open all tabs not associated with any database
+    tabsToRestore.filter { it.databasePath == null }
+      .also { tabsToRestore.removeAll(it) }
+      .forEach { tabDescription ->
+        val adHocTabDescription = tabDescription as TabDescription.AdHocQuery
+        openNewEvaluatorTab(EvaluationParams(null, adHocTabDescription.query))
       }
   }
 
@@ -491,8 +485,6 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
-  private class SavedUiStateImpl(val tabs: List<TabDescription>) : SavedUiState
-
   @UiThread
   private sealed class TabDescription {
     abstract val databasePath: String?
@@ -547,12 +539,6 @@ interface DatabaseInspectorController : Disposable {
   fun showError(message: String, throwable: Throwable?)
 
   @UiThread
-  fun restoreSavedState(previousState: SavedUiState?)
-
-  @UiThread
-  fun saveState(): SavedUiState
-
-  @UiThread
   fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
@@ -575,11 +561,6 @@ interface DatabaseInspectorController : Disposable {
      */
     fun notifyDataMightBeStale()
   }
-
-  /**
-   * Marker interface for opaque object that has UI state that should be restored once DatabaseInspector is reconnected.
-   */
-  interface SavedUiState
 }
 
 sealed class TabId {

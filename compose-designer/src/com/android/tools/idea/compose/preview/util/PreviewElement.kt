@@ -333,6 +333,11 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
    */
   abstract val instanceId: String
 
+  /**
+   * Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector.
+   */
+  var hasAnimations = false
+
   override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
@@ -351,7 +356,7 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
     return xmlBuilder
   }
 
-  override fun equals(other: Any?): Boolean {
+  final override fun equals(other: Any?): Boolean {
     // PreviewElement objects can be repeated in the same element. They are considered equals only if they annotate exactly the same
     // element with the same configuration.
     if (this === other) return true

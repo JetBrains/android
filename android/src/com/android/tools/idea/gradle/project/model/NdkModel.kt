@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.builder.model.NativeSettings
-import com.android.builder.model.NativeToolchain
-import com.android.builder.model.v2.models.ndk.NativeAbi
-import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeToolchain
 import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.repository.GradleVersion
 import com.intellij.serialization.PropertyMapping
@@ -75,10 +73,10 @@ data class V1NdkModel(
   private val ndkVariantsByVariantAbi: MutableMap<VariantAbi, NdkVariant> = HashMap()
 
   @Transient
-  private val toolchainsByName: MutableMap<String, NativeToolchain> = HashMap()
+  private val toolchainsByName: MutableMap<String, IdeNativeToolchain> = HashMap()
 
   @Transient
-  private val settingsByName: MutableMap<String, NativeSettings> = HashMap()
+  private val settingsByName: MutableMap<String, IdeNativeSettings> = HashMap()
 
   @Transient
   override val allVariantAbis: Collection<VariantAbi> = LinkedHashSet(
@@ -145,13 +143,13 @@ data class V1NdkModel(
     populateSettings(nativeVariantAbi.settings)
   }
 
-  private fun populateToolchains(nativeToolchains: Collection<NativeToolchain>) {
+  private fun populateToolchains(nativeToolchains: Collection<IdeNativeToolchain>) {
     for (toolchain in nativeToolchains) {
       toolchainsByName[toolchain.name] = toolchain
     }
   }
 
-  private fun populateSettings(nativeSettings: Collection<NativeSettings>) {
+  private fun populateSettings(nativeSettings: Collection<IdeNativeSettings>) {
     for (settings in nativeSettings) {
       settingsByName[settings.name] = settings
     }
@@ -175,8 +173,8 @@ data class V1NdkModel(
   override val defaultNdkVersion: String = androidProject.defaultNdkVersion
 
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
-  fun findToolchain(toolchainName: String): NativeToolchain? = toolchainsByName[toolchainName]
-  fun findSettings(settingsName: String): NativeSettings? = settingsByName[settingsName]
+  fun findToolchain(toolchainName: String): IdeNativeToolchain? = toolchainsByName[toolchainName]
+  fun findSettings(settingsName: String): IdeNativeSettings? = settingsByName[settingsName]
 }
 
 /**
@@ -192,8 +190,6 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
   private val /* `val` declaration needed for serialization */ agpVersion: String,
   val nativeModule: IdeNativeModule
 ) : NdkModel() {
-
-  constructor (agpVersion: String, nativeModuleArg: NativeModule) : this(agpVersion, IdeNativeModuleImpl(nativeModuleArg))
 
   @Transient
   override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(agpVersion))

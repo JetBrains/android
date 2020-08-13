@@ -23,36 +23,41 @@ import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
-import icons.StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR
+import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
  * Action to open the compose animation inspector to analyze animations of a Compose Preview in detail.
- * TODO(b/157939444): update action icon.
  *
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
-  ToggleAction(message("action.animation.inspector.title"), message("action.animation.inspector.description"), VIEW_ANIMATOR) {
+  ToggleAction(message("action.animation.inspector.title"), message("action.animation.inspector.description"), ANIMATION_INSPECTOR) {
 
   private val isSelected: Boolean
-    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
+    get() = getComposePreviewManager()?.animationInspectionPreviewElementInstance != null
 
   private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
+
+  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
 
   override fun isSelected(e: AnActionEvent) = isSelected
 
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
-    val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    manager.animationInspectionPreviewElementInstanceId =
-      if (isSelected) (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)?.instanceId else null
+    getComposePreviewManager()?.let {
+      it.animationInspectionPreviewElementInstance = if (isSelected) {
+        ComposePreviewAnimationManager.onAnimationInspectorOpened()
+        getPreviewElement()
+      }
+      else {
+        null
+      }
+    }
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val isInteractive = getComposePreviewManager()?.interactivePreviewElementInstanceId != null
-    // If interactive mode is enabled for this preview, the animation inspector button should be disabled. Otherwise, only enable the button
-    // if the animation inspector is closed, or if it's open for this Compose Preview.
-    e.presentation.isEnabled = !isInteractive && (!ComposePreviewAnimationManager.isInspectorOpen() || isSelected(e))
+    e.presentation.isEnabled = true
+    // Only display the animation inspector icon if there are animations to be inspected.
+    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar() && getPreviewElement()?.hasAnimations == true
   }
 }

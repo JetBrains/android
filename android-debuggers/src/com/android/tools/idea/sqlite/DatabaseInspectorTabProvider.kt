@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -42,11 +41,11 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     releaseDirectory = "plugins/android/resources/app-inspection/"
   )
 
-  private var savedState: SavedUiState? = null
-
   override fun isApplicable(): Boolean {
     return DatabaseInspectorFlagController.isFeatureEnabled
   }
+
+  override fun supportsOffline() = DatabaseInspectorFlagController.isOfflineModeEnabled
 
   override fun createTab(
     project: Project,
@@ -88,11 +87,11 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       init {
         databaseInspectorProjectService.projectScope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
+          databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices)
           client.startTrackingDatabaseConnections()
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onDispose() {
-              savedState = databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
+              databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
             }
           }, EdtExecutorService.getInstance())
         }

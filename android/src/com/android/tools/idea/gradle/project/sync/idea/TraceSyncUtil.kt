@@ -151,7 +151,7 @@ private fun getTraceMethods(): String? {
  */
 @VisibleForTesting
 fun findAgentJar(): String {
-  var path = File(PathManager.getHomePath(), "plugins/android/lib/trace_agent.jar")
+  var path = File(PathManager.getHomePath(), "plugins/android/resources/trace_agent.jar")
   if (!path.exists()) {
     // development build.
     path = File(PathManager.getHomePath(), "../../bazel-bin/tools/base/tracer/trace_agent.jar")

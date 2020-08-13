@@ -541,26 +541,26 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       }
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
-        val module = testArtifactSearchScopes?.module
-        if (module == null) {
-          PsiLocation.fromPsiElement(psiElement)
-        } else {
-          PsiLocation.fromPsiElement(psiElement, module)
-        }
+        PsiLocation.fromPsiElement(psiElement, testArtifactSearchScopes?.module)
       }
       else -> null
     }
   }
 
+  private val myPsiElementCache: MutableMap<AndroidTestResults, Lazy<PsiElement?>> = mutableMapOf()
+
   fun getPsiElement(androidTestResults: AndroidTestResults): PsiElement? {
     val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
-    val testClasses = androidTestResults.getFullTestClassName().let {
-      javaPsiFacade.findClasses(it, androidTestSourceScope)
-    }
-    testClasses.mapNotNull {
-      it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
-    }.firstOrNull()?.let { return it }
-    return testClasses.firstOrNull()
+    return myPsiElementCache.getOrPut(androidTestResults) {
+      lazy<PsiElement?> {
+        val testClasses = androidTestResults.getFullTestClassName().let {
+          javaPsiFacade.findClasses(it, androidTestSourceScope)
+        }
+        testClasses.mapNotNull {
+          it.findMethodsByName(androidTestResults.methodName, true).firstOrNull()
+        }.firstOrNull() ?: testClasses.firstOrNull()
+      }
+    }.value
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer? {
@@ -613,6 +613,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   fun refreshTable() {
     val prevSelectedObject = selectedObject
     val prevExpandedPaths = TreeUtil.collectExpandedPaths(tree)
+    model.applyFilter()
+    myRowComparator?.let { model.sort(it) }
+    model.reload()
     tableChanged(null)
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
       val width = model.columns[index].getWidth(this)
@@ -621,9 +624,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       column.maxWidth = width
       column.preferredWidth = width
     }
-    model.applyFilter()
-    myRowComparator?.let { model.sort(it) }
-    model.reload()
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
     prevSelectedObject?.let { addSelection(it) }
   }
@@ -643,7 +643,8 @@ private class AndroidTestResultsTableModel :
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
 
-  val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
+  private val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
+  private lateinit var myFilteredColumns: Array<ColumnInfo<Any, Any>>
 
   /**
    * A filter to show and hide columns.
@@ -660,6 +661,7 @@ private class AndroidTestResultsTableModel :
    */
   fun addDeviceColumn(device: AndroidDevice) {
     myDeviceColumns.add(AndroidTestResultsColumn(device))
+    updateFilteredColumns()
   }
 
   /**
@@ -686,6 +688,30 @@ private class AndroidTestResultsTableModel :
    */
   fun setColumnFilter(columnFilter: (AndroidDevice) -> Boolean) {
     myColumnFilter = columnFilter
+    updateFilteredColumns()
+  }
+
+  override fun setColumns(columns: Array<out ColumnInfo<Any, Any>>): Boolean {
+    val valueChanged = super.setColumns(columns)
+    if (valueChanged) {
+      updateFilteredColumns()
+    }
+    return valueChanged
+  }
+
+  override fun getColumns(): Array<ColumnInfo<Any, Any>> {
+    if (!::myFilteredColumns.isInitialized) {
+      updateFilteredColumns()
+    }
+    return myFilteredColumns
+  }
+
+  private fun updateFilteredColumns() {
+    myFilteredColumns = arrayOf(*super.getColumns(), *(myDeviceColumns.filter {
+      myColumnFilter?.invoke(it.device) ?: true
+    }.map {
+      it as ColumnInfo<Any, Any>
+    }.toTypedArray()))
   }
 
   override fun getColumnClass(column: Int): Class<*> {
@@ -712,14 +738,6 @@ private class AndroidTestResultsTableModel :
     return columns
   }
 
-  override fun getColumns(): Array<ColumnInfo<Any, Any>> {
-    return arrayOf(*super.getColumns(), *(myDeviceColumns.filter {
-      myColumnFilter?.invoke(it.device) ?: true
-    }.map{
-      it as ColumnInfo<Any, Any>
-    }.toTypedArray()))
-  }
-
   /**
    * Sets a filter to hide specific rows from this table.
    *
@@ -737,9 +755,10 @@ private class AndroidTestResultsTableModel :
   }
 
   /**
-   * Applies a row filter to update rows.
+   * Applies a filter to update rows and columns.
    */
   fun applyFilter() {
+    updateFilteredColumns()
     myRowFilter?.let {
       myRootAggregationRow.applyFilter(it)
     }

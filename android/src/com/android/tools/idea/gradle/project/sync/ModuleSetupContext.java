@@ -19,12 +19,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleSetupContext {
-  public static final Key<Boolean> FORCE_CREATE_DIRS_KEY = new Key<>("FORCE_CREATE_DIRS");
-
   @NotNull private final Module myModule;
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
 

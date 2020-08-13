@@ -26,6 +26,7 @@ import java.awt.*
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo.isMac
+import com.intellij.openapi.util.SystemInfoRt
 import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {
@@ -59,7 +60,9 @@ class HTreeChartTest {
     myChart.yRange.set(10.0, 10.0)
     // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
 
-    assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
+    if (!SystemInfoRt.isWindows) { // b/163140294
+      assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
+    }
   }
 
   /**
@@ -144,6 +147,9 @@ class HTreeChartTest {
 
   @Test
   fun testMouseOverDragToSouth() {
+    if (SystemInfoRt.isWindows) {
+      return // b/163140294
+    }
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
 
@@ -249,6 +255,10 @@ class HTreeChartTest {
 
   @Test
   fun testTopDownChartOverDragToNorth() {
+    if (SystemInfoRt.isWindows) {
+      return // b/163140294
+    }
+
     setUp(HTreeChart.Orientation.TOP_DOWN)
 
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)

@@ -35,8 +35,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = true
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -51,8 +50,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = true
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -69,8 +67,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "",
       nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.9s 85.5%",
-      showChartKey = true
+      rightAlignedSuffix = "0.9s 85.5%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -88,8 +85,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "1 warning",
       nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.8s  8.4%",
-      showChartKey = true
+      rightAlignedSuffix = "0.8s  8.4%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -103,8 +99,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = false
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -119,8 +114,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = false
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }

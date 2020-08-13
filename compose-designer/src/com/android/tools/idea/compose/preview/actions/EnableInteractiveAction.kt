@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
-import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
+import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
 /**
  * Action that controls when to enable the Interactive mode.
@@ -31,22 +31,18 @@ import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
-  private fun getComposePreviewManager() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)
-
-  private fun isInteractive() = getComposePreviewManager()?.interactivePreviewElementInstanceId != null
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    val isAnimationInspectorOpen = getComposePreviewManager()?.animationInspectionPreviewElementInstanceId != null
-    e.presentation.isEnabled = !isAnimationInspectorOpen
-    e.presentation.isVisible = !isInteractive()
+    e.presentation.isEnabled = true
+    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar()
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)?.instanceId ?: return
+    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
 
-    manager.interactivePreviewElementInstanceId = instanceId
+    manager.interactivePreviewElementInstance = instanceId
   }
 }

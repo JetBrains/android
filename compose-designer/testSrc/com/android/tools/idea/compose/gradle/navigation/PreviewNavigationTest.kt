@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -32,6 +33,8 @@ import org.junit.Rule
 import org.junit.Test
 
 class PreviewNavigationTest {
+  private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
+
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
@@ -49,7 +52,7 @@ class PreviewNavigationTest {
         val rootView = renderResult!!.rootViews.single()!!
         ReadAction.run<Throwable> {
           // Find the boundaries for the root element. This will cover the whole layout
-          val bounds = parseViewInfo(rootView).map { it.bounds }.first()
+          val bounds = parseViewInfo(rootView, logger = LOG).map { it.bounds }.first()
 
           // Check clicking outside of the boundaries
           assertTrue(findComponentHits(module, rootView, -30, -30).isEmpty())

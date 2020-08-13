@@ -118,6 +118,7 @@ import com.intellij.util.ThreeState.YES
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.toArray
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.Arrays
@@ -238,13 +239,15 @@ class AgpUpgradeRefactoringProcessor(
     CompileRuntimeConfigurationRefactoringProcessor(this)
   )
 
+  val targets = mutableListOf<PsiElement>()
+
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> {
-        return PsiElement.EMPTY_ARRAY
+        return targets.toArray(PsiElement.EMPTY_ARRAY)
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade AGP from $current to $new"
+      override fun getProcessedElementsHeader() = "AGP Upgrade Assistant"
 
       /** see [ComponentGroupingRuleProvider] for an explanation of this override */
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String = "References considered"
@@ -262,6 +265,7 @@ class AgpUpgradeRefactoringProcessor(
     val usages = ArrayList<UsageInfo>()
 
     usages.addAll(classpathRefactoringProcessor.findUsages())
+    targets.ifEmpty { targets.apply { addAll(usages.mapNotNull { it.element }) } }
 
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
@@ -651,20 +655,25 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
-    // using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage, and additionally
+    // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (val shouldUpdate = isUpdatablePluginVersion(new, dep)) {
           YES -> {
             val resultModel = dep.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
+            val element = resultModel.rawElement
+            val psiElement = when (element) {
               null -> return@dep
               // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
               is FakeArtifactElement -> element.realExpression.psiElement
               else -> element.psiElement
             }
+            val presentableText = when (element) {
+              is FakeArtifactElement -> "AGP classpath dependency"
+              else -> "AGP version specification"
+            }
             psiElement?.let {
-              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE), current, new, resultModel))
+              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
           }
           NO -> return@model
@@ -1249,7 +1258,8 @@ class ObsoleteConfigurationConfigurationUsageInfo(
 class WrappedPsiElement(
   val realElement: PsiElement,
   val processor: AgpUpgradeComponentRefactoringProcessor,
-  val usageType: UsageType?
+  val usageType: UsageType?,
+  val presentableText: String = ""
 ) : PsiElement by realElement, PsiElementNavigationItem {
   // We override this PsiElement method in order to have it stored in the PsiElementUsage.
   override fun getNavigationElement(): PsiElement = this
@@ -1264,8 +1274,11 @@ class WrappedPsiElement(
   override fun canNavigateToSource(): Boolean = (realElement as? Navigatable)?.canNavigateToSource() ?: false
 
   override fun getName(): String? = (realElement as? NavigationItem)?.getName()
-  // TODO(xof): see if overriding this makes a nice target appear
-  override fun getPresentation(): ItemPresentation? = (realElement as? NavigationItem)?.getPresentation()
+  override fun getPresentation(): ItemPresentation? = object : ItemPresentation {
+    override fun getPresentableText(): String? = this@WrappedPsiElement.presentableText
+    override fun getLocationString(): String? = (realElement as? NavigationItem)?.presentation?.locationString
+    override fun getIcon(unused: Boolean): Icon? = (realElement as? NavigationItem)?.presentation?.getIcon(unused)
+  }
 
   // The target of our navigation will be the realElement.
   override fun getTargetElement(): PsiElement = realElement

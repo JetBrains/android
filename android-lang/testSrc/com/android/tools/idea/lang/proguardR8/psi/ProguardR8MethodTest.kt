@@ -654,4 +654,34 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       """.trimIndent()
     )
   }
+
+  // Bug:153616200 , case 3.
+  fun testResolveMethodKotlinIntrinsics() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package kotlin.jvm.internal;
+
+      class Intrinsics {
+        private static void throwParameterIsNullException(String paramName) { }
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      //language=SHRINKER_CONFIG
+      """
+      -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+          private static void throw<caret>ParameterIsNullException(...);
+      }
+      """.trimIndent()
+    )
+
+    val method = myFixture
+      .findClass("kotlin.jvm.internal.Intrinsics")
+      .findMethodsByName("throwParameterIsNullException").first()
+    val methodFromReference = myFixture.elementAtCaret
+
+    assertThat(methodFromReference).isEqualTo(method)
+  }
 }

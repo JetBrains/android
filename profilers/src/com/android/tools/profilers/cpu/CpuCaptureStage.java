@@ -16,14 +16,16 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.BoxSelectionListener;
+import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
-import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
@@ -34,6 +36,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
@@ -42,6 +45,7 @@ import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
@@ -342,6 +346,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private void initTrackGroupList(@NotNull CpuCapture capture) {
     myTrackGroupModels.clear();
 
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
     if (getStudioProfilers().getSession().getPid() != 0) {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
@@ -355,7 +360,30 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     // Thread states and trace events.
-    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel()));
+    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
+
+    // Add action listener for tracking all track group actions.
+    myTrackGroupModels.forEach(model -> model.addActionListener(new TrackGroupActionListener() {
+      @Override
+      public void onGroupMovedUp(@NotNull String title) {
+        featureTracker.trackMoveTrackGroupUp(title);
+      }
+
+      @Override
+      public void onGroupMovedDown(@NotNull String title) {
+        featureTracker.trackMoveTrackGroupDown(title);
+      }
+
+      @Override
+      public void onGroupCollapsed(@NotNull String title) {
+        featureTracker.trackCollapseTrackGroup(title);
+      }
+
+      @Override
+      public void onGroupExpanded(@NotNull String title) {
+        featureTracker.trackExpandTrackGroup(title);
+      }
+    }));
   }
 
   private static TrackGroupModel createInteractionTrackGroup(@NotNull StudioProfilers studioProfilers, @NotNull Timeline timeline) {
@@ -382,8 +410,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitle("Display")
       .setTitleHelpText("This section contains display info. " +
                         "<p><b>Frames</b>: when a frame is being drawn. Long frames are colored red.</p>" +
-                        "<p><b>Surfaceflinger</b>: system process responsible for sending buffers to display.</p>" +
-                        "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>")
+                        "<p><b>SurfaceFlinger</b>: system process responsible for sending buffers to display.</p>" +
+                        "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>" +
+                        "<p><b>BufferQueue</b>: how many frame buffers are queued up, waiting for SurfaceFlinger to consume.</p>")
       .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
       .build();
 
@@ -400,30 +429,43 @@ public class CpuCaptureStage extends Stage<Timeline> {
     SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(systemTraceData, timeline.getViewRange());
     SurfaceflingerTooltip sfTooltip = new SurfaceflingerTooltip(timeline, sfModel.getSurfaceflingerEvents());
     display.addTrackModel(
-      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger").setDefaultTooltipModel(sfTooltip));
+      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "SurfaceFlinger").setDefaultTooltipModel(sfTooltip));
 
     // VSYNC
     VsyncTrackModel vsyncModel = new VsyncTrackModel(systemTraceData, timeline.getViewRange());
     VsyncTooltip vsyncTooltip = new VsyncTooltip(timeline, vsyncModel.getVsyncCounterSeries());
     display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
+
+    // Buffer Queue
+    // TODO(b/162354232): add tooltip for the track.
+    BufferQueueTrackModel bufferQueueTrackModel = new BufferQueueTrackModel(systemTraceData, timeline.getViewRange());
+    display.addTrackModel(TrackModel.newBuilder(bufferQueueTrackModel, ProfilerTrackRendererType.BUFFER_QUEUE, "BufferQueue"));
     return display;
   }
 
   private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,
                                                          @NotNull Timeline timeline,
-                                                         @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
+                                                         @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel,
+                                                         @NotNull FeatureTracker featureTracker) {
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
       capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
+    BoxSelectionModel boxSelectionModel = new BoxSelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    boxSelectionModel.addBoxSelectionListener(new BoxSelectionListener() {
+      @Override
+      public void boxSelectionCreated(long durationUs, int trackCount) {
+        featureTracker.trackSelectBox(durationUs, trackCount);
+      }
+    });
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
       .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
                         "Shift+click to select multiple threads.")
       .setTrackSelectable(true)
       // For box selection
-      .setRangeSelectionModel(new RangeSelectionModel(timeline.getSelectionRange(), timeline.getViewRange()))
+      .setBoxSelectionModel(boxSelectionModel)
       .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       String title = threadInfo.getName();
@@ -438,7 +480,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return threads;
   }
 
-  private static TrackGroupModel createCpuCoresTrackGroup(int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+  private static TrackGroupModel createCpuCoresTrackGroup(int mainThreadId,
+                                                          @NotNull CpuSystemTraceData systemTraceData,
+                                                          @NotNull Timeline timeline) {
     int cpuCount = systemTraceData.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
     TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();

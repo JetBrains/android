@@ -17,27 +17,16 @@ package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.data.TaskIssueType
-import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.AlwaysRunNoOutputIssue
-import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.AlwaysRunUpToDateOverride
-import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.TaskSetupIssue
-import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
-import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
-import com.android.build.attribution.ui.model.TaskDetailsPageType
-import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
-import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
+import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
-import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
-import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 
@@ -122,5 +111,15 @@ class BuildAnalyzerViewController(
   override fun openMemorySettings() {
     analytics.memorySettingsOpened()
     ShowSettingsUtil.getInstance().showSettingsDialog(project, MemorySettingsConfigurable::class.java)
+  }
+
+  override fun applyWarningsFilter(filter: WarningsFilter) {
+    model.warningsPageModel.filter = filter
+    //TODO (b/150297387) Add analytics reporting.
+  }
+
+  override fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean) {
+    model.warningsPageModel.groupByPlugin = groupByPlugin
+    //TODO (b/150295612): Add analytics reporting.
   }
 }

@@ -33,4 +33,7 @@ interface ProcessDescriptor {
 
   /** Whether this process is running on a virtual device or a physical one. */
   val isEmulator: Boolean
+
+  /** Whether this process is actively running or not. If not running, that implies it has been terminated. */
+  val isRunning: Boolean
 }

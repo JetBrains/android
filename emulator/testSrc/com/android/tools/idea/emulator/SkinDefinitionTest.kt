@@ -19,10 +19,8 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -33,11 +31,6 @@ import java.io.File
  * Tests for [SkinDefinition] and related classes.
  */
 class SkinDefinitionTest {
-
-  @Before
-  fun setUp() {
-    WebpMetadata.ensureWebpRegistered()
-  }
 
   @Test
   fun testPixel_2_XL() {

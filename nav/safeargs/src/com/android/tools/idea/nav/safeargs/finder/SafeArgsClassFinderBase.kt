@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
-import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectService
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -37,7 +37,7 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   private fun findAll(project: Project): List<AndroidLightClassBase> {
     val provider = {
-      val result = project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
+      val result = SafeArgsEnabledFacetsProjectService.getInstance(project)
         .modulesUsingSafeArgs
         .asSequence()
         .flatMap { facet -> findAll(facet).asSequence() }

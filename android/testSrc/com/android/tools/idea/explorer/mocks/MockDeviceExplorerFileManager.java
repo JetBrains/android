@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.explorer.FutureValuesTracker;
+import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.FutureCallback;

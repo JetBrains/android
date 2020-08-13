@@ -77,9 +77,8 @@ class WarningsPageViewTest {
     assertThat(view.component.name).isEqualTo("warnings-view")
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
-    val selectedNode = view.tree.selectionPath?.lastPathComponent as WarningsTreeNode
-    assertThat(selectedNode).isEqualTo(model.selectedNode)
-    assertThat((view.detailsPanel.key)).isEqualTo(model.selectedNode?.descriptor)
+    assertThat(view.tree.selectionPath).isNull()
+    assertThat((view.detailsPanel.key)).isEqualTo(WarningsPageId.emptySelection)
     Mockito.verifyZeroInteractions(mockHandlers)
   }
 
@@ -96,7 +95,7 @@ class WarningsPageViewTest {
     val selectedNode = view.tree.selectionPath?.lastPathComponent as WarningsTreeNode
     assertThat(selectedNode).isEqualTo(model.selectedNode)
     assertThat(selectedNode.descriptor.pageId).isEqualTo(pageIdToSelect)
-    assertThat((view.detailsPanel.key.pageId)).isEqualTo(pageIdToSelect)
+    assertThat(view.detailsPanel.key).isEqualTo(pageIdToSelect)
     Mockito.verifyZeroInteractions(mockHandlers)
   }
 

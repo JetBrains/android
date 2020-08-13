@@ -16,6 +16,7 @@
 @file:JvmName("AndroidDeviceSpecUtil")
 package com.android.tools.idea.gradle.run
 
+import com.android.ddmlib.IDevice
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -31,8 +32,17 @@ import java.io.Writer
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
 
+data class AndroidDeviceSpecImpl @JvmOverloads constructor (
+  override val version: AndroidVersion,
+  override val density: Density? = null,
+  override val abis: List<String> = emptyList(),
+  val languagesProvider: () -> List<String> = { emptyList() }
+) : AndroidDeviceSpec {
+  override val languages: List<String> by lazy { languagesProvider() }
+}
+
+const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
 
 /**
  * Creates an [AndroidDeviceSpec] instance from a list of [devices][AndroidDevice], or `null` if the list of
@@ -67,12 +77,7 @@ fun createSpec(
     abis = device.abis.map { it.toString() }
   }
 
-  return object : AndroidDeviceSpec {
-    override val version: AndroidVersion = minVersion
-    override val density: Density? = density
-    override val abis: List<String> = abis
-    override val languages: List<String> by lazy { combineDeviceLanguages(devices, timeout, unit) }
-  }
+  return AndroidDeviceSpecImpl(minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
 }
 
 /**
@@ -154,6 +159,15 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
     }
     writer.endObject()
   }
+}
+
+fun IDevice.createSpec(): AndroidDeviceSpec {
+  return AndroidDeviceSpecImpl(
+    version,
+    Density.getEnum(density),
+    abis,
+    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
+  )
 }
 
 private val log: Logger

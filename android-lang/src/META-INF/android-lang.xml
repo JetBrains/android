@@ -132,6 +132,22 @@
                      shortName="ContentEntityInspectionKotlin"
                      implementationClass="com.android.tools.idea.lang.contentAccess.ContentEntityInspectionKotlin"
                      displayName="Invalid ContentEntity in kotlin files"/>
+    <localInspection groupPath="Android"
+                     groupName="ContentAccess"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ContentAccessObjectInspectionKotlin"
+                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentAccessObjectInspectionKotlin"
+                     displayName="Invalid ContentAccessObject in kotlin files"/>
+    <localInspection groupPath="Android"
+                     groupName="ContentAccess"
+                     language="JAVA"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ContentAccessObjectInspection"
+                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentAccessObjectInspection"
+                     displayName="Invalid ContentAccessObject"/>
 
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
@@ -147,6 +163,16 @@
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.syntaxHighlighter language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
+
+    <!-- region ContentAccess support -->
+    <fileType name="ContentAccess"
+              implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessFileType"
+              fieldName="INSTANCE"
+              language="ContentAccess"/>
+    <lang.parserDefinition language="ContentAccess"
+                           implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessParserDefinition"/>
+    <!-- endregion ContentAccess support -->
+
 
     <!-- SQL support -->
     <fileType name="Android Room SQL"

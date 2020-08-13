@@ -25,13 +25,11 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class AppInspectionTargetManagerTest {
   private val timer = FakeTimer()
@@ -69,17 +67,15 @@ class AppInspectionTargetManagerTest {
 
     assertThat(appInspectionRule.targetManager.targets).hasSize(2)
 
-    suspendCoroutine<Unit> { cont ->
-      disposeClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          cont.resume(Unit)
-        }
-      }, MoreExecutors.directExecutor())
-      launch {
-        appInspectionRule.targetManager.disposeClients("dispose")
+    val disposed = CompletableDeferred<Unit>()
+    disposeClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onDispose() {
+        disposed.complete(Unit)
       }
-    }
+    }, MoreExecutors.directExecutor())
+    appInspectionRule.targetManager.disposeClients("dispose")
 
+    disposed.join()
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
     assertThat(appInspectionRule.targetManager.targets.values.first().targetDeferred.await()).isSameAs(target)
   }

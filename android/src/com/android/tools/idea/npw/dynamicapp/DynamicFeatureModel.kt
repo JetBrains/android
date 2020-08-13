@@ -55,6 +55,9 @@ class DynamicFeatureModel(
   val downloadInstallKind =
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(
@@ -67,9 +70,6 @@ class DynamicFeatureModel(
         useGradleKts.get()
       )
     }
-
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
     @WorkerThread
     override fun init() {

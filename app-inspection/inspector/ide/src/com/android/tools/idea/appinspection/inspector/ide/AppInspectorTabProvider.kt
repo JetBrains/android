@@ -36,6 +36,19 @@ interface AppInspectorTabProvider {
   fun isApplicable(): Boolean = true
 
   /**
+   * Whether this tab's UI can handle working with disposed inspectors or not.
+   *
+   * By default, after an inspector is disposed (i.e. the process its inspecting has stopped), its
+   * associated tab is closed, as it takes intentional effort to handle this case. After all,
+   * trying to interact with a disposed inspector will cause exceptions to get thrown.
+   *
+   * Children that override this method to return true are explicitly opting into a more complex UI
+   * lifecycle (with two states, mutable and immutable, depending on the state of its associated
+   * inspector).
+   */
+  fun supportsOffline(): Boolean = false
+
+  /**
    * Extension point for creating UI that communicates with some target inspector and is shown in
    * the app inspection tool window.
    *

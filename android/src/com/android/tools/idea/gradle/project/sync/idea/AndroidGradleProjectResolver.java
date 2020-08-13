@@ -63,10 +63,10 @@ import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
 import com.android.ide.common.gradle.model.impl.ModelCache;
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
@@ -85,6 +85,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V1NdkModel;
+import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
@@ -135,7 +136,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -178,7 +178,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
-  @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
 
@@ -188,7 +187,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectFinder(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+    this(new CommandLineArgs(), new ProjectFinder(),
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
@@ -196,12 +195,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
-                               @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
     myProjectFinder = projectFinder;
-    myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
   }
@@ -309,6 +306,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     CachedVariants cachedVariants = findCachedVariants(gradleModule);
+    ModelCache modelCache = new ModelCache(myStrings);
 
     // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
@@ -328,14 +326,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
 
-      ModelCache modelCache = new ModelCache(myStrings);
       IdeAndroidProjectImpl ideAndroidProject =
         modelCache.androidProjectFrom(
           androidProject,
           myDependenciesFactory,
-          (variantGroup == null) ? null : variantGroup.getVariants(),
+          (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants(),
+          cachedVariants == null ? emptyList() : cachedVariants.getVariants(),
           syncIssues);
-      ideAndroidProject.addVariants(cachedVariants == null ? emptyList() : cachedVariants.getVariants());
       AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
@@ -360,7 +357,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // Prefer V2 NativeModule if available
     NativeModule nativeModule = resolverCtx.getExtraProject(gradleModule, NativeModule.class);
     if (androidProject != null && nativeModule != null) {
-      ndkModuleModel = new NdkModuleModel(androidProject.getModelVersion(), moduleName, rootModulePath, nativeModule);
+      V2NdkModel ndkModel = new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule));
+      ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, ndkModel);
       moduleNode.createChild(NDK_MODEL, ndkModuleModel);
     }
     else {
@@ -368,10 +366,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
 
       if (nativeAndroidProject != null) {
-        IdeNativeAndroidProject nativeProjectCopy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+        IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
         List<IdeNativeVariantAbi> ideNativeVariantAbis;
         if (variantGroup != null) {
-          ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbiImpl::new);
+          ideNativeVariantAbis = modelCache.copy(variantGroup::getNativeVariants, modelCache::nativeVariantAbiFrom);
         }
         else {
           ideNativeVariantAbis = new ArrayList<>();

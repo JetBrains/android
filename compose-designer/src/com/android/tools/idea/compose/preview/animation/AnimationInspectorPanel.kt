@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,14 +37,14 @@ import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBTextArea
-import com.intellij.util.SystemProperties
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -56,6 +57,7 @@ import java.util.Dictionary
 import java.util.Hashtable
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.SwingConstants
@@ -78,8 +80,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * but have their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   private val tabbedPane = CommonTabbedPane().apply {
-    border = MatteBorder(1, 0, 0, 0, JBColor.border())
-
     addChangeListener {
       if (selectedIndex < 0) return@addChangeListener
 
@@ -103,11 +103,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private val tabNamesCount = HashMap<String, Int>()
 
   /**
-   * Panel displayed when the preview has no animations subscribed.
+   * Loading panel displayed when the preview has no animations subscribed.
    */
-  private val noAnimationsPanel = JPanel(BorderLayout()).apply {
-    add(JBLabel(message("animation.inspector.no.animations.panel.message"), SwingConstants.CENTER), BorderLayout.CENTER)
-    border = MatteBorder(1, 0, 0, 0, JBColor.border())
+  private val noAnimationsPanel = JBLoadingPanel(BorderLayout(), this).apply {
+    name = "Loading Animations Panel"
+    setLoadingText(message("animation.inspector.loading.animations.panel.message"))
   }
 
   private val timeline = TransitionDurationTimeline()
@@ -125,12 +125,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
   init {
     name = "Animation Inspector"
-    border = MatteBorder(1, 0, 1, 0, JBColor.border())
-    var composableTitle = JBLabel(message("animation.inspector.panel.title")).apply {
-      border = JBUI.Borders.empty(5)
-    }
+    border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
-    add(composableTitle, TabularLayout.Constraint(0, 0))
+    noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
   }
 
@@ -159,6 +156,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   private fun showNoAnimationsPanel() {
     remove(tabbedPane)
+    noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
     tabNamesCount.clear()
@@ -170,6 +168,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   internal fun addTab(animation: ComposeAnimation) {
     if (tabbedPane.tabCount == 0) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
+      noAnimationsPanel.stopLoading()
       remove(noAnimationsPanel)
       add(tabbedPane, TabularLayout.Constraint(1, 0, 2))
     }
@@ -232,7 +231,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     /**
      * Displays the animated properties and their value at the current timeline time.
      */
-    private val propsTextArea = JBTextArea(message("animation.inspector.no.properties.message")).apply { isEditable = false }
+    private val animatedPropertiesPanel = AnimatedPropertiesPanel()
 
     private val timelinePanel = JPanel(BorderLayout())
 
@@ -266,8 +265,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      clock.updateSeekableAnimationFunction.call(clock.clock, animation, startState, toState)
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender { clock.updateAnimationStatesFunction.call(clock.clock) }
+      clock.updateSeekableAnimationFunction.invoke(clock.clock, animation, startState, toState)
+      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+        clock.updateAnimationStatesFunction.invoke(clock.clock)
+      }
       timeline.jumpToStart()
       timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
 
@@ -282,10 +283,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      */
     fun updateTimelineWindowSize() {
       val clock = animationClock ?: return
-      val maxDurationPerIteration = clock.getMaxDurationPerIteration.call(clock.clock) as Long
+      val maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
       timeline.updateMaxDuration(maxDurationPerIteration)
 
-      val maxDuration = clock.getMaxDurationFunction.call(clock.clock) as Long
+      val maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long
       timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
         // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
         // so we need to add as many loops to the timeline as necessary to display all the iterations.
@@ -339,10 +340,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       endStateComboBox.selectedIndex = if (endStateComboBox.itemCount > 1) 1 else 0
     }
 
-    // TODO(b/157895086): Polish the animated properties panel.
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
       preferredSize = JBDimension(200, 200)
-      add(propsTextArea, TabularLayout.Constraint(0, 0))
+      add(animatedPropertiesPanel, TabularLayout.Constraint(0, 0))
     }
 
     /**
@@ -356,12 +356,55 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.call(animClock.clock, animation) as List<ComposeAnimatedProperty>
-        propsTextArea.text = animatedPropKeys.joinToString(separator = SystemProperties.getLineSeparator()) { "${it.label}: ${it.value}" }
+        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        animatedPropertiesPanel.updateProperties(animatedPropKeys)
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
       }
+    }
+
+    /**
+     * HTML panel to display animated properties and their corresponding values at the time set in [TransitionDurationTimeline].
+     */
+    private inner class AnimatedPropertiesPanel : JEditorPane() {
+
+      init {
+        margin = JBUI.insets(5)
+        editorKit = UIUtil.getHTMLEditorKit()
+        isEditable = false
+        text = createNoPropertiesPanel()
+      }
+
+      private fun createNoPropertiesPanel() =
+        HtmlBuilder().openHtmlBody().add(message("animation.inspector.no.properties.message")).closeHtmlBody().html
+
+      /**
+       * Updates the properties panel content, displaying one property per line. Each line has the property label (default label color)
+       * followed by the corresponding value at current time (disabled label color).
+       */
+      fun updateProperties(animatedPropKeys: List<ComposeAnimatedProperty>) {
+        text = if (animatedPropKeys.isEmpty()) {
+          createNoPropertiesPanel()
+        }
+        else {
+          val htmlBuilder = HtmlBuilder().openHtmlBody()
+          animatedPropKeys.forEach { property ->
+            htmlBuilder
+              .beginSpan("color: ${UIUtil.getLabelForeground().toCss()}")
+              .add(property.label)
+              .endSpan()
+              .addNbsps(2)
+              .beginSpan("color: ${UIUtil.getLabelDisabledForeground().toCss()}")
+              .add(property.value.toString())
+              .endSpan()
+              .newline()
+          }
+          htmlBuilder.closeHtmlBody().html
+        }
+      }
+
+      private fun Color.toCss() = "rgb($red, $green, $blue)"
     }
 
     /**
@@ -625,7 +668,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     fun setClockTime(newValue: Int) {
-      if (animationClock == null || selectedTab == null) return
+      val clock = animationClock ?: return
+      val tab = selectedTab ?: return
 
       var clockTimeMs = newValue.toLong()
       if (playInLoop) {
@@ -633,10 +677,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         clockTimeMs += slider.maximum * loopCount
       }
 
-      surface.layoutlibSceneManagers.single().executeCallbacksAndRequestRender {
-        animationClock!!.setClockTimeFunction.call(animationClock!!.clock, clockTimeMs)
+      surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+        clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
       }
-      selectedTab!!.updateProperties()
+      tab.updateProperties()
     }
 
     /**

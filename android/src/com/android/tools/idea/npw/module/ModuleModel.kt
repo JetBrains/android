@@ -38,7 +38,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import java.io.File
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 private val log: Logger get() = logger<ModuleModel>()
 
@@ -58,6 +57,7 @@ abstract class ModuleModel(
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
+  override val isViewBindingSupported = projectModelData.isViewBindingSupported
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)
@@ -72,10 +72,6 @@ abstract class ModuleModel(
      * A [Recipe] which should be run from [render].
      */
     protected abstract val recipe: Recipe
-    /**
-     * A value which will be logged for Studio usage tracking.
-     */
-    protected abstract val loggingEvent: RenderLoggingEvent
 
     @WorkerThread
     override fun init() {

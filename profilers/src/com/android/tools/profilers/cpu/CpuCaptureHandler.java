@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import java.io.File;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;

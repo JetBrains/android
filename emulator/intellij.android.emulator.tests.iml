@@ -26,5 +26,6 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
   </component>
 </module>

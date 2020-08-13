@@ -40,9 +40,12 @@ object ComposePreviewAnimationManager {
     private set
 
   @get:VisibleForTesting
-  val subscribedAnimations = mutableSetOf<Any>()
+  val subscribedAnimations = mutableSetOf<ComposeAnimation>()
 
-  fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable): AnimationInspectorPanel {
+  private var newInspectorOpenedCallback: (() -> Unit)? = null
+
+  fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
+    newInspectorOpenedCallback = onNewInspectorOpen
     val animationInspectorPanel = AnimationInspectorPanel(surface)
     Disposer.register(parent, animationInspectorPanel)
     currentInspector = animationInspectorPanel
@@ -52,23 +55,47 @@ object ComposePreviewAnimationManager {
   fun closeCurrentInspector() {
     currentInspector?.let { Disposer.dispose(it) }
     currentInspector = null
+    newInspectorOpenedCallback = null
     subscribedAnimations.clear()
+  }
+
+  /**
+   * Expected to be called just before opening an inspector, e.g. before triggering the toolbar action. Invokes [newInspectorOpenedCallback]
+   * to handle potential operations that need to be done before opening the new inspector, e.g. closing another one that might be open.
+   */
+  fun onAnimationInspectorOpened() {
+    newInspectorOpenedCallback?.invoke()
   }
 
   /**
    * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding tab in the [AnimationInspectorPanel].
    */
   fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
-    currentInspector?.takeIf { it.animationClock?.clock != clock }?.let {
-      it.animationClock = clock?.let { clock ->
-        AnimationClock(clock)
+    if (clock == null) return
+    val inspector = currentInspector ?: return
+    if (inspector.animationClock == null) {
+      inspector.animationClock = AnimationClock(clock)
+    }
+
+    // Handle the case where the clock has changed while the inspector is open. That might happen when we were still processing a
+    // subscription from a previous inspector when the new inspector was open. In this case, we should unsubscribe all the previously
+    // subscribed animations, as they were tracked by the previous clock.
+    inspector.animationClock?.let {
+      if (it.clock != clock) {
+        val subscribedAnimationsIterator = subscribedAnimations.iterator()
+        for (subscribedAnimation in subscribedAnimationsIterator) {
+          onAnimationUnsubscribed(subscribedAnimation)
+        }
+        // Now update the clock
+        inspector.animationClock = AnimationClock(clock)
       }
     }
+
     if (subscribedAnimations.add(animation)) {
       UIUtil.invokeLaterIfNeeded {
-        currentInspector?.addTab(animation)
+        inspector.addTab(animation)
         if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
-          currentInspector?.updateTransitionStates(animation, animation.states)
+          inspector.updateTransitionStates(animation, animation.states)
         }
       }
     }
@@ -82,10 +109,6 @@ object ComposePreviewAnimationManager {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.removeTab(animation)
       }
-    }
-    if (subscribedAnimations.isEmpty()) {
-      // No more animations. Set the clock to null, so the panel can update accordingly.
-      currentInspector?.let { it.animationClock = null }
     }
   }
 

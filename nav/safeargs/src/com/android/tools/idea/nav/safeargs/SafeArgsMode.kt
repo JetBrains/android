@@ -16,8 +16,8 @@
 package com.android.tools.idea.nav.safeargs
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent
-import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent
+import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
+import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
@@ -42,7 +42,7 @@ enum class SafeArgsMode {
 
 
 var AndroidFacet.safeArgsMode: SafeArgsMode
-  get() = module.getComponent(SafeArgsModeModuleComponent::class.java).safeArgsMode
+  get() = SafeArgsModeModuleService.getInstance(module).safeArgsMode
   /**
    * Allow tests to set the [SafeArgsMode] directly -- however, this value may get overwritten if
    * testing with a Gradle project. In that case, you should control the mode by applying the
@@ -50,7 +50,7 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
    */
   @TestOnly
   set(value) {
-    module.getComponent(SafeArgsModeModuleComponent::class.java).safeArgsMode = value
+    SafeArgsModeModuleService.getInstance(module).safeArgsMode = value
   }
 
 /**
@@ -58,6 +58,6 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
  * modules.
  */
 val Project.safeArgsModeTracker: ModificationTracker
-  get() = getComponent(SafeArgsModeTrackerProjectComponent::class.java).tracker
+  get() = SafeArgsModeTrackerProjectService.getInstance(this).tracker
 
 fun AndroidFacet.isSafeArgsEnabled() = StudioFlags.NAV_SAFE_ARGS_SUPPORT.get() && safeArgsMode != SafeArgsMode.NONE

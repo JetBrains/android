@@ -22,7 +22,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.util.TextRange;
@@ -103,13 +103,13 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
 
   private static boolean isLintConfig(@NotNull XmlFile file) {
     // Skip baseline files and lint.xml files
-    if (file.getName().equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+    if (file.getName().equals(LintXmlConfiguration.CONFIG_FILE_NAME)) {
       return true;
     }
     XmlTag tag = file.getRootTag();
     if (tag != null) {
       String tagName = tag.getName();
-      if (DefaultConfiguration.TAG_LINT.equals(tagName) || TAG_ISSUES.equals(tagName)) {
+      if (LintXmlConfiguration.TAG_LINT.equals(tagName) || TAG_ISSUES.equals(tagName)) {
         return true;
       }
     }

@@ -369,18 +369,14 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     run {
       val releaseBuildType = appModule.buildTypes.find { it.name == "release" }!!
       val debuggable = PsBuildType.BuildTypeDescriptors.debuggable.bind(releaseBuildType)
-      val embedMicroApp = PsBuildType.BuildTypeDescriptors.embedMicroApp.bind(releaseBuildType)
       val jniDebuggable = PsBuildType.BuildTypeDescriptors.jniDebuggable.bind(releaseBuildType)
       val minifyEnabled = PsBuildType.BuildTypeDescriptors.minifyEnabled.bind(releaseBuildType)
-      val pseudoLocalesEnabled = PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled.bind(releaseBuildType)
       val renderscriptDebuggable = PsBuildType.BuildTypeDescriptors.renderscriptDebuggable.bind(releaseBuildType)
       val renderscriptOptimLevel = PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel.bind(releaseBuildType)
       val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.bind(releaseBuildType)
       checkPreferredName(debuggable, "releaseDebuggable", false)
-      checkPreferredName(embedMicroApp, "releaseEmbedMicroApp")
       checkPreferredName(jniDebuggable, "releaseJniDebuggable", false)
       checkPreferredName(minifyEnabled, "releaseMinifyEnabled", false)
-      checkPreferredName(pseudoLocalesEnabled, "releasePseudoLocalesEnabled")
       checkPreferredName(renderscriptDebuggable, "releaseRenderscriptDebuggable")
       checkPreferredName(renderscriptOptimLevel, "releaseRenderscriptOptimLevel", 2)
       checkPreferredName(testCoverageEnabled, "releaseTestCoverageEnabled")

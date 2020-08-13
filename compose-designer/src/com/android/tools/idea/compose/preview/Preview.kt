@@ -39,11 +39,14 @@ import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortBySourcePosition
@@ -59,6 +62,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -130,6 +134,17 @@ private class ModelDataContext(private val composePreviewManager: ComposePreview
 }
 
 /**
+ * Returns true if change of values of any [LayoutlibSceneManager] properties would require necessary re-inflation. Namely, if we change
+ * [LayoutlibSceneManager.isShowingDecorations], [LayoutlibSceneManager.isUsePrivateClassLoader] or if we transition from interactive to
+ * static preview mode (not the other way around though) we need to re-inflate in order to update the preview layout.
+ */
+fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isInteractive: Boolean, usePrivateClassLoader: Boolean) =
+  (showDecorations != isShowingDecorations) ||
+  (interactive && !isInteractive) || // transition from interactive to static
+  (usePrivateClassLoader != isUsePrivateClassLoader)
+
+
+/**
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
  * will configure if the preview elements will be displayed with "full device size" or simply containing the
  * previewed components (shrink mode).
@@ -144,14 +159,15 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            usePrivateClassLoader: Boolean,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
+    val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
-    setInteractive(isInteractive)
-    setUsePrivateClassLoader(usePrivateClassLoader)
+    interactive = isInteractive
+    isUsePrivateClassLoader = usePrivateClassLoader
     setQuality(0.7f)
     setShowDecorations(showDecorations)
-    if (forceReinflate) {
+    if (reinflate) {
       forceReinflate()
     }
   }
@@ -227,7 +243,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var interactiveMode = InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
-  override var interactivePreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var interactivePreviewElementInstance:
+    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
       val isInteractive = newValue != null
@@ -235,9 +252,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // but we want to stop the loop first and then change the composable when disabled
       if (isInteractive) { // Enable interactive
         interactiveMode = InteractiveMode.STARTING
-        previewElementProvider.instanceIdFilter = newValue
+        val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
+        previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
-        forceRefresh(StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()).invokeOnCompletion {
+        forceRefresh(quickRefresh).invokeOnCompletion {
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
 
@@ -266,22 +284,29 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val animationInspection = AtomicBoolean(false)
 
-  override var animationInspectionPreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var animationInspectionPreviewElementInstance:
+    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       animationInspection.set(newValue != null)
       if (animationInspection.get()) {
         LOG.debug("Animation Inspector open for preview: $newValue")
-        previewElementProvider.instanceIdFilter = newValue
+        previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
-        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this)
+        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
+          // Close this inspection panel, making all the necessary UI changes (e.g. changing background and refreshing the preview) before
+          // opening a new one.
+          animationInspectionPreviewElementInstance = null
+        }
+        surface.background = INTERACTIVE_BACKGROUND_COLOR
       }
       else {
         // Close the animation inspection panel
+        surface.background = defaultSurfaceBackground
         ComposePreviewAnimationManager.closeCurrentInspector()
         mainPanelSplitter.secondComponent = null
         sceneComponentProvider.enabled = true
-        previewElementProvider.instanceIdFilter = null
+        previewElementProvider.instanceFilter = null
       }
       forceRefresh()
     }
@@ -303,7 +328,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setSceneManagerProvider { surface, model -> LayoutlibSceneManager(model, surface, sceneComponentProvider)}
+    .setSceneManagerProvider { surface, model ->
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener())
+    }
     .setEditable(true)
     .setDelegateDataProvider {
       return@setDelegateDataProvider when (it) {
@@ -395,10 +422,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-                                            surface.layoutlibSceneManagers.forEach {
-                                              it.executeCallbacksAndRequestRender(null)
+                                            if (!RenderService.isBusy()) {
+                                              surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
-                                          }, Duration.ofMillis(30))
+                                          }, Duration.ofMillis(5))
 
   private val hasSuccessfulBuild = AtomicBoolean(false)
 
@@ -495,7 +522,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun dispose() {
-    animationInspectionPreviewElementInstanceId = null
+    animationInspectionPreviewElementInstance = null
   }
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
@@ -610,10 +637,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.toMutableList()
+    val previewElementsList = previewElementProvider.previewElements.toList()
 
+    val modelIndices = matchElementsToModels(existingModels, previewElementsList)
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = previewElementProvider
-      .previewElements
+    val models = previewElementsList
       .map {
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
@@ -628,7 +656,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         Pair(it, xmlOutput)
       }
-      .map {
+      .mapIndexed { idx, it ->
         val (previewElement, fileContents) = it
 
         if (LOG.isDebugEnabled) {
@@ -640,9 +668,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           """.trimIndent())
         }
 
-        val model = if (existingModels.isNotEmpty()) {
-          // Find the same model we were using before, if possible. See modelAffinity for more details.
-          val reusedModel = existingModels.minBy { aModel -> modelAffinity(aModel.dataContext, previewElement) }!!
+        val model = if (modelIndices[idx] >= 0) {
+          // If model index for this preview element >= 0 then an existing model that can be reused is found. See matchElementsToModels for
+          // more details.
+          val reusedModel = existingModels[modelIndices[idx]]
           val affinity = modelAffinity(reusedModel.dataContext, previewElement)
           // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
           // we can skip reinflate and therefore refresh much quicker
@@ -800,7 +829,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                 configureLayoutlibSceneManager(sceneManager,
                                                showDecorations = previewElement.displaySettings.showDecoration,
                                                isInteractive = interactiveMode.isStartingOrReady(),
-                                               usePrivateClassLoader = usePrivateClassLoader())
+                                               usePrivateClassLoader = usePrivateClassLoader(),
+                                               forceReinflate = false)
                   .requestComposeRender()
                   .await()
               }
@@ -826,8 +856,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
    * where it's crucial not to share the state (which includes the compose framework).
    */
-  private fun usePrivateClassLoader() =
-    interactiveMode.isStartingOrReady() || animationInspection.get() || StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get()
+  private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
   private fun forceRefresh(quickRefresh: Boolean = false): Job {
     previewElements = emptyList() // This will just force a refresh
@@ -837,4 +866,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
+
+  /**
+   * We will only do quick refresh if there is a single preview.
+   */
+  private fun shouldQuickRefresh() = StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements.count() == 1
 }

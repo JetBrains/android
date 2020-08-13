@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk
 
-import com.android.builder.model.NativeArtifact
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -107,7 +107,7 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
                                        settings: ViewSettings): Collection<AbstractTreeNode<*>> {
 
   val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
-  val nativeLibraries = HashMultimap.create<NativeLibraryKey, NativeArtifact>()
+  val nativeLibraries = HashMultimap.create<NativeLibraryKey, IdeNativeArtifact>()
   for (artifact in variant.artifacts) {
     val file = artifact.outputFile
     var nativeLibraryName: String

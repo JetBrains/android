@@ -34,7 +34,7 @@ class CaptureNodeAnalysisModelTest {
     }
     val model = CaptureNodeAnalysisModel(CaptureNode(SingleNameModel("Foo")), capture)
     val tabs = model.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
-    assertThat(tabs).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
+    assertThat(tabs).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP, Type.EVENTS)
   }
 
   @Test

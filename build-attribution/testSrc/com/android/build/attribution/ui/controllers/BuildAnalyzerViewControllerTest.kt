@@ -118,8 +118,8 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      // First node in warnings tree
-      to = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT
+      // No selection in warnings page
+      to = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
     )
   }
 
@@ -138,7 +138,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       // First node in warnings tree
-      from = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT,
+      from = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
       to = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
     )
   }
@@ -195,7 +195,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
     }
   }
 
@@ -287,8 +287,8 @@ class BuildAnalyzerViewControllerTest {
   fun testWarningsNodeSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
-    // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.warningsPageModel.selectedNode!!.nextNode as WarningsTreeNode
+    // First warning node (leaf) in current tree.
+    val nodeToSelect = model.warningsPageModel.treeRoot.firstLeaf as WarningsTreeNode
 
     // Act
     controller.warningsTreeNodeSelected(nodeToSelect)
@@ -347,11 +347,10 @@ class BuildAnalyzerViewControllerTest {
 
     // Verify
     Mockito.verify(showSettingsUtilMock).showSettingsDialog(eq(projectRule.project), eq(MemorySettingsConfigurable::class.java))
-    // TODO (b/155317033): update to verify proper type when added
-    //val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-    //buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
-    //  assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
-    //}
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+    }
   }
 
   private fun BuildAttributionUiEvent.verifyComboBoxPageChangeEvent(

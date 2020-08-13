@@ -176,7 +176,7 @@ public final class GradleUtil {
       if (outputs.isEmpty()) return null;
       IdeAndroidArtifactOutput output = getFirstItem(outputs);
       assert output != null;
-      return output.getMainOutputFile().getOutputFile();
+      return output.getOutputFile();
     }
   }
 

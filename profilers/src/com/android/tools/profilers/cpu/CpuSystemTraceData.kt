@@ -52,6 +52,15 @@ interface CpuSystemTraceData {
   }
 
   /**
+   * The memory counters for the process selected for this capture.
+   *
+   * For each memory counter (those that starts with "mem.", like "mem.locked", "mem.rss", "mem.rss.anon", "mem.rss.file",
+   * "mem.rss.shmem", "mem.rss.watermark", "mem.swap" and "mem.virt") present in the main process, the retuned map will contain
+   * the corresponding data series for that counter.
+   */
+  fun getMemoryCounters(): Map<String, List<SeriesData<Long>>>
+
+  /**
    * Returns true if the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
    * due to the capture buffer being a ring buffer.
    */
@@ -72,6 +81,11 @@ interface CpuSystemTraceData {
    * @return a data series with VSYNC-sf counter (0 or 1).
    */
   fun getVsyncCounterValues(): List<SeriesData<Long>>
+
+  /**
+   * @return a data series with BufferQueue (SurfaceView) counter (0, 1, or 2).
+   */
+  fun getBufferQueueCounterValues(): List<SeriesData<Long>>
 
   /**
    * Returns the thread id of thread matching name of the render thread.

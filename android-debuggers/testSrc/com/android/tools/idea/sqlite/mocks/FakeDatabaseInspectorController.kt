@@ -19,7 +19,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
-import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -55,13 +54,6 @@ open class FakeDatabaseInspectorController(private val repository: DatabaseRepos
   override suspend fun databasePossiblyChanged() { }
 
   override fun showError(message: String, throwable: Throwable?) { }
-
-  override fun restoreSavedState(previousState: SavedUiState?) {
-  }
-
-  override fun saveState(): SavedUiState {
-    return object: SavedUiState {}
-  }
 
   override fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,

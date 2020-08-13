@@ -47,12 +47,13 @@ class NewLibraryModuleModel(
       .first() // we don't care which one do we use, we just have to pass something, it is not going to be used
   )
 
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = RenderLoggingEvent.JAVA_LIBRARY
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generatePureLibrary(td as ModuleTemplateData, className.get(), useGradleKts.get())
     }
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = RenderLoggingEvent.JAVA_LIBRARY
 
     override fun init() {
       super.init()

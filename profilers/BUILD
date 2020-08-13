@@ -74,6 +74,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
+        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
     ],
 )

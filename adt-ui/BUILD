@@ -9,8 +9,8 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
@@ -47,8 +47,6 @@ iml_module(
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
-        "//tools/idea/platform/execution-impl:intellij.platform.execution.impl",
         "//tools/idea/platform/inspect:intellij.platform.inspect",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
@@ -90,7 +88,6 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
-        "//tools/adt/idea/adt-ui/lib:libwebp",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
@@ -99,6 +96,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
+        "//tools/idea/plugins/webp:intellij.webp[module]",
     ],
 )
 
@@ -113,7 +111,6 @@ java_binary(
 iml_module(
     name = "unb.intellij.android.adt.ui",
     srcs = ["src/main/java"],
-    bundled_deps = ["//tools/adt/idea/adt-ui/lib:unb.libwebp"],
     iml_files = ["intellij.android.adt.ui.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -123,8 +120,8 @@ iml_module(
     ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
-        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
@@ -138,7 +135,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
-        "//tools/adt/idea/adt-ui/lib:unb.libwebp",
         "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",

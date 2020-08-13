@@ -109,8 +109,8 @@ internal class AppInspectionProcessDiscovery(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = dispatcher.asExecutor(),
-            filter = { it.process.hasProcessStarted() },
-            startTime = streamLastEventTimestamp
+            startTime = streamLastEventTimestamp,
+            filter = { it.process.hasProcessStarted() }
           ) {
             val process = it.process.processStarted.process
             addProcess(streamChannel, process)
@@ -121,8 +121,8 @@ internal class AppInspectionProcessDiscovery(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = dispatcher.asExecutor(),
-            filter = { !it.process.hasProcessStarted() },
-            startTime = streamLastEventTimestamp
+            startTime = streamLastEventTimestamp,
+            filter = { !it.process.hasProcessStarted() }
           ) {
             removeProcess(streamChannel.stream.streamId, it.groupId.toInt())
             setStreamLastActiveTime(streamChannel.stream.streamId, it.timestamp)

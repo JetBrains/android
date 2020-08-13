@@ -18,6 +18,8 @@ package com.android.tools.idea.testing
 import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidArtifact
 import com.android.builder.model.AndroidArtifactOutput
+import com.android.builder.model.AndroidGradlePluginProjectFlags
+import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
@@ -177,6 +179,8 @@ interface AndroidProjectStubBuilder {
   val projectType: Int
   val minSdk: Int
   val targetSdk: Int
+  val mlModelBindingEnabled: Boolean
+  val agpProjectFlags: AndroidGradlePluginProjectFlags
   val mainSourceProvider: SourceProvider
   val androidTestSourceProviderContainer: SourceProviderContainer?
   val unitTestSourceProviderContainer: SourceProviderContainer?
@@ -209,6 +213,8 @@ data class AndroidProjectBuilder(
   val projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
   val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
+  val mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean = { false },
+  val agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags = { buildAgpProjectFlagsStub() },
   val defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
   val mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
   val androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
@@ -241,6 +247,12 @@ data class AndroidProjectBuilder(
 
   fun withTargetSdk(targetSdk: AndroidProjectStubBuilder.() -> Int) =
     copy(targetSdk = targetSdk)
+
+  fun withMlModelBindingEnabled(mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean) =
+    copy(mlModelBindingEnabled = mlModelBindingEnabled)
+
+  fun withAgpProjectFlags(agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags) =
+    copy(agpProjectFlags = agpProjectFlags)
 
   fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
     copy(defaultConfig = defaultConfig)
@@ -301,6 +313,8 @@ data class AndroidProjectBuilder(
       override val projectType: Int get() = projectType()
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
+      override val mlModelBindingEnabled: Boolean get() = mlModelBindingEnabled()
+      override val agpProjectFlags: AndroidGradlePluginProjectFlags get() = agpProjectFlags()
       override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
       override val androidTestSourceProviderContainer: SourceProviderContainer? get() = androidTestSourceProvider()
       override val unitTestSourceProviderContainer: SourceProviderContainer? get() = unitTestSourceProvider()
@@ -331,26 +345,27 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     projectType = { projectType },
     minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
     targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
-    mainSourceProvider = {
-      SourceProviderStub(
-        ARTIFACT_NAME_MAIN,
-        File(basePath, "AndroidManifest.xml"),
-        listOf(File(basePath, "src")),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        listOf(File(basePath, "res")),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList())
-    },
+    mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
     androidTestSourceProvider = { null },
     unitTestSourceProvider = { null },
     releaseSourceProvider = { null }
   )
+fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): SourceProviderStub {
+  return SourceProviderStub(
+    ARTIFACT_NAME_MAIN,
+    File(basePath, "AndroidManifest.xml"),
+    listOf(File(basePath, "src")),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    listOf(File(basePath, "res")),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList())
+}
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
   SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
@@ -370,6 +385,9 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub() =
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub() =
   SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml")
+
+fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub() =
+  AndroidGradlePluginProjectFlagsStub(mapOf(ML_MODEL_BINDING to mlModelBindingEnabled))
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = ProductFlavorContainerStub(
   ProductFlavorStub(
@@ -606,7 +624,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     true,
     projectType,
     true,
-    AndroidGradlePluginProjectFlagsStub(),
+    agpProjectFlags,
     listOf("debug", "release")
       .map { variantName ->
         VariantBuildInformationStub(
@@ -828,7 +846,8 @@ private fun createAndroidModuleDataNode(
         modelCache.androidProjectFrom(
           androidProjectStub,
           IdeDependenciesFactory(),
-          null,
+          androidProjectStub.variants,
+          ImmutableList.of(),
           ImmutableList.of()),
         selectedVariantName
       ),

@@ -16,6 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public enum ProfilingTechnology {
@@ -135,6 +138,24 @@ public enum ProfilingTechnology {
 
   @NotNull
   public static ProfilingTechnology fromConfig(@NotNull ProfilingConfiguration config) {
-    return fromTypeAndMode(config.getTraceType(), config.getMode());
+    switch (config.getTraceType()) {
+      case ART:
+        if (config instanceof ArtSampledConfiguration) {
+          return ART_SAMPLED;
+        }
+        else if (config instanceof ArtInstrumentedConfiguration) {
+          return ART_INSTRUMENTED;
+        }
+        else {
+          return ART_UNSPECIFIED;
+        }
+      case SIMPLEPERF:
+        return SIMPLEPERF;
+      case ATRACE: // fall-through
+      case PERFETTO:
+        return SYSTEM_TRACE;
+      default:
+        throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
+    }
   }
 }

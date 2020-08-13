@@ -187,20 +187,6 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   fun getPackageName(): String?
 
   /**
-   * Returns the best effort [ApplicationIdProvider] for the given module and [runConfiguration].
-   *
-   * Some project systems may be unable to retrieve the package name before the project has been successfully
-   * built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s or return a name derived
-   * from incomplete configuration in this case.
-   */
-  // TODO(b/154038950): Move to AndroidProjectSystem when runConfiguration made non-nullable.
-  @JvmDefault
-  fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider = object : ApplicationIdProvider {
-    override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
-    override fun getTestPackageName(): String? = null
-  }
-
-  /**
    * DO NOT USE!
    * Returns the best effort [ApplicationIdProvider] for the given module.
    *
@@ -215,15 +201,6 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
     override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
     override fun getTestPackageName(): String? = null
   }
-
-  /**
-   * Returns the [ApkProvider] for the given [runConfiguration] such that describes APKs suitable for [targetDeviceSpec].
-   *
-   * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
-   */
-  @JvmDefault
-  // TODO(b/154038950): Move to AndroidProjectSystem together with getApplicationIdProvider(). It is here for the sake of consistency.
-  fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? = null
 
   /**
    * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.

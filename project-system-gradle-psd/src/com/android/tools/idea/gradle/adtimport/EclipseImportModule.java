@@ -25,7 +25,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.google.common.collect.Lists;
 
 import java.io.File;
@@ -50,7 +50,7 @@ class EclipseImportModule extends ImportModule {
   @Nullable
   @Override
   protected File getLintXml() {
-    File lintXml = new File(myProject.getDir(), DefaultConfiguration.CONFIG_FILE_NAME);
+    File lintXml = new File(myProject.getDir(), LintXmlConfiguration.CONFIG_FILE_NAME);
     return lintXml.exists() ? lintXml : null;
   }
 

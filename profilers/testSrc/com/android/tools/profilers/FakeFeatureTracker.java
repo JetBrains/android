@@ -22,8 +22,8 @@ import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
@@ -101,6 +101,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Query metrics in the order they were passed to the tracker.
    */
   private final List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> myTpdQueryMetrics = new ArrayList<>();
+
+  /**
+   * Number of times zoom to selection is called.
+   */
+  private int myZoomToSelectionCallCount = 0;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -215,6 +220,19 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackResetZoom() {
 
+  }
+
+  @Override
+  public void trackZoomToSelection() {
+    ++myZoomToSelectionCallCount;
+  }
+
+  public void resetZoomToSelectionCallCount() {
+    myZoomToSelectionCallCount = 0;
+  }
+
+  public int getZoomToSelectionCallCount() {
+    return myZoomToSelectionCallCount;
   }
 
   @Override
@@ -492,7 +510,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorMemoryData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA,
       TraceProcessorDaemonQueryStats.newBuilder()
@@ -501,6 +519,21 @@ public final class FakeFeatureTracker implements FeatureTracker {
         .setGrpcQueryDurationMs(queryTimeMs)
         .build()));
   }
+
+  @Override
+  public void trackMoveTrackGroupUp(@NotNull String title) { }
+
+  @Override
+  public void trackMoveTrackGroupDown(@NotNull String title) { }
+
+  @Override
+  public void trackExpandTrackGroup(@NotNull String title) { }
+
+  @Override
+  public void trackCollapseTrackGroup(@NotNull String title) { }
+
+  @Override
+  public void trackSelectBox(long durationUs, int trackCount) { }
 
   @NotNull
   public List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> getTraceProcessorQueryMetrics() {

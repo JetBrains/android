@@ -60,6 +60,20 @@ abstract public class SceneManager implements Disposable {
     void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
   }
 
+  /**
+   * Listener that allows performing additional operations affected by the scene root component when updating the scene.
+   */
+  public interface SceneUpdateListener {
+    void onUpdate(@NotNull NlComponent component);
+  }
+
+  public static class DefaultSceneUpdateListener implements SceneUpdateListener {
+    @Override
+    public void onUpdate(@NotNull NlComponent component) {
+      // By default, don't do anything extra when updating the scene.
+    }
+  }
+
   public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
@@ -69,6 +83,7 @@ abstract public class SceneManager implements Disposable {
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
+  @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
 
   /**
    * Creates a new {@link SceneManager}.
@@ -78,17 +93,20 @@ abstract public class SceneManager implements Disposable {
    *                         {@link SceneManager#requestRender} happens.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
    *                               given {@link NlComponent}.
+   * @param sceneUpdateListener a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    */
   public SceneManager(
     @NotNull NlModel model,
     @NotNull DesignSurface surface,
     boolean useLiveRendering,
-    @Nullable SceneComponentHierarchyProvider sceneComponentProvider) {
+    @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
+    @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
     mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
+    mySceneUpdateListener = sceneUpdateListener == null ? new DefaultSceneUpdateListener() : sceneUpdateListener;
     myScene = new Scene(this, myDesignSurface, useLiveRendering);
   }
 
@@ -171,6 +189,7 @@ abstract public class SceneManager implements Disposable {
       scene.removeAllComponents();
       scene.setRoot(null);
     }
+    mySceneUpdateListener.onUpdate(rootComponent);
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);

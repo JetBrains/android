@@ -15,8 +15,9 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.model.BoxSelectionListener
+import com.android.tools.adtui.model.BoxSelectionModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBList
@@ -28,7 +29,8 @@ class BoxSelectionComponentTest {
    */
   private class BoxSelectionUi {
     val jList = JBList("foo", "bar")
-    val boxSelection = BoxSelectionComponent(RangeSelectionModel(Range(), Range(0.0, 100.0)), jList)
+    val boxSelectionModel = BoxSelectionModel(Range(), Range(0.0, 100.0))
+    val boxSelection = BoxSelectionComponent(boxSelectionModel, jList)
 
     init {
       // Make sure box selection component sits on top of the JList.
@@ -37,22 +39,40 @@ class BoxSelectionComponentTest {
     }
   }
 
+  private class TestBoxSelectionListener : BoxSelectionListener {
+    var durationUsVar = 0L
+    var trackCountVar = 0
+
+    override fun boxSelectionCreated(durationUs: Long, trackCount: Int) {
+      durationUsVar = durationUs
+      trackCountVar = trackCount
+    }
+  }
+
   @Test
   fun selectSingleListItem() {
     val ui = BoxSelectionUi()
+    val boxSelectionListener = TestBoxSelectionListener()
+    ui.boxSelectionModel.addBoxSelectionListener(boxSelectionListener)
     val fakeUi = FakeUi(ui.boxSelection)
     fakeUi.mouse.drag(0, 0, 10, 10)
     assertThat(ui.boxSelection.model.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
     assertThat(ui.jList.selectedValuesList).containsExactly("foo")
+    assertThat(boxSelectionListener.durationUsVar).isEqualTo(10L)
+    assertThat(boxSelectionListener.trackCountVar).isEqualTo(1)
   }
 
   @Test
   fun selectMultipleListItems() {
     val ui = BoxSelectionUi()
+    val boxSelectionListener = TestBoxSelectionListener()
+    ui.boxSelectionModel.addBoxSelectionListener(boxSelectionListener)
     val fakeUi = FakeUi(ui.boxSelection)
     fakeUi.mouse.drag(0, 0, 50, 90)
     assertThat(ui.boxSelection.model.selectionRange.isSameAs(Range(0.0, 50.0))).isTrue()
     assertThat(ui.jList.selectedValuesList).containsExactly("foo", "bar")
+    assertThat(boxSelectionListener.durationUsVar).isEqualTo(50L)
+    assertThat(boxSelectionListener.trackCountVar).isEqualTo(2)
   }
 
   @Test

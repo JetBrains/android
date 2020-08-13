@@ -24,12 +24,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.DetachedToolWindowManager.DetachedToolWindowFactory;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import java.awt.KeyboardFocusManager;
@@ -105,15 +105,12 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getOtherDefinition())))
       .thenReturn(myDetachedToolWindow2b, null);
 
-    myManager = new DetachedToolWindowManager(ApplicationManager.getApplication(), getProject());
-    myManager.initComponent();
+    myManager = new DetachedToolWindowManager(getProject());
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
-    assert myManager.getComponentName().equals("DetachedToolWindowManager");
     myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
-    myManager.projectOpened();
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);
@@ -139,7 +136,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
     UIUtil.dispatchAllInvocationEvents();
-    myManager.projectClosed();
+    Disposer.dispose(myManager);
     verify(myDetachedToolWindow1a).updateSettingsInAttachedToolWindow();
   }
 

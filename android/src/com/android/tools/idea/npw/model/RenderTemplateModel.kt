@@ -38,6 +38,8 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardParameterData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -48,12 +50,14 @@ import java.io.File
 
 private val log = logger<RenderTemplateModel>()
 
-class ExistingNewModuleModelData(
+private class ExistingNewModuleModelData(
   existingProjectModelData: ExistingProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 
   override val formFactor: ObjectValueProperty<FormFactor> get() =
     throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
@@ -65,11 +69,11 @@ class ExistingNewModuleModelData(
  * A model responsible for instantiating a [Template] into the current project representing an Android component.
  */
 class RenderTemplateModel private constructor(
-  moduleModelData: ModuleModelData,
+  private val moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
-  val createdFiles: MutableList<File> = arrayListOf()
+  private val wizardContext: WizardUiContext
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -96,6 +100,8 @@ class RenderTemplateModel private constructor(
     get() = androidFacet?.module
 
   val hasActivity: Boolean get() = newTemplate != Template.NoActivity
+
+  val createdFiles: MutableList<File> = arrayListOf()
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(TemplateRenderer())
@@ -185,9 +191,19 @@ class RenderTemplateModel private constructor(
         showErrors = true
       )
 
+      val metrics = TemplateMetrics(
+        templateType = titleToTemplateType(newTemplate.name, newTemplate.formFactor),
+        wizardContext = wizardContext,
+        moduleType = moduleTemplateRendererToModuleType(moduleModelData.loggingEvent),
+        minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
+        bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+        useGradleKts = useGradleKts.get(),
+        useAppCompat = useAppCompat.get()
+      )
+
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
-      return newTemplate.render(context, executor).also {
+      return newTemplate.render(context, executor, metrics).also {
         createdFiles.addAll(context.filesToOpen)
       }
     }
@@ -203,23 +219,28 @@ class RenderTemplateModel private constructor(
       template: NamedModuleTemplate,
       commandName: String,
       projectSyncInvoker: ProjectSyncInvoker,
-      shouldOpenFiles: Boolean
+      shouldOpenFiles: Boolean,
+      wizardContext: WizardUiContext
     ) = RenderTemplateModel(
       moduleModelData = ExistingNewModuleModelData(
         ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { initialPackageSuggestion?.let { packageName.set(it) }},
         facet, template),
       androidFacet = facet,
       commandName = commandName,
-      shouldOpenFiles = shouldOpenFiles)
+      shouldOpenFiles = shouldOpenFiles,
+      wizardContext = wizardContext)
 
     @JvmStatic
     fun fromModuleModel(
-      moduleModel: NewAndroidModuleModel, commandName: String = "Render new ${moduleModel.formFactor.get().name} template"
+      moduleModel: NewAndroidModuleModel,
+      commandName: String = "Render new ${moduleModel.formFactor.get().name} template",
+      wizardContext: WizardUiContext
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,
       commandName = commandName,
-      shouldOpenFiles = true
+      shouldOpenFiles = true,
+      wizardContext = wizardContext
     ).apply { multiTemplateRenderer.incrementRenders() }
 
     /**

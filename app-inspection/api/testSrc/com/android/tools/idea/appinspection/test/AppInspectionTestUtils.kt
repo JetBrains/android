@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
 const val INSPECTOR_ID = "test.inspector.1"
 const val INSPECTOR_ID_2 = "test.inspector.2"
+const val INSPECTOR_ID_3 = "test.inspector.3"
 
 val TEST_JAR = AppInspectorJar("test")
 

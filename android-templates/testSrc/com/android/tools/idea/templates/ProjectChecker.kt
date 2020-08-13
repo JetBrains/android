@@ -160,7 +160,7 @@ data class ProjectChecker(
     val moduleRecipe: Recipe = when (template.formFactor) {
       // TODO(qumeric): support C++
       // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
-      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8) }
+      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8, true) }
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
@@ -196,8 +196,8 @@ data class ProjectChecker(
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
-    projectRecipe.render(projectContext, executor1, null)
-    moduleRecipe.render(context, executor2, null)
+    projectRecipe.render(projectContext, executor1)
+    moduleRecipe.render(context, executor2)
     template.render(context, executor3)
     setGradleWrapperExecutable(projectRoot)
     verifyLastLoggedUsage(usageTracker, template.name, template.formFactor, moduleState.build())

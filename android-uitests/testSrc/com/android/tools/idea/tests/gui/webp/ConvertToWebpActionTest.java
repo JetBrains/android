@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpConversionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpPreviewDialogFixture;
@@ -39,11 +38,6 @@ public class ConvertToWebpActionTest {
 
   @Test
   public void testConvertLossless() throws IOException {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Skipping " + ConvertToWebpActionTest.class.getSimpleName() + " because the webp decoder is not available");
-      return;
-    }
-
     Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 
@@ -74,11 +68,6 @@ public class ConvertToWebpActionTest {
 
   @Test
   public void testConvertLossyWithPreviews() throws IOException {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Skipping " + ConvertToWebpActionTest.class.getSimpleName() + " because the webp decoder is not available");
-      return;
-    }
-
     Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
       .getProject();
 

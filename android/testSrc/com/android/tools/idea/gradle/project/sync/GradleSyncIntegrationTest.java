@@ -18,14 +18,11 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
-import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
@@ -44,12 +41,8 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -85,7 +78,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
-import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
@@ -112,16 +104,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.LeakHunter;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -131,13 +121,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -367,51 +354,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     String failure = requestSyncAndGetExpectedFailure();
     assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=74259
-  public void testWithCentralBuildDirectoryInRootModule() throws Exception {
-    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
-    // outside the content root of the "app" module.
-    File projectRootPath = prepareProjectForImport(CENTRAL_BUILD_DIRECTORY);
-
-    // The bug appears only when the central build folder does not exist.
-    File centralBuildDirPath = new File(projectRootPath, join("central", "build"));
-    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
-    delete(centralBuildParentDirPath);
-
-    Project project = getProject();
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.forceCreateDirs = true;
-    AndroidGradleTests.importProject(project, request, null);
-    Module app = TestModuleUtil.findAppModule(getProject());
-
-    // Now we have to make sure that if project import was successful, the build folder has included source folders.
-    File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
-      (Computable<File[]>)() -> {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          Collection<ContentEntry> contentEntries =
-            findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
-
-          List<File> paths = Lists.newArrayList();
-
-          for (SourceFolder source : contentEntries.stream().flatMap(contentEntry -> Arrays.stream(contentEntry.getSourceFolders()))
-            .collect(Collectors.toSet())) {
-            String path = urlToPath(source.getUrl());
-            if (isNotEmpty(path)) {
-              paths.add(toSystemDependentPath(path));
-            }
-          }
-          return paths.toArray(new File[paths.size()]);
-        }
-        finally {
-          rootModel.dispose();
-        }
-      });
-
-    assertThat(sourceFolderPaths).isNotEmpty();
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {
@@ -820,7 +762,8 @@ b/154962759 */
     assertFalse(rootModel.isKaptEnabled());
   }
 
-  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+  // b/161618318
+  public void /*test*/ExceptionsCreateFailedBuildFinishedEvent() throws Exception {
     loadSimpleApplication();
     SyncViewManager viewManager = mock(SyncViewManager.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
@@ -866,19 +809,12 @@ b/154962759 */
    */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
-    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-/* b/162363312
-    assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-    for (DaemonState status : daemonStatus) {
-      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
-    }
+    assertThat(areGradleDaemonsRunning()).isFalse();
     requestSyncAndWait();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-b/162363312 */
+    assertThat(areGradleDaemonsRunning()).isTrue();
+    GradleDaemonServices.stopDaemons();
+    assertThat(areGradleDaemonsRunning()).isFalse();
   }
 
   private boolean isModulePerSourceSet() {

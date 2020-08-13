@@ -112,7 +112,8 @@ public class MlLightClassTest extends AndroidTestCase {
                                     new ModelCache(new HashMap<>()).androidProjectFrom(
                                       androidProjectStub,
                                       new IdeDependenciesFactory(),
-                                      null,
+                                      androidProjectStub.getVariants(),
+                                      emptyList(),
                                       emptyList()), "debug"));
     doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
     AndroidModel.set(androidFacet, androidModuleModel);

@@ -39,11 +39,11 @@ class InspectorModelTest {
   @Test
   fun testUpdatePropertiesOnly() {
     val model = model {
-      view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type") {
-          view(VIEW3, 5, 6, 7, 8, "v3Type")
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+          view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
         }
-        view(VIEW2, 8, 7, 6, 5, "v2Type")
+        view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
       }
     }
     val origRoot = model.root.children[0]
@@ -55,17 +55,17 @@ class InspectorModelTest {
     }
 
     val newRoot =
-      view(ROOT, 2, 4, 6, 8, "rootType") {
-        view(VIEW1, 8, 6, 4, 2, "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, "v3Type")
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
-        view(VIEW2, 6, 7, 8, 9, "v2Type")
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
 
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
     assertFalse(isModified)
@@ -83,8 +83,8 @@ class InspectorModelTest {
   fun testChildCreated() {
     val image1 = ImageIO.read(File(TestUtils.getWorkspaceRoot(), "${TEST_DATA_PATH}/image1.png"))
     val model = model {
-      view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type") {
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
           image(image1)
         }
       }
@@ -93,16 +93,16 @@ class InspectorModelTest {
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newRoot =
-      view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type") {
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
           image(image1)
-          view(VIEW3, 9, 8, 7, 6, "v3Type")
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
       }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -114,9 +114,9 @@ class InspectorModelTest {
   @Test
   fun testNodeDeleted() {
     val model = model {
-      view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, "v3Type")
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
       }
     }
@@ -124,13 +124,13 @@ class InspectorModelTest {
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newRoot =
-      view(ROOT, 1, 2, 3, 4, "rootType") {
-        view(VIEW1, 4, 3, 2, 1, "v1Type")
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type")
       }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     val newNodes = model.root.flatten().associateBy { it.drawId }
@@ -142,27 +142,27 @@ class InspectorModelTest {
   @Test
   fun testNodeChanged() {
     val model = model {
-      view(ROOT, 2, 4, 6, 8, "rootType") {
-        view(VIEW1, 8, 6, 4, 2, "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, "v3Type")
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
-        view(VIEW2, 6, 7, 8, 9, "v2Type")
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
     }
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
     val newRoot =
-      view(ROOT, 2, 4, 6, 8, "rootType") {
-        view(VIEW4, 8, 6, 4, 2, "v4Type") {
-          view(VIEW3, 9, 8, 7, 6, "v3Type")
+      view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+        view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
-        view(VIEW2, 6, 7, 8, 9, "v2Type")
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
 
     val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(newRoot, ROOT, listOf(ROOT))
+    model.update(newRoot, ROOT, listOf(ROOT), 0)
     assertTrue(isModified)
 
     assertSame(origNodes[ROOT], model[ROOT])
@@ -182,19 +182,19 @@ class InspectorModelTest {
     assertTrue(model.isEmpty)
 
     // add first window
-    val window1 = view(ROOT, 2, 4, 6, 8, "rootType") {
-      view(VIEW1, 8, 6, 4, 2, "v1Type")
+    val window1 = view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+      view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
     }
-    model.update(window1, ROOT, listOf(ROOT))
+    model.update(window1, ROOT, listOf(ROOT), 0)
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
 
     // add second window
-    var window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
-      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    var window2 = view(VIEW2, 2, 4, 6, 8, qualifiedName = "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
     assertNotNull(model[VIEW3])
@@ -202,20 +202,20 @@ class InspectorModelTest {
 
     // reverse order of windows
     // same content but new instances, so model.update sees a change
-    window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
-      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    window2 = view(VIEW2, 2, 4, 6, 8, qualifiedName = "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
-    model.update(window2, VIEW2, listOf(VIEW2, ROOT))
+    model.update(window2, VIEW2, listOf(VIEW2, ROOT), 0)
     assertEquals(listOf(VIEW2, ROOT), model.root.children.map { it.drawId })
 
     // remove a window
-    model.update(null, 0, listOf(VIEW2))
+    model.update(null, 0, listOf(VIEW2), 0)
     assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
     assertNull(model[VIEW1])
     assertNotNull(model[VIEW3])
 
     // clear
-    model.update(null, 0, listOf<Any>())
+    model.update(null, 0, listOf<Any>(), 0)
     assertEmpty(model.root.children)
     assertTrue(model.isEmpty)
     assertSingleRoot(model)

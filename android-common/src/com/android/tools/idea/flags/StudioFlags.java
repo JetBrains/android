@@ -121,11 +121,6 @@ public final class StudioFlags {
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
     true);
 
-  public static final Flag<Boolean> PROFILER_CPU_API_TRACING = Flag.create(
-    PROFILER, "cpu.api.tracing", "Enable CPU API Tracing",
-    "Support method tracing through APIs from android.os.Debug.",
-    true);
-
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
@@ -344,7 +339,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
@@ -462,7 +457,7 @@ public final class StudioFlags {
     "adb.wireless.enabled",
     "Enable pairing devices through ADB wireless",
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
-    false);
+    true);
 
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
     RUNDEBUG,
@@ -540,6 +535,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED = Flag.create(
     GRADLE_IDE, "build.analyzer.new.ui.navigation", "Enable new UI navigation model for \"Build Analyzer\"",
     "Enable new UI navigation model for \"Build Analyzer\".", true);
+  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED = Flag.create(
+    GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
+    "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
+    true);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
@@ -578,7 +577,7 @@ public final class StudioFlags {
     "offline.enabled",
     "Enable offline mode in Database Inspector",
     "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
-    true
+    false
   );
   //endregion
 

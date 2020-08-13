@@ -54,8 +54,8 @@ object ComponentTreeLoader : TreeLoader {
     resourceLookup: ResourceLookup,
     client: InspectorClient,
     project: Project
-  ): Pair<ViewNode, Long>? {
-    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
+  ): Triple<ViewNode, Long, Int>? {
+    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
   }
 
   @VisibleForTesting
@@ -64,9 +64,10 @@ object ComponentTreeLoader : TreeLoader {
     client: InspectorClient,
     skiaParser: SkiaParserService,
     project: Project
-  ): ViewNode? {
+  ): Triple<ViewNode, Long, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project)
+    val root = ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+    return Triple(root, root.drawId, event.tree.generation)
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
@@ -176,6 +177,10 @@ private class ComponentTreeLoaderImpl(
     }
     catch (ex: UnsupportedPictureVersionException) {
       errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
+      null
+    }
+    catch (ex: Exception) {
+      errorMessage = "Problem launching renderer. Rotation disabled."
       null
     }
     return Pair(inspectorView, errorMessage)

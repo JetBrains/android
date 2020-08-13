@@ -52,26 +52,26 @@ public class AxisFormatterTest {
   }
 
   @Test
-  public void testGetMultiplierIndex() throws Exception {
+  public void testGetMultiplier() throws Exception {
     // value is less than the threshold to get to the next multiplier
     // so we are still in "mm" scale
-    int index = myFormatter.getMultiplierIndex(49, 5);
-    assertThat(index).isEqualTo(0);
-    assertThat(myFormatter.getMultiplier()).isEqualTo(1);
-    assertThat(myFormatter.getUnit(index)).isEqualTo("mm");
+    BaseAxisFormatter.Multiplier multiplier = myFormatter.getMultiplier(49, 5);
+    assertThat(multiplier.index).isEqualTo(0);
+    assertThat(multiplier.accumulation).isEqualTo(1);
+    assertThat(myFormatter.getUnit(multiplier.index)).isEqualTo("mm");
 
     // value is greater than or equal to the first multiplier * threshold
     // jumps to "cm"
-    index = myFormatter.getMultiplierIndex(50, 5);
-    assertThat(index).isEqualTo(1);
-    assertThat(myFormatter.getMultiplier()).isEqualTo(10);
-    assertThat(myFormatter.getUnit(index)).isEqualTo("cm");
+    multiplier = myFormatter.getMultiplier(50, 5);
+    assertThat(multiplier.index).isEqualTo(1);
+    assertThat(multiplier.accumulation).isEqualTo(10);
+    assertThat(myFormatter.getUnit(multiplier.index)).isEqualTo("cm");
 
     // value is greater than the second multiplier * threshold
     // jumps to "m"
-    index = myFormatter.getMultiplierIndex(5000, 5);
-    assertThat(index).isEqualTo(2);
-    assertThat(myFormatter.getMultiplier()).isEqualTo(1000);
-    assertThat(myFormatter.getUnit(index)).isEqualTo("m");
+    multiplier = myFormatter.getMultiplier(5000, 5);
+    assertThat(multiplier.index).isEqualTo(2);
+    assertThat(multiplier.accumulation).isEqualTo(1000);
+    assertThat(myFormatter.getUnit(multiplier.index)).isEqualTo("m");
   }
 }

@@ -303,7 +303,7 @@ class CpuCaptureParserTest {
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.threads).hasSize(17)
+    assertThat(capture.threads).hasSize(41)
   }
 
   @Test
@@ -313,8 +313,8 @@ class CpuCaptureParserTest {
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
-    services.setListBoxOptionsIndex(-1)
-    val futureCapture = parser.parseForTest(traceFile, nameHint = "surfaceflinger")
+    services.setListBoxOptionsIndex(-1) // This makes process selector throws if we didn't selected based on name hint first.
+    val futureCapture = parser.parseForTest(traceFile, nameHint = "/system/bin/surfaceflinger")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()

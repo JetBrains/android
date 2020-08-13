@@ -34,6 +34,7 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.usages.UsageView;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -55,7 +56,6 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   @NotNull private AgpUpgradeRefactoringProcessor myProcessor;
   @NotNull private Java8DefaultRefactoringProcessor myJava8Processor;
-  private NoLanguageLevelAction myNoLanguageLevelAction;
 
   AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
@@ -84,11 +84,12 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
       }
     });
 
+    NoLanguageLevelAction initialNoLanguageLevelAction;
     if (processorAlreadyConfiguredForJava8Dialog) {
-      myNoLanguageLevelAction = myJava8Processor.getNoLanguageLevelAction();
+      initialNoLanguageLevelAction = myJava8Processor.getNoLanguageLevelAction();
     }
     else {
-      myNoLanguageLevelAction = ACCEPT_NEW_DEFAULT;
+      initialNoLanguageLevelAction = ACCEPT_NEW_DEFAULT;
       for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
         AgpUpgradeComponentNecessity necessity = p.necessity();
         p.setEnabled(necessity == MANDATORY_CODEPENDENT || necessity == MANDATORY_INDEPENDENT);
@@ -124,22 +125,26 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
         sb.append("</li>");
       }
     }
-    sb.append("<li>").append(myProcessor.getClasspathRefactoringProcessor().getCommandName()).append("</li>");
+    if (myProcessor.getClasspathRefactoringProcessor().isEnabled()) {
+      sb.append("<li>").append(myProcessor.getClasspathRefactoringProcessor().getCommandName()).append("</li>");
+    }
     sb.append("</ul>");
     myEditorPane.setText(sb.toString());
 
-    if (myJava8Processor != null && myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
+    if (myJava8Processor.isEnabled() && !myJava8Processor.isAlwaysNoOpForProject()) {
       JBLabel label = new JBLabel("Action on no explicit Java language level: ");
       myJava8SettingsPanel.add(label);
       myNoLanguageLevelActionComboBox = new ComboBox<>(new NoLanguageLevelAction[] {ACCEPT_NEW_DEFAULT, INSERT_OLD_DEFAULT});
-      myNoLanguageLevelActionComboBox.setSelectedItem(myNoLanguageLevelAction);
+      myNoLanguageLevelActionComboBox.setSelectedItem(initialNoLanguageLevelAction);
       myJava8SettingsPanel.add(myNoLanguageLevelActionComboBox);
       myJava8SettingsPanel.setVisible(true);
     }
     else {
       myJava8SettingsPanel.setVisible(false);
     }
+    myPanel.setMinimumSize(new JBDimension(500, 99));
   }
+
   @Override
   protected @Nullable JComponent createCenterPanel() {
     return myPanel;

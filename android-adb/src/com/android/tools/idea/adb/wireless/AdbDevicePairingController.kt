@@ -27,5 +27,5 @@ interface AdbDevicePairingController : Disposable {
    * Starts the modal dialog allowing pairing devices using QR codes and pin codes.
    * The newly paired devices are added to the underlying adb service implementation.
    */
-  fun startPairingProcess()
+  fun showDialog()
 }

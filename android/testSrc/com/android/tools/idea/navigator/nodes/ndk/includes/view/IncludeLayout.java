@@ -20,9 +20,10 @@ import static com.google.common.base.Verify.verifyNotNull;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeSettings;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -42,8 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * Test utility class to synthesize a particular layout of include folders.
  */
 public class IncludeLayout {
-  @NotNull private Map<String, NativeSettings> settings = new HashMap<>();
-  @NotNull private List<NativeArtifact> artifacts = new ArrayList<>();
+  @NotNull private Map<String, IdeNativeSettings> settings = new HashMap<>();
+  @NotNull private List<IdeNativeArtifact> artifacts = new ArrayList<>();
   @NotNull private Multimap<String, String> artifactCompilerFlags = ArrayListMultimap.create();
   @NotNull List<File> filesCreated = new ArrayList<>();
   @NotNull List<File> sourceFilesCreated = new ArrayList<>();
@@ -111,10 +112,10 @@ public class IncludeLayout {
 
     String settingName = artifactName + "-settings";
 
-    List<NativeFile> nativeFiles = new ArrayList<>();
+    List<IdeNativeFile> nativeFiles = new ArrayList<>();
     for (String file : files) {
       File sourceFile = new File(this.sourcesRoot, file);
-      nativeFiles.add(new NativeFile() {
+      nativeFiles.add(new IdeNativeFile() {
         @NotNull
         @Override
         public File getFilePath() {
@@ -135,7 +136,7 @@ public class IncludeLayout {
       createFile(sourceFile);
     }
 
-    this.settings.put(settingName, new NativeSettings() {
+    this.settings.put(settingName, new IdeNativeSettings() {
       @NotNull
       @Override
       public String getName() {
@@ -149,7 +150,7 @@ public class IncludeLayout {
       }
     });
 
-    NativeArtifact artifact = new NativeArtifact() {
+    IdeNativeArtifact artifact = new IdeNativeArtifact() {
       @NonNull
       @Override
       public String getName() {
@@ -176,7 +177,7 @@ public class IncludeLayout {
 
       @NonNull
       @Override
-      public Collection<NativeFile> getSourceFiles() {
+      public Collection<IdeNativeFile> getSourceFiles() {
         return nativeFiles;
       }
 

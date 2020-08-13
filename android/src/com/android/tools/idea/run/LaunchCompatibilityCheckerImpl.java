@@ -82,7 +82,10 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
         }
         else {
           try {
-            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider(myFacet);
+            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider();
+            if (applicationIdProvider == null) {
+              return new LaunchCompatibility(NO, "Cannot get applicationId.");
+            }
             Client client = device.getLaunchedDevice().get().getClient(applicationIdProvider.getPackageName());
             if (client == null) {
               launchCompatibility = new LaunchCompatibility(

@@ -50,13 +50,13 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
 @VisibleForTesting
 class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider): PreviewElementProvider {
   /**
-   * The Composable instance ID to filter. If no [PreviewElement] is defined by that name, then this filter will return all the available
-   * previews.
+   * The Composable [PreviewElementInstance] to filter. If no [PreviewElementInstance] is defined by that intsance, then this filter will
+   * return all the available previews.
    */
-  var instanceId: String? = null
+  var instance: PreviewElementInstance? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {
-    (it as? PreviewElementInstance)?.instanceId == instanceId
+    (it as? PreviewElementInstance) == instance
   }
 
   override val previewElements: Sequence<PreviewElement>

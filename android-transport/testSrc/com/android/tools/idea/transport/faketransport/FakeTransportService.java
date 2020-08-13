@@ -175,6 +175,12 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // The event pipeline doesn't delete data so this fucntion is a no-op.
   }
 
+  public void stopProcess(Common.Device device, Common.Process process) {
+    removeProcess(device, process);
+    // Despite the confusing name, this triggers a process end event.
+    addProcess(device, process.toBuilder().setState(Common.Process.State.DEAD).build());
+  }
+
   public void addDevice(Common.Device device) {
     myDevices.put(device.getDeviceId(), device);
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.

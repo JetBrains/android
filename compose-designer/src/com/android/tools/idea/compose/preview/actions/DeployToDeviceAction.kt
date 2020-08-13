@@ -31,7 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import icons.StudioIcons.Compose.RUN_ON_DEVICE
+import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.util.module
 
 /**
@@ -79,7 +79,9 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     // TODO(b/152183978): listen to gradle events to disable the button when build is in progress.
+    val dataContext = dataContextProvider()
     e.presentation.isEnabled =
-      dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+      dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    e.presentation.isVisible = !dataContext.shouldHideToolbar()
   }
 }

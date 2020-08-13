@@ -137,10 +137,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
               .setLinkTarget(target.analyticsValue)
               .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
-
-  // TODO (b/155317033): update to log proper type when added
-  fun memorySettingsOpened() = Unit
-  //doLog(newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE))
+  fun memorySettingsOpened() =
+    doLog(newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED))
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)
@@ -192,7 +190,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
       }
     }
     else if (model.selectedData == BuildAnalyzerViewModel.DataSet.WARNINGS) {
-      model.warningsPageModel.selectedNode?.let {
+      model.warningsPageModel.selectedNode.let {
+        if (it == null) return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, ""))
         return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
       }
     }

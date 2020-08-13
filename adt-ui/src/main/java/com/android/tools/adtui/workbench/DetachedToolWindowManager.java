@@ -17,8 +17,9 @@ package com.android.tools.adtui.workbench;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -26,13 +27,17 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 /**
  * All {@link WorkBench}es of a specified name will use the same {@link DetachedToolWindow}
@@ -40,7 +45,7 @@ import java.util.List;
  * This class is responsible for switching the content to the content of the currently
  * active {@link WorkBench}.
  */
-public class DetachedToolWindowManager implements ProjectComponent {
+public class DetachedToolWindowManager implements Disposable {
   private final Application myApplication;
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
@@ -51,17 +56,18 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private FileEditor myLastSelectedEditor;
 
   public static DetachedToolWindowManager getInstance(@NotNull Project project) {
-    return project.getComponent(DetachedToolWindowManager.class);
+    return project.getService(DetachedToolWindowManager.class);
   }
 
   @VisibleForTesting
-  DetachedToolWindowManager(@NotNull Application application, @NotNull Project currentProject) {
-    myApplication = application;
+  DetachedToolWindowManager(@NotNull Project currentProject) {
+    myApplication = ApplicationManager.getApplication();
     myProject = currentProject;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     myDetachedToolWindowFactory = DetachedToolWindow::new;
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @VisibleForTesting
@@ -89,27 +95,8 @@ public class DetachedToolWindowManager implements ProjectComponent {
     }
   }
 
-  @NotNull
   @Override
-  public String getComponentName() {
-    return DetachedToolWindowManager.class.getSimpleName();
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @Override
-  public void projectOpened() {
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
-  }
-
-  @Override
-  public void projectClosed() {
+  public void dispose() {
     for (DetachedToolWindow detachedToolWindow : myToolWindowMap.values()) {
       detachedToolWindow.updateSettingsInAttachedToolWindow();
     }

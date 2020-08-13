@@ -62,20 +62,20 @@ class PreviewFilters(previewProvider: PreviewElementProvider) : PreviewElementPr
     }.toSet()
 
   /**
-   * [PreviewElementInstance#instanceId] of the instance to select or null if no instance should be selected. If the instance does not exist
-   * all instances are returned.
+   * [PreviewElementInstance] to select or null if no instance should be selected. If the instance does not exist all instances are
+   * returned.
    */
-  var instanceIdFilter: String?
+  var instanceFilter: PreviewElementInstance?
     set(value) {
-      singleElementFilteredProvider.instanceId = value
+      singleElementFilteredProvider.instance = value
     }
-    get() = singleElementFilteredProvider.instanceId
+    get() = singleElementFilteredProvider.instance
 
   /**
    * Clears the instance id filter.
    */
   fun clearInstanceIdFilter() {
-    singleElementFilteredProvider.instanceId = null
+    singleElementFilteredProvider.instance = null
   }
 
   @get:Slow

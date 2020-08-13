@@ -60,7 +60,7 @@ public class GuiTestRuleTest {
 
   @Test
   public void createNewProjectDialogLeftShowing() {
-    exception.expectMessage("Create New Project");
+    exception.expectMessage("New Project");
     guiTest.welcomeFrame().createNewProject();
   }
 

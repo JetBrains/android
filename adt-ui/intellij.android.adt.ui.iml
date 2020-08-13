@@ -25,15 +25,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/libwebp.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
@@ -43,5 +34,6 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
+    <orderEntry type="module" module-name="intellij.webp" />
   </component>
 </module>

@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.PropertyAppRule
@@ -50,12 +51,12 @@ class ComboBoxPropertyEditorModelTest {
   private fun createEnumSupport(action: AnAction? = null, delayed: Boolean = false) =
     FakeEnumSupport("visible", "invisible", "gone", action = action, delayed = delayed)
 
-  private fun createModel(): ComboBoxPropertyEditorModel = createModel(createEnumSupport())
+  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel = createModel(createEnumSupport(), editable)
 
-  private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
+  private fun createModel(enumSupport: EnumSupport, editable: Boolean = true): ComboBoxPropertyEditorModel {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
     property.defaultValue = "defaultNone"
-    return ComboBoxPropertyEditorModel(property, enumSupport, true)
+    return ComboBoxPropertyEditorModel(property, enumSupport, editable)
   }
 
   private fun createModelWithListener(enumSupport: EnumSupport): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
@@ -70,6 +71,25 @@ class ComboBoxPropertyEditorModelTest {
     val model = createModel()
     assertThat(model.value).isEqualTo("visible")
     assertThat(model.placeHolderValue).isEqualTo("defaultNone")
+  }
+
+  @Test
+  fun testInitialDropDownValue() {
+    val model = createModel(editable = false)
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("visible"))
+    assertThat(model.size).isEqualTo(2)
+    assertThat(model.getElementAt(0)).isEqualTo(model.selectedItem)
+    assertThat(model.getElementAt(1)).isEqualTo(EnumValue.LOADING)
+  }
+
+  @Test
+  fun testInitialDropDownValueAfterPropertyUpdate() {
+    val model = createModel(editable = false)
+    model.property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "gone")
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("gone"))
+    assertThat(model.size).isEqualTo(2)
+    assertThat(model.getElementAt(0)).isEqualTo(model.selectedItem)
+    assertThat(model.getElementAt(1)).isEqualTo(EnumValue.LOADING)
   }
 
   @Test

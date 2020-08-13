@@ -200,7 +200,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     templateThumbLabel.text = newTemplate.name
 
     for (widget in model.newTemplate.widgets) {
-      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNew || model.projectTemplateDataBuilder.isNewProject)) {
+      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNewModule || model.projectTemplateDataBuilder.isNewProject)) {
         // We should not show language chooser in "New Module" and "New Project" wizards because it should be selected on a previous step.
         continue
       }

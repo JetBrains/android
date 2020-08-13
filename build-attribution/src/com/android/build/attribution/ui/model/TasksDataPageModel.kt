@@ -20,12 +20,15 @@ import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.EMPTY_PLACEHOLDER
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
+import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
+import java.awt.Color
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
@@ -200,7 +203,12 @@ private class TasksTreeStructure(
 
 class TasksTreeNode(
   val descriptor: TasksTreePresentableNodeDescriptor
-) : DefaultMutableTreeNode(descriptor)
+) : DefaultMutableTreeNode(descriptor), ChartValueProvider {
+  override val relativeWeight: Double
+    get() = descriptor.relativeWeight
+  override val itemColor: Color
+    get() = descriptor.chartItemColor
+}
 
 enum class TaskDetailsPageType {
   TASK_DETAILS,
@@ -225,6 +233,16 @@ sealed class TasksTreePresentableNodeDescriptor {
   abstract val pageId: TasksPageId
   abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
+
+  /**
+   * Represents the impact of this node compared to other nodes. Used by TimeDistributionTreeChart to build the distribution chart.
+   */
+  abstract val relativeWeight: Double
+
+  /**
+   * Color of the chart item corresponding to this node.
+   */
+  abstract val chartItemColor: Color
   override fun toString(): String = presentation.mainText
 }
 
@@ -242,9 +260,13 @@ class TaskDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
       rightAlignedSuffix = taskData.executionTime.toRightAlignedNodeDurationText(),
-      nodeIconState = if (taskData.hasWarning) WARNING_ICON else EMPTY_PLACEHOLDER,
-      showChartKey = pageId.grouping == TasksDataPageModel.Grouping.UNGROUPED
+      nodeIconState = if (taskData.hasWarning) WARNING_ICON else EMPTY_PLACEHOLDER
     )
+
+  override val relativeWeight: Double
+    get() = taskData.executionTime.percentage
+  override val chartItemColor: Color
+    get() = CriticalPathChartLegend.resolveTaskColor(taskData).baseColor
 }
 
 /** Tasks tree node descriptor that holds plugin node data and presentation. */
@@ -257,9 +279,12 @@ class PluginDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
       suffix = warningsCountString(pluginData.warningCount),
-      rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText(),
-      showChartKey = true
+      rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText()
     )
+  override val relativeWeight: Double
+    get() = pluginData.criticalPathDuration.percentage
+  override val chartItemColor: Color
+    get() = CriticalPathChartLegend.pluginColorPalette.getColor(pluginData.name).baseColor
 }
 
 private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%.1fs %4.1f%%".format(timeS, percentage)

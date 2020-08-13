@@ -55,7 +55,7 @@ public class DebugTest extends BaseMotionEditorTest {
                  "Hello World   .(NativeMethodAccessorImpl.java:-2)    \n" +
                  "Hello World    .(NativeMethodAccessorImpl.java:62)     \n" +
                  "Hello World     .(DelegatingMethodAccessorImpl.java:43)      \n" +
-                 "Hello World      .(Method.java:498)       \n", outContent.toString());
+                 "Hello World      .(Method.java:566)       \n", outContent.toString());
   }
 
   public void testDebugSerialization() {

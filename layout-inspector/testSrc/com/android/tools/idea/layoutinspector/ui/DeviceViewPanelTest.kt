@@ -114,7 +114,7 @@ class DeviceViewPanelTest {
       }
     }
 
-    model.update(newModel.root, ROOT, listOf(ROOT))
+    model.update(newModel.root, ROOT, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
     assertThat(viewSettings.scalePercent).isEqualTo(135)
@@ -129,7 +129,7 @@ class DeviceViewPanelTest {
         }
       }
     }
-    model.update(newModel2.root, ROOT, listOf(ROOT))
+    model.update(newModel2.root, ROOT, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
     assertThat(viewSettings.scalePercent).isEqualTo(200)
@@ -137,7 +137,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
+    val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))

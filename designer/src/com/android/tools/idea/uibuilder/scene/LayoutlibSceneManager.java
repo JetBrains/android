@@ -201,6 +201,11 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShowDecorations;
 
   /**
+   * If true, the scene is interactive.
+   */
+  private boolean myIsInteractive;
+
+  /**
    * If false, the use of the {@link ImagePool} will be disabled for the scene manager.
    */
   private boolean useImagePool = true;
@@ -223,6 +228,9 @@ public class LayoutlibSceneManager extends SceneManager {
   private final AtomicBoolean myForceInflate = new AtomicBoolean(false);
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
+
+  /** Time it took to render. It does not account for inflation time. */
+  private long myRenderTimeMs = 0;
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -265,18 +273,21 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
-   *                                   requests.
-   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
-   *                                   {@link SceneComponent}s.
+   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle
+   *                                   render requests.
+   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider} providing the mapping from
+   *                                   {@link NlComponent} to {@link SceneComponent}s.
+   * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
+   * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                                  @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
-    super(model, designSurface, false, sceneComponentProvider);
+    super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
@@ -293,6 +304,7 @@ public class LayoutlibSceneManager extends SceneManager {
     List<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
       NlComponent rootComponent = components.get(0).getRoot();
+
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
       List<SceneComponent> hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent);
@@ -322,13 +334,15 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
-                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                               @NotNull SceneManager.SceneUpdateListener sceneUpdateListener) {
     this(
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       sceneComponentProvider,
+      sceneUpdateListener,
       LayoutScannerConfiguration.getDISABLED());
   }
 
@@ -346,6 +360,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
+      null,
       LayoutScannerConfiguration.getDISABLED());
   }
 
@@ -362,6 +377,7 @@ public class LayoutlibSceneManager extends SceneManager {
       PooledThreadExecutor.INSTANCE,
       queue -> {},
       new LayoutlibSceneManagerHierarchyProvider(),
+      null,
       config);
   }
 
@@ -869,6 +885,11 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  /** Returns time it took to render. It does not account for inflation time. */
+  public long getTotalRenderTime() {
+    return myRenderTimeMs;
+  }
+
   private void updateHierarchy(@Nullable RenderResult result) {
     try {
       myUpdateHierarchyLock.acquire();
@@ -1284,7 +1305,8 @@ public class LayoutlibSceneManager extends SceneManager {
               updateHierarchy(result);
             }
             if (result != null) {
-              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, System.currentTimeMillis() - startRenderTimeMs, false);
+              myRenderTimeMs = System.currentTimeMillis() - startRenderTimeMs;
+              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, myRenderTimeMs, false);
             }
             return result;
           });
@@ -1565,16 +1587,17 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
    */
-  public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+  public CompletableFuture<Void> executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     try {
       if (callback != null) {
         RenderService.getRenderAsyncActionExecutor()
           .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get();
       }
-      executeCallbacks().thenRun(() -> requestRender());
+      return executeCallbacks().thenCompose(b -> requestRender());
     }
     catch (Exception e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
+      return CompletableFuture.completedFuture(null);
     }
   }
 
@@ -1583,7 +1606,15 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param interactive true if the scene is interactive, false otherwise.
    */
   public void setInteractive(boolean interactive) {
+    myIsInteractive = interactive;
     getSceneViews().forEach(sv -> sv.setAnimated(interactive));
+  }
+
+  /**
+   * @return true is the scene is interactive, false otherwise.
+   */
+  public boolean getInteractive() {
+    return myIsInteractive;
   }
 
   /**
@@ -1597,6 +1628,13 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void setUsePrivateClassLoader(boolean usePrivateClassLoader) {
     myUsePrivateClassLoader = usePrivateClassLoader;
+  }
+
+  /**
+   * @return true if this scene is using private ClassLoader, false otherwise.
+   */
+  public boolean isUsePrivateClassLoader() {
+    return myUsePrivateClassLoader;
   }
 
   @Override

@@ -19,13 +19,14 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
 
 class V2NdkModelTest {
-
+  val modelCache = ModelCache()
   private val tempDir = Files.createTempDirectory("V2NdkModelTest").toFile()
   private val nativeModule = object : NativeModule {
     override val name: String = "moduleName"
@@ -71,7 +72,7 @@ class V2NdkModelTest {
     )
   }
 
-  private val v2NdkModel = V2NdkModel("4.2.0-alpha02", nativeModule)
+  private val v2NdkModel = V2NdkModel("4.2.0-alpha02", modelCache.nativeModuleFrom(nativeModule))
 
   @Test
   fun `test accessors with no build information files`() {

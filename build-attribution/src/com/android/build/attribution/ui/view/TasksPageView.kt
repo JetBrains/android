@@ -18,8 +18,11 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend
+import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
+import com.android.tools.idea.flags.StudioFlags.NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -33,11 +36,13 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Component
 import java.awt.Font
 import javax.swing.JCheckBox
@@ -90,6 +95,15 @@ class TasksPageView(
   }
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
+  val tasksLegendPanel = JPanel().apply {
+    border = JBUI.Borders.emptyRight(5)
+    layout = HorizontalLayout(10)
+    isOpaque = false
+    fun legendItem(name: String, color: Color) = JBLabel(name, ColorIcon(10,color), SwingConstants.RIGHT)
+    add(legendItem("Android/Java/Kotlin Plugin",CriticalPathChartLegend.androidPluginColor.baseColor), HorizontalLayout.RIGHT)
+    add(legendItem("Other Plugin", CriticalPathChartLegend.externalPluginColor.baseColor), HorizontalLayout.RIGHT)
+    add(legendItem("Project Customization", CriticalPathChartLegend.buildsrcPluginColor.baseColor), HorizontalLayout.RIGHT)
+  }
 
   val detailsPanel = object : CardLayoutPanel<TasksTreePresentableNodeDescriptor, TasksTreePresentableNodeDescriptor, JComponent>() {
     override fun prepare(key: TasksTreePresentableNodeDescriptor): TasksTreePresentableNodeDescriptor = key
@@ -115,24 +129,37 @@ class TasksPageView(
         treeHeaderLabel.border = JBUI.Borders.empty(5, 20)
         treeHeaderLabel.alignmentX = Component.LEFT_ALIGNMENT
         add(treeHeaderLabel, BorderLayout.CENTER)
+        if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+          add(tasksLegendPanel, BorderLayout.SOUTH)
+        }
       }
       add(treeHeaderPanel, BorderLayout.NORTH)
-      add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), BorderLayout.CENTER)
+      val treeComponent: Component = if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+        // Create tree with new visualization element attached when flag is on.
+        CriticalPathChartLegend.pluginColorPalette.reset()
+        TimeDistributionTreeChart.wrap(tree)
+      }
+      else tree
+
+      add(ScrollPaneFactory.createScrollPane(treeComponent, SideBorder.NONE), BorderLayout.CENTER)
     }
     val detailsHalf: JPanel = JPanel().apply {
       val dimension = JBUI.size(5, 5)
       layout = BorderLayout(dimension.width(), dimension.height())
       border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
-      val chartsScrollArea = JBScrollPane().apply {
-        border = JBUI.Borders.empty()
-        horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-        verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
-        verticalScrollBar.isOpaque = false
+      if (!NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
+        // Add old visualization to the UI only if flag is off.
+        val chartsScrollArea = JBScrollPane().apply {
+          border = JBUI.Borders.empty()
+          horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+          verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+          verticalScrollBar.isOpaque = false
 
-        setViewportView(chartsPanel)
+          setViewportView(chartsPanel)
+        }
+        add(chartsScrollArea, BorderLayout.WEST)
       }
-      add(chartsScrollArea, BorderLayout.WEST)
     }
 
     firstComponent = masterHalf
@@ -165,6 +192,7 @@ class TasksPageView(
     fireActionHandlerEvents = false
     groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
     treeHeaderLabel.text = model.treeHeaderText
+    tasksLegendPanel.isVisible = model.selectedGrouping == TasksDataPageModel.Grouping.UNGROUPED
     if (tree.model.root != model.treeRoot) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)
     }

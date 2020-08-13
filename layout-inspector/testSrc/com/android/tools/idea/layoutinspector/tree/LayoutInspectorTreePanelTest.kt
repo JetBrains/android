@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.view
@@ -99,17 +98,17 @@ class LayoutInspectorTreePanelTest {
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
-    model.update(view(ROOT) { view(VIEW1) }, ROOT, listOf(ROOT))
+    model.update(view(ROOT) { view(VIEW1) }, ROOT, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
     Truth.assertThat(jtree.rowCount).isEqualTo(1)
     Truth.assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
 
-    model.update(view(VIEW2) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2))
+    model.update(view(VIEW2) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     Truth.assertThat(jtree.rowCount).isEqualTo(2)
     Truth.assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2])
 
-    model.update(view(VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2))
+    model.update(view(VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
     Truth.assertThat(jtree.rowCount).isEqualTo(2)

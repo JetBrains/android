@@ -58,6 +58,11 @@ class AppInspectionProcessModel(private val executor: Executor,
     set(value) {
       synchronized(lock) {
         if (field != value) {
+          // While we leave processes in the list when they die, once we update the active
+          // selection, we silently prune them at that point. Otherwise, dead processes would
+          // continue to build up. This also has the nice effect of making it feel that when a
+          // user starts running a new process, it neatly replaces the last dead one.
+          _processes.removeAll { it != value && !it.isRunning }
           field = value
           selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
         }
@@ -89,8 +94,10 @@ class AppInspectionProcessModel(private val executor: Executor,
     override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
       synchronized(lock) {
         _processes.remove(descriptor)
+        val deadDescriptor = object : ProcessDescriptor by descriptor { override val isRunning = false }
+        _processes.add(deadDescriptor)
         if (descriptor == selectedProcess) {
-          selectedProcess = null
+          selectedProcess = deadDescriptor
         }
       }
     }
@@ -104,6 +111,9 @@ class AppInspectionProcessModel(private val executor: Executor,
     processNotifier.removeProcessListener(processListener)
   }
 
-  fun isProcessPreferred(processDescriptor: ProcessDescriptor?) =
-    processDescriptor != null && getPreferredProcessNames().contains(processDescriptor.processName)
+  fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
+    return processDescriptor != null
+           && (processDescriptor.isRunning || includeDead)
+           && getPreferredProcessNames().contains(processDescriptor.processName)
+  }
 }

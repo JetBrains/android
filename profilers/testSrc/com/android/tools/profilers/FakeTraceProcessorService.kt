@@ -17,47 +17,88 @@ package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.CpuCoreModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
-import com.android.tools.profilers.systemtrace.ThreadModel
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import java.io.File
+import java.io.FileInputStream
+import java.io.ObjectInputStream
 
 class FakeTraceProcessorService: TraceProcessorService {
-  val PROCESSES = mapOf(
-    1 to ProcessModel(1, "process_p1",
-                            mapOf(
-                              1 to ThreadModel(1, 1, "p1_fake_thread_1", listOf(), listOf()),
-                              2 to ThreadModel(2, 1, "p1_fake_thread_2", listOf(), listOf())
-                            ),
-                            mapOf()),
-    2 to ProcessModel(2, "process_p2",
-                      mapOf(
-                        6 to ThreadModel(6, 2, "p2_fake_thread_1", listOf(), listOf())
-                      ),
-                      mapOf())).toSortedMap()
 
-  val CORES = listOf(
-    CpuCoreModel(0, listOf()), CpuCoreModel(1, listOf()), CpuCoreModel(2, listOf()), CpuCoreModel(3, listOf()))
+  companion object {
+    private val validTraces = setOf(
+      CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
+      CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace")
+    )
+
+    // If we are using FakeTraceProcessorService, then we pre-load both model maps so we don't slowdown tests.
+    private val modelMapCache: Map<String, Map<Int, SystemTraceModelAdapter>> by lazy {
+      mapOf(
+        "perfetto.trace" to loadModelMapFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace")),
+        "perfetto_cpu_usage.trace" to loadModelMapFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"))
+      )
+    }
+
+    // For each known trace we store a map for each possible process id to the generated model.
+    // This is to account for that during test we can not reparse the trace, so we need to have all possibilities ready.
+    private fun loadModelMapFor(traceFile: File): Map<Int, SystemTraceModelAdapter> {
+      val serializedModelMap = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_tpd_model")
+
+      val ois = ObjectInputStream(FileInputStream(serializedModelMap))
+      @Suppress("UNCHECKED_CAST")
+      val modelMap = ois.readObject() as Map<Int, SystemTraceModelAdapter>
+      ois.close()
+
+      return modelMap
+    }
+  }
+
+  private val loadedTraces = mutableMapOf<Long, File>()
 
   override fun loadTrace(traceId: Long, traceFile: File, tracker: FeatureTracker): Boolean {
-    tracker.trackTraceProcessorLoadTrace(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 10, 10, 20400)
-    return true
+    if (validTraces.contains(traceFile)) {
+      loadedTraces[traceId] = traceFile
+      return true
+    } else {
+      loadedTraces.remove(traceId)
+      return false
+    }
   }
   override fun getProcessMetadata(traceId: Long, tracker: FeatureTracker): List<ProcessModel> {
-    tracker.trackTraceProcessorProcessMetadata(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 20, 5)
-    return PROCESSES.values.toList()
+    if (loadedTraces.containsKey(traceId)) {
+      return loadProcessModelListFor(loadedTraces[traceId]!!)
+    } else {
+      return emptyList()
+    }
+  }
+
+  private fun loadProcessModelListFor(traceFile: File): List<ProcessModel> {
+    val serializedProcessModelList = CpuProfilerTestUtils.getTraceFile("${traceFile.name}_process_list")
+
+    val ois = ObjectInputStream(FileInputStream(serializedProcessModelList))
+    @Suppress("UNCHECKED_CAST")
+    val processList = ois.readObject() as List<ProcessModel>
+    ois.close()
+
+    return processList
   }
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter {
-    tracker.trackTraceProcessorCpuData(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 40, 10)
-
-    // Will populate as needed. Currently no test rely on this.
-    return FakeModelAdapter()
+    if (loadedTraces.containsKey(traceId)) {
+      val cacheKey = loadedTraces[traceId]!!.name
+      val model: Map<Int, SystemTraceModelAdapter> = modelMapCache[cacheKey] ?: error("$cacheKey should be present in the modelMapCache")
+      // The pid of the main process is always the first one in the list.
+      val pid = processIds[0]
+      return model[pid] ?: error("$pid process should be present in model")
+    } else {
+      return EmptyModelAdapter()
+    }
   }
 
   override fun loadMemoryData(traceId: Long,
@@ -65,16 +106,15 @@ class FakeTraceProcessorService: TraceProcessorService {
                               symbolizer: NativeFrameSymbolizer,
                               memorySet: NativeMemoryHeapSet,
                               tracker: FeatureTracker) {
-    tracker.trackTraceProcessorMemoryData(TraceProcessorDaemonQueryStats.QueryReturnStatus.OK, 40, 10)
     // Will populate as needed. Currently no test rely on this.
   }
 
-  private inner class FakeModelAdapter: SystemTraceModelAdapter {
+  private inner class EmptyModelAdapter: SystemTraceModelAdapter {
     override fun getCaptureStartTimestampUs() = 0L
-    override fun getCaptureEndTimestampUs() = 10000L
-    override fun getProcesses(): List<ProcessModel> = PROCESSES.values.toList()
+    override fun getCaptureEndTimestampUs() = 0L
+    override fun getProcesses(): List<ProcessModel> = emptyList()
     override fun getProcessById(id: Int) = getProcesses().find { it.id == id }
-    override fun getCpuCores(): List<CpuCoreModel> = CORES
+    override fun getCpuCores(): List<CpuCoreModel> = emptyList()
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.PERFETTO
     override fun isCapturePossibleCorrupted() = false
   }

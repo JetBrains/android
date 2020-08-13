@@ -15,41 +15,29 @@
  */
 package com.android.tools.idea.mlkit.viewer;
 
+import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyList;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
-import com.android.AndroidProjectTypes;
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
-import com.android.ide.common.gradle.model.impl.ModelCache;
-import com.android.ide.common.gradle.model.stubs.AndroidProjectStub;
-import com.android.sdklib.AndroidVersion;
+import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.DefaultModuleSystem;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.WaitFor;
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -57,7 +45,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 
 public class TfliteModelFileEditorTest extends AndroidTestCase {
 
@@ -65,29 +52,39 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     StudioFlags.ML_MODEL_BINDING.override(true);
-    ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
+
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models").getPath());
+  }
 
-    // Set it up as an Android project.
-    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
-    VirtualFile manifestFile = ManifestUtils.getMainManifest(androidFacet).getVirtualFile();
-    NamedIdeaSourceProvider ideSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFile.getUrl())
-      .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
-    SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
-
-    // Mock test to have gradle version 4.2.0-alpha8
-    File rootFile = new File(myFixture.getProject().getBasePath());
-    AndroidProjectStub androidProjectStub = spy(new AndroidProjectStub("4.2.0-alpha8"));
-    doReturn(AndroidProjectTypes.PROJECT_TYPE_APP).when(androidProjectStub).getProjectType();
-    AndroidModuleModel androidModuleModel =
-      spy(AndroidModuleModel.create(myFixture.getProject().getName(), rootFile,
-                                    new ModelCache(new HashMap<>()).androidProjectFrom(
-                                      androidProjectStub,
-                                      new IdeDependenciesFactory(),
-                                      null,
-                                      emptyList()), "debug"));
-    doReturn(new AndroidVersion(28, null)).when(androidModuleModel).getMinSdkVersion();
-    AndroidModel.set(androidFacet, androidModuleModel);
+  private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {
+    VirtualFile result = myFixture.copyFileToProject(mlSourceFile, mlTargetFile);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(myFixture.getTempDirPath()),
+      new AndroidModuleModelBuilder(
+        ":",
+        null,
+        "4.2.0-alpha8",
+        "debug",
+        new AndroidProjectBuilder()
+          .withMinSdk(it -> 28)
+          .withMlModelBindingEnabled(it -> true)
+          .withMainSourceProvider(it -> new SourceProviderStub(
+            ARTIFACT_NAME_MAIN,
+            new File(it.getBasePath(), "AndroidManifest.xml"),
+            ImmutableList.of(new File(it.getBasePath(), "src")),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            ImmutableList.of(new File(it.getBasePath(), "res")),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            ImmutableList.of(new File(it.getBasePath(), "ml")))
+      )));
+    return result;
   }
 
   @Override
@@ -104,10 +101,9 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testViewerOpenEventIsLogged() throws Exception {
+    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
     UsageTracker.setWriterForTest(usageTracker);
-    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
 
     new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     new WaitFor((int)TimeUnit.SECONDS.toMillis(5)) {
@@ -128,8 +124,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_imageClassificationModel() {
-    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
@@ -173,8 +168,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_objectDetectionModel() {
-    VirtualFile modelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+    VirtualFile modelFile = setupProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
@@ -228,8 +222,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {
-    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+    VirtualFile modelFile = setupProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);

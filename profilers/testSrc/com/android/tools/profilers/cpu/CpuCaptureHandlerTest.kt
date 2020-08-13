@@ -15,10 +15,11 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -50,7 +51,7 @@ class CpuCaptureHandlerTest {
 
   @Test
   fun reportsTraceTypeAndModeInMetrics() {
-    val config = ProfilingConfiguration("Test", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
+    val config = SimpleperfConfiguration("Test")
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)

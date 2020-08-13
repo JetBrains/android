@@ -36,7 +36,9 @@ import org.junit.rules.RuleChain
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.GradientPaint
 import java.awt.Graphics2D
+import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
@@ -76,7 +78,7 @@ class DeviceViewContentPanelTest {
     model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
-      }, ROOT, listOf(ROOT))
+      }, ROOT, listOf(ROOT), 0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -255,7 +257,7 @@ class DeviceViewContentPanelTest {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -297,7 +299,7 @@ class DeviceViewContentPanelTest {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -444,7 +446,6 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithRootImageOnly() {
-
     val image1 = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png"))
 
     val model = model {
@@ -479,5 +480,64 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithRootImageOnly_view1.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  @Suppress("UndesirableClassUsage")
+  fun testPaintTransformed() {
+    val image1 = BufferedImage(150, 150, TYPE_INT_ARGB)
+    (image1.graphics as Graphics2D).run {
+      paint = GradientPaint(20f, 40f, Color.RED, 130f, 110f, Color.BLUE)
+      fill(Polygon(intArrayOf(20, 110, 130, 40), intArrayOf(40, 20, 110, 130), 4))
+    }
+
+    val model = model {
+      view(ROOT, 0, 0, 200, 300) {
+        view(VIEW1, 25, 50, 150, 150, bounds = Polygon(intArrayOf(45, 135, 155, 65), intArrayOf(90, 70, 160, 180), 4)) {
+          image(image1)
+        }
+      }
+    }
+
+    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffUtil.getDefaultFont()
+
+    val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings)
+    panel.setSize(200, 300)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed.png"), generatedImage,
+                                     DIFF_THRESHOLD)
+
+    model.selection = model[VIEW1]
+    graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffUtil.getDefaultFont()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_view1.png"), generatedImage, DIFF_THRESHOLD)
+
+    settings.drawLabel = true
+    graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffUtil.getDefaultFont()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
+
+    settings.drawUntransformedBounds = true
+    graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffUtil.getDefaultFont()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
+
+    settings.drawBorders = false
+    graphics = generatedImage.createGraphics()
+    graphics.font = ImageDiffUtil.getDefaultFont()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
   }
 }

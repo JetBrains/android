@@ -51,9 +51,9 @@ object LegacyTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
     data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-  ): Pair<ViewNode, String>? {
+  ): Triple<ViewNode, String, Int>? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
-    return capture(client, windowName, updater)?.let { Pair(it, windowName) }
+    return capture(client, windowName, updater)?.let { Triple(it, windowName, 0) }
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {

@@ -392,8 +392,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       getLog().warn("Error generating command line arguments for Gradle task", e);
       return false;
     }
-
-    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceSpec, task.getGoal());
+    AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getVersion() : null;
+    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
@@ -456,10 +456,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     List<String> properties = new ArrayList<>(3);
-    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec)) {
+    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.getVersion())) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
-      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec);
+      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.getVersion());
       File deviceSpecFile = AndroidDeviceSpecUtil.writeToJsonTempFile(deviceSpec, collectListOfLanguages);
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
@@ -550,7 +550,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
-                                                @Nullable AndroidDeviceSpec targetDeviceSpec,
+                                                @Nullable AndroidVersion targetDeviceVersion,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {
       throw new IllegalStateException("Unable to determine list of modules to build");
@@ -582,7 +582,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
     if (configuration instanceof AndroidRunConfigurationBase
-        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)) {
+        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceVersion)) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
@@ -591,17 +591,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @Nullable AndroidDeviceSpec targetDeviceSpec) {
+                                                        @Nullable AndroidVersion targetDeviceVersion) {
     return Arrays.stream(modules)
-      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec));
+      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDeviceVersion));
   }
 
   private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
                                                       @NotNull AndroidRunConfigurationBase configuration,
-                                                      @Nullable AndroidDeviceSpec targetDeviceSpec) {
+                                                      @Nullable AndroidVersion targetDeviceVersion) {
     // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
     // end up deploying language split APKs to devices that don't support them.
-    return Arrays.stream(modules).allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDeviceSpec));
+    return Arrays.stream(modules)
+      .allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDeviceVersion));
   }
 
   @NotNull
