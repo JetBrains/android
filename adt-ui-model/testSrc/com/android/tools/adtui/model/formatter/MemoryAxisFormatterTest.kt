@@ -33,4 +33,11 @@ class MemoryAxisFormatterTest {
     check(479 * 1024 * 1024.0, "0.5 GB")
     check(65 * 1024 * 1024.0, "0.06 GB")
   }
+
+  @Test
+  fun `memory formatting different sizes`() {
+    val formatter = MemoryAxisFormatter(1, 5, 5)
+    Truth.assertThat(formatter.getFormattedString(100.0, 5.0, true)).isEqualTo("5 B")
+    Truth.assertThat(formatter.getFormattedString(2048.0, 5.0 * 1024, true)).isEqualTo("5 KB")
+  }
 }
