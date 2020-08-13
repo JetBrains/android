@@ -17,24 +17,19 @@ package com.android.build.attribution.ui.panels;
 
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.panels.HorizontalLayout;
-import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UseJBColor")
 public interface CriticalPathChartLegend {
-  ChartColor MISC_COLOR = new ChartColor(new Color(0xBDBDBD));
   ChartColor OTHER_TASKS_COLOR = new ChartColor(new Color(0xA2DFFE));
   Color OTHER_TASKS_TEXT_COLOR = Color.BLACK;
-  ChartColor androidPluginColor = new ChartColor(new Color(0xE66F9A));
-  ChartColor externalPluginColor = new ChartColor(new Color(0x1A7AFF));
+
+  ChartColor androidPluginColor = new ChartColor(new Color(0xA2DFFE));
+  ChartColor externalPluginColor = new ChartColor(new Color(0x097F5));
   ChartColor buildsrcPluginColor = new ChartColor(new Color(0xA78BD9));
 
   ChartColor[] categoricalGooglePalette = new ChartColor[]{
