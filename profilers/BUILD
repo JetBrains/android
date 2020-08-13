@@ -1,6 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
+# Export testData traces
+filegroup(
+    name = "test_data",
+    srcs = glob(["testData/**"]),
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.profilers",
@@ -11,7 +18,10 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.profilers.ProfilersTestSuite",
-    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
@@ -117,7 +127,10 @@ iml_module(
         "unb",
     ],
     test_class = "com.android.tools.profilers.ProfilersTestSuite",
-    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

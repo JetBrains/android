@@ -9,6 +9,7 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
     ],
     test_resources = ["testResources"],
@@ -107,6 +108,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
     ],
     test_resources = ["testResources"],
