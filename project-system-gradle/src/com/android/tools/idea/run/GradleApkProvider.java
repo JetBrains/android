@@ -371,7 +371,7 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
     }
 
-    ModelCache modelCache = new ModelCache();
+    ModelCache modelCache = ModelCache.create();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
       if (outputModel == null) {

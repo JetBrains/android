@@ -655,7 +655,7 @@ fun setupTestProjectFromAndroidModel(
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
-  val modelCache = ModelCache()
+  val modelCache = ModelCache.create()
   if (IdeSdks.getInstance().androidSdkPath === null) {
     AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()

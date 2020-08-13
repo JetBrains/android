@@ -133,6 +133,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
-  @NotNull private final ModelCache modelCache = new ModelCache();
+  @NotNull private final ModelCache modelCache = ModelCache.create();
   private boolean myIsImportPre3Dot0;
 
   @SuppressWarnings("unused")
@@ -359,7 +360,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
         List<IdeNativeVariantAbi> ideNativeVariantAbis;
         if (variantGroup != null) {
-          ideNativeVariantAbis = modelCache.copy(variantGroup::getNativeVariants, modelCache::nativeVariantAbiFrom);
+          ideNativeVariantAbis =
+            ContainerUtil.map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
         }
         else {
           ideNativeVariantAbis = new ArrayList<>();

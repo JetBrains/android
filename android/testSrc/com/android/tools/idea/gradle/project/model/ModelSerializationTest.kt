@@ -75,7 +75,7 @@ import java.io.File
  * serialization mechanisms for DataNodes. This is used to cache the results of sync when we load the project structure from cache.
  */
 class ModelSerializationTest {
-  private val modelCache = ModelCache()
+  private val modelCache = ModelCache.createForTesting()
   private val gradleVersion = GradleVersion.parse("3.2")
 
   /*

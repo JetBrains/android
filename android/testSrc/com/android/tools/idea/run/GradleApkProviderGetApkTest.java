@@ -79,7 +79,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, configuration);
     AndroidModel.set(myAndroidFacet, androidModel);
 
-    ModelCache modelCache = new ModelCache();
+    ModelCache modelCache = ModelCache.create();
     List<OutputFile> mainOutputs2 = ImmutableList.of(new AndroidArtifactOutputStub("main", myApkFile));
     List<OutputFile> testOutputs2 = ImmutableList.of(new AndroidArtifactOutputStub("test", myTestApkFile));
     List<IdeAndroidArtifactOutput> mainOutputs = Lists.transform(mainOutputs2, modelCache::androidArtifactOutputFrom);
