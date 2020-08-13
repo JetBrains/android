@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.debugging;
 
 import com.intellij.ide.util.projectWizard.importSources.impl.JavaProjectStructureDetector;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * packages cannot be mapped to the Kotlin files.
  */
 public class KotlinProjectStructureDetector extends JavaProjectStructureDetector {
+  @Nls(capitalization = Nls.Capitalization.Sentence)
   @NotNull
   @Override
   protected String getLanguageName() {

@@ -18,20 +18,20 @@ import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
-    super("apk", "Android Application");
+    super("apk", AndroidBundle.message("android.application.title"));
   }
 
   @NotNull
@@ -60,7 +60,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
   @NotNull
   @Override
   public List<? extends ArtifactTemplate> getNewArtifactTemplates(@NotNull PackagingElementResolvingContext context) {
-    final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
+    final List<AndroidFacet> facets = new ArrayList<>();
 
     for (Module module : context.getModulesProvider().getModules()) {
       final FacetModel facetModel = context.getModulesProvider().getFacetModel(module);
