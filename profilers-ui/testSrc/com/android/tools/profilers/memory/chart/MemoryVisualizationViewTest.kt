@@ -137,7 +137,7 @@ class MemoryVisualizationViewTest {
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
     visualizationView.onSelectionChanged(true)
     var axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()
-    assertThat(axis.model.dataRange).isWithin(.002).of((heapSet.allocationSize / 1024).toDouble())
+    assertThat(axis.model.dataRange).isWithin(.002).of((heapSet.allocationSize).toDouble())
     (visualizationView.toolbarComponents[0] as JComboBox<MemoryVisualizationModel.XAxisFilter>).selectedItem =
       MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()

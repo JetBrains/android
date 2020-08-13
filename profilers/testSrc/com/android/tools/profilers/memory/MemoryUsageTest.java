@@ -72,7 +72,7 @@ public class MemoryUsageTest {
     List<SeriesData<Long>> series = rangedSeries.getSeries();
     Truth.assertThat(series.size()).isEqualTo(10);
     for (int i = 0; i < series.size(); i++) {
-      Truth.assertThat(series.get(i).value).isEqualTo(i * 10);
+      Truth.assertThat(series.get(i).value).isEqualTo(MemoryUsage.KB_TO_B * i * 10);
     }
 
     // Request negative to mid range
@@ -80,7 +80,7 @@ public class MemoryUsageTest {
     series = rangedSeries.getSeries();
     Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
-      Truth.assertThat(series.get(i).value).isEqualTo(i * 10);
+      Truth.assertThat(series.get(i).value).isEqualTo(MemoryUsage.KB_TO_B * i * 10);
     }
 
     // Request mid to high range
@@ -88,7 +88,7 @@ public class MemoryUsageTest {
     series = rangedSeries.getSeries();
     Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
-      Truth.assertThat(series.get(i).value).isEqualTo((i + 4) * 10);
+      Truth.assertThat(series.get(i).value).isEqualTo(MemoryUsage.KB_TO_B * ((i + 4) * 10));
     }
   }
 }
