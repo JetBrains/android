@@ -19,6 +19,7 @@ import com.android.ddmlib.TimeoutRemainder
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -29,7 +30,7 @@ import com.intellij.util.concurrency.EdtExecutorService
  * Project level [Service] to support ADB over Wi-Fi pairing
  */
 @Service
-class PairDevicesUsingWiFiService(private val project: Project) {
+class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   companion object {
     @JvmStatic
     fun getInstance(project: Project) = project.getService(PairDevicesUsingWiFiService::class.java)!!
@@ -51,10 +52,14 @@ class PairDevicesUsingWiFiService(private val project: Project) {
     AdbDevicePairingServiceImpl(randomProvider, adbService, taskExecutor)
   }
 
+  override fun dispose() {
+    // Nothing to do
+  }
+
   fun createPairingDialogController(): AdbDevicePairingController {
     val model = AdbDevicePairingModel()
     val view = AdbDevicePairingViewImpl(project, model)
-    return AdbDevicePairingControllerImpl(project, edtExecutor, devicePairingService, view)
+    return AdbDevicePairingControllerImpl(project, this, edtExecutor, devicePairingService, view)
   }
 
   val isFeatureEnabled: Boolean

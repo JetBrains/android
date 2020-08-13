@@ -25,6 +25,7 @@ import java.util.concurrent.Executor
 
 @UiThread
 class AdbDevicePairingControllerImpl(private val project: Project,
+                                     private val parentDisposable: Disposable,
                                      edtExecutor: Executor,
                                      private val pairingService: AdbDevicePairingService,
                                      private val view: AdbDevicePairingView
@@ -36,7 +37,7 @@ class AdbDevicePairingControllerImpl(private val project: Project,
 
   init {
     // Ensure we are disposed when the project closes
-    Disposer.register(project, this)
+    Disposer.register(parentDisposable, this)
 
     // Ensure we are disposed when the view closes
     view.addListener(viewListener)
