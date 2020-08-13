@@ -32,7 +32,6 @@ import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -131,7 +130,7 @@ public class ResourceNotificationManager {
   private EnumSet<Reason> myEvents = EnumSet.noneOf(Reason.class);
 
   /**
-   * Do not instantiate directly; this is a {@link ProjectComponent} and its lifecycle is managed by the IDE;
+   * Do not instantiate directly; this is a Service and its lifecycle is managed by the IDE;
    * use {@link #getInstance(Project)} instead
    */
   public ResourceNotificationManager(Project project) {
@@ -146,7 +145,7 @@ public class ResourceNotificationManager {
    */
   @NotNull
   public static ResourceNotificationManager getInstance(@NotNull Project project) {
-    return project.getComponent(ResourceNotificationManager.class);
+    return project.getService(ResourceNotificationManager.class);
   }
 
   @NotNull
