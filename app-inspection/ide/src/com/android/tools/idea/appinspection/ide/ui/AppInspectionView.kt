@@ -83,6 +83,12 @@ class AppInspectionView(
    */
   @VisibleForTesting
   var tabsChangedOneShotListener: (() -> Unit)? = null
+    set(value) {
+      if (value != null) {
+        check(field == null) { "Attempting to set two one-shot listeners at the same time" }
+      }
+      field = value
+    }
 
   @VisibleForTesting
   val inspectorTabs = CommonTabbedPane(object : CommonTabbedPaneUI() {
@@ -171,7 +177,7 @@ class AppInspectionView(
       }
       else {
         // Note: This is fired by populateTabs in the other case
-        fireTabsChangedListeners()
+        fireTabsChangedListener()
       }
     }
     updateUi()
@@ -258,13 +264,17 @@ class AppInspectionView(
     jobs.joinAll()
     withContext(uiDispatcher) {
       updateUi()
-      fireTabsChangedListeners()
+      fireTabsChangedListener()
     }
   }
 
-  private fun fireTabsChangedListeners() {
-    tabsChangedOneShotListener?.let { listener -> listener() }
-    tabsChangedOneShotListener = null
+  private fun fireTabsChangedListener() {
+    tabsChangedOneShotListener?.let { listener ->
+      // Clear the one-shot before firing the listener, in case the listener itself registers a new
+      // listener (or unblocks another thread from doing so)
+      tabsChangedOneShotListener = null
+      listener()
+    }
   }
 
   private fun updateUi() {
