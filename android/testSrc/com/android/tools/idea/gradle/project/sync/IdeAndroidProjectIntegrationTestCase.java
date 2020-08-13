@@ -34,7 +34,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
     assertNotNull(androidProject);
 
     // Verify IdeLevel2Dependencies are populated for each variant.
-    androidProject.forEachVariant(variant -> {
+    androidProject.getVariants().forEach(variant -> {
       IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
@@ -54,7 +54,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
     assertNotNull(androidProject);
 
     // Aar module should show up as android library dependency, not module dependency for app module.
-    androidProject.forEachVariant(variant -> {
+    androidProject.getVariants().forEach(variant -> {
       IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();

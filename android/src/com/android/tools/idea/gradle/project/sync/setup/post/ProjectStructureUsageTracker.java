@@ -198,7 +198,7 @@ public class ProjectStructureUsageTracker {
     // Use Ref because lambda function argument to forEachVariant only works with final variables.
     Ref<IdeVariant> chosenVariant = new Ref<>();
     // We want to track the "release" variants.
-    androidProject.forEachVariant(variant -> {
+    androidProject.getVariants().forEach(variant -> {
       if ("release".equals(variant.getBuildType())) {
         chosenVariant.set(variant);
       }

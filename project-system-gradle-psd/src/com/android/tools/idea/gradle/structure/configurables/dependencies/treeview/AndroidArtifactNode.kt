@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.PsChildModel
