@@ -34,6 +34,22 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     private const val ERROR_COUNT = 5
     private const val COMPONENT_COUNT = 2
     private const val IS_RENDER_SUCCESS = false
+
+    fun createMetricTracker(): NlLayoutScannerMetricTracker {
+      return NlLayoutScannerMetricTracker(mockNlDesignSurface())
+    }
+
+    private fun mockNlDesignSurface(): NlDesignSurface {
+      val surface = Mockito.mock(NlDesignSurface::class.java)
+      val sceneManager = Mockito.mock(LayoutlibSceneManager::class.java)
+      Mockito.`when`(surface!!.sceneManager).thenReturn(sceneManager)
+      Mockito.`when`(sceneManager.totalRenderTime).thenReturn(TOTAL_RENDER_TIME)
+
+      val issueModel = Mockito.mock(IssueModel::class.java)
+      Mockito.`when`(surface!!.issueModel).thenReturn(issueModel)
+      Mockito.`when`(issueModel.issueCount).thenReturn(ERROR_COUNT)
+      return surface
+    }
   }
 
   fun testTrackTrigger() {
@@ -85,18 +101,6 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     assertEquals(countSize, tracker.metric.counts.size)
   }
 
-  private fun mockNlDesignSurface(): NlDesignSurface {
-    val surface = Mockito.mock(NlDesignSurface::class.java)
-    val sceneManager = Mockito.mock(LayoutlibSceneManager::class.java)
-    Mockito.`when`(surface!!.sceneManager).thenReturn(sceneManager)
-    Mockito.`when`(sceneManager.totalRenderTime).thenReturn(TOTAL_RENDER_TIME)
-
-    val issueModel = Mockito.mock(IssueModel::class.java)
-    Mockito.`when`(surface!!.issueModel).thenReturn(issueModel)
-    Mockito.`when`(issueModel.issueCount).thenReturn(ERROR_COUNT)
-    return surface
-  }
-
   private fun mockRenderResult(): RenderResult {
     val result = Mockito.mock(RenderResult::class.java)
 
@@ -115,5 +119,4 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
     return result
   }
-
 }
