@@ -95,7 +95,7 @@ public class DetailedMemoryUsageTest {
       List<SeriesData<Long>> series = allSeries.get(i).getSeries();
       Truth.assertThat(series.size()).isEqualTo(10);
       for (int j = 0; j < series.size(); j++) {
-        Truth.assertThat(series.get(j).value).isEqualTo(j * 10 + i);
+        Truth.assertThat(series.get(j).value).isEqualTo(MemoryUsage.KB_TO_B * (j * 10 + i));
       }
     }
 
@@ -105,7 +105,7 @@ public class DetailedMemoryUsageTest {
       List<SeriesData<Long>> series = allSeries.get(i).getSeries();
       Truth.assertThat(series.size()).isEqualTo(6);
       for (int j = 0; j < series.size(); j++) {
-        Truth.assertThat(series.get(j).value).isEqualTo(j * 10 + i);
+        Truth.assertThat(series.get(j).value).isEqualTo(MemoryUsage.KB_TO_B * (j * 10 + i));
       }
     }
 
@@ -115,7 +115,7 @@ public class DetailedMemoryUsageTest {
       List<SeriesData<Long>> series = allSeries.get(i).getSeries();
       Truth.assertThat(series.size()).isEqualTo(6);
       for (int j = 0; j < series.size(); j++) {
-        Truth.assertThat(series.get(j).value).isEqualTo((j + 4) * 10 + i);
+        Truth.assertThat(series.get(j).value).isEqualTo(MemoryUsage.KB_TO_B * ((j + 4) * 10 + i));
       }
     }
   }
