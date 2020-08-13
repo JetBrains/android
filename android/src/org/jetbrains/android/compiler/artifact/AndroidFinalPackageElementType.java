@@ -9,6 +9,7 @@ import com.intellij.packaging.elements.PackagingElementType;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +22,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
   @NonNls public static final String TYPE_ID = "android-final-package";
 
   protected AndroidFinalPackageElementType() {
-    super(TYPE_ID, "Android Final Package");
+    super(TYPE_ID, AndroidBundle.message("android.final.package.element.type.name"));
   }
 
   public static AndroidFinalPackageElementType getInstance() {

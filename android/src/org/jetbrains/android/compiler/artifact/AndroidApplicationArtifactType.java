@@ -18,6 +18,7 @@ import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,7 +28,7 @@ import java.util.List;
 
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
-    super("apk", "Android Application");
+    super("apk", AndroidBundle.message("android.application.title"));
   }
 
   @NotNull
