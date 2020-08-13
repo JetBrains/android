@@ -58,10 +58,6 @@ import javax.swing.JViewport
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @get:Rule
   val edtRule = EdtRule()
 
@@ -71,7 +67,7 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testLiveControlEnabled() {
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.toolTipText).isNull()
@@ -199,9 +195,6 @@ class DeviceViewPanelTest {
 @RunsInEdt
 class DeviceViewPanelLegacyTest {
   @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
   val edtRule = EdtRule()
 
   @get:Rule
@@ -210,7 +203,7 @@ class DeviceViewPanelLegacyTest {
   @Test
   fun testLiveControlDisabled() {
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
@@ -219,9 +212,6 @@ class DeviceViewPanelLegacyTest {
 
 @RunsInEdt
 class DeviceViewPanelLegacyWithApi29DeviceTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @get:Rule
   val edtRule = EdtRule()
 
@@ -233,7 +223,7 @@ class DeviceViewPanelLegacyWithApi29DeviceTest {
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
     inspectorRule.attachTo(DEFAULT_STREAM, DEFAULT_PROCESS)
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
