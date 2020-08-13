@@ -19,16 +19,38 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AtfAuditResult
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
-class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScannerControl {
+class NlLayoutScannerControl: LayoutScannerControl {
 
-  private val metricTracker = NlLayoutScannerMetricTracker(surface)
-  override val scanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
+  constructor(designSurface: NlDesignSurface) {
+    surface = designSurface
+    metricTracker = NlLayoutScannerMetricTracker(surface)
+    myScanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
+    init()
+  }
+
+  /** For testing purposes. Mocked values cannot be disposed in junit it seems. */
+  @TestOnly
+  constructor(designSurface: NlDesignSurface, disposable: Disposable) {
+    surface = designSurface
+    metricTracker = NlLayoutScannerMetricTracker(surface)
+    myScanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
+    init()
+  }
+
+  override val scanner get() = myScanner
+
+  private lateinit var myScanner: NlLayoutScanner
+  private lateinit var surface: NlDesignSurface
+  private lateinit var metricTracker: NlLayoutScannerMetricTracker
+
+  private var scannerResult: CompletableFuture<Boolean>? = null
 
   /** Listener for issue panel open/close */
   private val issuePanelListener = IssuePanel.MinimizeListener {
@@ -75,9 +97,7 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
     }
   }
 
-  private var scannerResult: CompletableFuture<Boolean>? = null
-
-  init {
+  private fun init() {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
     surface.issuePanel.expandListener = issueExpandListener
   }

@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.Disposable
@@ -51,8 +52,10 @@ class NlLayoutScanner(
    * Maps required for Accessibility Testing Framework.
    * This is used to link a11y lint output with the source [NlComponent].
    */
-  private val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
-  private val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
+  @VisibleForTesting
+  val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
+  @VisibleForTesting
+  val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
 
   private val listeners = HashSet<Listener>()
 
@@ -85,7 +88,7 @@ class NlLayoutScanner(
         return
       }
       val root = components[0]
-      buildComponentToViewMap(root)
+      buildViewToComponentMap(root)
       validatorResult.issues.forEach {
         lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap))
         metricTracker.trackIssue(it)
@@ -119,7 +122,8 @@ class NlLayoutScanner(
   /**
    * Find the source [NlComponent] based on issue. If no source is found it returns null.
    */
-  private fun findComponent(result: ValidatorData.Issue, map: BiMap<Long, View>): NlComponent? {
+  @VisibleForTesting
+  fun findComponent(result: ValidatorData.Issue, map: BiMap<Long, View>): NlComponent? {
     val view = map[result.mSrcId] ?: return null
     var toReturn = viewToComponent[view]
     if (toReturn == null) {
@@ -132,7 +136,8 @@ class NlLayoutScanner(
   /**
    * It's needed to build bridge from [Long] to [View] to [NlComponent].
    */
-  private fun buildComponentToViewMap(component: NlComponent) {
+  @VisibleForTesting
+  fun buildViewToComponentMap(component: NlComponent) {
     component.viewInfo?.viewObject?.let { viewObj ->
       val view = viewObj as View
       viewToComponent[view] = component
@@ -141,7 +146,7 @@ class NlLayoutScanner(
         idToComponent[view.id] = component
       }
 
-      component.children.forEach { buildComponentToViewMap(it) }
+      component.children.forEach { buildViewToComponentMap(it) }
     }
   }
 
