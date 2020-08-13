@@ -31,7 +31,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
-import java.awt.Shape
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -57,14 +56,10 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
 
     val node = value as DefaultMutableTreeNode
     val userObj = node.userObject
-    if (userObj is TasksTreePresentableNodeDescriptor) {
-      customize(userObj.presentation, selected, hasFocus)
-    }
-    else if (userObj is WarningsTreePresentableNodeDescriptor) {
-      customize(userObj.presentation, selected, hasFocus)
-    }
-    else {
-      super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
+    when (userObj) {
+      is TasksTreePresentableNodeDescriptor -> customize(userObj.presentation, selected, hasFocus)
+      is WarningsTreePresentableNodeDescriptor -> customize(userObj.presentation, selected, hasFocus)
+      else -> super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     }
   }
 
