@@ -71,7 +71,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   private val controller: AdbDevicePairingControllerImpl by lazy {
-    AdbDevicePairingControllerImpl(project, edtExecutor, devicePairingService, view)
+    AdbDevicePairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, view)
   }
 
   private val testTimeUnit = TimeUnit.SECONDS
@@ -250,7 +250,6 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
     Truth.assertThat(pairingSuccess).isNotNull()
     Truth.assertThat(pairingSuccess.second).isEqualTo(phoneDeviceInfo)
   }
-
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
   fun <V> pumpAndWait(future: Future<V>): V {
