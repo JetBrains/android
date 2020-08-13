@@ -378,7 +378,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return new ModelCache().androidProjectFrom(
+    return ModelCache.create().androidProjectFrom(
       androidProject,
       androidProject.getVariants(),
       emptyList(),

@@ -26,7 +26,7 @@ import java.io.File
 import java.nio.file.Files
 
 class V2NdkModelTest {
-  val modelCache = ModelCache()
+  val modelCache = ModelCache.create()
   private val tempDir = Files.createTempDirectory("V2NdkModelTest").toFile()
   private val nativeModule = object : NativeModule {
     override val name: String = "moduleName"

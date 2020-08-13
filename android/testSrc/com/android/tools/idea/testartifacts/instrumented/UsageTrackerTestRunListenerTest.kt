@@ -44,7 +44,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        ModelCache().androidArtifactFrom(
+        ModelCache.createForTesting().androidArtifactFrom(
           AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
           null
         ),
