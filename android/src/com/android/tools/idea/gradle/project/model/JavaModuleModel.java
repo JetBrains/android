@@ -71,7 +71,8 @@ public class JavaModuleModel implements ModuleModel {
     return javaFacet.getJavaModuleModel();
   }
 
-  public static JavaModuleModel create(@NotNull String moduleName,
+  public static JavaModuleModel create(@NotNull ModelCache modelCache,
+                                       @NotNull String moduleName,
                                        @NotNull Collection<JavaModuleContentRoot> contentRoots,
                                        @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                                        @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
@@ -81,7 +82,6 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
                                        boolean buildable) {
-    ModelCache modelCache = new ModelCache();
     Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> modelCache.syncIssueFrom(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);

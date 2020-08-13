@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
@@ -77,7 +76,6 @@ import java.io.File
  */
 class ModelSerializationTest {
   private val modelCache = ModelCache()
-  private val dependenciesFactory = IdeDependenciesFactory()
   private val gradleVersion = GradleVersion.parse("3.2")
 
   /*
@@ -108,7 +106,6 @@ class ModelSerializationTest {
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
     val androidProject = modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      dependenciesFactory,
       listOf(VariantStub()),
       emptyList(),
       listOf(SyncIssueStub()))
@@ -206,8 +203,7 @@ class ModelSerializationTest {
   @Test
   fun level2Dependencies() = assertSerializable {
     // We use a local one to avoid changing the global one that is used for other tests.
-    val localDependenciesFactory = IdeDependenciesFactory()
-    localDependenciesFactory.create(AndroidArtifactStub()) as IdeDependenciesImpl
+    modelCache.dependenciesFrom(AndroidArtifactStub()) as IdeDependenciesImpl
   }
 
   /*
@@ -222,7 +218,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifact() = assertSerializable {
-    modelCache.androidArtifactFrom(AndroidArtifactStub(), dependenciesFactory, gradleVersion)
+    modelCache.androidArtifactFrom(AndroidArtifactStub(), gradleVersion)
   }
 
   @Test
@@ -234,7 +230,6 @@ class ModelSerializationTest {
   fun androidProject() = assertSerializable {
     modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      dependenciesFactory,
       listOf(VariantStub()),
       emptyList(),
       listOf(SyncIssueStub()))
@@ -267,7 +262,7 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() = assertSerializable {
-    modelCache.javaArtifactFrom(JavaArtifactStub(), dependenciesFactory)
+    modelCache.javaArtifactFrom(JavaArtifactStub())
   }
 
   @Test
@@ -287,7 +282,7 @@ class ModelSerializationTest {
 
   @Test
   fun mavenCoordinates() = assertSerializable {
-    ModelCache.mavenCoordinatesFrom(MavenCoordinatesStub())
+    modelCache.mavenCoordinatesFrom(MavenCoordinatesStub())
   }
 
   @Test
@@ -377,7 +372,7 @@ class ModelSerializationTest {
 
   @Test
   fun variant() = assertSerializable {
-    modelCache.variantFrom(VariantStub(), dependenciesFactory, gradleVersion)
+    modelCache.variantFrom(VariantStub(), gradleVersion)
   }
 
   @Test
