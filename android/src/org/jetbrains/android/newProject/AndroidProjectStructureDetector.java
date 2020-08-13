@@ -4,18 +4,18 @@ import com.android.SdkConstants;
 import com.intellij.ide.util.importProject.ModuleDescriptor;
 import com.intellij.ide.util.importProject.ProjectDescriptor;
 import com.intellij.ide.util.projectWizard.importSources.DetectedProjectRoot;
-import com.intellij.ide.util.projectWizard.importSources.DetectedSourceRoot;
 import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuilder;
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -40,7 +40,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   public void setupProjectStructure(@NotNull Collection<DetectedProjectRoot> roots,
                                     @NotNull ProjectDescriptor projectDescriptor,
                                     @NotNull ProjectFromSourcesBuilder builder) {
-    final List<File> existingRoots = new ArrayList<File>();
+    final List<File> existingRoots = new ArrayList<>();
 
     for (ProjectStructureDetector detector : ProjectStructureDetector.EP_NAME.getExtensions()) {
       if (detector != this) {
@@ -49,7 +49,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
         }
       }
     }
-    final List<ModuleDescriptor> modules = new ArrayList<ModuleDescriptor>();
+    final List<ModuleDescriptor> modules = new ArrayList<>();
 
     for (DetectedProjectRoot root : roots) {
       final File dir = root.getDirectory();
@@ -62,7 +62,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
       }
 
       if (!javaSrcRootInside) {
-        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.<DetectedSourceRoot>emptyList()));
+        modules.add(new ModuleDescriptor(root.getDirectory(), JavaModuleType.getModuleType(), Collections.emptyList()));
       }
     }
     projectDescriptor.setModules(modules);
@@ -70,14 +70,15 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
 
   private static class AndroidProjectRoot extends DetectedProjectRoot {
 
-    public AndroidProjectRoot(@NotNull File directory) {
+    private AndroidProjectRoot(@NotNull File directory) {
       super(directory);
     }
 
+    @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
     public String getRootTypeName() {
-      return "Android";
+      return AndroidBundle.message("group.Internal.Android.text");
     }
   }
 }
