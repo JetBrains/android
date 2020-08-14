@@ -53,7 +53,8 @@ class NlLayoutScannerControl: LayoutScannerControl {
   private var scannerResult: CompletableFuture<Boolean>? = null
 
   /** Listener for issue panel open/close */
-  private val issuePanelListener = IssuePanel.MinimizeListener {
+  @VisibleForTesting
+  val issuePanelListener = IssuePanel.MinimizeListener {
     val check = surface.sceneManager?.layoutScannerConfig ?: return@MinimizeListener
 
     if (it) {
@@ -64,9 +65,8 @@ class NlLayoutScannerControl: LayoutScannerControl {
       }
     }
     else if (!check.isLayoutScannerEnabled) {
-      check.isLayoutScannerEnabled = true
       metricTracker.trackTrigger(AtfAuditResult.Trigger.ISSUE_PANEL)
-      surface.forceUserRequestedRefresh()
+      tryRefreshWithScanner()
     }
   }
 
@@ -104,16 +104,28 @@ class NlLayoutScannerControl: LayoutScannerControl {
 
   override fun runLayoutScanner(): CompletableFuture<Boolean> {
     scanner.addListener(scannerListener)
-    val manager = surface.sceneManager ?: return CompletableFuture.completedFuture(false)
+    if (!tryRefreshWithScanner()) {
+      return CompletableFuture.completedFuture(false)
+    }
     // TODO: b/162528405 Fix this at some point. For now calling this function multiple times sequentially would cause
     //  some events to be ignored. I need to invest in direct path from requestRender to scanner listener.
     //  render complete does not guarentee error panel updated.
     scannerResult = CompletableFuture()
-    manager.layoutScannerConfig?.isLayoutScannerEnabled = true
-    manager.forceReinflate()
-    surface.requestRender()
     metricTracker.trackTrigger(AtfAuditResult.Trigger.USER)
     return scannerResult!!
+  }
+
+  /**
+   * Attempt to run refresh on surface with scanner on.
+   * Returns true if the request was sent successfully false otherwise.
+   */
+  @VisibleForTesting
+  fun tryRefreshWithScanner(): Boolean {
+    val manager = surface.sceneManager ?: return false
+    manager.layoutScannerConfig.isLayoutScannerEnabled = true
+    manager.forceReinflate()
+    surface.requestRender()
+    return true
   }
 }
 
