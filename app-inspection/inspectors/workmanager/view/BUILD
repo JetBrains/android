@@ -83,6 +83,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.app-inspection.inspectors.workmanager.view",
     srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
@@ -97,5 +98,20 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/workmanager/model:unb.intellij.android.app-inspection.inspectors.workmanager.model[module]",
         "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.workmanager-inspector-proto",
+    jars = ["//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )
