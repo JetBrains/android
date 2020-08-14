@@ -93,7 +93,7 @@ class DefaultInspectorClient(
   private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
   @VisibleForTesting
-  val processManager = DefaultProcessManager(AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)
+  val processManager = DefaultProcessManager(client.transportStub, AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)
 
   @VisibleForTesting
   var transportPoller = TransportEventPoller.createPoller(client.transportStub,
