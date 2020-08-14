@@ -17,17 +17,11 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
-import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.ApkInfo
-import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ValidationError
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter

@@ -97,7 +97,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     when(bestOutputFinder.findBestOutput(myVariant, emptyList(), testOutputs)).thenReturn(myTestApkFile);
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          bestOutputFinder, true, () -> GradleApkProvider.OutputKind.Default);
+                                          bestOutputFinder, true, it -> GradleApkProvider.OutputKind.Default);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 
