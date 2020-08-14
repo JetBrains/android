@@ -19,10 +19,12 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.DialogWrapperFactory
-import com.android.tools.idea.ui.FakeDialogWrapperRule
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
@@ -43,10 +45,6 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
   @get:Rule
   val restoreFlagRule = RestoreFlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
-
-  /** Use [DialogWrapperFactory] that is compatible with unit tests */
-  @get:Rule
-  val testingDialogWrapperRule = FakeDialogWrapperRule()
 
   private val edtExecutor by lazy { EdtExecutorService.getInstance() }
 
@@ -77,17 +75,23 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   private val testTimeUnit = TimeUnit.SECONDS
   private val testTimeout = TimeoutRemainder(30, testTimeUnit)
 
+  override fun setUp() {
+    super.setUp()
+    FakeUi.setPortableUiFont()
+    enableHeadlessDialogs(testRootDisposable)
+  }
+
   @Test
   fun viewShouldShowErrorIfAdbPathIsNotSet() {
     // Prepare
 
     // Act
-    controller.showDialog()
-
-    // Assert
-    pumpAndWait(view.showDialogTracker.consume())
-    pumpAndWait(view.startMdnsCheckTracker.consume())
-    pumpAndWait(view.showMdnsCheckErrorTracker.consume())
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckErrorTracker.consume())
+    }
   }
 
   @Test
@@ -99,12 +103,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf("unknown command"))))
 
     // Act
-    controller.showDialog()
-
-    // Assert
-    pumpAndWait(view.showDialogTracker.consume())
-    pumpAndWait(view.startMdnsCheckTracker.consume())
-    pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
+    }
   }
 
   @Test
@@ -116,12 +120,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf())))
 
     // Act
-    controller.showDialog()
-
-    // Assert
-    pumpEventsAndWaitForFuture(view.showDialogTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
-    pumpEventsAndWaitForFuture(view.startMdnsCheckTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
-    pumpEventsAndWaitForFuture(view.showMdnsCheckErrorTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpEventsAndWaitForFuture(view.showDialogTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
+      pumpEventsAndWaitForFuture(view.startMdnsCheckTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
+      pumpEventsAndWaitForFuture(view.showMdnsCheckErrorTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
+    }
   }
 
   @Test
@@ -133,12 +137,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf())))
 
     // Act
-    controller.showDialog()
-
-    // Assert
-    pumpAndWait(view.showDialogTracker.consume())
-    pumpAndWait(view.startMdnsCheckTracker.consume())
-    pumpAndWait(view.showMdnsNotSupportedErrorTracker.consume())
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsNotSupportedErrorTracker.consume())
+    }
   }
 
   @Test
@@ -150,15 +154,15 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
 
     // Act
-    controller.showDialog()
-
-    // Assert
-    pumpAndWait(view.showDialogTracker.consume())
-    pumpAndWait(view.startMdnsCheckTracker.consume())
-    pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
-    pumpAndWait(view.showQrCodePairingStartedTracker.consume())
-    val qrCodeImage = pumpAndWait(model.qrCodeImageTracker.consume())
-    Truth.assertThat(qrCodeImage).isNotNull()
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
+      pumpAndWait(view.showQrCodePairingStartedTracker.consume())
+      val qrCodeImage = pumpAndWait(model.qrCodeImageTracker.consume())
+      Truth.assertThat(qrCodeImage).isNotNull()
+    }
   }
 
   /**
@@ -219,36 +223,36 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
 
     // Act
-    controller.showDialog()
+    createDialogAndInteractWithIt({ controller.showDialog() }) {
+      // Assert
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
+      pumpAndWait(view.showQrCodePairingStartedTracker.consume())
 
-    // Assert
-    pumpAndWait(view.showDialogTracker.consume())
-    pumpAndWait(view.startMdnsCheckTracker.consume())
-    pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
-    pumpAndWait(view.showQrCodePairingStartedTracker.consume())
+      val qrCodeImage = pumpAndWait(model.qrCodeImageTracker.consume())
+      Truth.assertThat(qrCodeImage).isNotNull()
+      Truth.assertThat(qrCodeImage?.serviceName).isEqualTo(generatedServiceName)
+      Truth.assertThat(qrCodeImage?.password).isEqualTo(generatedPassword)
+      Truth.assertThat(qrCodeImage?.pairingString).isEqualTo(generatedPairingString)
 
-    val qrCodeImage = pumpAndWait(model.qrCodeImageTracker.consume())
-    Truth.assertThat(qrCodeImage).isNotNull()
-    Truth.assertThat(qrCodeImage?.serviceName).isEqualTo(generatedServiceName)
-    Truth.assertThat(qrCodeImage?.password).isEqualTo(generatedPassword)
-    Truth.assertThat(qrCodeImage?.pairingString).isEqualTo(generatedPairingString)
+      val mdnsService = pumpAndWait(view.showQrCodePairingInProgressTracker.consume())
+      Truth.assertThat(mdnsService).isNotNull()
+      Truth.assertThat(mdnsService.serviceType).isEqualTo(ServiceType.QrCode)
+      Truth.assertThat(mdnsService.serviceName).isEqualTo(generatedServiceName)
+      Truth.assertThat(mdnsService.ipAddress).isEqualTo(InetAddress.getByName(phoneIpAddress))
+      Truth.assertThat(mdnsService.port).isEqualTo(phonePairingPort)
 
-    val mdnsService = pumpAndWait(view.showQrCodePairingInProgressTracker.consume())
-    Truth.assertThat(mdnsService).isNotNull()
-    Truth.assertThat(mdnsService.serviceType).isEqualTo(ServiceType.QrCode)
-    Truth.assertThat(mdnsService.serviceName).isEqualTo(generatedServiceName)
-    Truth.assertThat(mdnsService.ipAddress).isEqualTo(InetAddress.getByName(phoneIpAddress))
-    Truth.assertThat(mdnsService.port).isEqualTo(phonePairingPort)
+      val pairingResult = pumpAndWait(view.showQrCodePairingWaitForDeviceTracker.consume())
+      Truth.assertThat(pairingResult).isNotNull()
+      Truth.assertThat(pairingResult.ipAddress).isEqualTo(InetAddress.getByName(phoneIpAddress))
+      Truth.assertThat(pairingResult.port).isEqualTo(phoneConnectPort)
+      Truth.assertThat(pairingResult.mdnsServiceId).isEqualTo(phoneServiceName)
 
-    val pairingResult = pumpAndWait(view.showQrCodePairingWaitForDeviceTracker.consume())
-    Truth.assertThat(pairingResult).isNotNull()
-    Truth.assertThat(pairingResult.ipAddress).isEqualTo(InetAddress.getByName(phoneIpAddress))
-    Truth.assertThat(pairingResult.port).isEqualTo(phoneConnectPort)
-    Truth.assertThat(pairingResult.mdnsServiceId).isEqualTo(phoneServiceName)
-
-    val pairingSuccess = pumpAndWait(view.showQrCodePairingSuccessTracker.consume())
-    Truth.assertThat(pairingSuccess).isNotNull()
-    Truth.assertThat(pairingSuccess.second).isEqualTo(phoneDeviceInfo)
+      val pairingSuccess = pumpAndWait(view.showQrCodePairingSuccessTracker.consume())
+      Truth.assertThat(pairingSuccess).isNotNull()
+      Truth.assertThat(pairingSuccess.second).isEqualTo(phoneDeviceInfo)
+    }
   }
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)

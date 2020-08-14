@@ -135,6 +135,7 @@ iml_module(
         "//tools/idea/.idea/libraries:zxing-core[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
