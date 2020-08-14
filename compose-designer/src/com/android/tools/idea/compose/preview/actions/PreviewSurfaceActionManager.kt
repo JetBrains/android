@@ -67,12 +67,12 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
             ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
           },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
+            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
-            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
+            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
         )
       ),
       true,
@@ -81,6 +81,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       // Do not allocate space for the "see more" chevron if not needed
       setReservePlaceAutoPopupIcon(false)
       setShowSeparatorTitles(true)
+      setTargetComponent(sceneView.surface)
     }.component.apply {
       isOpaque = false
       border = JBUI.Borders.empty()

@@ -96,6 +96,9 @@ interface ComposePreviewManager {
   var animationInspectionPreviewElementInstance: PreviewElementInstance?
 }
 
+val ComposePreviewManager.isInInteractiveOrAnimationMode: Boolean
+  get() = animationInspectionPreviewElementInstance != null || interactivePreviewElementInstance != null
+
 /**
  * Interface that provides access to the Compose Preview logic that is not stable or meant for public
  * use.

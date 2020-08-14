@@ -82,6 +82,5 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     val dataContext = dataContextProvider()
     e.presentation.isEnabled =
       dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-    e.presentation.isVisible = !dataContext.shouldHideToolbar()
   }
 }
