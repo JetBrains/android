@@ -60,7 +60,7 @@ class DefaultProcessManagerTest {
     client = TransportClient(grpcServer!!.name)
     streamManager = TransportStreamManager.createManager(client!!.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    processManager = DefaultProcessManager(executor, streamManager!!, disposableRule.disposable)
+    processManager = DefaultProcessManager(client!!.transportStub, executor, streamManager!!, disposableRule.disposable)
   }
 
   @After
