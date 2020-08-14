@@ -98,11 +98,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final Collection<NamedIdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
-    final List<VirtualFile> javaDirectories = Lists.newArrayList();
-    for (IdeaSourceProvider provider : providerList) {
-      javaDirectories.addAll(provider.getJavaDirectories());
-    }
+    final Iterable<VirtualFile> javaDirectories = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
     final PsiDirectory[] directories = aPackage.getDirectories();
     final List<PsiDirectory> filteredDirectories = Lists.newArrayListWithExpectedSize(directories.length);
     for (PsiDirectory directory : directories) {

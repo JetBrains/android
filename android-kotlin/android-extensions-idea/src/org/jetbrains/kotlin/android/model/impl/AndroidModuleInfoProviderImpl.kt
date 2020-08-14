@@ -48,6 +48,6 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
             get() = sourceProvider.name
 
         override val resDirectories: Collection<VirtualFile>
-            get() = sourceProvider.resDirectories
+            get() = sourceProvider.resDirectories.toList()
     }
 }

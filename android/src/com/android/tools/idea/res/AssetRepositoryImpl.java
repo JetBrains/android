@@ -23,6 +23,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -172,14 +173,14 @@ public class AssetRepositoryImpl extends AssetRepository {
    */
   @NotNull
   private static Stream<VirtualFile> getDirectories(@NotNull AndroidFacet facet,
-                                                    @NotNull Function<IdeaSourceProvider, Collection<VirtualFile>> sourceMapper,
+                                                    @NotNull Function<IdeaSourceProvider, Iterable<VirtualFile>> sourceMapper,
                                                     @NotNull Function<IdeLibrary, String> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
         .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())
         .distinct()
         .map(sourceMapper)
-        .flatMap(Collection::stream);
+        .flatMap(Streams::stream);
 
     VirtualFileManager manager = VirtualFileManager.getInstance();
     Stream<VirtualFile> dirsFromAars = ResourceRepositoryManager.findAarLibraries(facet).stream()
