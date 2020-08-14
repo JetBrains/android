@@ -24,8 +24,8 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
@@ -35,7 +35,7 @@ import org.jetbrains.android.util.AndroidUtils
  * were accessed before source generation. If the last build of the project in the previous session was successful
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
-class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectComponent {
+class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
 
   private val lock = Any()
@@ -46,24 +46,27 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectC
   private val callbacks = mutableListOf<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
 
-  override fun projectOpened() {
-    // Listen for sync results until the first successful project sync.
-    messageBusConnection = project.messageBus.connect(project).apply {
-      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) {
-          if (result.isSuccessful) {
-            if (messageBusConnection != null) {
-              messageBusConnection = null
-              disconnect()
-            }
+  class MyStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) {
+      // Listen for sync results until the first successful project sync.
+      val serviceInstance = getInstance(project)
+      serviceInstance.messageBusConnection = project.messageBus.connect().apply {
+        subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
+          override fun syncEnded(result: SyncResult) {
+            if (result.isSuccessful) {
+              if (serviceInstance.messageBusConnection != null) {
+                serviceInstance.messageBusConnection = null
+                disconnect()
+              }
 
-            syncSucceeded()
+              serviceInstance.syncSucceeded()
+            }
+            else {
+              serviceInstance.syncFailed()
+            }
           }
-          else {
-            syncFailed()
-          }
-        }
-      })
+        })
+      }
     }
   }
 
@@ -168,6 +171,6 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectC
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild = project
-        .getComponent(ClearResourceCacheAfterFirstBuild::class.java)
+        .getService(ClearResourceCacheAfterFirstBuild::class.java)
   }
 }
