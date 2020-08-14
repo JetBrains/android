@@ -50,7 +50,7 @@ class DetailsViewDeviceSelectorListViewTest {
   @Test
   fun deviceListIsEmptyByDefault() {
     val view = DetailsViewDeviceSelectorListView(mockListener)
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(0)
+    assertThat(view.deviceList.itemsCount).isEqualTo(0)
   }
 
   @Test
@@ -60,8 +60,8 @@ class DetailsViewDeviceSelectorListViewTest {
 
     view.addDevice(device)
 
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(1)
-    assertThat(view.deviceListForTesting.model.getElementAt(0)).isEqualTo(device)
+    assertThat(view.deviceList.itemsCount).isEqualTo(1)
+    assertThat(view.deviceList.model.getElementAt(0)).isEqualTo(device)
   }
 
   @Test
@@ -73,10 +73,10 @@ class DetailsViewDeviceSelectorListViewTest {
     view.addDevice(device1)
     view.addDevice(device2)
 
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(2)
-    assertThat(view.deviceListForTesting.selectedIndices).isEmpty()  // Nothing is selected initially.
+    assertThat(view.deviceList.itemsCount).isEqualTo(2)
+    assertThat(view.deviceList.selectedIndices).isEmpty()  // Nothing is selected initially.
 
-    view.deviceListForTesting.selectedIndex = 0
+    view.deviceList.selectedIndex = 0
 
     verify(mockListener).onDeviceSelected(eq(device1))
   }
@@ -89,10 +89,10 @@ class DetailsViewDeviceSelectorListViewTest {
     view.addDevice(device)
     view.selectRawOutputItem()
 
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(2)
-    assertThat(view.deviceListForTesting.model.getElementAt(0)).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
-    assertThat(view.deviceListForTesting.model.getElementAt(1)).isEqualTo(device)
-    assertThat(view.deviceListForTesting.selectedValue).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+    assertThat(view.deviceList.itemsCount).isEqualTo(2)
+    assertThat(view.deviceList.model.getElementAt(0)).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+    assertThat(view.deviceList.model.getElementAt(1)).isEqualTo(device)
+    assertThat(view.deviceList.selectedValue).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
   }
 
   private fun device(id: String, name: String): AndroidDevice {
