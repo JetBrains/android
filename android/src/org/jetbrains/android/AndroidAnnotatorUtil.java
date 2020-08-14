@@ -414,7 +414,9 @@ public class AndroidAnnotatorUtil {
   /**
    * Returns a {@link Consumer} that sets the value of an {@link XmlAttribute} or an {@link XmlTag}.
    */
+  @NotNull
   public static Consumer<String> createSetAttributeTask(@NotNull PsiElement psiElement) {
+    // TODO(b/163360968): Add support to write in Java and Kotlin files.
     SmartPsiElementPointer<PsiElement> smartPsiElementPointer = ReadAction.compute(() -> SmartPointerManager.createPointer(psiElement));
     return attributeValue -> {
       PsiElement element = smartPsiElementPointer.getElement();
