@@ -436,7 +436,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
-     return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA);
+    return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA,
+                                            SingleDirectionLayoutManager.Alignment.CENTER);
   }
 
   /**
