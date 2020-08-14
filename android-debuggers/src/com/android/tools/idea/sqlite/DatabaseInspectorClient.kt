@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import java.util.concurrent.Executor
 
 /**
@@ -36,6 +35,7 @@ import java.util.concurrent.Executor
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
  * @param scope the coroutine scoped used to send messages to inspector.
+ * The job in this scope must be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
@@ -48,8 +48,7 @@ class DatabaseInspectorClient constructor(
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) : AppInspectorClient(messenger) {
-  private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, clientScope, taskExecutor, errorsSideChannel)
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
   override val rawEventListener = object : RawEventListener {
     override fun onRawEvent(eventData: ByteArray) {
