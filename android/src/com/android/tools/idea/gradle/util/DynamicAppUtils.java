@@ -339,6 +339,15 @@ public class DynamicAppUtils {
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull AndroidRunConfigurationBase configuration,
                                                        @Nullable AndroidDeviceSpec targetDeviceSpec) {
+    return useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec != null ? targetDeviceSpec.getVersion() : null);
+  }
+
+  /**
+   * Returns {@code true} if a module should be built using the "select apks from bundle" task
+   */
+  public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
+                                                       @NotNull AndroidRunConfigurationBase configuration,
+                                                       @Nullable AndroidVersion targetDeviceVersion) {
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
       if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
@@ -348,7 +357,7 @@ public class DynamicAppUtils {
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
-    if (targetDeviceSpec != null && targetDeviceSpec.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
+    if (targetDeviceVersion != null && targetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
