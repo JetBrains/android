@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collection;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A project-wide registry for class lookup of resource classes (R classes).
  */
-public class ResourceClassRegistry implements ProjectComponent {
+public class ResourceClassRegistry {
   private final Map<ResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
   private Set<String> myPackages;
 
@@ -116,14 +115,7 @@ public class ResourceClassRegistry implements ProjectComponent {
    */
   @NotNull
   public static ResourceClassRegistry get(@NotNull Project project) {
-    return project.getComponent(ResourceClassRegistry.class);
-  }
-
-  // ProjectComponent method.
-  @Override
-  @NotNull
-  public String getComponentName() {
-    return ResourceClassRegistry.class.getName();
+    return project.getService(ResourceClassRegistry.class);
   }
 
   @VisibleForTesting
