@@ -96,6 +96,12 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
   }
 
+  fun testCommonArguments_nonAndroidRunConfiguration() {
+    setUpTestProject()
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null, null)
+    assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
+  }
+
   fun testDeviceSpecificArguments() {
     setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(20, null))
