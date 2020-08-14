@@ -345,6 +345,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+    AndroidRunConfigurationBase androidRunConfiguration =
+      configuration instanceof AndroidRunConfigurationBase ? (AndroidRunConfigurationBase)configuration : null;
     if (!myAndroidProjectInfo.requiresAndroidModel()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
@@ -382,11 +384,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
     @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
 
-    // NOTE: DeviceFutures.KEY is configured by AndroidRunConfigurationBase and its descendants only and therefore
-    //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
     List<String> cmdLineArgs;
     try {
-      cmdLineArgs = getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec);
+      cmdLineArgs = getCommonArguments(modules, androidRunConfiguration, targetDeviceSpec);
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);
@@ -400,11 +400,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     try {
       boolean success = builder.build(runner, cmdLineArgs);
 
-      if (configuration instanceof AndroidRunConfigurationBase) {
+      if (androidRunConfiguration != null) {
         Object model = runner.getModel();
         if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-          ((AndroidRunConfigurationBase)configuration)
-            .putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
+          androidRunConfiguration.putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
         }
         else {
           getLog().info("Couldn't get post build models.");
@@ -436,13 +435,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @VisibleForTesting
   @NotNull
   static List<String> getCommonArguments(@NotNull Module[] modules,
-                                         @NotNull AndroidRunConfigurationBase configuration,
+                                         @Nullable AndroidRunConfigurationBase configuration,
                                          @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
     // Always build with stable IDs to avoid push-to-device overhead.
     cmdLineArgs.add(createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true));
-    cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
-    cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
+    if (configuration != null) {
+      cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
+      cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
+    }
     return cmdLineArgs;
   }
 
