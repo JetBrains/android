@@ -511,8 +511,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       pathToSelect = firstTreePath;
     }
 
-    DeviceNamePropertiesProvider provider = myCellRenderer.getDeviceNamePropertiesProvider();
-    myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices), provider));
+    // doUpdateTree is called by updateTree which is called by the client and device listeners which are added to the Android debug bridge
+    // before myCellRenderer is initialized. So myCellRenderer can be null here.
+    if (myCellRenderer != null) {
+      myCellRenderer.setShowSerial(Arrays.asList(devices));
+    }
 
     UIUtil.invokeLaterIfNeeded(() -> {
       myProcessTree.setModel(model);
@@ -681,13 +684,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
     }
 
-    public void setShowSerial(boolean showSerial) {
-      myShowSerial = showSerial;
-    }
-
-    @NotNull
-    private DeviceNamePropertiesProvider getDeviceNamePropertiesProvider() {
-      return myDeviceNamePropertiesProvider;
+    private void setShowSerial(@NotNull List<@NotNull IDevice> devices) {
+      myShowSerial = DeviceRenderer.shouldShowSerialNumbers(devices, myDeviceNamePropertiesProvider);
     }
 
     @Override
