@@ -20,6 +20,6 @@
     <projectService serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
     <applicationService serviceImplementation="org.jetbrains.android.database.AndroidRemoteDataBaseManager"/>
     <database.synchronizeHandler implementation="org.jetbrains.android.database.AndroidSynchronizeHandler"/>
-    <notificationGroup id="Android Data Source Manager" displayType="BALLOON"/>
+    <notificationAllowlist groupIds="Android Data Source Manager"/>
   </extensions>
 </idea-plugin>
