@@ -34,6 +34,10 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
   private var disposable: Disposable? = null
   private var surface: NlDesignSurface? = null
   private var sceneManager: LayoutlibSceneManager? = null
+  private val check = object : LayoutScannerConfiguration {
+    override var isLayoutScannerEnabled: Boolean = false
+    override var forceLoggingRenderResult: Boolean = false
+  }
 
   override fun setUp() {
     super.setUp()
@@ -46,6 +50,8 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     surface = mockSurfaceNoSceneManager()
     sceneManager = Mockito.mock(LayoutlibSceneManager::class.java)
     Mockito.`when`(surface!!.sceneManager).thenReturn(sceneManager)
+    Mockito.`when`(sceneManager!!.layoutScannerConfig).thenReturn(check)
+
     val analyticsManager = NlAnalyticsManager(surface!!)
     Mockito.`when`(surface!!.analyticsManager).thenReturn(analyticsManager)
   }
@@ -94,10 +100,7 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     }
 
     // Simulate render -> atf result
-    val issueSize = 2
-    val helper = ScannerTestHelper()
-    val model = helper.buildModel(issueSize)
-    control.scanner.validateAndUpdateLint(helper.mockRenderResult(model), model)
+    simulateSurfaceRefreshedWithScanner(control, 2)
 
     // check if result from runLayoutScanner triggered
     latch.await(500, TimeUnit.MILLISECONDS)
@@ -107,6 +110,87 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     val showIssuePanelArg = ArgumentCaptor.forClass(Boolean::class.java)
     Mockito.verify(surface, Mockito.times(1)).setShowIssuePanel(showIssuePanelArg.capture())
     assertTrue(showIssuePanelArg.value)
+  }
+
+  fun testTryRefreshWithScanner() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+    assertFalse(check.isLayoutScannerEnabled)
+
+    assertTrue(control.tryRefreshWithScanner())
+
+    assertTrue(check.isLayoutScannerEnabled)
+    Mockito.verify(surface, Mockito.times(1)).requestRender()
+    // Make sure we don't trigger force user request as it messes up metrics.
+    Mockito.verify(surface, Mockito.never()).forceUserRequestedRefresh()
+  }
+
+  fun testIssuePanelExpanded() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    control.issuePanelListener.onMinimizeChanged(false)
+
+    assertTrue(check.isLayoutScannerEnabled)
+    Mockito.verify(surface, Mockito.times(1)).requestRender()
+    // Make sure we don't trigger force user request as it messes up metrics.
+    Mockito.verify(surface, Mockito.never()).forceUserRequestedRefresh()
+  }
+
+  fun testIssuePanelExpandedWithIssues() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    // Precondition: Scanner has some issues already
+    val issuesSize = 3
+    simulateSurfaceRefreshedWithScanner(control, issuesSize)
+    assertEquals(issuesSize, control.scanner.issues.size)
+    assertTrue(check.isLayoutScannerEnabled)
+
+    // Test: ensure it doesn't re-render.
+    control.issuePanelListener.onMinimizeChanged(false)
+
+    Mockito.verify(surface, Mockito.never()).requestRender()
+  }
+
+  fun testIssuePanelMinimizedWithoutIssue() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    // Test when issue panel is minimized
+    control.issuePanelListener.onMinimizeChanged(true)
+
+    // When minimized it should be cleared.
+    assertTrue(control.scanner.issues.isEmpty())
+    assertFalse(check.isLayoutScannerEnabled)
+  }
+
+  fun testIssuePanelMinimizedWithIssues() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    // Precondition: Scanner has some issues already
+    val issuesSize = 5
+    simulateSurfaceRefreshedWithScanner(control, issuesSize)
+    assertEquals(issuesSize, control.scanner.issues.size)
+
+    // Test when issue panel is minimized
+    control.issuePanelListener.onMinimizeChanged(true)
+
+    // When minimized it should be cleared.
+    assertTrue(control.scanner.issues.isEmpty())
+    assertFalse(check.isLayoutScannerEnabled)
+  }
+
+  /**
+   * Simulate surface render with scanner option turned on, and generate
+   * issues thru [NlLayoutScanner.validateAndUpdateLint].
+   */
+  private fun simulateSurfaceRefreshedWithScanner(control: NlLayoutScannerControl, issuesSize: Int) {
+    val helper = ScannerTestHelper()
+    val model = helper.buildModel(issuesSize)
+    check.isLayoutScannerEnabled = true
+    control.scanner.validateAndUpdateLint(helper.mockRenderResult(model), model)
   }
 
   private fun mockSurfaceNoSceneManager(): NlDesignSurface {

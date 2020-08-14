@@ -270,7 +270,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * Based on the configuration layout validation will be turned on or off while rendering.
    */
   @NotNull
-  public final LayoutScannerConfiguration layoutScannerConfig;
+  private final LayoutScannerConfiguration myLayoutScannerConfig;
 
   /**
    * Creates a new LayoutlibSceneManager.
@@ -322,7 +322,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     model.addListener(myModelChangeListener);
     myAreListenersRegistered = true;
-    this.layoutScannerConfig = layoutScannerConfig;
+    myLayoutScannerConfig = layoutScannerConfig;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -421,6 +421,15 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public float getSceneScalingFactor() {
     return getModel().getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+  }
+
+  /**
+   * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
+   * Based on the configuration layout validation will be turned on or off while rendering.
+   */
+  @NotNull
+  public LayoutScannerConfiguration getLayoutScannerConfig() {
+    return myLayoutScannerConfig;
   }
 
   @Override
@@ -983,7 +992,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled())
+      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
