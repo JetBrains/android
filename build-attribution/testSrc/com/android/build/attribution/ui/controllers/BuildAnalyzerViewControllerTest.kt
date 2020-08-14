@@ -305,6 +305,25 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testWarningsGroupingSelectionUpdated() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.warningsGroupingSelectionUpdated(groupByPlugin = true)
+
+    // Assert
+    assertThat(model.warningsPageModel.groupByPlugin).isTrue()
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testGenerateReportClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     // Prepare: Select first node

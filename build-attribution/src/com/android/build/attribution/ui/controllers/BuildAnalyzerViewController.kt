@@ -125,7 +125,9 @@ class BuildAnalyzerViewController(
   }
 
   override fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.warningsPageModel.groupByPlugin = groupByPlugin
-    //TODO (b/150295612): Add analytics reporting.
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
   }
 }
