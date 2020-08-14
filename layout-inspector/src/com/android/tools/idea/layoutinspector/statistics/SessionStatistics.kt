@@ -23,15 +23,18 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 class SessionStatistics {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
+  val memory = MemoryStatistics()
 
   fun start(isCapturing: Boolean) {
     live.start(isCapturing)
     rotation.start()
+    memory.start()
   }
 
   fun save(data: DynamicLayoutInspectorSession.Builder) {
     live.save(data.liveBuilder)
     rotation.save(data.rotationBuilder)
+    memory.save(data.memoryBuilder)
   }
 
   fun selectionMadeFromImage() {
