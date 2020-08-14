@@ -16,12 +16,31 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.isInInteractiveOrAnimationMode
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+
+private class ComposePreviewNonInteractiveActionWrapper(actions: List<AnAction>): DefaultActionGroup(actions) {
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
+      e.presentation.isVisible = !it.isInInteractiveOrAnimationMode
+    }
+  }
+}
 
 /**
- * Whether the Compose action toolbar of a given preview should be hidden, e.g. when we're in animation inspection or interactive modes.
+ * Makes the given list of actions only visible when the Compose preview is not in interactive or animation modes. Returns an [ActionGroup]
+ * that handles the visibility.
  */
-internal fun DataContext.shouldHideToolbar(): Boolean {
-  val previewManager = getData(COMPOSE_PREVIEW_MANAGER) ?: return false
-  return previewManager.animationInspectionPreviewElementInstance != null || previewManager.interactivePreviewElementInstance != null
-}
+internal fun List<AnAction>.visibleOnlyInComposeStaticPreview(): ActionGroup = ComposePreviewNonInteractiveActionWrapper(this)
+
+/**
+ * Makes the given action only visible when the Compose preview is not in interactive or animation modes. Returns an [ActionGroup] that
+ * handles the visibility.
+ */
+internal fun AnAction.visibleOnlyInComposeStaticPreview(): ActionGroup = listOf(this).visibleOnlyInComposeStaticPreview()

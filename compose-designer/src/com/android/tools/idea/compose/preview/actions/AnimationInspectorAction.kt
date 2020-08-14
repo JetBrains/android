@@ -58,6 +58,6 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
     super.update(e)
     e.presentation.isEnabled = true
     // Only display the animation inspector icon if there are animations to be inspected.
-    e.presentation.isVisible = !dataContextProvider().shouldHideToolbar() && getPreviewElement()?.hasAnimations == true
+    e.presentation.isVisible = getPreviewElement()?.hasAnimations == true
   }
 }
