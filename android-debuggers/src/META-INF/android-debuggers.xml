@@ -34,7 +34,7 @@
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowFactory"/>
 
-    <notificationGroup id="Sqlite Viewer" displayType="BALLOON"/>
+    <notificationAllowlist groupIds="Sqlite Viewer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">

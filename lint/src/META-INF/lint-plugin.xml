@@ -72,6 +72,5 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
 
-    <notificationGroup id="Wrote Baseline" displayType="BALLOON"/>
   </extensions>
 </idea-plugin>
