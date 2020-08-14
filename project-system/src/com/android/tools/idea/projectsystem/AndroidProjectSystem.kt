@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.run.AndroidDeviceSpec
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -78,12 +78,12 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = null
 
   /**
-   * Returns the [ApkProvider] for the given [runConfiguration] such that describes APKs suitable for [targetDeviceSpec].
+   * Returns the [ApkProvider] for the given [runConfiguration].
    *
    * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
    */
   @JvmDefault
-  fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? = null
+  fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
 
   /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
