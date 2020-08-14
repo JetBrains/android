@@ -266,6 +266,20 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(highlightInfo.getGutterIconRenderer()).isNull();
   }
 
+  public void testKotlinNoGutterAction() {
+    myFixture.addClass("package p1.p2;\n" +
+                       "\n" +
+                       "public class DrawableTest {\n" +
+                       "    public void test() {\n" +
+                       "        int drawable = R.drawable.ic_launcher;\n" +
+                       "    }\n" +
+                       "}\n");
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+    // TODO(b/163360968): There should no be a click action on the gutter icon for Kotlin files
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNull();
+  }
+
   public void testDimenThemeAttributeNoGutterRenderer() {
     // Reference to a dimension theme attribute from a layout file.
     HighlightInfo highlightInfo =
