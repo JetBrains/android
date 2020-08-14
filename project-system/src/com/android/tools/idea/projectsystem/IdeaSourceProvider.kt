@@ -28,49 +28,49 @@ import com.intellij.openapi.vfs.VirtualFile
  */
 interface IdeaSourceProvider {
   val scopeType: ScopeType
-  val manifestFileUrls: Collection<String>
-  val manifestFiles: Collection<VirtualFile>
+  val manifestFileUrls: Iterable<String>
+  val manifestFiles: Iterable<VirtualFile>
 
   /**
    * Parent directory urls of the manifest files listed in [manifestFileUrls].
    */
-  val manifestDirectoryUrls: Collection<String>
+  val manifestDirectoryUrls: Iterable<String>
 
   /**
    * Existing in the file system parent directories of the manifest files listed in [manifestFileUrls] including files which themselves
    * do not exist in the file system.
    */
-  val manifestDirectories: Collection<VirtualFile>
+  val manifestDirectories: Iterable<VirtualFile>
 
-  val javaDirectoryUrls: Collection<String>
-  val javaDirectories: Collection<VirtualFile>
+  val javaDirectoryUrls: Iterable<String>
+  val javaDirectories: Iterable<VirtualFile>
 
-  val resourcesDirectoryUrls: Collection<String>
-  val resourcesDirectories: Collection<VirtualFile>
+  val resourcesDirectoryUrls: Iterable<String>
+  val resourcesDirectories: Iterable<VirtualFile>
 
-  val aidlDirectoryUrls: Collection<String>
-  val aidlDirectories: Collection<VirtualFile>
+  val aidlDirectoryUrls: Iterable<String>
+  val aidlDirectories: Iterable<VirtualFile>
 
-  val renderscriptDirectoryUrls: Collection<String>
-  val renderscriptDirectories: Collection<VirtualFile>
+  val renderscriptDirectoryUrls: Iterable<String>
+  val renderscriptDirectories: Iterable<VirtualFile>
 
-  val jniDirectoryUrls: Collection<String>
-  val jniDirectories: Collection<VirtualFile>
+  val jniDirectoryUrls: Iterable<String>
+  val jniDirectories: Iterable<VirtualFile>
 
-  val jniLibsDirectoryUrls: Collection<String>
-  val jniLibsDirectories: Collection<VirtualFile>
+  val jniLibsDirectoryUrls: Iterable<String>
+  val jniLibsDirectories: Iterable<VirtualFile>
 
-  val resDirectoryUrls: Collection<String>
-  val resDirectories: Collection<VirtualFile>
+  val resDirectoryUrls: Iterable<String>
+  val resDirectories: Iterable<VirtualFile>
 
-  val assetsDirectoryUrls: Collection<String>
-  val assetsDirectories: Collection<VirtualFile>
+  val assetsDirectoryUrls: Iterable<String>
+  val assetsDirectories: Iterable<VirtualFile>
 
-  val shadersDirectoryUrls: Collection<String>
-  val shadersDirectories: Collection<VirtualFile>
+  val shadersDirectoryUrls: Iterable<String>
+  val shadersDirectories: Iterable<VirtualFile>
 
-  val mlModelsDirectoryUrls: Collection<String>
-  val mlModelsDirectories: Collection<VirtualFile>
+  val mlModelsDirectoryUrls: Iterable<String>
+  val mlModelsDirectories: Iterable<VirtualFile>
 }
 
 /**

@@ -48,8 +48,8 @@ fun Project.dumpSourceProviders(): String {
 
     fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
-    fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Collection<F>, mapper: (F) -> String?) {
-      val entries = getter(this)
+    fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Iterable<F>, mapper: (F) -> String?) {
+      val entries = getter(this).toList()
       if (entries.isEmpty()) return
       out("$name:")
       nest {
@@ -64,10 +64,10 @@ fun Project.dumpSourceProviders(): String {
     fun IdeSourceProvider.dumpPaths(name: String, getter: (IdeSourceProvider) -> Collection<File>) =
       dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
 
-    fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Collection<String>) =
+    fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Iterable<String>) =
       dumpPathsCore(name, getter) { it }
 
-    fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Collection<VirtualFile?>) =
+    fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>) =
       dumpPathsCore(name, getter) { it?.url }
 
     fun IdeSourceProvider.dump() {
