@@ -994,6 +994,9 @@ Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4/mas
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4_xl/back.webp
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4_xl/layout
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4_xl/mask.webp
+Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4a/back.webp
+Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4a/layout
+Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_4a/mask.webp
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_c/land_back.webp
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_c/land_fore.webp
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/pixel_c/land_shadow.webp
