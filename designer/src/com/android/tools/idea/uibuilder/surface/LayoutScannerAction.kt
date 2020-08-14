@@ -115,19 +115,12 @@ interface LayoutScannerConfiguration {
   /** Returns true if it layout scanner should be enabled. False otherwise. */
   var isLayoutScannerEnabled: Boolean
 
-  /** Returns true if metric is for render result, which contains atf result, must be logged. */
-  var forceLoggingRenderResult: Boolean
-
   companion object {
 
     /** Configuration for when layout scanner is not applicable. */
     @JvmStatic
     val DISABLED = object: LayoutScannerConfiguration {
       override var isLayoutScannerEnabled: Boolean
-        get() = false
-        set(value) { }
-
-      override var forceLoggingRenderResult: Boolean
         get() = false
         set(value) { }
     }
@@ -144,5 +137,4 @@ class LayoutScannerEnabled : LayoutScannerConfiguration {
     set(value) {
       isEnabled = value
     }
-  override var forceLoggingRenderResult: Boolean = false
 }

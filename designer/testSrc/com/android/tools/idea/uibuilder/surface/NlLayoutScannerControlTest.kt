@@ -36,7 +36,6 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
   private var sceneManager: LayoutlibSceneManager? = null
   private val check = object : LayoutScannerConfiguration {
     override var isLayoutScannerEnabled: Boolean = false
-    override var forceLoggingRenderResult: Boolean = false
   }
 
   override fun setUp() {
