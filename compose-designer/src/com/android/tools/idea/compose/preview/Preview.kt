@@ -577,7 +577,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * [ComposePreviewNotificationProvider] when the editor needs to refresh the notifications.
    */
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
-    if (!parentEditor.isValid) return@invokeLaterIfNeeded
+    if (Disposer.isDisposed(this) || project.isDisposed || !parentEditor.isValid) return@invokeLaterIfNeeded
 
     notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
