@@ -946,6 +946,42 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
+  fun testRefreshAllOpenDatabasesSchemaActionInvokedWithClosedDbs() {
+    // Prepare
+    val sqliteSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(databaseId1))
+    }
+    `when`(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
+
+    // Act
+    databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(databaseInspectorModel).addDatabaseSchema(databaseId1, sqliteSchema)
+    verify(databaseInspectorModel).removeDatabaseSchema(databaseId1)
+
+    verify(databaseInspectorView).updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(
+          ViewDatabase(databaseId1, true),
+          SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false))),
+          0
+        )
+      )
+    )
+
+    verify(databaseInspectorView).updateDatabases(
+      listOf(
+        DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, false),null, 0),
+        DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId1, true))
+      )
+    )
+  }
+
   fun testWhenSchemaDiffFailsViewIsRecreated() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
