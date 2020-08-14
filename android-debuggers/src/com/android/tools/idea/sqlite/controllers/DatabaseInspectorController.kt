@@ -324,7 +324,12 @@ class DatabaseInspectorControllerImpl(
     if (model.getCloseDatabaseIds().contains(databaseId)) return
 
     // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
-    val newSchema = readDatabaseSchema(databaseId) ?: return
+    val newSchema = readDatabaseSchema(databaseId)
+    if (newSchema == null) {
+      model.removeDatabaseSchema(databaseId)
+      return
+    }
+
     val oldSchema = model.getDatabaseSchema(databaseId) ?: return
     withContext(uiThread) {
       if (oldSchema != newSchema) {
