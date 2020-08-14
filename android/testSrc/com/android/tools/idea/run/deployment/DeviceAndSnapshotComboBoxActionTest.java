@@ -187,6 +187,16 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void createCustomComponentDoesntScaleGroupLayoutDefaultSize() {
+    // Arrange
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .build();
+
+    // Act
+    action.createCustomComponent(myPresentation, i -> 4 * i);
+  }
+
+  @Test
   public void updateDevicesIsntPresent() {
     // Arrange
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
