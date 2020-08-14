@@ -57,9 +57,6 @@
       <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
-    </component>
-    <component>
       <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
     </component>
   </project-components>
@@ -304,6 +301,7 @@
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
