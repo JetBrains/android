@@ -1483,7 +1483,6 @@ android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
 android-studio/plugins/android/lib/spantable.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
-android-studio/plugins/android/lib/trace_agent.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/wizard-template.jar
@@ -1525,6 +1524,7 @@ android-studio/plugins/android/resources/simpleperf/windows/libwinpthread-1.dll
 android-studio/plugins/android/resources/simpleperf/windows/simpleperf.exe
 android-studio/plugins/android/resources/simpleperf/x86/simpleperf
 android-studio/plugins/android/resources/simpleperf/x86_64/simpleperf
+android-studio/plugins/android/resources/trace_agent.jar
 android-studio/plugins/android/resources/trace_processor_daemon/trace_processor_daemon.exe
 android-studio/plugins/android/resources/transport/arm64-v8a/transport
 android-studio/plugins/android/resources/transport/armeabi-v7a/transport
