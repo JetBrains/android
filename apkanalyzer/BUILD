@@ -96,7 +96,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
         "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
         "//tools/base/apkparser/analyzer:unb.studio.android.sdktools.analyzer[module]",

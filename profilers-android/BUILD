@@ -117,7 +117,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/profilers-ui:unb.intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:unb.intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",

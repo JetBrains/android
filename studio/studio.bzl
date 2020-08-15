@@ -588,11 +588,17 @@ def intellij_platform(
     )
 
     for plugin, jars in spec.plugin_jars.items():
-        native.filegroup(
-            name = name + "-plugin-%s_files" % plugin,
-            srcs = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars],
+        native.java_import(
+            name = name + "-plugin-%s" % plugin,
+            jars = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars],
             visibility = ["//visibility:public"],
         )
+
+    native.java_import(
+        name = name + "-updater",
+        jars = [src + "/updater-full.jar"],
+        visibility = ["//visibility:public"],
+    )
 
     _intellij_platform(
         name = name + ".platform",
