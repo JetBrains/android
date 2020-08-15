@@ -30,9 +30,19 @@ HIDDEN = [
 ]
 
 
-def sdk_files(idea_home):
+def list_sdk_jars(idea_home):
   jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
   return [idea_home + path for path in jars]
+
+
+def list_plugin_jars(idea_home):
+  plugin_jars = {}
+  for plugin in os.listdir(idea_home + "/plugins"):
+    path = "/plugins/" + plugin + "/lib/"
+    jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
+    jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
+    plugin_jars[plugin] = jars
+  return plugin_jars
 
 
 def define_jdk(table,
@@ -74,33 +84,21 @@ def define_jdk(table,
   return jdk
 
 
-def write_build_file(workspace, sdk_dir, jars):
-  with open(sdk_dir + "/BUILD", "w") as file:
-    file.write(
-        "load(\"//tools/adt/idea/studio:studio.bzl\", \"studio_data\")\n\n")
-    file.write("package(default_visibility = [\"//visibility:public\"])\n\n")
-
-    file.write("java_import(\n")
-    file.write("    name = \"studio-sdk\",\n")
-    file.write("    jars = [\n")
+def write_spec_file(workspace, sdk_dir, version, jars, plugin_jars):
+  with open(sdk_dir + "/spec.bzl", "w") as file:
+    name = version.replace("-", "").replace(".", "_")
+    file.write("# Auto-generated file, do not edit manually.\n")
+    file.write(name  + " = struct(\n" )
+    file.write("    jar_order = [\n")
     for jar in jars:
-      file.write("        \"" + os.path.relpath(jar, sdk_dir) + "\",\n")
-    file.write("    ],\n)\n\n")
-
-    file.write("studio_data(\n")
-    file.write("    name = \"studio-platform\",\n")
-    file.write("    files_linux = glob([\"linux/**\"]),\n")
-    file.write("    files_mac = glob([\"darwin/**\"]),\n")
-    file.write("    files_win = glob([\"windows/**\"]),\n")
-    file.write("    mappings = {\n")
-    file.write("        \"" + os.path.relpath(sdk_dir, workspace) +
-               "/linux/\": \"\",\n")
-    file.write("        \"" + os.path.relpath(sdk_dir, workspace) +
-               "/darwin/android-studio/\": \"Android Studio.app/\",\n")
-    file.write("        \"" + os.path.relpath(sdk_dir, workspace) +
-               "/darwin/_codesign/\": \"_codesign/\",\n")
-    file.write("        \"" + os.path.relpath(sdk_dir, workspace) +
-               "/windows/\": \"\",\n")
+      file.write("        \"" + os.path.basename(jar) + "\",\n")
+    file.write("    ],\n")
+    file.write("    plugin_jars = {\n")
+    for plugin, jars in plugin_jars.items():
+      file.write("        \"" + plugin + "\": [\n")
+      for jar in jars:
+        file.write("            \"" + os.path.basename(jar) + "\",\n")
+      file.write("        ],\n")
     file.write("    },\n")
     file.write(")\n")
 
@@ -122,7 +120,7 @@ def gen_lib(project_dir, name, jars, srcs):
     file.write(ET.tostring(component, pretty_print=True))
 
 
-def update_xml_file(workspace, jdk, sdk, jars):
+def update_xml_file(workspace, jdk, sdk, jars, plugin_jars):
   app = ET.Element("application")
   table = ET.SubElement(app, "component", {"name": "ProjectJdkTable"})
 
@@ -159,16 +157,12 @@ def update_xml_file(workspace, jdk, sdk, jars):
   with open(project_dir + "/.idea/jdk.table.lin.xml", "wb") as file:
     file.write(ET.tostring(app, pretty_print=True))
 
-  idea_home = sdk + "/linux/android-studio"
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
-  for plugin in os.listdir(idea_home + "/plugins"):
-    path = "/plugins/" + plugin + "/lib/"
-    jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
-    jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
+  for plugin, jars in plugin_jars.items():
     gen_lib(project_dir, "studio-plugin-" + plugin, jars, [sdk + "/android-studio-sources.zip"])
 
   updater_jar = sdk + "/updater-full.jar"
@@ -176,14 +170,14 @@ def update_xml_file(workspace, jdk, sdk, jars):
     gen_lib(project_dir, "intellij-updater", [updater_jar], [sdk + "/android-studio-sources.zip"])
 
 def update_files(workspace, version):
-  project_dir = workspace + "/tools/adt/idea/"
   sdk = workspace + "/prebuilts/studio/intellij-sdk/" + version
   jdk = workspace + "/prebuilts/studio/jdk/linux"
 
-  jars = sdk_files(sdk + "/linux/android-studio")
+  sdk_jars = list_sdk_jars(sdk + "/linux/android-studio")
+  plugin_jars = list_plugin_jars(sdk + "/linux/android-studio")
 
-  update_xml_file(workspace, jdk, sdk, jars)
-  write_build_file(workspace, sdk, jars)
+  update_xml_file(workspace, jdk, sdk, sdk_jars, plugin_jars)
+  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars)
 
 
 def check_artifacts(dir):

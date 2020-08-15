@@ -69,7 +69,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.intellij-updater",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/base/repository:unb.studio.android.sdktools.repository[module]",
         "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
@@ -89,7 +89,7 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = [
         ":unb.intellij.android.updater.ui.jar",
-        "//tools/adt/idea/.idea/libraries:unb.intellij-updater",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
     ],
 )
 
