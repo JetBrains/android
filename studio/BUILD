@@ -367,7 +367,7 @@ android_studio(
             "//tools/analytics-library/crash:unb.analytics-crash",
         ],
     },
-    platform = "//prebuilts/studio/intellij-sdk:studio-platform",
+    platform = "//prebuilts/studio/intellij-sdk:studio-sdk.platform",
     plugins = [
         ":intellij.android.plugin",
         ":com.android.tools.apk",
@@ -516,4 +516,16 @@ java_binary(
         "//tools/base/annotations:unb.studio.android.sdktools.android-annotations.jar",
         "//tools/base/common:unb.studio.android.sdktools.common.jar",
     ],
+)
+
+py_binary(
+    name = "process_plugin",
+    srcs = ["process_plugin.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "arg_maker",
+    srcs = ["arg_maker.py"],
+    visibility = ["//visibility:public"],
 )
