@@ -181,8 +181,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
@@ -225,8 +225,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",

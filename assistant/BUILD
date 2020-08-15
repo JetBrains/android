@@ -146,7 +146,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",

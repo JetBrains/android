@@ -154,8 +154,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
@@ -196,9 +196,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",

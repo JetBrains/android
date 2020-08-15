@@ -88,7 +88,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/build-common:unb.intellij.android.buildCommon[module]",
         "//tools/adt/idea/rt:unb.intellij.android.rt[module]",
         "//tools/base/build-system:unb.studio.android.sdktools.manifest-merger[module]",

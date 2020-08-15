@@ -96,7 +96,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
         "//tools/base/deploy/deployer:unb.studio.android.sdktools.deployer[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
