@@ -223,12 +223,12 @@ studio_plugin(
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//prebuilts/studio/layoutlib:layoutlib",
-            "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
         ],
         "resources": [
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
+            "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
             "//tools/base/transport:transport-bundle",
             "//prebuilts/tools:simpleperf-bundle",
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
