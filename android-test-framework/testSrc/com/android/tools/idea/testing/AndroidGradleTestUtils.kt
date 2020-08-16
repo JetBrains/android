@@ -99,13 +99,17 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.io.systemIndependentPath
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
@@ -805,6 +809,8 @@ fun setupTestProjectFromAndroidModel(
     if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
   }
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  ensureIndexesUpToDate(project)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
 private fun createAndroidModuleDataNode(
@@ -1080,3 +1086,26 @@ private fun verifySyncedSuccessfully(project: Project) {
   }
 }
 
+fun JavaCodeInsightTestFixture.makeAutoIndexingOnCopy(): JavaCodeInsightTestFixture {
+  return object : JavaCodeInsightTestFixture by this@makeAutoIndexingOnCopy {
+    override fun copyFileToProject(sourceFilePath: String): VirtualFile {
+      return copyFileToProject(sourceFilePath, sourceFilePath)
+    }
+
+    override fun copyFileToProject(sourceFilePath: String, targetPath: String): VirtualFile {
+      val testDataPath = testDataPath
+      val sourceFile = File(testDataPath, toSystemDependentName(sourceFilePath))
+      val targetFile: File = File(tempDirPath).resolve(toSystemDependentName(targetPath))
+      assert(sourceFile.exists())
+      FileUtil.createParentDirs(targetFile)
+      FileUtil.copy(sourceFile, targetFile)
+      VfsUtil.markDirtyAndRefresh(false, false, false, targetFile)
+      ensureIndexesUpToDate(project)
+      return VfsUtil.findFileByIoFile(targetFile, true) ?: error("Failed to copy $sourceFile to $targetFile")
+    }
+
+    override fun copyDirectoryToProject(sourceFilePath: String, targetPath: String): VirtualFile {
+      error("Not implemented")
+    }
+  }
+}

@@ -143,6 +143,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder]. Such a project will have a module from which an instance of [AndroidModel] can be retrieved.
      */
+    @JvmStatic
     fun withAndroidModel(
       androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
     ): AndroidProjectRule {
@@ -159,6 +160,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder].
      */
+    @JvmStatic
     fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
       lightFixture = false,
