@@ -322,7 +322,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
       List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
       Collection<String> variantNames = map(variants, it -> it.getName());
-      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject, variantNames, syncIssues);
+      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject, variantNames);
       AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName,
                                                                   rootModulePath,
                                                                   ideAndroidProject,
@@ -384,7 +384,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(modelCache, gradleModule, moduleNode, emptyList(), false);
+      createJavaProject(modelCache, gradleModule, moduleNode, false);
       return;
     }
 
@@ -419,7 +419,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         modelCache,
         gradleModule,
         moduleNode,
-        ImmutableList.of(),
         gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin")
       );
     }
@@ -624,11 +623,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private void createJavaProject(@NotNull ModelCache modelCache,
                                  @NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
-                                 @NotNull Collection<SyncIssue> syncIssues,
                                  boolean isBuildable) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     JavaModuleModel javaModuleModel =
-      myIdeaJavaModuleModelFactory.create(modelCache, gradleModule, syncIssues, externalProject, isBuildable);
+      myIdeaJavaModuleModelFactory.create(modelCache, gradleModule, externalProject, isBuildable);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 

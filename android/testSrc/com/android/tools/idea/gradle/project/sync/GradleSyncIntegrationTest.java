@@ -55,7 +55,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
@@ -274,8 +273,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
-    Collection<IdeSyncIssue> issues = androidModel.getSyncIssues();
-    assertThat(issues).isEmpty();
 
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(pluginInfo);

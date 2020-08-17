@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.util.containers.ContainerUtil.map;
-import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 
 import com.android.AndroidProjectTypes;
@@ -48,13 +47,11 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -385,8 +382,7 @@ public class AndroidProjectStub implements AndroidProject {
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
     return ModelCache.create().androidProjectFrom(
       androidProject,
-      androidProject.getVariants().stream().map(it -> it.getName()).collect(Collectors.toList()),
-      emptyList());
+      androidProject.getVariants().stream().map(it -> it.getName()).collect(Collectors.toList()));
   }
 
   @NotNull

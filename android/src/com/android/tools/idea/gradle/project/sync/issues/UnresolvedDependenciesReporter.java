@@ -134,47 +134,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   }
 
 
-  public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    // TODO: Allow java modules to have sync issues.
-    if (unresolvedDependencies.isEmpty()) {
-      return;
-    }
-    VirtualFile buildFile = getGradleBuildFile(module);
-    List<IdeSyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new IdeSyncIssue() {
-      @Override
-      public int getSeverity() {
-        return SEVERITY_ERROR;
-      }
-
-      @Override
-      public int getType() {
-        return TYPE_UNRESOLVED_DEPENDENCY;
-      }
-
-      @Nullable
-      @Override
-      public String getData() {
-        return s;
-      }
-
-      @NonNull
-      @Override
-      public String getMessage() {
-        return s;
-      }
-
-      @Nullable
-      @Override
-      public List<String> getMultiLineMessage() {
-        return null;
-      }
-    });
-
-    SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(module.getProject());
-    reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),
-              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile), syncIssueUsageReporter);
-  }
-
   /**
    * Append a quick fix to add Google Maven repository to solve dependencies in a module in a list of fixes if needed.
    *
