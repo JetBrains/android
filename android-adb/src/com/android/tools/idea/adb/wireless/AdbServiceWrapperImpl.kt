@@ -33,7 +33,11 @@ import java.io.File
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-class AdbServiceWrapperImpl(private val project: Project, private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider, val taskExecutor: ListeningExecutorService) : AdbServiceWrapper {
+class AdbServiceWrapperImpl(
+  private val project: Project,
+  private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider,
+  val taskExecutor: ListeningExecutorService
+) : AdbServiceWrapper {
   private val ADB_TIMEOUT_MILLIS = 30_000L
   private val ADB_DEVICE_CONNECT_MILLIS = 30_000L
   private val LOG = logger<AdbServiceWrapperImpl>()
@@ -45,7 +49,7 @@ class AdbServiceWrapperImpl(private val project: Project, private val nanoTimePr
       val stdoutStream = ByteArrayOutputStream()
       val stderrStream = ByteArrayOutputStream()
       val exitValue = ExternalCommand(adbFile.absolutePath).execute(args, stdinStream, stdoutStream, stderrStream, ADB_TIMEOUT_MILLIS,
-                                                                TimeUnit.MILLISECONDS)
+                                                                    TimeUnit.MILLISECONDS)
       val processOutput = ProcessOutput()
       processOutput.appendStdout(stdoutStream.toString("UTF-8"))
       processOutput.appendStderr(stderrStream.toString("UTF-8"))
