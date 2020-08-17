@@ -176,7 +176,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:jar",
         "//tools/idea/.idea/libraries:xml-apis",
         "//tools/idea/plugins/webp:intellij.webp[module]",
     ],
@@ -470,7 +470,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:jar",
         "//tools/idea/.idea/libraries:jaxb-api",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
@@ -1093,7 +1093,7 @@ iml_module(
         "//tools/adt/idea/android:unb.moshi",
         "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/adt/idea/android/lib:unb.pepk",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
@@ -1175,7 +1175,7 @@ iml_module(
         "//tools/adt/idea/lint:unb.intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:unb.intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
 )
 
@@ -1184,7 +1184,7 @@ iml_module(
     name = "unb.intellij.android.core.tests",
     bundled_deps = [
         "//tools/adt/idea/android/lib:unb.instantapps-api",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
@@ -1419,7 +1419,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:unb.intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:unb.studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.1-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
 )
 
