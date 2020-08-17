@@ -169,6 +169,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
         "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-IntelliLang",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
         "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
