@@ -32,6 +32,7 @@ import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.common.util.setupOnSaveListener
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
@@ -61,7 +62,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderService
@@ -176,9 +177,14 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
   }
 
 /**
- * Key for the persistent state for the Compose Preview.
+ * Key for the persistent group state for the Compose Preview.
  */
 private const val SELECTED_GROUP_KEY = "selectedGroup"
+
+/**
+ * Key for the persistent build on save state for the Compose Preview.
+ */
+private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
@@ -505,12 +511,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     }, this)
 
+    if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
+      setupOnSaveListener(project, psiFile,
+                          {
+                            if (isBuildOnSaveEnabled) requestBuildForSurface(surface)
+                          }, this)
+    }
+
     setupChangeListener(
       project,
       psiFile,
       {
-        if (isAutoBuildEnabled && !hasSyntaxErrors()) requestBuildForSurface(surface)
-        else ApplicationManager.getApplication().invokeLater {
+        ApplicationManager.getApplication().invokeLater {
           // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
           // the new ones after a successful build.
           ComposePreviewAnimationManager.invalidate()
@@ -552,8 +564,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     animationInspectionPreviewElementInstance = null
   }
 
-  override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
-    get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
+  override var isBuildOnSaveEnabled: Boolean = COMPOSE_PREVIEW_BUILD_ON_SAVE.get()
+    get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
     .any { it.renderResult.isComposeErrorResult() }
@@ -823,7 +835,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  fun refresh(quickRefresh: Boolean = false): Job {
+  private fun refresh(quickRefresh: Boolean = false): Job {
     var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       LOG.debug("Refresh triggered", refreshTrigger)
@@ -884,15 +896,22 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override fun getState(): PreviewRepresentationState? {
     val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
-    return mapOf(SELECTED_GROUP_KEY to selectedGroupName)
+    return mapOf(
+      SELECTED_GROUP_KEY to selectedGroupName,
+      BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString())
   }
 
   override fun setState(state: PreviewRepresentationState) {
-    val selectedGroupName = state[SELECTED_GROUP_KEY] ?: return
+    val selectedGroupName = state[SELECTED_GROUP_KEY]
+    val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
     onRestoreState = {
-      availableGroups.find { it.name == selectedGroupName }?.let {
-        groupFilter = it
+      if (selectedGroupName != null) {
+        availableGroups.find { it.name == selectedGroupName }?.let {
+          groupFilter = it
+        }
       }
+
+      buildOnSave?.let { isBuildOnSaveEnabled = it }
     }
   }
 
