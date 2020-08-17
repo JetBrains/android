@@ -47,6 +47,9 @@ public class PinCodeInputPanel {
 
     myAllDigitTextFields =
       Arrays.asList(myPinCodeDigit1, myPinCodeDigit2, myPinCodeDigit3, myPinCodeDigit4, myPinCodeDigit5, myPinCodeDigit6);
+    for (int i = 0; i < myAllDigitTextFields.size(); i++) {
+      myAllDigitTextFields.get(i).setName("PinCode-Digit-" + i);
+    }
   }
 
   private void createUIComponents() {
