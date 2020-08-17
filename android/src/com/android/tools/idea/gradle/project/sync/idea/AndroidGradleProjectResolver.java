@@ -336,8 +336,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
       List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
       List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
-      Collection<String> variantNames = map(variants, it -> it.getName());
-      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject, variantNames);
+      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
       androidModel = AndroidModuleModel.create(moduleName,
                                                rootModulePath,
                                                ideAndroidProject,

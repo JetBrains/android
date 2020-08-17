@@ -104,9 +104,7 @@ class ModelSerializationTest {
   @Test
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
     val variants = listOf(VariantStub())
-    val androidProject = modelCache.androidProjectFrom(
-      AndroidProjectStub("3.6.0"),
-      variants.map { it.name })
+    val androidProject = modelCache.androidProjectFrom(AndroidProjectStub("3.6.0"))
     AndroidModuleModel.create(
       "moduleName",
       File("some/file/path"),
@@ -227,9 +225,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidProject() = assertSerializable {
-    modelCache.androidProjectFrom(
-      AndroidProjectStub("3.6.0"),
-      listOf(VariantStub().name))
+    modelCache.androidProjectFrom(AndroidProjectStub("3.6.0"))
   }
 
   @Test

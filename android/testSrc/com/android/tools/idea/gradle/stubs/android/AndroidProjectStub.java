@@ -380,9 +380,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return ModelCache.create().androidProjectFrom(
-      androidProject,
-      androidProject.getVariants().stream().map(it -> it.getName()).collect(Collectors.toList()));
+    return ModelCache.create().androidProjectFrom(androidProject);
   }
 
   @NotNull
