@@ -90,7 +90,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private String myAndroidSyncVersion;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private IdeAndroidProject myAndroidProject;
+  @NotNull private final IdeAndroidProject myAndroidProject;
+  @NotNull private final Map<String, IdeVariant> myCachedVariantsByName;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
@@ -101,7 +102,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private final transient Map<String, IdeBuildTypeContainer> myBuildTypesByName;
   @NotNull private final transient Map<String, IdeProductFlavorContainer> myProductFlavorsByName;
-  @NotNull final transient Map<String, IdeVariant> myVariantsByName;
 
   @GuardedBy("myGenericBuiltArtifactsMap")
   @NotNull private final transient Map<String, GenericBuiltArtifactsWithTimestamp> myGenericBuiltArtifactsMap;
@@ -121,18 +121,25 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static AndroidModuleModel create(@NotNull String moduleName,
                                           @NotNull File rootDirPath,
                                           @NotNull IdeAndroidProject androidProject,
+                                          @NotNull Collection<IdeVariant> cachedVariants,
                                           @NotNull String variantName) {
-    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, androidProject, variantName);
+    return new AndroidModuleModel(ourAndroidSyncVersion,
+                                  moduleName,
+                                  rootDirPath,
+                                  androidProject,
+                                  cachedVariants.stream().collect(toMap(it -> it.getName(), it -> it)),
+                                  variantName);
   }
 
-  @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
+  @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "myCachedVariantsByName",
+    "mySelectedVariantName"})
   @VisibleForTesting
   AndroidModuleModel(@NotNull String androidSyncVersion,
                      @NotNull String moduleName,
                      @NotNull File rootDirPath,
                      @NotNull IdeAndroidProject androidProject,
+                     @NotNull Map<String, IdeVariant> cachedVariantsByName,
                      @NotNull String variantName) {
-    myAndroidProject = androidProject;
     if (!androidSyncVersion.equals(ourAndroidSyncVersion)) {
       throw new IllegalArgumentException(
         String.format("Attempting to deserialize a model of incompatible version (%s)", androidSyncVersion));
@@ -141,13 +148,15 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
+    myAndroidProject = androidProject;
+    myCachedVariantsByName = cachedVariantsByName;
+    mySelectedVariantName = findVariantToSelect(variantName);
+
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
     myBuildTypesByName = myAndroidProject.getBuildTypes().stream().collect(toMap(it -> it.getBuildType().getName(), it -> it));
     myProductFlavorsByName = myAndroidProject.getProductFlavors().stream().collect(toMap(it -> it.getProductFlavor().getName(), it -> it));
-    myVariantsByName = myAndroidProject.getVariants().stream().map(it -> (IdeVariant)it).collect(toMap(it -> it.getName(), it -> it));
 
-    mySelectedVariantName = findVariantToSelect(variantName);
     myGenericBuiltArtifactsMap = new HashMap<>();
   }
 
@@ -231,7 +240,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return true if the variant model with given name has been requested before.
    */
   public boolean variantExists(@NotNull String variantName) {
-    return myVariantsByName.containsKey(variantName);
+    return myCachedVariantsByName.containsKey(variantName);
   }
 
   @NotNull
@@ -262,7 +271,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
-    for (IdeVariant variant : myAndroidProject.getVariants()) {
+    for (IdeVariant variant : getVariants()) {
       String applicationId = getApplicationIdUsingCache(variant.getName());
       if (applicationId != UNINITIALIZED_APPLICATION_ID) {
         ids.add(applicationId);
@@ -405,7 +414,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @NotNull
   public IdeVariant getSelectedVariant() {
-    IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
+    IdeVariant selected = myCachedVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }
@@ -422,12 +431,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @NotNull
   public ImmutableList<IdeVariant> getVariants() {
-    return ImmutableList.copyOf(myVariantsByName.values());
+    return ImmutableList.copyOf(myCachedVariantsByName.values());
   }
 
   @Nullable
   public IdeVariant findVariantByName(@NotNull String variantName) {
-    return myVariantsByName.get(variantName);
+    return myCachedVariantsByName.get(variantName);
   }
 
   /**
@@ -448,13 +457,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   String findVariantToSelect(@NotNull String variantName) {
     String newVariantName;
-    if (myVariantsByName.containsKey(variantName)) {
+    if (myCachedVariantsByName.containsKey(variantName)) {
       newVariantName = variantName;
     }
     else {
-      List<String> sorted = new ArrayList<>(myVariantsByName.keySet());
+      List<String> sorted = new ArrayList<>(myCachedVariantsByName.keySet());
       Collections.sort(sorted);
-      assert !myVariantsByName.isEmpty() : "There is no variant model in AndroidModuleModel!";
+      assert !myCachedVariantsByName.isEmpty() : "There is no variant model in AndroidModuleModel!";
       newVariantName = sorted.get(0);
     }
     return newVariantName;

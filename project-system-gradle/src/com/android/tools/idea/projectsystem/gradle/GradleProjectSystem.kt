@@ -30,6 +30,7 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
@@ -191,7 +192,12 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
       model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) }
     )
 
-  fun IdeSourceProvider.toIdeaSourceProvider() = all.getValue(this)
+  fun IdeSourceProvider.toIdeaSourceProvider(): NamedIdeaSourceProvider {
+    if (!all.containsKey(this)) {
+      println("Does not contain: $this")
+    }
+    return all.getValue(this)
+  }
 
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),

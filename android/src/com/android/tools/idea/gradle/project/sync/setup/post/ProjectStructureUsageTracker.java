@@ -194,11 +194,10 @@ public class ProjectStructureUsageTracker {
   }
 
   private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {
-    IdeAndroidProject androidProject = model.getAndroidProject();
     // Use Ref because lambda function argument to forEachVariant only works with final variables.
     Ref<IdeVariant> chosenVariant = new Ref<>();
     // We want to track the "release" variants.
-    androidProject.getVariants().forEach(variant -> {
+    model.getVariants().forEach(variant -> {
       if ("release".equals(variant.getBuildType())) {
         chosenVariant.set(variant);
       }

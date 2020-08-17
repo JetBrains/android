@@ -304,7 +304,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         IdeAndroidProject builderModelProject = model.getAndroidProject();
         String variantName = model.getSelectedVariantName();
         String gradlePath = Strings.nullToEmpty(GradleUtil.getGradlePath(module));
-        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, dir, !shallowModel);
+        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
         LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);
