@@ -21,18 +21,14 @@ import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 
 @UiThread
-class PinCodePairingController(project: Project,
-                               edtExecutor: Executor,
+class PinCodePairingController(edtExecutor: Executor,
                                private val pairingService: AdbDevicePairingService,
-                               private val mdnsService: MdnsService) {
+                               private val view: PinCodePairingView) {
   private val LOG = logger<PinCodePairingController>()
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val model = PinCodePairingModel(mdnsService)
-  private val view = PinCodePairingView(project, model)
 
   init {
     view.addListener(ViewListener())
@@ -41,31 +37,31 @@ class PinCodePairingController(project: Project,
   /**
    * Note: This call is blocking, as it displays a modal dialog
    */
-  fun show() {
-    view.show()
+  fun showDialog() {
+    view.showDialog()
   }
 
   inner class ViewListener : PinCodePairingView.Listener {
     override fun onPairInvoked() {
-      LOG.info("Starting pin code pairing process with mDNS service ${model.service}")
+      LOG.info("Starting pin code pairing process with mDNS service ${view.model.service}")
       view.showPairingInProgress()
-      val futurePairing = pairingService.pairMdnsService(model.service, model.pinCode)
+      val futurePairing = pairingService.pairMdnsService(view.model.service, view.model.pinCode)
       futurePairing.transform(edtExecutor) { pairingResult ->
         //TODO: Ensure not disposed and state still the same
         view.showWaitingForDeviceProgress(pairingResult)
         pairingResult
       }.transformAsync(edtExecutor) { pairingResult ->
-        LOG.info("Pin code pairing process with mDNS service ${model.service} succeeded, now starting to wait for device to connect")
+        LOG.info("Pin code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect")
         //TODO: Ensure not disposed and state still the same
         pairingService.waitForDevice(pairingResult)
       }.transform(edtExecutor) { device ->
-        LOG.info("Device ${device} corresponding to mDNS service ${model.service} is now connected")
+        LOG.info("Device ${device} corresponding to mDNS service ${view.model.service} is now connected")
         //TODO: Ensure not disposed and state still the same
-        view.showPairingSuccess(mdnsService, device)
+        view.showPairingSuccess(view.model.service, device)
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         LOG.warn("Pin code pairing process failed", throwable)
         //TODO: Ensure not disposed and state still the same
-        view.showPairingError(mdnsService, throwable)
+        view.showPairingError(view.model.service, throwable)
       }
     }
   }

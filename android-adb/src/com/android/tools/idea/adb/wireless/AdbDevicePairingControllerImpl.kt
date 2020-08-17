@@ -25,11 +25,25 @@ import java.util.concurrent.Executor
 
 @UiThread
 class AdbDevicePairingControllerImpl(private val project: Project,
-                                     private val parentDisposable: Disposable,
+                                     parentDisposable: Disposable,
                                      edtExecutor: Executor,
                                      private val pairingService: AdbDevicePairingService,
-                                     private val view: AdbDevicePairingView
+                                     private val view: AdbDevicePairingView,
+                                     private val pinCodePairingControllerFactory: (MdnsService) -> PinCodePairingController = {
+                                       createPinCodePairingController(project, edtExecutor, pairingService, it)
+                                     }
 ) : AdbDevicePairingController {
+  companion object {
+    fun createPinCodePairingController(project: Project,
+                                       edtExecutor: Executor,
+                                       pairingService: AdbDevicePairingService,
+                                       mdnsService: MdnsService): PinCodePairingController {
+      val model = PinCodePairingModel(mdnsService)
+      val view = PinCodePairingViewImpl(project, model)
+      return PinCodePairingController(edtExecutor, pairingService, view)
+    }
+  }
+
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val qrCodeScanningController = QrCodeScanningController(pairingService, view, edtExecutor, this)
 
@@ -79,7 +93,7 @@ class AdbDevicePairingControllerImpl(private val project: Project,
     }
 
     override fun onPinCodePairAction(mdnsService: MdnsService) {
-      PinCodePairingController(project, edtExecutor, pairingService, mdnsService).show()
+      pinCodePairingControllerFactory.invoke(mdnsService).showDialog()
     }
 
     override fun onClose() {

@@ -17,11 +17,9 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
-import java.util.ArrayList
 
 class MockDevicePairingView(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
   private val viewImpl = AdbDevicePairingViewImpl(project, model)
-  private val myListeners = ArrayList<AdbDevicePairingView.Listener>()
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()
@@ -90,12 +88,10 @@ class MockDevicePairingView(val project: Project, override val model: AdbDeviceP
   }
 
   override fun addListener(listener: AdbDevicePairingView.Listener) {
-    myListeners.add(listener)
     viewImpl.addListener(listener)
   }
 
   override fun removeListener(listener: AdbDevicePairingView.Listener) {
-    myListeners.remove(listener)
     viewImpl.removeListener(listener)
   }
 }
