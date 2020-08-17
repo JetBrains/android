@@ -53,7 +53,8 @@ import javax.swing.JSeparator
 import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 
-private const val CLOSE_BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
+private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
+private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
 
 /**
  * View class for the WorkManger Inspector Tab with a table of all active works.
@@ -86,6 +87,17 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       }
   }
 
+  private inner class CancelButton(actionListener: ActionListener?) : InplaceButton(
+    IconButton("Cancel Selected Work", AllIcons.Actions.Suspend,
+               AllIcons.Ide.Notification.CloseHover), actionListener) {
+    init {
+      preferredSize = BUTTON_DIMENS
+      minimumSize = preferredSize // Prevent layout phase from squishing this button
+    }
+
+    override fun isEnabled() = selectedModelRow != -1
+  }
+
   private val classNameProvider = ClassNameProvider(ideServices, scope)
   private val timeProvider = TimeProvider()
   private val enqueuedAtProvider = EnqueuedAtProvider(ideServices, scope)
@@ -96,13 +108,30 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   private val splitter = JBSplitter(false).apply {
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
     isOpaque = true
-    firstComponent = JScrollPane(buildWorksTable())
+    firstComponent = buildTablePanel()
     secondComponent = null
   }
 
   val component: JComponent = splitter
 
-  var selectedRow = -1
+  private var selectedModelRow = -1
+
+  private fun buildTablePanel(): JComponent {
+    val headingPanel = JPanel(BorderLayout())
+    val cancelButton = CancelButton(ActionListener {
+      val id = client.getWorkInfoOrNull(selectedModelRow)?.id
+      if (id != null) {
+        client.cancelWorkById(id)
+      }
+    })
+    headingPanel.add(cancelButton, BorderLayout.WEST)
+
+    val panel = JPanel(TabularLayout("*", "Fit,*"))
+    panel.add(headingPanel, TabularLayout.Constraint(0, 0))
+    panel.add(JScrollPane(buildWorksTable()), TabularLayout.Constraint(1, 0))
+
+    return panel
+  }
 
   private fun buildWorksTable(): JBTable {
     val model = WorksTableModel(client)
@@ -125,9 +154,10 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
         if (splitter.secondComponent == null) {
           return@invokeLater
         }
-        if (selectedRow != -1) {
-          table.addRowSelectionInterval(selectedRow, selectedRow)
-          splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(table.convertRowIndexToModel(selectedRow)))
+        if (selectedModelRow != -1) {
+          val tableRow = table.convertRowIndexToView(selectedModelRow)
+          table.addRowSelectionInterval(tableRow, tableRow)
+          splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(selectedModelRow))
         }
         else {
           splitter.secondComponent = buildDetailedPanel(table, null)
@@ -137,8 +167,8 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
 
     table.selectionModel.addListSelectionListener {
       if (table.selectedRow != -1) {
-        selectedRow = table.selectedRow
-        splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(table.convertRowIndexToModel(selectedRow)))
+        selectedModelRow = table.convertRowIndexToModel(table.selectedRow)
+        splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(selectedModelRow))
       }
     }
     return table
@@ -153,6 +183,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     headingPanel.add(instanceViewLabel, BorderLayout.WEST)
     val closeButton = CloseButton(ActionListener {
       splitter.secondComponent = null
+      selectedModelRow = -1
     })
     headingPanel.add(closeButton, BorderLayout.EAST)
 
@@ -209,7 +240,7 @@ class CloseButton(actionListener: ActionListener?) : InplaceButton(
              AllIcons.Ide.Notification.CloseHover), actionListener) {
 
   init {
-    preferredSize = Dimension(JBUI.scale(CLOSE_BUTTON_SIZE), JBUI.scale(CLOSE_BUTTON_SIZE))
+    preferredSize = BUTTON_DIMENS
     minimumSize = preferredSize // Prevent layout phase from squishing this button
   }
 }

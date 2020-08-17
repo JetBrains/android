@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import androidx.work.inspection.WorkManagerInspectorProtocol.Command
 import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCommand
@@ -32,7 +33,7 @@ import net.jcip.annotations.ThreadSafe
  * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(messenger: CommandMessenger, clientScope: CoroutineScope) : AppInspectorClient(messenger) {
+class WorkManagerInspectorClient(messenger: CommandMessenger, private val clientScope: CoroutineScope) : AppInspectorClient(messenger) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -77,6 +78,14 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, clientScope: Corou
 
   fun getWorkIdsWithUniqueName(uniqueName: String): List<String> = synchronized(lock) {
     works.filter { it.namesList.contains(uniqueName) }.map { it.id }.toList()
+  }
+
+  fun cancelWorkById(id: String) {
+    val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
+    val command = Command.newBuilder().setCancelWork(cancelCommand).build()
+    clientScope.launch {
+      messenger.sendRawCommand(command.toByteArray())
+    }
   }
 
   private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
