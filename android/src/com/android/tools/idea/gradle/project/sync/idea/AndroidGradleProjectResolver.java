@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -41,6 +40,7 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -161,6 +161,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+  public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
   static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
@@ -194,8 +195,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
     if (androidModels != null) {
       String modelVersionString = androidModels.getAndroidProject().getModelVersion();
-      GradleVersion modelVersion = getModelVersion(modelVersionString);
-      validateModelVersion(modelVersion, modelVersionString);
+      validateModelVersion(modelVersionString);
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
@@ -242,8 +242,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
   }
 
-  private void validateModelVersion(@Nullable GradleVersion modelVersion, @NotNull String modelVersionString) {
-    if (!isSupportedVersion(modelVersion)) {
+  private void validateModelVersion(@NotNull String modelVersionString) {
+    GradleVersion modelVersion = !isNullOrEmpty(modelVersionString)
+                                 ? GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
+                                 : null;
+    boolean result = modelVersion != null && modelVersion.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
+    if (!result) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       // @formatter:off
       event.setCategory(GRADLE_SYNC)
@@ -281,9 +285,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    *   <li>JavaModuleModel</li>
    * </ul>
    *
-   * @param moduleNode     the module node to attach the models to
-   * @param gradleModule   the module in question
-   * @param androidModels  the android project models obtained from this module (null is none found)
+   * @param moduleNode    the module node to attach the models to
+   * @param gradleModule  the module in question
+   * @param androidModels the android project models obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
                                                @NotNull IdeaModule gradleModule,
