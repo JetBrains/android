@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
+import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
@@ -256,8 +257,19 @@ class DatabaseInspectorControllerImpl(
     restoreTabs(databaseId, sqliteSchema)
   }
 
+  /** Called each time a database is closed */
   private fun saveTabsToRestore(tabsToSave: Map<TabId, DatabaseInspectorController.TabController>) {
     val tabs = tabsToSave
+      // filter out in-memory dbs
+      .filter {
+        when (val tabId = it.key) {
+          is TabId.TableTab -> !tabId.databaseId.isInMemoryDatabase()
+          is TabId.AdHocQueryTab -> {
+            val params = (it.value as SqliteEvaluatorController).saveEvaluationParams()
+            !(params.databaseId?.isInMemoryDatabase() ?: false)
+          }
+        }
+      }
       .mapNotNull {
         when (val tabId = it.key) {
           is TabId.TableTab -> TabDescription.Table(tabId.databaseId.path, tabId.tableName)
@@ -267,8 +279,6 @@ class DatabaseInspectorControllerImpl(
           }
         }
       }
-      // don't restore tabs for in-memory dbs
-      .filter { it.databasePath != ":memory:" }
 
     tabsToRestore.addAll(tabs)
   }
