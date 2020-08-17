@@ -1265,7 +1265,8 @@ class WrappedPsiElement(
   val usageType: UsageType?,
   val presentableText: String = ""
 ) : PsiElement by realElement, PsiElementNavigationItem {
-  // We override this PsiElement method in order to have it stored in the PsiElementUsage.
+  // We override this PsiElement method in order to have it stored in the PsiElementUsage (UsageInfo stores the navigation element, not
+  // necessarily the element we pass to the UsageInfo constructor).
   override fun getNavigationElement(): PsiElement = this
   // We need to make sure that we wrap copies of us.
   override fun copy(): PsiElement = WrappedPsiElement(realElement.copy(), processor, usageType)
