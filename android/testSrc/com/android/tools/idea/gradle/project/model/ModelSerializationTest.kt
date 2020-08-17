@@ -49,7 +49,6 @@ import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SigningConfigStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
-import com.android.ide.common.gradle.model.stubs.SyncIssueStub
 import com.android.ide.common.gradle.model.stubs.TestOptionsStub
 import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
@@ -107,8 +106,7 @@ class ModelSerializationTest {
     val variants = listOf(VariantStub())
     val androidProject = modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      variants.map { it.name },
-      listOf(SyncIssueStub()))
+      variants.map { it.name })
     AndroidModuleModel.create(
       "moduleName",
       File("some/file/path"),
@@ -231,8 +229,7 @@ class ModelSerializationTest {
   fun androidProject() = assertSerializable {
     modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      listOf(VariantStub().name),
-      listOf(SyncIssueStub()))
+      listOf(VariantStub().name))
   }
 
   @Test
@@ -353,11 +350,6 @@ class ModelSerializationTest {
   @Test
   fun sourceProviderContainer() = assertSerializable {
     modelCache.sourceProviderContainerFrom(SourceProviderContainerStub())
-  }
-
-  @Test
-  fun syncIssue() = assertSerializable {
-    modelCache.syncIssueFrom(SyncIssueStub())
   }
 
   @Test

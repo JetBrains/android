@@ -38,7 +38,6 @@ import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
 import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
-import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeDependencies;
@@ -518,14 +517,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
 
     return myOverridesManifestPackage.booleanValue();
-  }
-
-  @Nullable
-  public Collection<IdeSyncIssue> getSyncIssues() {
-    if (getFeatures().isIssueReportingSupported()) {
-      return myAndroidProject.getSyncIssues();
-    }
-    return null;
   }
 
   /**

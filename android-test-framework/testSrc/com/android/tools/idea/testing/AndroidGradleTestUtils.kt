@@ -72,7 +72,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
-import com.android.tools.idea.gradle.project.sync.issues.syncIssues
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
@@ -84,7 +84,6 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
-import com.google.common.collect.ImmutableList
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -855,8 +854,7 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         modelCache.androidProjectFrom(
           androidProjectStub,
-          androidProjectStub.variants.map { it.name },
-          ImmutableList.of()),
+          androidProjectStub.variants.map { it.name }),
         androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion)},
         selectedVariantName
       ),
@@ -907,7 +905,6 @@ private fun createJavaModuleDataNode(
         emptyList(),
         emptyList(),
         emptyMap(),
-        emptyList(),
         null,
         null,
         null,

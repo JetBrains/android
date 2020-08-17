@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
@@ -42,6 +43,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ProjectSyncTrigger;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -55,6 +58,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -200,6 +204,11 @@ public class GradleSyncExecutor {
         if (gradleModelNode != null) {
           PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
           moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
+
+          @NotNull Collection<DataNode<SyncIssueData>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
+          if (!syncIssueNodes.isEmpty()) {
+            moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, it -> it.getData())));
+          }
 
           DataNode<AndroidModuleModel> androidModelNode = find(moduleNode, ANDROID_MODEL);
           if (androidModelNode != null) {

@@ -65,7 +65,6 @@ public class IdeaJavaModuleModelFactory {
   @NotNull
   public JavaModuleModel create(@NotNull ModelCache modelCache,
                                 @NotNull IdeaModule ideaModule,
-                                @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
                                 boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
@@ -75,7 +74,6 @@ public class IdeaJavaModuleModelFactory {
                                   dependencies.first,
                                   dependencies.second,
                                   getArtifactsByConfiguration(externalProject),
-                                  syncIssues,
                                   getCompilerOutput(externalProject),
                                   ideaModule.getGradleProject().getBuildDirectory(),
                                   getLanguageLevel(externalProject),

@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-import com.android.builder.model.SyncIssue;
-import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -27,7 +25,6 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serialization.PropertyMapping;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +47,6 @@ public class JavaModuleModel implements ModuleModel {
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
   @NotNull private final Collection<JavaModuleDependency> myJavaModuleDependencies;
   @NotNull private final Collection<JarLibraryDependency> myJarLibraryDependencies;
-  @NotNull private final Collection<IdeSyncIssue> mySyncIssues;
   @NotNull private final Map<String, Set<File>> myArtifactsByConfiguration;
   @NotNull private final List<String> myConfigurations;
 
@@ -77,17 +73,15 @@ public class JavaModuleModel implements ModuleModel {
                                        @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                                        @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
                                        @NotNull Map<String, Set<File>> artifactsByConfiguration,
-                                       @NotNull Collection<SyncIssue> syncIssues,
                                        @Nullable ExtIdeaCompilerOutput compilerOutput,
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
                                        boolean buildable) {
-    Collection<IdeSyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> modelCache.syncIssueFrom(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 
     return new JavaModuleModel(moduleName, contentRoots, javaModuleDependencies, jarLibraryDependencies, artifactsByConfiguration,
-                               syncIssuesCopy, configurationsCopy, compilerOutput, buildFolderPath, languageLevel, buildable);
+                               configurationsCopy, compilerOutput, buildFolderPath, languageLevel, buildable);
   }
 
   @PropertyMapping({
@@ -96,7 +90,6 @@ public class JavaModuleModel implements ModuleModel {
     "myJavaModuleDependencies",
     "myJarLibraryDependencies",
     "myArtifactsByConfiguration",
-    "mySyncIssues",
     "myConfigurations",
     "myCompilerOutput",
     "myBuildFolderPath",
@@ -107,7 +100,6 @@ public class JavaModuleModel implements ModuleModel {
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                          @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
                          @NotNull Map<String, Set<File>> artifactsByConfiguration,
-                         @NotNull Collection<IdeSyncIssue> syncIssues,
                          @NotNull List<String> configurations,
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
@@ -118,7 +110,6 @@ public class JavaModuleModel implements ModuleModel {
     myJavaModuleDependencies = javaModuleDependencies;
     myJarLibraryDependencies = jarLibraryDependencies;
     myArtifactsByConfiguration = artifactsByConfiguration;
-    mySyncIssues = syncIssues;
     myConfigurations = configurations;
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
@@ -196,11 +187,6 @@ public class JavaModuleModel implements ModuleModel {
 
   public boolean isBuildable() {
     return myBuildable;
-  }
-
-  @NotNull
-  public Collection<IdeSyncIssue> getSyncIssues() {
-    return mySyncIssues;
   }
 
   @Nullable
