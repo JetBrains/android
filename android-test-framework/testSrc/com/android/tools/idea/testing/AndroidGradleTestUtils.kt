@@ -852,10 +852,8 @@ private fun createAndroidModuleDataNode(
       AndroidModuleModel.create(
         moduleName,
         moduleBasePath,
-        modelCache.androidProjectFrom(
-          androidProjectStub,
-          androidProjectStub.variants.map { it.name }),
-        androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion)},
+        modelCache.androidProjectFrom(androidProjectStub),
+        androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion) },
         selectedVariantName
       ),
       null

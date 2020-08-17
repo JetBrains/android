@@ -480,7 +480,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myAndroidProject.getVariantNames();
+    Collection<String> names = myAndroidProject.getVariantNames();
+    return names != null ? names : myCachedVariantsByName.keySet();
   }
 
   @Nullable
