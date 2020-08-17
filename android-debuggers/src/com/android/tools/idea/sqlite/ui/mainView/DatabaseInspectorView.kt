@@ -39,9 +39,6 @@ interface DatabaseInspectorView {
    */
   val component: JComponent
 
-  fun startLoading(text: String)
-  fun stopLoading()
-
   /**
    * Updates the UI by applying [DatabaseDiffOperation]s.
    */

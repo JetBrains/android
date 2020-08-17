@@ -42,10 +42,6 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override val component: JComponent = mock(JComponent::class.java)
 
-  override fun startLoading(text: String) { }
-
-  override fun stopLoading() { }
-
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
 
   override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) { }
