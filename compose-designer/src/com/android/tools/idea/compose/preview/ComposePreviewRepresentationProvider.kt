@@ -92,7 +92,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))
     add(IssueNotificationAction.getInstance())
   }
 }

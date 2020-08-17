@@ -37,7 +37,6 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(IssueNotificationAction.getInstance());
     group.add(ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID));
     return group;
