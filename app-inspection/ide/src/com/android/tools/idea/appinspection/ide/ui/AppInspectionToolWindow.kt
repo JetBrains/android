@@ -26,6 +26,7 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -85,12 +86,14 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
       }
       else {
-        val fileName = codeLocation.fileName!!
-        FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
-          .firstOrNull()?.virtualFile
-          ?.let { virtualFile ->
-            OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
-          }
+        runReadAction {
+          val fileName = codeLocation.fileName!!
+          FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
+            .firstOrNull()?.virtualFile
+            ?.let { virtualFile ->
+              OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
+            }
+        }
       }
 
       if (navigatable != null) {
