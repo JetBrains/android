@@ -152,7 +152,8 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   @Override
   protected Action @NotNull [] createActions() {
-    return ArrayUtil.mergeArrays(super.createActions(), new Action [] { new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog.PreviewRefactoringAction() });
+    Action previewAction = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog.PreviewRefactoringAction();
+    return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }
 
   @Override
