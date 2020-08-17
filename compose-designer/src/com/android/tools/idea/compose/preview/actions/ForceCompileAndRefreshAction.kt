@@ -42,7 +42,7 @@ internal fun requestBuildForSurface(surface: DesignSurface) =
  * of the surface.
  */
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
-  AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
+  AnAction(message("action.build.and.refresh.title"), null, GREEN_REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) {
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
