@@ -36,11 +36,13 @@ import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
@@ -249,6 +251,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var interactiveMode = InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
+  private val fpsCounter = FpsCalculator { System.nanoTime() }
+
   override var interactivePreviewElementInstance:
     PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
@@ -262,6 +266,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         forceRefresh(quickRefresh).invokeOnCompletion {
+          fpsCounter.resetAndStart()
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
 
@@ -281,6 +286,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         ticker.stop()
         sceneComponentProvider.enabled = true
         previewElementProvider.clearInstanceIdFilter()
+        logInteractiveSessionMetrics()
         forceRefresh().invokeOnCompletion {
           interactiveMode = InteractiveMode.DISABLED
         }
@@ -430,6 +436,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val ticker = ControllableTicker({
                                             if (!RenderService.isBusy()) {
+                                              fpsCounter.incrementFrameCounter()
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(5))
@@ -528,7 +535,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (isFirstActivation.getAndSet(false)) onInit()
   }
 
+  private fun logInteractiveSessionMetrics() {
+    InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps())
+  }
+
   override fun dispose() {
+    if (interactiveMode == InteractiveMode.READY) {
+      logInteractiveSessionMetrics()
+    }
     animationInspectionPreviewElementInstance = null
   }
 

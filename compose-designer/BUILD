@@ -157,6 +157,8 @@ iml_module(
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/compose-designer:lib/ui-animation-tooling-internal[test]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
     ],
 )
 
