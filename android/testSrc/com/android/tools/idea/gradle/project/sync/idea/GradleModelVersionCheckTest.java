@@ -15,108 +15,40 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.builder.model.AndroidProject;
-import com.android.ide.common.repository.GradleVersion;
-import junit.framework.TestCase;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 
-import static org.easymock.EasyMock.*;
+import com.android.SdkConstants;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link GradleModelVersionCheck}.
  */
 public class GradleModelVersionCheckTest extends TestCase {
-  private static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse("0.5.0");
-
-  private AndroidProject myProject;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myProject = createMock(AndroidProject.class);
-  }
-
   public void testIsSupportedVersionWithNullVersion() {
-    expect(myProject.getModelVersion()).andReturn(null);
-    replay(myProject);
-
-    assertFalse(isSupportedVersion());
-
-    verify(myProject);
-  }
-
-  private boolean isSupportedVersion() {
-    return GradleModelVersionCheck.isSupportedVersion(myProject, MINIMUM_SUPPORTED_VERSION);
+    assertFalse(isSupportedVersion((String)null));
   }
 
   public void testIsSupportedVersionWithEmptyVersion() {
-    expect(myProject.getModelVersion()).andReturn("");
-    replay(myProject);
-
-    assertFalse(isSupportedVersion());
-
-    verify(myProject);
+    assertFalse(isSupportedVersion(""));
   }
 
   public void testIsSupportedVersionWithOldVersion() {
-    expect(myProject.getModelVersion()).andReturn("0.4.3");
-    replay(myProject);
-
-    assertFalse(isSupportedVersion());
-
-    verify(myProject);
+    assertFalse(isSupportedVersion("0.4.3"));
   }
 
   public void testIsSupportedVersionWithMinimumSupportedVersion() {
-    expect(myProject.getModelVersion()).andReturn("0.5.0");
-    replay(myProject);
-
-    assertTrue(isSupportedVersion());
-
-    verify(myProject);
-  }
-
-  public void testIsSupportedVersionWithSupportedVersionWithMacroGreaterThanZero() {
-    expect(myProject.getModelVersion()).andReturn("0.5.1");
-    replay(myProject);
-
-    assertTrue(isSupportedVersion());
-
-    verify(myProject);
-  }
-
-  public void testIsSupportedVersionWithSupportedVersionWithMinorGreaterThanFive() {
-    expect(myProject.getModelVersion()).andReturn("0.6.0");
-    replay(myProject);
-
-    assertTrue(isSupportedVersion());
-
-    verify(myProject);
+    assertTrue(isSupportedVersion(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION));
   }
 
   public void testIsSupportedVersionWithSupportedVersionWithMajorGreaterThanZero() {
-    expect(myProject.getModelVersion()).andReturn("1.0.0");
-    replay(myProject);
-
-    assertTrue(isSupportedVersion());
-
-    verify(myProject);
+    assertTrue(isSupportedVersion("1" + SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION));
   }
 
   public void testIsSupportedVersionWithSupportedSnapshotVersion() {
-    expect(myProject.getModelVersion()).andReturn("0.5.0-SNAPSHOT");
-    replay(myProject);
-
-    assertTrue(isSupportedVersion());
-
-    verify(myProject);
+    assertTrue(isSupportedVersion(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT"));
   }
 
   public void testIsSupportedVersionWithUnparseableVersion() {
-    expect(myProject.getModelVersion()).andReturn("Hello");
-    replay(myProject);
-
-    assertFalse(isSupportedVersion());
-
-    verify(myProject);
+    assertFalse(isSupportedVersion("Hello"));
   }
 }
