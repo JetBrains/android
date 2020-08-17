@@ -324,7 +324,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testWithBuildSrc() {
       val text = importSyncAndDumpProject(APP_WITH_BUILDSRC)
+/* b/165050290
       assertIsEqualToSnapshot(text)
+b/165050290 */
     }
 
     fun testKapt() {
