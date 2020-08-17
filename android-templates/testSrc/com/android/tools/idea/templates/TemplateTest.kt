@@ -181,7 +181,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewNavigationDrawerActivityWithKotlin() {
-    checkCreateTemplate("Navigation Drawer Activity", withKotlin)
+    checkCreateTemplate("Navigation Drawer Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -241,7 +241,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("Bottom Navigation Activity", withKotlin)
+    checkCreateTemplate("Bottom Navigation Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
