@@ -818,9 +818,9 @@ public final class StudioFlags {
     "\"generateDebugSources\" or \"compileJava\".",
     true);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_AUTO_BUILD = Flag.create(
-    COMPOSE, "preview.auto.build.enabled", "Enable the compose auto-build",
-    "If enabled, the preview will automatically trigger a build after the user finishes typing.",
+  public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
+    COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
+    "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
     false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
