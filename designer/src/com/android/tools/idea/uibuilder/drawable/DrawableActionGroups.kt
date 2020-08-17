@@ -30,8 +30,4 @@ class DrawableActionGroups(surface: DesignSurface) : ToolbarActionGroups(surface
     // TODO(b/136258816): Update to support multi-model
     return DefaultActionGroup().apply { add(ThemeMenuAction(mySurface::getConfiguration)) }
   }
-
-  override fun getNorthEastGroup(): ActionGroup {
-    return DefaultActionGroup().apply { addAll(getZoomActions()) }
-  }
 }

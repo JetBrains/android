@@ -117,10 +117,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     if (isInVisualizationTool()) {
       // Ignore Issue panel in visualisation.
-      group.addAll(getZoomActionsWithShortcuts(mySurface, this));
       return group;
     }
-    addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(LayoutScannerAction.getInstance());
     group.add(IssueNotificationAction.getInstance());
     return group;

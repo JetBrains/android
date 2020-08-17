@@ -874,10 +874,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return (T)myAdaptiveIconMaskPath;
     }
     if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
-      return (T)StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+      return (T)Boolean.TRUE;
     }
     if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
-      return (T)StudioFlags.NELE_ENABLE_SHADOW.get();
+      return (T)Boolean.TRUE;
     }
     return null;
   }
