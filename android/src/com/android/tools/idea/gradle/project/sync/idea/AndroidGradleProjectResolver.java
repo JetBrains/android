@@ -214,15 +214,24 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
-
     if (androidProject != null) {
-      DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
-      if (javaModuleData != null) {
-        LanguageLevel languageLevel = LanguageLevel.parse(androidProject.getJavaCompileOptions().getSourceCompatibility());
-        javaModuleData.getData().setLanguageLevel(languageLevel);
-        javaModuleData.getData().setTargetBytecodeVersion(androidProject.getJavaCompileOptions().getTargetCompatibility());
-      }
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
+    }
+    patchLanguageLevels(moduleDataNode, gradleModule, androidProject);
+
+    return moduleDataNode;
+  }
+
+  private void patchLanguageLevels(DataNode<ModuleData> moduleDataNode, @NotNull IdeaModule gradleModule, AndroidProject androidProject) {
+    DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
+    if (javaModuleData == null) {
+      return;
+    }
+    JavaModuleData moduleData = javaModuleData.getData();
+    if (androidProject != null) {
+      LanguageLevel languageLevel = LanguageLevel.parse(androidProject.getJavaCompileOptions().getSourceCompatibility());
+      moduleData.setLanguageLevel(languageLevel);
+      moduleData.setTargetBytecodeVersion(androidProject.getJavaCompileOptions().getTargetCompatibility());
     }
     else {
       // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
@@ -233,17 +242,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         // main should always exist, if it doesn't other things will fail before this.
         ExternalSourceSet externalSourceSet = externalProject.getSourceSets().get("main");
         if (externalSourceSet != null) {
-          DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
-          if (javaModuleData != null) {
-            LanguageLevel languageLevel = LanguageLevel.parse(externalSourceSet.getSourceCompatibility());
-            javaModuleData.getData().setLanguageLevel(languageLevel);
-            javaModuleData.getData().setTargetBytecodeVersion(externalSourceSet.getTargetCompatibility());
-          }
+          LanguageLevel languageLevel = LanguageLevel.parse(externalSourceSet.getSourceCompatibility());
+          moduleData.setLanguageLevel(languageLevel);
+          moduleData.setTargetBytecodeVersion(externalSourceSet.getTargetCompatibility());
         }
       }
     }
-
-    return moduleDataNode;
   }
 
   private void validateModelVersion(AndroidProject androidProject, GradleVersion modelVersion) {
