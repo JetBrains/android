@@ -15,10 +15,24 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 
 /** A [DatabaseRepository] identical to [DatabaseRepositoryImpl] but open to extension. */
-open class OpenDatabaseRepository(project: Project, executor: Executor) : DatabaseRepository by DatabaseRepositoryImpl(project, executor)
+open class OpenDatabaseRepository(
+  project: Project,
+  executor: Executor,
+  private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, executor)
+) : DatabaseRepository by databaseRepository {
+
+  val added = mutableListOf<SqliteDatabaseId>()
+
+  override suspend fun addDatabaseConnection(databaseId: SqliteDatabaseId, databaseConnection: DatabaseConnection) {
+    databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
+    added.add(databaseId)
+  }
+}

@@ -56,9 +56,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -164,20 +162,6 @@ class DatabaseInspectorControllerImpl(
     view.updateKeepConnectionOpenButton(keepConnectionsOpen)
   }
 
-  override suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>) = withContext(uiThread) {
-    view.startLoading("Getting database...")
-
-    val databaseId = try {
-      deferredDatabaseId.await()
-    }
-    catch (e: Exception) {
-      ensureActive()
-      view.reportError("Error getting database", e)
-      throw e
-    }
-    addSqliteDatabase(databaseId)
-  }
-
   override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
     val schema = readDatabaseSchema(databaseId) ?: return@withContext
     addNewDatabase(databaseId, schema)
@@ -253,9 +237,7 @@ class DatabaseInspectorControllerImpl(
 
   private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
     try {
-      val schema = databaseRepository.fetchSchema(databaseId)
-      withContext(uiThread) { view.stopLoading() }
-      return schema
+      return databaseRepository.fetchSchema(databaseId)
     }
     catch (e: LiveInspectorException) {
       return null
@@ -507,14 +489,6 @@ interface DatabaseInspectorController : Disposable {
 
   @UiThread
   fun setUp()
-
-  /**
-   * Waits for [deferredDatabaseId] to be completed and adds it to the inspector UI.
-   *
-   * A loading UI is displayed while waiting for [deferredDatabaseId] to be ready.
-   */
-  @AnyThread
-  suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>)
 
   /**
    * Adds a database that is immediately ready

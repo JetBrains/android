@@ -97,16 +97,6 @@ class DatabaseInspectorViewImpl(
     listeners.remove(listener)
   }
 
-  override fun startLoading(text: String) {
-    // TODO(b/133320900) Should show proper loading UI.
-    //  This loading logic is not the best now that multiple databases can be opened.
-    //  This method is called each time a new database is opened.
-    workBench.setLoadingText(text)
-  }
-
-  override fun stopLoading() {
-  }
-
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
     for (databaseDiffOperation in databaseDiffOperations) {
       when (databaseDiffOperation) {
