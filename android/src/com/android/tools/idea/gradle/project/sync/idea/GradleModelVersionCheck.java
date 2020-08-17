@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -26,21 +25,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 final class GradleModelVersionCheck {
   static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
 
-  static boolean isSupportedVersion(@NotNull AndroidProject androidProject) {
-    return isSupportedVersion(androidProject, MINIMUM_SUPPORTED_VERSION);
+  @TestOnly
+  static boolean isSupportedVersion(@Nullable String modelVersion) {
+    GradleVersion version = getModelVersion(modelVersion);
+    return isSupportedVersion(version);
   }
 
-  static boolean isSupportedVersion(@NotNull AndroidProject androidProject, @NotNull GradleVersion minimumSupportedVersion) {
-    GradleVersion version = getModelVersion(androidProject);
-    if (version != null) {
-      return version.compareTo(minimumSupportedVersion) >= 0;
+  static boolean isSupportedVersion(@Nullable GradleVersion modelVersion) {
+    if (modelVersion != null) {
+      return modelVersion.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
     }
     return false;
   }
 
   @Nullable
-  static GradleVersion getModelVersion(@NotNull AndroidProject androidProject) {
-    String modelVersion = androidProject.getModelVersion();
+  static GradleVersion getModelVersion(@Nullable String modelVersion) {
     if (isNullOrEmpty(modelVersion)) {
       return null;
     }

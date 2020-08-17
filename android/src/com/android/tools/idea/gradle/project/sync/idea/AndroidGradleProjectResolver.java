@@ -203,30 +203,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null && !isSupportedVersion(androidProject)) {
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
-      // @formatter:off
-      event.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
-           .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
-           .setGradleVersion(androidProject.getModelVersion());
-      // @formatter:on
-      UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
-      UsageTracker.log(event);
-
-      String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
-      throw new IllegalStateException(msg);
-    }
-
     if (androidProject != null) {
-      Project project = myProjectFinder.findProject(resolverCtx);
-
-      // Before anything, check to see if what we have is compatible with this version of studio.
-      GradleVersion currentAgpVersion = GradleVersion.tryParse(androidProject.getModelVersion());
-      GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
-      if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
-        throw new AgpUpgradeRequiredException(project, currentAgpVersion);
-      }
+      GradleVersion modelVersion = getModelVersion(androidProject.getModelVersion());
+      validateModelVersion(androidProject, modelVersion);
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
@@ -267,6 +246,31 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     return moduleDataNode;
   }
 
+  private void validateModelVersion(AndroidProject androidProject, GradleVersion modelVersion) {
+    if (!isSupportedVersion(modelVersion)) {
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+      // @formatter:off
+      event.setCategory(GRADLE_SYNC)
+           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
+           .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
+           .setGradleVersion(androidProject.getModelVersion());
+      // @formatter:on
+      UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
+      UsageTracker.log(event);
+
+      String msg = getUnsupportedModelVersionErrorMsg(modelVersion);
+      throw new IllegalStateException(msg);
+    }
+    Project project = myProjectFinder.findProject(resolverCtx);
+
+    // Before anything, check to see if what we have is compatible with this version of studio.
+    GradleVersion currentAgpVersion = GradleVersion.tryParse(androidProject.getModelVersion());
+    GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
+    if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
+      throw new AgpUpgradeRequiredException(project, currentAgpVersion);
+    }
+  }
+
   @Override
   public @NotNull Set<Class<?>> getToolingExtensionsClasses() {
     return ImmutableSet.of(KaptModelBuilderService.class, Unit.class);
@@ -290,7 +294,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                @Nullable AndroidProject androidProject) {
     String moduleName = moduleNode.getData().getInternalName();
     File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
-
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
     // The ProjectSyncIssues model was introduced in the Android Gradle plugin 3.6, it contains all the
     // sync issues that have been produced by the plugin. Before this the sync issues were attached to the
@@ -303,7 +306,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (androidProject != null) {
       Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
       Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
-
       // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
       // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
       syncIssues.forEach((syncIssue) -> {
@@ -316,6 +318,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         );
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
+
 
       Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
       List<IdeVariant> fetchedIdeVariants = map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
@@ -334,7 +337,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       myIsImportPre3Dot0 |= androidModel.getFeatures().shouldExportDependencies();
 
       moduleNode.createChild(ANDROID_MODEL, androidModel);
-
       // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
       patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
     }
