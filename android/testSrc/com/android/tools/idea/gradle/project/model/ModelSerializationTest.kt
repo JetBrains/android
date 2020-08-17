@@ -104,15 +104,16 @@ class ModelSerializationTest {
 
   @Test
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
+    val variants = listOf(VariantStub())
     val androidProject = modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      listOf(VariantStub()),
-      emptyList(),
+      variants.map { it.name },
       listOf(SyncIssueStub()))
     AndroidModuleModel.create(
       "moduleName",
       File("some/file/path"),
       androidProject,
+      variants.map { modelCache.variantFrom(it, GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.modelVersion)) },
       "variantName"
     )
   }
@@ -230,8 +231,7 @@ class ModelSerializationTest {
   fun androidProject() = assertSerializable {
     modelCache.androidProjectFrom(
       AndroidProjectStub("3.6.0"),
-      listOf(VariantStub()),
-      emptyList(),
+      listOf(VariantStub().name),
       listOf(SyncIssueStub()))
   }
 

@@ -40,9 +40,13 @@ fun ProjectDumper.dumpLintModels(project: Project) {
       head("MODULE") { module.name }
       nest {
         val androidModuleModel = AndroidModuleModel.get(module)
-        val androidProject = androidModuleModel?.androidProject
-        if (androidProject != null) {
-          val lintModelModule = LintModelFactory().create(androidProject, androidModuleModel.rootDirPath, deep = true)
+        if (androidModuleModel != null) {
+          val lintModelModule = LintModelFactory().create(
+            androidModuleModel.androidProject,
+            androidModuleModel.variants,
+            androidModuleModel.rootDirPath,
+            deep = true
+          )
           dump(lintModelModule)
         }
       }

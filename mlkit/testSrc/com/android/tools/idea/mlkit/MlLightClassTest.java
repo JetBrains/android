@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import static com.android.tools.idea.mlkit.MlProjectTestUtil.setupTestMlProject;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
@@ -822,7 +823,7 @@ public class MlLightClassTest extends AndroidTestCase {
 
     MlModuleService mlkitService = MlModuleService.getInstance(myModule);
     List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
-    List<String> classNameList = ContainerUtil.map(lightClasses, psiClass -> psiClass.getName());
+    List<String> classNameList = map(lightClasses, psiClass -> psiClass.getName());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
   }

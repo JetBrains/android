@@ -49,6 +49,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
+import static com.intellij.util.containers.ContainerUtil.map;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
@@ -180,8 +181,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final ModelCache modelCache = ModelCache.create();
   private boolean myIsImportPre3Dot0;
 
-  @SuppressWarnings("unused")
-  // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(), new ProjectFinder(), new IdeaJavaModuleModelFactory());
   }
@@ -298,7 +297,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // AndroidProject.
     ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
-    CachedVariants cachedVariants = findCachedVariants(gradleModule);
+    @NotNull CachedVariants cachedVariants = findCachedVariants(gradleModule);
 
     // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
@@ -318,13 +317,17 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         moduleNode.createChild(SYNC_ISSUE, issueData);
       });
 
-      IdeAndroidProjectImpl ideAndroidProject =
-        modelCache.androidProjectFrom(
-          androidProject,
-          (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants(),
-          cachedVariants == null ? emptyList() : cachedVariants.getVariants(),
-          syncIssues);
-      AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName, rootModulePath, ideAndroidProject, selectedVariant.getName());
+      Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
+      List<IdeVariant> fetchedIdeVariants = map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
+      List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
+      List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
+      Collection<String> variantNames = map(variants, it -> it.getName());
+      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject, variantNames, syncIssues);
+      AndroidModuleModel androidModel = AndroidModuleModel.create(moduleName,
+                                                                  rootModulePath,
+                                                                  ideAndroidProject,
+                                                                  variants,
+                                                                  selectedVariant.getName());
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
@@ -361,21 +364,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         List<IdeNativeVariantAbi> ideNativeVariantAbis;
         if (variantGroup != null) {
           ideNativeVariantAbis =
-            ContainerUtil.map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
+            map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
         }
         else {
           ideNativeVariantAbis = new ArrayList<>();
         }
         // Inject cached variants from previous Gradle Sync.
-        if (cachedVariants != null) {
-          Set<String> variantNames = ideNativeVariantAbis.stream().map(variant -> variant.getAbi()).collect(Collectors.toSet());
-          for (IdeNativeVariantAbi variant : cachedVariants.getNativeVariants()) {
-            // Add cached IdeNativeVariantAbi only if it is not contained in the current model.
-            if (!variantNames.contains(variant.getAbi())) {
-              ideNativeVariantAbis.add(variant);
-            }
-          }
-        }
+        ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
 
         ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
         moduleNode.createChild(NDK_MODEL, ndkModuleModel);
@@ -436,36 +431,37 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   /**
    * Get variants from previous sync.
    */
-  @Nullable
-  CachedVariants findCachedVariants(@NotNull IdeaModule ideaModule) {
+  @NotNull
+  private CachedVariants findCachedVariants(@NotNull IdeaModule ideaModule) {
     Project project = myProjectFinder.findProject(resolverCtx);
     if (project == null) {
-      return null;
+      return CachedVariants.EMPTY;
     }
     Boolean useCachedVariants = project.getUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS);
     if (useCachedVariants == null || !useCachedVariants) {
-      return null;
+      return CachedVariants.EMPTY;
     }
     String moduleId = createUniqueModuleId(ideaModule.getGradleProject());
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       if (moduleId.equals(getModuleIdForModule(module))) {
-        CachedVariants cachedVariants = new CachedVariants();
+        List<IdeVariant> cachedGradleVariants = emptyList();
+        List<IdeNativeVariantAbi> cachedNativeVariants = emptyList();
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
-          cachedVariants.getVariants().addAll(androidModel.getVariants());
+          cachedGradleVariants = androidModel.getVariants();
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
         if (ndkModuleModel != null) {
           NdkModel ndkModel = ndkModuleModel.getNdkModel();
           if (ndkModel instanceof V1NdkModel) {
             // Only V1 has NativeVariant that needs to be cached. V2 instead stores the information directly on disk.
-            cachedVariants.getNativeVariants().addAll(((V1NdkModel)ndkModel).getNativeVariantAbis());
+            cachedNativeVariants = ((V1NdkModel)ndkModel).getNativeVariantAbis();
           }
         }
-        return cachedVariants;
+        return new CachedVariants(cachedGradleVariants, cachedNativeVariants);
       }
     }
-    return null;
+    return CachedVariants.EMPTY;
   }
 
   /**

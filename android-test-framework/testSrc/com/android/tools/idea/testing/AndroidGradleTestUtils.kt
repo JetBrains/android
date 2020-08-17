@@ -57,6 +57,7 @@ import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.repository.GradleVersion
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
@@ -845,6 +846,7 @@ private fun createAndroidModuleDataNode(
     )
   )
 
+  val modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectStub.modelVersion)
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
@@ -853,9 +855,9 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         modelCache.androidProjectFrom(
           androidProjectStub,
-          androidProjectStub.variants,
-          ImmutableList.of(),
+          androidProjectStub.variants.map { it.name },
           ImmutableList.of()),
+        androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion)},
         selectedVariantName
       ),
       null
