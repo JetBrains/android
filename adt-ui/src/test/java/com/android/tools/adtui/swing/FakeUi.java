@@ -163,8 +163,6 @@ public final class FakeUi {
    */
   public void clickOn(@NotNull Component component) throws InterruptedException {
     Point location = getPosition(component);
-    mouse.press(location.x, location.y);
-    mouse.release();
     mouse.click(location.x, location.y);
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
