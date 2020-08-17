@@ -1129,7 +1129,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
-    val inMemoryDbId = SqliteDatabaseId.fromLiveDatabase(":memory:", 0)
+    val inMemoryDbId = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 0)
     runDispatching {
       databaseRepository.addDatabaseConnection(inMemoryDbId, mockDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(inMemoryDbId)

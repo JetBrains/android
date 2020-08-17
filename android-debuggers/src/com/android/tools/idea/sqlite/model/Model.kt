@@ -54,6 +54,10 @@ sealed class SqliteDatabaseId {
   data class FileSqliteDatabaseId(override val path: String, override val name: String, val databaseFileData: DatabaseFileData) : SqliteDatabaseId()
 }
 
+fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
+  return this.path.startsWith(":memory:")
+}
+
 /**
  * Groups together files necessary to open a file-based database.
  * @param mainFile the actual database file
