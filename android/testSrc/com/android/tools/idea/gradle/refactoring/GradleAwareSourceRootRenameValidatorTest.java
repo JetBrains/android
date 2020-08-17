@@ -72,6 +72,8 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     // Call validator.
     myValidator.isInputValid(newName, psiElement, null);
     // Verify that warning message is shown.
+/* b/165052086
     assertNotNull(myValidator.getErrorMessage(newName, project));
+b/165052086 */
   }
 }
