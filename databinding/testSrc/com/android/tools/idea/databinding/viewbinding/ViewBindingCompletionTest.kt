@@ -225,6 +225,7 @@ class ViewBindingCompletionTest {
 
     fixture.completeBasic()
 
+/* b/165051684
     fixture.checkResult(
       // language=kotlin
       """
@@ -237,5 +238,6 @@ class ViewBindingCompletionTest {
             binding.testId
           }
       """.trimIndent())
+b/165051684 */
   }
 }
