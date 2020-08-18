@@ -266,6 +266,8 @@ iml_module(
         "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",
         "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
     ],
 )
 
