@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.inspector.api
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 
 interface AppInspectorLauncher {
   /**
@@ -42,9 +39,36 @@ interface AppInspectorLauncher {
      */
     val projectName: String,
     /**
+     * Information about the library this inspector is targeting.
+     */
+    val targetLibrary: TargetLibrary,
+    /**
      * If true, launch the inspector even if one is already running.
      */
     val force: Boolean = false
+  )
+
+  /**
+   * Contains information that uniquely identifies the library, and also the minimum version the inspector is compatible.
+   */
+  data class TargetLibrary(
+    val artifact: LibraryArtifact,
+    val minVersion: String
+  ) {
+    /**
+     * The name of the version file located in an app's APK's META-INF folder.
+     */
+    val versionFileName = "${artifact.groupId}_${artifact.artifactId}.version"
+  }
+
+  /**
+   * Represents an artifact that can be uniquely identified by the information provided in this class.
+   *
+   * This normally refers to the maven/gradle coordinate of the artifact.
+   */
+  data class LibraryArtifact(
+    val groupId: String,
+    val artifactId: String
   )
 
   /**

@@ -22,13 +22,15 @@ import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -209,13 +211,14 @@ class AppInspectionView(
                 provider.inspectorId,
                 provider.inspectorAgentJar,
                 project.name,
+                provider.targetLibrary,
                 force
               )
             )
             withContext(uiDispatcher) {
               provider.createTab(project, ideServices, currentProcess, client)
                 .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
+                .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline()) }
             }
             scope.launch {
               if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
@@ -246,6 +249,12 @@ class AppInspectionView(
               AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
               scope.launch { launchInspectorTabsForCurrentProcess(true) }
             }
+          }
+          catch (e: AppInspectionVersionIncompatibleException) {
+            Logger.getInstance(AppInspectionView::class.java).info(e)
+          }
+          catch (e: AppInspectionLibraryMissingException) {
+            Logger.getInstance(AppInspectionView::class.java).info(e)
           }
           catch (e: Exception) {
             Logger.getInstance(AppInspectionView::class.java).error(e)

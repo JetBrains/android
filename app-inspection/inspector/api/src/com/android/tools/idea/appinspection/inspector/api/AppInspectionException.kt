@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
-abstract class AppInspectionException(message: String): Exception(message)
+abstract class AppInspectionException(message: String) : Exception(message)
 
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
@@ -30,7 +30,16 @@ open class AppInspectionConnectionException(message: String): AppInspectionExcep
  */
 class AppInspectionCrashException(message: String): AppInspectionConnectionException(message)
 
-class AppInspectionLaunchException(message: String): AppInspectionException(message)
+/**
+ * Base class for all service errors.
+ */
+abstract class AppInspectionServiceException(message: String) : Exception(message)
+
+/**
+ * Thrown when an error is encountered during inspector launch other than version incompatibility
+ * (see [AppInspectionVersionIncompatibleException]).
+ */
+class AppInspectionLaunchException(message: String) : AppInspectionServiceException(message)
 
 /**
  * Thrown when trying to launch an inspector on a process that no longer exists.
@@ -38,4 +47,14 @@ class AppInspectionLaunchException(message: String): AppInspectionException(mess
  * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
  * selects a process for inspection on device X right when X is shutting down.
  */
-class AppInspectionProcessNoLongerExistsException(message: String) : AppInspectionException(message)
+class AppInspectionProcessNoLongerExistsException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when launching an inspector that is incompatible with the version of the library in the running app.
+ */
+class AppInspectionVersionIncompatibleException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when the targeted library does not exist in the app.
+ */
+class AppInspectionLibraryMissingException(message: String) : AppInspectionServiceException(message)
