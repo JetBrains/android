@@ -474,11 +474,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
     // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
     // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
-    issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
-                                                               syncIssue.getData(),
-                                                               syncIssue.getMultiLineMessage(),
-                                                               syncIssue.getSeverity(),
-                                                               syncIssue.getType()));
+    issueData = map(syncIssues, syncIssue -> {
+      List<String> multiLineMessage = ModelCache.safeGet(syncIssue::getMultiLineMessage, null);
+      multiLineMessage = multiLineMessage != null ? ImmutableList.copyOf(multiLineMessage) : null;
+      return new SyncIssueData(syncIssue.getMessage(),
+                               syncIssue.getData(),
+                               multiLineMessage,
+                               syncIssue.getSeverity(),
+                               syncIssue.getType());
+    });
     return issueData;
   }
 
