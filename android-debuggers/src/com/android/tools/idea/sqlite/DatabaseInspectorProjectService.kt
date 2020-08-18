@@ -31,6 +31,7 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
@@ -282,7 +283,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       model.clearDatabases()
 
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
-        for (liveSqliteDatabaseId in openDatabases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()) {
+        val databasesToDownload = openDatabases
+          .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
+          .filter { !it.isInMemoryDatabase() }
+
+        for (liveSqliteDatabaseId in databasesToDownload) {
           try {
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
             openSqliteDatabase(databaseFileData).await()
