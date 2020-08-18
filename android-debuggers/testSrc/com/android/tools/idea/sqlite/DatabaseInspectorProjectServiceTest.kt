@@ -48,6 +48,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
@@ -241,6 +242,36 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     // Assert
     verifyZeroInteractions(offlineDatabaseManager)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testDownloadOfflineDatabasesWhenAppInspectionSessionIsTerminated() {
+    // Prepare
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 0) as SqliteDatabaseId.LiveSqliteDatabaseId
+    val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
+
+    val connection = LiveDatabaseConnection(
+      testRootDisposable,
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), scope, taskExecutor),
+      0,
+      EdtExecutorService.getInstance()
+    )
+
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
+    }
+
+    // Assert
+    runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId1) }
+    verifyNoMoreInteractions(offlineDatabaseManager)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
