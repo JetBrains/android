@@ -90,6 +90,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private MTag[] myLastSelectedTags;
   private boolean mShowPath = true;
   private boolean myUpdatingSelectionInLayoutEditor = false;
+  private boolean myUpdatingSelectionFromLayoutEditor = false;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -317,6 +318,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void updateSelectionInLayoutEditor(@NotNull List<NlComponent> selected) {
+    if (myUpdatingSelectionInLayoutEditor || myUpdatingSelectionFromLayoutEditor) {
+      return;
+    }
     myUpdatingSelectionInLayoutEditor = true;
     try {
       myDesignSurface.getSelectionModel().setSelection(selected);
@@ -356,7 +360,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       if ("alpha".equals(v.getPreviewType())) {
         return error;
       }
-      if (v.getPreview() < 3) {
+      if ("beta".equals(v.getPreviewType()) && v.getPreview() < 3) {
         return error;
       }
     }
@@ -392,7 +396,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (myUpdatingSelectionInLayoutEditor) {
+    if (myUpdatingSelectionInLayoutEditor || myUpdatingSelectionFromLayoutEditor) {
       // We initiated the selection change in the layout editor.
       // There is no need to adjust the selection here.
       return;
@@ -405,9 +409,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (NlComponent component : selection) {
       ids[count++] = Utils.stripID(component.getId());
     }
-    mMotionEditor.selectById(ids);
+    myUpdatingSelectionFromLayoutEditor = true;
+    try {
+      mMotionEditor.selectById(ids);
 
-    fireSelectionChanged(selection);
+      fireSelectionChanged(selection);
+    }
+    finally {
+      myUpdatingSelectionFromLayoutEditor = false;
+    }
   }
 
   @Nullable

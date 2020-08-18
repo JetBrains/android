@@ -22,7 +22,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
-import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
@@ -41,6 +40,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
@@ -209,10 +209,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    DeviceNamePropertiesProvider provider = new DeviceNamePropertiesFetcher(callback, getDisposable());
-    boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(getDeviceList(), provider);
+    DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(callback, getDisposable());
+    boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(getDeviceList(), fetcher);
 
-    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, showSerialNumbers, provider);
+    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, showSerialNumbers, fetcher);
     myProcessTree.setCellRenderer(myCellRenderer);
 
     new DoubleClickListener() {
@@ -511,8 +511,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       pathToSelect = firstTreePath;
     }
 
-    DeviceNamePropertiesProvider provider = myCellRenderer.getDeviceNamePropertiesProvider();
-    myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices), provider));
+    // doUpdateTree is called by updateTree which is called by the client and device listeners which are added to the Android debug bridge
+    // before myCellRenderer is initialized. So myCellRenderer can be null here.
+    if (myCellRenderer != null) {
+      myCellRenderer.setShowSerial(Arrays.asList(devices));
+    }
 
     UIUtil.invokeLaterIfNeeded(() -> {
       myProcessTree.setModel(model);
@@ -671,23 +674,18 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private static class MyProcessTreeCellRenderer extends ColoredTreeCellRenderer {
     private final TreeSpeedSearch mySpeedSearch;
     private boolean myShowSerial;
-    private DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
+    private final DeviceNamePropertiesFetcher myDeviceNamePropertiesFetcher;
 
-    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch,
-                                     boolean showSerial,
-                                     @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+    private MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch,
+                                      boolean showSerial,
+                                      @NotNull DeviceNamePropertiesFetcher deviceNamePropertiesFetcher) {
       mySpeedSearch = treeSpeedSearch;
       myShowSerial = showSerial;
-      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
+      myDeviceNamePropertiesFetcher = deviceNamePropertiesFetcher;
     }
 
-    public void setShowSerial(boolean showSerial) {
-      myShowSerial = showSerial;
-    }
-
-    @NotNull
-    private DeviceNamePropertiesProvider getDeviceNamePropertiesProvider() {
-      return myDeviceNamePropertiesProvider;
+    private void setShowSerial(@NotNull List<@NotNull IDevice> devices) {
+      myShowSerial = DeviceRenderer.shouldShowSerialNumbers(devices, myDeviceNamePropertiesFetcher);
     }
 
     @Override
@@ -703,9 +701,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
 
       final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-      if (userObject instanceof IDevice) {
+      if (userObject instanceof IDevice && !Disposer.isDisposed(myDeviceNamePropertiesFetcher)) {
         IDevice device = (IDevice)userObject;
-        DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, myShowSerial);
+        DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesFetcher.get(device), this, myShowSerial);
       }
       else if (userObject instanceof Client) {
         final ClientData clientData = ((Client)userObject).getClientData();

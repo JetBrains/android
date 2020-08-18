@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.FileResourceNameValidator
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
 import com.android.resources.ResourceType.STYLEABLE
@@ -109,6 +110,7 @@ class ResourceReferencePsiElement(
       val resourceFolderType = getFolderType(element) ?: return null
       val resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType)
       val resourceNamespace = element.resourceNamespace ?: return null
+      if (FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) != null) return null
       val resourceName = SdkUtils.fileNameToResourceName(element.name)
       return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
     }
