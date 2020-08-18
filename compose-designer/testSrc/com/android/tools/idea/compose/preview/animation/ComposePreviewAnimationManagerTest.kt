@@ -72,7 +72,7 @@ class ComposePreviewAnimationManagerTest {
     val animation = createComposeAnimation()
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), animation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     val otherAnimation = createComposeAnimation()
@@ -87,7 +87,7 @@ class ComposePreviewAnimationManagerTest {
   fun closingInspectorClearsSubscriptions() {
     createAndOpenInspector()
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), createComposeAnimation())
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), createComposeAnimation())
     assertFalse(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
 
     ComposePreviewAnimationManager.closeCurrentInspector()
@@ -106,7 +106,7 @@ class ComposePreviewAnimationManagerTest {
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), animation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     assertNull(noAnimationsPanel())
     assertNotNull(inspector.animationsTabbedPane())
@@ -124,7 +124,7 @@ class ComposePreviewAnimationManagerTest {
     assertNull(inspector.animationsTabbedPane())
 
     val animation1 = createComposeAnimation()
-    val clock = Any()
+    val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     var tabbedPane = inspector.animationsTabbedPane()!!
@@ -147,13 +147,13 @@ class ComposePreviewAnimationManagerTest {
     val inspector = createAndOpenInspector()
     assertNull(inspector.animationsTabbedPane())
 
-    val clock = Any()
+    val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     var tabbedPane = inspector.animationsTabbedPane()!!
     assertEquals(1, tabbedPane.tabCount)
 
-    val anotherClock = Any()
+    val anotherClock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(anotherClock, createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     tabbedPane = inspector.animationsTabbedPane()!!
@@ -190,7 +190,7 @@ class ComposePreviewAnimationManagerTest {
       override val states = animationStates
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(Any(), transitionAnimation)
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), transitionAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
     // We can get any of the combo boxes, since "from" and "to" states should be the same.
@@ -212,7 +212,7 @@ class ComposePreviewAnimationManagerTest {
   @Test
   fun tabsAreNamedFromAnimationLabel() {
     val inspector = createAndOpenInspector()
-    val clock = Any()
+    val clock = TestClock()
 
     val animation1 = createComposeAnimation("repeatedLabel")
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
@@ -277,4 +277,17 @@ class ComposePreviewAnimationManagerTest {
 
   private fun AnimationInspectorPanel.animationsTabbedPane() =
     TreeWalker(this).descendantStream().filter { it is JTabbedPane }.getIfSingle() as? JTabbedPane
+
+  /**
+   * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't break when the test tries to call them
+   * via reflection.
+   */
+  private class TestClock {
+    fun getAnimatedProperties(animation: Any) = emptyList<Any>()
+    fun getMaxDuration() = 0L
+    fun getMaxDurationPerIteration() = 0L
+    fun updateAnimationStates() {}
+    fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
+    fun setClockTime(time: Long) {}
+  }
 }

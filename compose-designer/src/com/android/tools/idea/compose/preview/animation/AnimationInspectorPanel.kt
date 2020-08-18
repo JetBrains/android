@@ -137,6 +137,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>) {
     animationTabs[animation]?.let { tab ->
       tab.updateStateComboboxes(states.toTypedArray())
+      tab.updateSeekableAnimation()
+      tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
     }
     timeline.jumpToStart()
     timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
@@ -221,7 +223,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
-    private val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
+    val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
 
     /**
      * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
@@ -337,7 +339,6 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     fun updateStateComboboxes(states: Array<Any>) {
       startStateComboBox.model = DefaultComboBoxModel(states)
       endStateComboBox.model = DefaultComboBoxModel(states)
-      endStateComboBox.selectedIndex = if (endStateComboBox.itemCount > 1) 1 else 0
     }
 
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
