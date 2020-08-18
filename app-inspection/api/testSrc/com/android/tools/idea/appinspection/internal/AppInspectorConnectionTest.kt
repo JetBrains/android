@@ -340,4 +340,39 @@ class AppInspectorConnectionTest {
 
     client.messenger.awaitForDisposal()
   }
+
+  @Test
+  fun verifyCrashMessage() = runBlocking<Unit> {
+    // Scope cancellation
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    client.messenger.scope.cancel()
+    client.messenger.awaitForDisposal()
+    assertThat(client.messenger.crashMessage).isNull()
+
+    // Process ended
+    val client2 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    appInspectionRule.addEvent(
+      Event.newBuilder()
+        .setKind(PROCESS)
+        .setIsEnded(true)
+        .build()
+    )
+    client2.messenger.awaitForDisposal()
+    assertThat(client2.messenger.crashMessage).isNull()
+
+    // Crash
+    val client3 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    appInspectionRule.addAppInspectionEvent(
+      AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
+        .setCrashEvent(
+          CrashEvent.newBuilder()
+            .setErrorMessage("error")
+            .build()
+        )
+        .build()
+    )
+    client3.messenger.awaitForDisposal()
+    assertThat(client3.messenger.crashMessage).isNotNull()
+  }
 }

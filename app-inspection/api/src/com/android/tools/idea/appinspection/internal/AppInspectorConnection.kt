@@ -146,7 +146,7 @@ internal class AppInspectorConnection(
     val appInspectionEvent = event.appInspectionEvent
     when {
       appInspectionEvent.hasCrashEvent() -> {
-        cleanup("Inspector $inspectorId has crashed.")
+        cleanup("Inspector $inspectorId has crashed.", crashed = true)
       }
     }
   }
@@ -257,13 +257,15 @@ internal class AppInspectorConnection(
    * Cleans up inspector connection by unregistering listeners and closing the channel to [commandSender] actor.
    * All futures are completed exceptionally with [exceptionMessage].
    */
-  private fun cleanup(exceptionMessage: String) {
+  private fun cleanup(exceptionMessage: String, crashed: Boolean = false) {
     if (isDisposed.compareAndSet(false, true)) {
       val cause = AppInspectionConnectionException(exceptionMessage)
       commandChannel.close(cause)
       transport.unregisterEventListener(inspectorEventListener)
       transport.unregisterEventListener(processEndListener)
-      _crashMessage = exceptionMessage
+      if (crashed) {
+        _crashMessage = exceptionMessage
+      }
       scope.cancel(exceptionMessage)
     }
   }
