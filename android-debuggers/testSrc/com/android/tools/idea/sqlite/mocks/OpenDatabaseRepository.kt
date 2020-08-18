@@ -29,10 +29,19 @@ open class OpenDatabaseRepository(
   private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, executor)
 ) : DatabaseRepository by databaseRepository {
 
-  val added = mutableListOf<SqliteDatabaseId>()
+  val openDatabases = mutableListOf<SqliteDatabaseId>()
 
   override suspend fun addDatabaseConnection(databaseId: SqliteDatabaseId, databaseConnection: DatabaseConnection) {
     databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
-    added.add(databaseId)
+    openDatabases.add(databaseId)
+  }
+
+  override suspend fun closeDatabase(databaseId: SqliteDatabaseId) {
+    databaseRepository.closeDatabase(databaseId)
+    openDatabases.remove(databaseId)
+  }
+
+  override suspend fun clear() {
+    openDatabases.clear()
   }
 }
