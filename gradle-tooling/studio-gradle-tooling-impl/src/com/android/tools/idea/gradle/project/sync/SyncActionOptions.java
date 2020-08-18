@@ -47,7 +47,7 @@ public class SyncActionOptions implements Serializable {
 
   @NotNull
   public Collection<String> getCachedSourcesAndJavadoc() {
-    return myCachedSourcesAndJavadoc == null ? Collections.emptySet() : myCachedSourcesAndJavadoc;
+    return myCachedSourcesAndJavadoc == null ? Collections.<String>emptySet() : myCachedSourcesAndJavadoc;
   }
 
   public void setCachedSourcesAndJavadoc(@Nullable Collection<String> cached) {
