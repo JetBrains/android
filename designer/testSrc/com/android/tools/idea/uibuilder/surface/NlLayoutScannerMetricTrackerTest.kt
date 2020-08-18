@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.rendering.api.Result
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -25,6 +27,7 @@ import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AtfAuditResult
+import com.intellij.lang.annotation.HighlightSeverity
 import org.mockito.Mockito
 
 class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
@@ -88,17 +91,39 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
 
     for (i in 0 until countSize) {
-      val issue: ValidatorData.Issue = ValidatorData.Issue.IssueBuilder()
-        .setCategory("category")
-        .setType(ValidatorData.Type.ACCESSIBILITY)
-        .setMsg("Message")
-        .setLevel(ValidatorData.Level.ERROR)
-        .setSourceClass("SourceClass")
-        .build()
+      val issue: ValidatorData.Issue = buildIssue()
       tracker.trackIssue(issue)
     }
 
     assertEquals(countSize, tracker.metric.counts.size)
+  }
+
+  fun testIssueExpandedNotNlAtfIssue() {
+    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
+    assertTrue(tracker.expandedTracker.opened.isEmpty())
+
+    val issue = TestIssue()
+    tracker.trackIssueExpanded(issue, true)
+
+    assertTrue(tracker.expandedTracker.opened.isEmpty())
+  }
+
+  fun testIssueExpanded() {
+    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
+    val issue = NlAtfIssue(buildIssue(), IssueSource.NONE)
+
+    tracker.trackIssueExpanded(issue, true)
+
+    assertEquals(1, tracker.expandedTracker.opened.size)
+  }
+
+  private fun buildIssue(): ValidatorData.Issue {
+    return ValidatorData.Issue.IssueBuilder().setCategory("category")
+      .setType(ValidatorData.Type.ACCESSIBILITY)
+      .setMsg("Message")
+      .setLevel(ValidatorData.Level.ERROR)
+      .setSourceClass("SourceClass")
+      .build()
   }
 
   private fun mockRenderResult(): RenderResult {
@@ -118,5 +143,18 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     Mockito.`when`(renderResult.isSuccess).thenReturn(IS_RENDER_SUCCESS)
 
     return result
+  }
+
+  private class TestIssue : Issue() {
+    override val summary: String
+      get() = ""
+    override val description: String
+      get() = ""
+    override val severity: HighlightSeverity
+      get() = HighlightSeverity.ERROR
+    override val source: IssueSource
+      get() = IssueSource.NONE
+    override val category: String
+      get() = ""
   }
 }

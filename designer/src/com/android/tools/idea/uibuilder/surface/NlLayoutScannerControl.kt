@@ -63,6 +63,7 @@ class NlLayoutScannerControl: LayoutScannerControl {
         scanner.disable()
         check.isLayoutScannerEnabled = false
       }
+      metricTracker.trackIssuePanelClosed()
     }
     else if (!check.isLayoutScannerEnabled) {
       metricTracker.trackTrigger(AtfAuditResult.Trigger.ISSUE_PANEL)

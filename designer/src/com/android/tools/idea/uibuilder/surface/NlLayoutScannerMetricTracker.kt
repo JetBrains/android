@@ -35,6 +35,8 @@ class NlLayoutScannerMetricTracker(
   private val surface: NlDesignSurface) {
   @VisibleForTesting
   val metric = ScannerMetrics()
+  @VisibleForTesting
+  val expandedTracker = IssueExpansionMetric()
 
   /** Tracks who triggered the scanner */
   fun trackTrigger(trigger: AtfAuditResult.Trigger) {
@@ -60,7 +62,13 @@ class NlLayoutScannerMetricTracker(
 
   /** Tracks issues expanded */
   fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
-    // TODO: Actually track this separately.
+    if (issue is NlAtfIssue && expanded) {
+      expandedTracker.opened.add(issue.srcClass)
+    }
+  }
+
+  fun trackIssuePanelClosed() {
+    expandedTracker.logEvent(CommonUsageTracker.getInstance(surface))
   }
 
   /** Tracks individual issue */
@@ -82,6 +90,30 @@ class NlLayoutScannerMetricTracker(
   }
 }
 
+data class IssueExpansionMetric(val opened: MutableList<String> = ArrayList()) {
+
+  /** Logs events using the usage tracker passed, and clear. */
+  fun logEvent(usageTracker: CommonUsageTracker) {
+    val counts = opened.stream().flatMap {
+      val builder = AtfAuditResult.AtfResultCount.newBuilder()
+          .setCheckName(it)
+          .setErrorExpanded(true)
+      Stream.of(builder)
+    }
+    usageTracker.logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
+      Consumer<LayoutEditorEvent.Builder> { event ->
+        val atfResultBuilder = AtfAuditResult.newBuilder()
+        counts.forEach { countBuilder ->
+          atfResultBuilder.addCounts(countBuilder)
+        }
+        event.setAtfAuditResult(atfResultBuilder)
+      })
+
+    opened.clear()
+  }
+}
+
 /** Data class for all scanner related metrics */
 data class ScannerMetrics(
   var trigger: AtfAuditResult.Trigger = AtfAuditResult.Trigger.UNKNOWN_TRIGGER,
@@ -93,7 +125,7 @@ data class ScannerMetrics(
 ) {
   val counts = ArrayList<AtfAuditResult.AtfResultCount.Builder>()
 
-  /** Logs events using the usage tracker passed, and clear. */
+  /** Fire all the locally logged events to the server, then clear any local remains. */
   fun logEvent(usageTracker: CommonUsageTracker) {
     usageTracker.logStudioEvent(
       LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
