@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.Range
@@ -46,6 +46,6 @@ class VsyncTooltip(val timeline: Timeline, private val vsyncValues: RangedSeries
   }
 
   init {
-    timeline.tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateValue)
+    timeline.tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE) { updateValue() }
   }
 }

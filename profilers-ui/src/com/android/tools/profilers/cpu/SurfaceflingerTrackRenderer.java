@@ -23,6 +23,7 @@ import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent;
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTrackModel;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;

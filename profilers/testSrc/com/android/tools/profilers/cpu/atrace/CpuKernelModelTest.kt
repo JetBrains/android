@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.MainProcessSelector
+import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -29,41 +37,42 @@ import org.junit.Test
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class CpuFramesModelTest {
-  private lateinit var model: CpuFramesModel
-  private val range = Range()
-  private lateinit var stage: CpuProfilerStage
+class CpuKernelModelTest {
+  private val myTimer = FakeTimer()
+  private lateinit var myCpuModel: CpuKernelModel
+  private val myRange = Range()
+  private lateinit var myStage: CpuProfilerStage
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuFramesModelTest", FakeCpuService())
+  var myGrpcChannel = FakeGrpcChannel(
+    "CpuKernelModelTest", FakeCpuService(), FakeTransportService(myTimer), FakeProfilerService(myTimer),
+    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+  )
 
   @Before
   fun setup() {
-    val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
-    stage = CpuProfilerStage(profilers)
-    model = CpuFramesModel(range, stage)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, myTimer)
+    myStage = CpuProfilerStage(profilers)
+    myCpuModel = CpuKernelModel(myRange, myStage)
   }
 
   @Test
   fun updateCaptureUpdatesModel() {
-    assertThat(model.isEmpty).isTrue()
+    assertThat(myCpuModel.isEmpty).isTrue()
     val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    stage.capture = capture
-    assertThat(model.size).isEqualTo(2)
-    assertThat(model[0].threadName).isEqualTo("Main")
-    assertThat(model[1].threadName).isEqualTo("Render")
+    myStage.capture = capture;
+    assertThat(myCpuModel.size).isEqualTo(4)
   }
 
   @Test
   fun fireContentsChanged() {
     var itemAddedCalled = 0
-    var itemRemovedCalled = 0
-    var contentsChangedCalled = 0
-    model.addListDataListener(object : ListDataListener {
+    var itemRemovedCalled = 0;
+    var contentsChangedCalled = 0;
+    myCpuModel.addListDataListener(object : ListDataListener {
       override fun intervalAdded(e: ListDataEvent) {
         itemAddedCalled++
       }
@@ -84,10 +93,10 @@ class CpuFramesModelTest {
 
     val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    stage.capture = capture
+    myStage.capture = capture;
 
     assertThat(contentsChangedCalled).isEqualTo(1)
-    assertThat(itemAddedCalled).isEqualTo(2)
+    assertThat(itemAddedCalled).isEqualTo(4)
     assertThat(itemRemovedCalled).isEqualTo(0)
 
   }

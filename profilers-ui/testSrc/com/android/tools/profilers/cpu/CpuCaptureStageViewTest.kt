@@ -36,6 +36,8 @@ import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip
+import com.android.tools.profilers.cpu.atrace.VsyncTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule

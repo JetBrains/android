@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu.atrace;
 import static com.android.tools.profilers.cpu.CpuThreadInfo.RENDER_THREAD_NAME;
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.cpu.CpuFramesModel;
 import com.android.tools.profilers.systemtrace.ProcessModel;
 import com.android.tools.profilers.systemtrace.ThreadModel;
 import com.google.common.annotations.VisibleForTesting;

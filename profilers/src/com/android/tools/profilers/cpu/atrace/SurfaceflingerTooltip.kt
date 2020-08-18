@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent
 
 class SurfaceflingerTooltip(val timeline: Timeline, private val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>)
   : TooltipModel, AspectModel<SurfaceflingerTooltip.Aspect>() {
@@ -48,6 +47,6 @@ class SurfaceflingerTooltip(val timeline: Timeline, private val surfaceflingerEv
   }
 
   init {
-    timeline.tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateEvent)
+    timeline.tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE) { updateEvent() }
   }
 }
