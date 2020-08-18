@@ -376,7 +376,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
     File gradleSettingsFile = findGradleSettingsFile(rootModulePath);
-    boolean hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile() && !hasArtifacts(gradleModule));
+    boolean hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile() && !hasArtifacts(externalProject));
 
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
       // 3 - Now we need to create and add the GradleModuleModel
@@ -387,7 +387,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       catch (UnsupportedOperationException e) {
         buildScriptPath = null;
       }
-
 
       gradleModel = new GradleModuleModel(
         moduleName,
@@ -617,8 +616,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     ContentRootUtilKt.setupAndroidContentEntries(ideModule);
   }
 
-  private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
-    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+  private static boolean hasArtifacts(@Nullable ExternalProject externalProject) {
     return externalProject != null && !externalProject.getArtifacts().isEmpty();
   }
 
