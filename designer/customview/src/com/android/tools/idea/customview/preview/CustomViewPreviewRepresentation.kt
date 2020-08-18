@@ -35,7 +35,6 @@ import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
@@ -225,8 +224,7 @@ class CustomViewPreviewRepresentation(
       buildState = buildState,
       fileState = fileState,
       onNotificationStateChanged = {
-        val file = psiFilePointer.element
-        if (file == null || !file.isValid) {
+        val file = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
           LOG.warn("onNotificationStateChanged with invalid PsiFile")
           return@CustomViewVisualStateTracker
         }
@@ -258,9 +256,8 @@ class CustomViewPreviewRepresentation(
 
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        val file = psiFilePointer.element
-        if (file == null || !file.isValid) {
-          LOG.debug("invalid PsiFile")
+        AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
+          LOG.warn("invalid PsiFile")
           return
         }
 
@@ -296,8 +293,7 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("refresh with invalid PsiFile")
       return
     }
@@ -329,8 +325,7 @@ class CustomViewPreviewRepresentation(
   }
 
   private suspend fun updateModelSync() {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("updateModelSync with invalid PsiFile")
       return
     }
@@ -389,8 +384,7 @@ class CustomViewPreviewRepresentation(
   }
 
   override fun updateNotifications(parentEditor: FileEditor) {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("updateNotifications with invalid PsiFile")
       return
     }
