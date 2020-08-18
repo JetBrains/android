@@ -147,8 +147,8 @@ class AndroidTestSuiteViewTest {
 
     // Verifies the details view is visible now.
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package2.class2.method2")
-    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device1)
+    assertThat(view.detailsViewForTesting.titleTextView.text).isEqualTo("package2.class2.method2")
+    assertThat(view.detailsViewForTesting.selectedDevice).isEqualTo(device1)
 
     // Click on the test case 1 results row in device2 column.
     view.onAndroidTestResultsRowSelected(view.tableForTesting.getTableViewForTesting().getItem(2),
@@ -156,8 +156,8 @@ class AndroidTestSuiteViewTest {
 
     // Verifies the details view is visible now.
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package1.class1.method1")
-    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device2)
+    assertThat(view.detailsViewForTesting.titleTextView.text).isEqualTo("package1.class1.method1")
+    assertThat(view.detailsViewForTesting.selectedDevice).isEqualTo(device2)
 
     // Finally, close the details view.
     view.onAndroidTestSuiteDetailsViewCloseButtonClicked()
