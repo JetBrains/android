@@ -16,11 +16,10 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isInInteractiveOrAnimationMode
+import com.android.tools.idea.compose.preview.isInStaticAndNonAnimationMode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 private class ComposePreviewNonInteractiveActionWrapper(actions: List<AnAction>): DefaultActionGroup(actions) {
@@ -28,7 +27,7 @@ private class ComposePreviewNonInteractiveActionWrapper(actions: List<AnAction>)
     super.update(e)
 
     e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = !it.isInInteractiveOrAnimationMode
+      e.presentation.isVisible = it.isInStaticAndNonAnimationMode
     }
   }
 }
