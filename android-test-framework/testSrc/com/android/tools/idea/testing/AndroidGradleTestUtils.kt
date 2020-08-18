@@ -897,7 +897,6 @@ private fun createJavaModuleDataNode(
     DataNode<JavaModuleModel>(
       AndroidProjectKeys.JAVA_MODULE_MODEL,
       JavaModuleModel.create(
-        modelCache,
         moduleName,
         emptyList(),
         emptyList(),

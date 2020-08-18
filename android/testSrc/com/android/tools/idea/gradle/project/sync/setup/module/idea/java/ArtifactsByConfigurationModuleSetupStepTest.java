@@ -71,8 +71,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model = JavaModuleModel
-      .create(ModelCache.create(),
-              module.getName(),
+      .create(module.getName(),
               Collections.emptyList(),
               Collections.emptyList(),
               Collections.emptyList(),
@@ -104,8 +103,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     Module module = getModule();
 
     JavaModuleModel model = JavaModuleModel
-      .create(ModelCache.create(),
-              module.getName(),
+      .create(module.getName(),
               Collections.emptyList(),
               Collections.emptyList(),
               Collections.emptyList(),
@@ -172,8 +170,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
     JavaModuleModel model =
       JavaModuleModel
-        .create(ModelCache.create(),
-                moduleName,
+        .create(moduleName,
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),

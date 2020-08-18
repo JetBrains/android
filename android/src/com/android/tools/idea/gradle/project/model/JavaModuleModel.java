@@ -67,8 +67,7 @@ public class JavaModuleModel implements ModuleModel {
     return javaFacet.getJavaModuleModel();
   }
 
-  public static JavaModuleModel create(@NotNull ModelCache modelCache,
-                                       @NotNull String moduleName,
+  public static JavaModuleModel create(@NotNull String moduleName,
                                        @NotNull Collection<JavaModuleContentRoot> contentRoots,
                                        @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                                        @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,

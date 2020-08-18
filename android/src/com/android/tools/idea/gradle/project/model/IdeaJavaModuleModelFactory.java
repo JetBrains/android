@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 
-import com.android.builder.model.SyncIssue;
-import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -63,13 +61,12 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @NotNull
-  public JavaModuleModel create(@NotNull ModelCache modelCache,
-                                @NotNull IdeaModule ideaModule,
+  public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @Nullable ExternalProject externalProject,
                                 boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return JavaModuleModel.create(modelCache,
-                                  ideaModule.getName(),
+    return JavaModuleModel.create(
+      ideaModule.getName(),
                                   getContentRoots(ideaModule),
                                   dependencies.first,
                                   dependencies.second,

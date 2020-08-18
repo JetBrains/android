@@ -312,7 +312,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
     BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
 
-
     AndroidModuleModel androidModel = null;
     JavaModuleModel javaModuleModel = null;
     NdkModuleModel ndkModuleModel = null;
@@ -405,7 +404,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // TODO: This model should eventually be removed.
     if (androidModel == null && ndkModuleModel == null) {
       boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
-      javaModuleModel = myIdeaJavaModuleModelFactory.create(modelCache, gradleModule, externalProject, isBuildable);
+      javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
     }
     if (javaModuleModel != null) {
       moduleNode.createChild(JAVA_MODULE_MODEL, javaModuleModel);
