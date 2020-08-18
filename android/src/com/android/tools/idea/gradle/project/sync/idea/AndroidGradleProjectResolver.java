@@ -179,7 +179,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   @NotNull private final ModelCache modelCache = ModelCache.create();
-  private boolean myIsImportPre3Dot0;
+  private boolean myShouldExportDependencies;
 
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(), new ProjectFinder(), new IdeaJavaModuleModelFactory());
@@ -318,24 +318,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradleModuleModel gradleModel = null;
     Collection<SyncIssueData> issueData = null;
 
-    // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
-      Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
-      Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
-      // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
-      // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
-      issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
-                                                                 syncIssue.getData(),
-                                                                 syncIssue.getMultiLineMessage(),
-                                                                 syncIssue.getSeverity(),
-                                                                 syncIssue.getType()));
-
+      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
       Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
       List<IdeVariant> fetchedIdeVariants =
         map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
+      Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
+
       List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
       List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
-      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
       androidModel = AndroidModuleModel.create(moduleName,
                                                rootModulePath,
                                                ideAndroidProject,
@@ -344,33 +335,38 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
-      myIsImportPre3Dot0 |= androidModel.getFeatures().shouldExportDependencies();
-    }
+      myShouldExportDependencies |= androidModel.getFeatures().shouldExportDependencies();
 
+      Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
+      // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
+      // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
+      issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
+                                                                 syncIssue.getData(),
+                                                                 syncIssue.getMultiLineMessage(),
+                                                                 syncIssue.getSeverity(),
+                                                                 syncIssue.getType()));
+      // Prefer V2 NativeModule if available
+      if (nativeModule != null) {
+        V2NdkModel ndkModel = new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule));
+        ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, ndkModel);
+      }
+      else {
+        // V2 model not available, fallback to V1 model.
+        if (nativeAndroidProject != null) {
+          IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
+          List<IdeNativeVariantAbi> ideNativeVariantAbis;
+          if (variantGroup != null) {
+            ideNativeVariantAbis =
+              map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
+          }
+          else {
+            ideNativeVariantAbis = new ArrayList<>();
+          }
+          // Inject cached variants from previous Gradle Sync.
+          ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
 
-    // 2 -  If we have an NativeModule (V2) or NativeAndroidProject (V1) then we need to construct an NdkModuleModel
-
-    // Prefer V2 NativeModule if available
-    if (androidProject != null && nativeModule != null) {
-      V2NdkModel ndkModel = new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule));
-      ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, ndkModel);
-    }
-    else {
-      // V2 model not available, fallback to V1 model.
-      if (nativeAndroidProject != null) {
-        IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
-        List<IdeNativeVariantAbi> ideNativeVariantAbis;
-        if (variantGroup != null) {
-          ideNativeVariantAbis =
-            map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
+          ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
         }
-        else {
-          ideNativeVariantAbis = new ArrayList<>();
-        }
-        // Inject cached variants from previous Gradle Sync.
-        ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
-
-        ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
       }
     }
 
@@ -401,7 +397,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     // 4 - If this is not an Android or Native project it must be a Java module.
     // TODO: This model should eventually be removed.
-    if (androidModel == null && ndkModuleModel == null) {
+    if (androidModel == null) {
       boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
       javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
     }
@@ -635,7 +631,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
     // to remedy this we need to go through all datanodes added by other resolvers and set this flag.
-    if (myIsImportPre3Dot0) {
+    if (myShouldExportDependencies) {
       Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, LIBRARY_DEPENDENCY);
       for (DataNode<LibraryDependencyData> libraryDataNode : libraryDataNodes) {
         libraryDataNode.getData().setExported(true);
