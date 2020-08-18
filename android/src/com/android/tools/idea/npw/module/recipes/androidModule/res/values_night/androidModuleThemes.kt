@@ -26,7 +26,7 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
   <style name="${themeName}" parent="$DARK_ACTION_BAR_MATERIAL_COMPONENTS">
       <!-- Primary brand color. -->
       <item name="colorPrimary">@color/${PURPLE_200.colorName}</item>
-      <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>
+      <item name="colorPrimaryVariant">@color/${PURPLE_700.colorName}</item>
       <item name="colorOnPrimary">@color/${BLACK.colorName}</item>
       <!-- Secondary brand color. -->
       <item name="colorSecondary">@color/${TEAL_200.colorName}</item>

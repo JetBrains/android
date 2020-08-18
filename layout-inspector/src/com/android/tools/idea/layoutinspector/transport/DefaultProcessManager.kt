@@ -22,10 +22,17 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
+import com.android.tools.profiler.proto.Transport
+import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlockingStub
+import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.util.ArrayDeque
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 /**
@@ -38,6 +45,7 @@ import java.util.function.Consumer
  */
 // TODO(b/150618894): Investigate if this functionality should be shared with the App Inspector.
 class DefaultProcessManager(
+  private val transportStub: TransportServiceBlockingStub,
   executor: ExecutorService,
   manager: TransportStreamManager,
   parentDisposable: Disposable
@@ -47,7 +55,25 @@ class DefaultProcessManager(
   /**
    * Contains the currently available process as: stream -> processId -> process
    */
-  private val processes = ConcurrentHashMap<Common.Stream, ConcurrentHashMap<Int, Common.Process>>()
+  private val processes = ConcurrentHashMap<Common.Stream, Map<Int, Common.Process>>()
+
+  private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler()
+
+  /**
+   * Is true when a [handleNextStream] is scheduled to run or is running.
+   */
+  private val validationScheduled = AtomicBoolean(false)
+
+  /**
+   * Contains the streams for which a process may have changed state.
+   */
+  private val invalidations = object : ArrayDeque<Common.Stream>() {
+    // Override add to make this Deque function as Set.
+    // i.e. multiple invalidation of the same stream should only cause a single update.
+    override fun add(element: Common.Stream): Boolean {
+      return !contains(element) && super.add(element)
+    }
+  }
 
   private val streamListener = object : TransportStreamListener {
     override fun onStreamConnected(streamChannel: TransportStreamChannel) {
@@ -55,12 +81,7 @@ class DefaultProcessManager(
         addStream(streamChannel.stream)
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(eventKind = PROCESS, executor = executor) {
-            if (it.process.hasProcessStarted()) {
-              addProcess(streamChannel.stream, it.process.processStarted.process)
-            }
-            else {
-              removeProcess(streamChannel.stream, it.groupId.toInt())
-            }
+            invalidateCache(streamChannel.stream)
           }
         )
       }
@@ -85,26 +106,15 @@ class DefaultProcessManager(
 
   override fun getStreams(): Sequence<Common.Stream> = processes.keys.asSequence()
 
-  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> {
-    val streamProcesses = processes[stream] ?: return emptySequence()
-    return streamProcesses.values.asSequence()
-  }
+  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> =
+    processes[stream]?.values?.asSequence() ?: emptySequence()
 
   override fun isProcessActive(stream: Common.Stream, process: Common.Process): Boolean =
     processes[stream]?.get(process.pid) == process
 
-  private fun addProcess(stream: Common.Stream, process: Common.Process) {
-    addStream(stream)[process.pid] = process
+  private fun addStream(stream: Common.Stream) {
+    processes.getOrPut(stream, { emptyMap() })
     fireProcessesChanged()
-  }
-
-  private fun removeProcess(stream: Common.Stream, processId: Int) {
-    processes[stream]?.remove(processId)
-    fireProcessesChanged()
-  }
-
-  private fun addStream(stream: Common.Stream): MutableMap<Int, Common.Process> {
-    return processes.getOrPut(stream, { ConcurrentHashMap() })
   }
 
   private fun removeStream(stream: Common.Stream) {
@@ -118,4 +128,50 @@ class DefaultProcessManager(
 
   private fun streamFilter(stream: Common.Stream): Boolean =
     stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29
+
+  private fun invalidateCache(stream: Common.Stream) {
+    invalidations.add(stream)
+    scheduleNext()
+  }
+
+  private fun scheduleNext() {
+    if (validationScheduled.compareAndSet(false, true)) {
+      scheduler.schedule({ handleNextStream() }, 250, TimeUnit.MILLISECONDS)
+    }
+  }
+
+  private fun handleNextStream() {
+    val stream = invalidations.poll()
+    try {
+      stream?.let { loadProcesses(it) }
+    }
+    finally {
+      validationScheduled.set(false)
+      stream?.let { scheduleNext() }
+    }
+  }
+
+  private fun loadProcesses(stream: Common.Stream) {
+    val processRequest = Transport.GetEventGroupsRequest.newBuilder().apply {
+      streamId = stream.streamId
+      kind = PROCESS
+    }.build()
+    val processResponse = transportStub.getEventGroups(processRequest)
+    val processMap = mutableMapOf<Int, Common.Process>()
+    // A group is a collection of events that happened to a single process.
+    for (groupProcess in processResponse.groupsList) {
+      val isProcessDead = groupProcess.getEvents(groupProcess.eventsCount - 1).isEnded
+      if (isProcessDead) {
+        // Ignore dead processes.
+        continue
+      }
+      val aliveEvent = groupProcess.eventsList.lastOrNull { e -> e.hasProcess() && e.process.hasProcessStarted() }
+                       ?: // Ignore process event groups that do not have the started event.
+                       continue
+      val process = aliveEvent.process.processStarted.process
+      processMap[process.pid] = process
+    }
+    processes[stream] = processMap
+    fireProcessesChanged()
+  }
 }

@@ -72,10 +72,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -87,7 +89,7 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
-  private Computable<OutputKind> myOutputKindProvider;
+  private Function<AndroidVersion, OutputKind> myOutputKindProvider;
 
   public static final Key<PostBuildModel> POST_BUILD_MODEL = Key.create("com.android.tools.idea.post_build_model");
 
@@ -109,7 +111,7 @@ public class GradleApkProvider implements ApkProvider {
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test,
-                           @NotNull Computable<OutputKind> outputKindProvider) {
+                           @NotNull Function<AndroidVersion, OutputKind> outputKindProvider) {
     this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
   }
 
@@ -117,7 +119,7 @@ public class GradleApkProvider implements ApkProvider {
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            boolean test) {
-    this(facet, applicationIdProvider, () -> null, test, () -> OutputKind.Default);
+    this(facet, applicationIdProvider, () -> null, test, targetDeviceVersion -> OutputKind.Default);
   }
 
   @VisibleForTesting
@@ -125,7 +127,7 @@ public class GradleApkProvider implements ApkProvider {
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, () -> OutputKind.Default);
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, targetDeviceVersion -> OutputKind.Default);
   }
 
   @VisibleForTesting
@@ -134,7 +136,7 @@ public class GradleApkProvider implements ApkProvider {
                     @NotNull PostBuildModelProvider outputModelProvider,
                     @NotNull BestOutputFinder bestOutputFinder,
                     boolean test,
-                    Computable<OutputKind> outputKindProvider) {
+                    @NotNull Function<AndroidVersion, OutputKind> outputKindProvider) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
     myOutputModelProvider = outputModelProvider;
@@ -144,7 +146,7 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @TestOnly
-  OutputKind getOutputKind() { return myOutputKindProvider.compute(); }
+  OutputKind getOutputKind(@Nullable AndroidVersion targedDeviceVersion) { return myOutputKindProvider.apply(targedDeviceVersion); }
 
   @TestOnly
   boolean isTest() { return myTest; }
@@ -174,7 +176,7 @@ public class GradleApkProvider implements ApkProvider {
         return Collections.emptyList();
       }
 
-      switch (myOutputKindProvider.compute()) {
+      switch (myOutputKindProvider.apply(device.getVersion())) {
         case Default:
           // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
           // apps (assuming the androidModel is the base split).
@@ -482,7 +484,7 @@ public class GradleApkProvider implements ApkProvider {
     }
     // Note: Instant apps and app bundles outputs are assumed to be signed
     if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
-        myOutputKindProvider.compute() == OutputKind.AppBundleOutputModel ||
+        myOutputKindProvider.apply(null) == OutputKind.AppBundleOutputModel ||
         androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }

@@ -27,6 +27,7 @@ import com.android.ide.common.repository.MavenRepositories
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -92,6 +93,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
+import java.util.function.Function
 import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
@@ -489,12 +491,12 @@ class GradleModuleSystem(
     )
   }
 
-  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
+  override fun getApkProvider(runConfiguration: RunConfiguration, unused: AndroidDeviceSpec?): ApkProvider? {
     if (runConfiguration !is AndroidRunConfigurationBase) return null
     val facet = AndroidFacet.getInstance(module) ?: return null
 
-    fun outputKind() =
-      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceSpec)) {
+    fun outputKind(targetDeviceVersion: AndroidVersion?) =
+      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceVersion)) {
         true -> OutputKind.AppBundleOutputModel
         false -> OutputKind.Default
       }
@@ -504,7 +506,7 @@ class GradleModuleSystem(
       getApplicationIdProvider(runConfiguration),
       PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       runConfiguration.isTestConfiguration,
-      Computable { outputKind() }
+      Function { targetDeviceVersion -> outputKind(targetDeviceVersion) }
     )
   }
 

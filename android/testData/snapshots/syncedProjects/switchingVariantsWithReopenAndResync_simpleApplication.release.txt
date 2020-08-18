@@ -51,6 +51,7 @@ PROJECT             : project
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res [-]
             AssetsFolderRelativePath      : /src/main/assets

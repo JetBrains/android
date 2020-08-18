@@ -318,8 +318,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices());
-    ApkProvider apkProvider = getApkProvider(facet, targetDeviceSpec);
+    // NOTE: getApkProvider() ignores the second argument and operates on the device specification passes to getApks() method later.
+    ApkProvider apkProvider = getApkProvider(facet, null);
     if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());

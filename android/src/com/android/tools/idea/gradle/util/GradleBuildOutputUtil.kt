@@ -21,6 +21,7 @@ import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
@@ -137,7 +138,7 @@ fun getOutputFileOrFolderFromListingFile(listingFile: String): File? {
 }
 
 private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
-  return if (useSelectApksFromBundleBuilder(module, configuration, null)) {
+  return if (useSelectApksFromBundleBuilder(module, configuration, null as AndroidVersion?)) {
     OutputType.ApkFromBundle
   }
   else {
