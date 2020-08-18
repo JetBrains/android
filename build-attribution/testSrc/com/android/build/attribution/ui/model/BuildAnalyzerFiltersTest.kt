@@ -26,6 +26,8 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.DisposableRule
@@ -50,11 +52,27 @@ class BuildAnalyzerFiltersTest {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+  private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
   }
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
+  private val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
+  private val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
+
+  private val defaultWarningFilterItemsList = listOf(
+    BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS,
+    BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
+    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS
+  )
+
+  private val defaultTasksFilterItemsList = listOf(
+    BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
+    BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS
+  )
 
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
   val analytics = BuildAttributionUiAnalytics(projectRule.project)
@@ -101,6 +119,8 @@ class BuildAnalyzerFiltersTest {
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS, defaultWarningFilterItemsList)
   }
 
   @Test
@@ -116,6 +136,8 @@ class BuildAnalyzerFiltersTest {
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS, defaultWarningFilterItemsList)
   }
 
   @Test
@@ -130,6 +152,8 @@ class BuildAnalyzerFiltersTest {
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS, defaultWarningFilterItemsList)
   }
 
   @Test
@@ -160,6 +184,8 @@ class BuildAnalyzerFiltersTest {
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(3)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS, defaultTasksFilterItemsList)
   }
 
   @Test
@@ -174,5 +200,23 @@ class BuildAnalyzerFiltersTest {
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
     Truth.assertThat(model.tasksPageModel.treeRoot.childCount).isEqualTo(3)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS, defaultTasksFilterItemsList)
+  }
+
+  // Verify metrics sent: 2 events, for item switch off and back on.
+  private fun verifyMetricsSent(
+    filterItemToggled: BuildAttributionUiEvent.FilterItem,
+    defaultFilterState: List<BuildAttributionUiEvent.FilterItem>
+  ) {
+    val filterEvents = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+      .map { event -> event.studioEvent.buildAttributionUiEvent.let { it.eventType to it.appliedFiltersList } }
+
+    val updatedFilterItemsList = defaultFilterState.filterNot { it == filterItemToggled }
+    Truth.assertThat(filterEvents).isEqualTo(listOf(
+      BuildAttributionUiEvent.EventType.FILTER_APPLIED to updatedFilterItemsList,
+      BuildAttributionUiEvent.EventType.FILTER_APPLIED to defaultFilterState
+    ))
   }
 }

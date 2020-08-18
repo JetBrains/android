@@ -16,8 +16,12 @@
 package com.android.build.attribution.ui.analytics
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.data.PluginSourceType
+import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksFilter
+import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -138,8 +142,17 @@ class BuildAttributionUiAnalytics(private val project: Project) {
               .setLinkTarget(target.analyticsValue)
               .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
-  fun memorySettingsOpened() =
-    doLog(newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED))
+  fun memorySettingsOpened() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+  )
+
+  fun warningsFilterApplied(filter: WarningsFilter) = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED).addAllAppliedFilters(warningsFilterState(filter))
+  )
+
+  fun tasksFilterApplied(filter: TasksFilter) = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED).addAllAppliedFilters(tasksFilterState(filter))
+  )
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)
@@ -209,4 +222,37 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     val pageType: BuildAttributionUiEvent.Page.PageType,
     val pageId: String
   )
+
+  private fun warningsFilterState(filter: WarningsFilter): List<BuildAttributionUiEvent.FilterItem> {
+    return mutableListOf<BuildAttributionUiEvent.FilterItem>().apply {
+      filter.showTaskSourceTypes.forEach {
+        add(when (it) {
+              PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
+              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
+            })
+      }
+      filter.showTaskWarningTypes.forEach {
+        add(when (it) {
+              TaskIssueType.ALWAYS_RUN_TASKS -> BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS
+              TaskIssueType.TASK_SETUP_ISSUE -> BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS
+            })
+      }
+      if (filter.showAnnotationProcessorWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS)
+      if (filter.showNonCriticalPathTasks) add(BuildAttributionUiEvent.FilterItem.SHOW_WARNINGS_FOR_TASK_NOT_FROM_CRITICAL_PATH)
+    }.sorted()
+  }
+
+  private fun tasksFilterState(filter: TasksFilter): List<BuildAttributionUiEvent.FilterItem> {
+    return mutableListOf<BuildAttributionUiEvent.FilterItem>().apply {
+      filter.showTaskSourceTypes.forEach {
+        add(when (it) {
+              PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
+              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
+            })
+      }
+      if (filter.showTasksWithoutWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS)
+    }.sorted()
+  }
 }
