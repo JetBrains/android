@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
@@ -52,8 +53,8 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
   private lateinit var databaseConnection2: DatabaseConnection
   private lateinit var  databaseConnection3: DatabaseConnection
 
-  val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
-  val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+  private val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+  private val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
   override fun setUp() {
     super.setUp()
@@ -129,6 +130,23 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     verify(databaseConnection1).query(SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM t1"))
     verify(databaseConnection2).query(SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM t2"))
     verify(databaseConnection1, times(0)).query(SqliteStatement(SqliteStatementType.SELECT,"SELECT * FROM t3"))
+  }
+
+  fun testClosedDatabasesAreDisposed() {
+    // Act
+    Disposer.register(testRootDisposable, databaseConnection1)
+    Disposer.register(testRootDisposable, databaseConnection2)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1)
+      databaseRepository.addDatabaseConnection(databaseId2, databaseConnection2)
+    }
+
+    runDispatching { databaseRepository.closeDatabase(databaseId1) }
+    runDispatching { databaseRepository.closeDatabase(databaseId2) }
+
+    // Assert
+    assertTrue(Disposer.isDisposed(databaseConnection1))
+    assertTrue(Disposer.isDisposed(databaseConnection2))
   }
 
   fun testFetchSchema() {
@@ -292,17 +310,22 @@ class DatabaseRepositoryTest : LightPlatformTestCase() {
     )
   }
 
-  fun testRelease() {
+  fun testClear() {
     // Prepare
+    Disposer.register(testRootDisposable, databaseConnection1)
+    Disposer.register(testRootDisposable, databaseConnection2)
     runDispatching { databaseRepository.addDatabaseConnection(databaseId1, databaseConnection1) }
     runDispatching { databaseRepository.addDatabaseConnection(databaseId2, databaseConnection2) }
 
     // Act
-    runDispatching { databaseRepository.release() }
+    runDispatching { databaseRepository.clear() }
 
     // Assert
     verify(databaseConnection1).close()
     verify(databaseConnection2).close()
+
+    assertTrue(Disposer.isDisposed(databaseConnection1))
+    assertTrue(Disposer.isDisposed(databaseConnection2))
 
     pumpEventsAndWaitForFutureException(databaseRepository.runQuery(databaseId1, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")))
     pumpEventsAndWaitForFutureException(databaseRepository.runQuery(databaseId2, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t3")))

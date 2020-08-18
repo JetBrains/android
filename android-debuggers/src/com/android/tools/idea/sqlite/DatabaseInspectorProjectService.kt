@@ -30,8 +30,8 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
@@ -148,7 +148,7 @@ interface DatabaseInspectorProjectService {
    * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
    */
   @UiThread
-  fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
+  suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
 
   @UiThread
   fun handleDatabaseClosed(databaseId: SqliteDatabaseId)
@@ -270,18 +270,20 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @UiThread
-  override fun stopAppInspectionSession(processDescriptor: ProcessDescriptor) {
+  override suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor) {
     ideServices = null
     controller.stopAppInspectionSession()
 
+    val openDatabases = model.getOpenDatabaseIds()
+    openDatabases.forEach {
+      controller.closeDatabase(it)
+    }
+
+    model.clearDatabases()
+    databaseRepository.clear()
+
+
     downloadOfflineDatabases = projectScope.launch {
-      val openDatabases = model.getOpenDatabaseIds()
-
-      openDatabases.forEach {
-        controller.closeDatabase(it)
-      }
-      model.clearDatabases()
-
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
         val databasesToDownload = openDatabases
           .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
@@ -302,7 +304,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   @UiThread
   override fun handleDatabaseClosed(databaseId: SqliteDatabaseId) {
-    model.removeDatabaseSchema(databaseId)
+    projectScope.launch { controller.closeDatabase(databaseId) }
   }
 
   @UiThread
