@@ -31,7 +31,6 @@ iml_module(
         "//tools/adt/idea/smali:unb.intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder:unb.test-recorder[module]",
         "//tools/vendor/google/url-assistant:unb.url-assistant[module]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Compose",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-coverage",
