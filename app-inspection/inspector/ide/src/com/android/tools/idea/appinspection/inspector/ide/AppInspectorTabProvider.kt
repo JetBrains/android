@@ -16,8 +16,9 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -34,6 +35,12 @@ interface AppInspectorTabProvider {
   val displayName: String
   val inspectorAgentJar: AppInspectorJar
   fun isApplicable(): Boolean = true
+
+  /**
+   * Information about the library this inspector is targeting, including the minimum version this inspector is compatible with.
+   */
+  val targetLibrary: AppInspectorLauncher.TargetLibrary
+
 
   /**
    * Whether this tab's UI can handle working with disposed inspectors or not.

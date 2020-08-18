@@ -31,7 +31,9 @@ import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONS
  */
 class TestInspectorCommandHandler(timer: FakeTimer,
                                   private val success: Boolean = true,
-                                  private val error: String = "") : CommandHandler(timer) {
+                                  private val error: String = "",
+                                  private val status: CreateInspectorResponse.Status = CreateInspectorResponse.Status.SUCCESS
+) : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
     if (command.appInspectionCommand.hasCreateInspectorCommand() || command.appInspectionCommand.hasDisposeInspectorCommand()) {
       events.add(Event.newBuilder()
@@ -45,10 +47,7 @@ class TestInspectorCommandHandler(timer: FakeTimer,
                                                .setStatus(
                                                  if (success) SUCCESS else ERROR)
                                                .setErrorMessage(error)
-                                               .setCreateInspectorResponse(CreateInspectorResponse.newBuilder().setStatus(
-                                                 if (success) CreateInspectorResponse.Status.SUCCESS
-                                                 else CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR)
-                                               )
+                                               .setCreateInspectorResponse(CreateInspectorResponse.newBuilder().setStatus(status))
                                                .build())
                    .build())
     }

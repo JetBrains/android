@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 
 /**

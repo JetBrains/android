@@ -80,6 +80,7 @@ class AppInspectionViewTest {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
+
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   }
 
@@ -204,7 +205,7 @@ class AppInspectionViewTest {
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                             appInspectionServiceRule.scope, uiDispatcher) {
+                                         appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -283,7 +284,9 @@ class AppInspectionViewTest {
     transportService.addProcess(fakeDevice, fakeProcess)
 
     // Overwrite the handler to simulate a launch error, e.g. an inspector was left over from a previous crash
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer, false, "error"))
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
+                                       TestInspectorCommandHandler(timer, false, "error",
+                                                                   AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR))
 
     val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
     ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
@@ -293,8 +296,8 @@ class AppInspectionViewTest {
     val launchFailed = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                             { listOf(TestAppInspectorTabProvider1()) },
-                                             appInspectionServiceRule.scope, uiDispatcher) {
+                                         { listOf(TestAppInspectorTabProvider1()) },
+                                         appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -362,5 +365,92 @@ class AppInspectionViewTest {
 
     transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
+  }
+
+  @Test
+  fun launchInspectorFailsDueToIncompatibleVersion_noTabsAdded() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
+                                             ideServices,
+                                             { listOf(TestAppInspectorTabProvider1()) },
+                                             appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedOneShotListener = {
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
+        tabsAdded.complete(Unit)
+      }
+    }
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
+                                       TestInspectorCommandHandler(timer, false, "error",
+                                                                   AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE))
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+  }
+
+  @Test
+  fun launchInspectorFailsDueToServiceError_noTabsAdded() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
+                                             ideServices,
+                                             { listOf(TestAppInspectorTabProvider1()) },
+                                             appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedOneShotListener = {
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
+        tabsAdded.complete(Unit)
+      }
+    }
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
+                                       TestInspectorCommandHandler(timer, false, "error",
+                                                                   AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR))
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+  }
+
+  @Test
+  fun launchInspectorFailsDueToMissingLibrary_noTabsAdded() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
+                                             ideServices,
+                                             { listOf(TestAppInspectorTabProvider1()) },
+                                             appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedOneShotListener = {
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
+        tabsAdded.complete(Unit)
+      }
+    }
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
+                                       TestInspectorCommandHandler(timer, false, "error",
+                                                                   AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING))
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
   }
 }
