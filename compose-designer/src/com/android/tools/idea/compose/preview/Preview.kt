@@ -232,45 +232,23 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   @Volatile
   override var availableGroups: Set<PreviewGroup> = emptySet()
 
-  /**
-   * Enum that determines the current status of the interactive preview.
-   *
-   * The transitions are are like:
-   * DISABLED -> STARTED -> READY -> STOPPING
-   *    ^                               +
-   *    |                               |
-   *    +-------------------------------+
-   */
-  private enum class InteractiveMode {
-    DISABLED,
-    /** Status when interactive has been started but the first render has not happened yet. */
-    STARTING,
-    /** Interactive is ready and running. */
-    READY,
-    /** The interactive preview is stopping but it has not been fully disposed yet. */
-    STOPPING;
-
-    fun isStartingOrReady() = this == STARTING || this == READY
-  }
-
   @Volatile
-  private var interactiveMode = InteractiveMode.DISABLED
+  private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
-  override var interactivePreviewElementInstance:
-    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      LOG.debug("New single preview element focus: $newValue")
-      val isInteractive = newValue != null
+  override fun setInteractivePreviewElementInstance(previewElement: PreviewElementInstance?) {
+    if (previewElementProvider.instanceFilter != previewElement) {
+      LOG.debug("New single preview element focus: $previewElement")
+      val isInteractive = previewElement != null
       // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
       // but we want to stop the loop first and then change the composable when disabled
       if (isInteractive) { // Enable interactive
-        interactiveMode = InteractiveMode.STARTING
+        interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
         val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
         val peerPreviews = previewElementProvider.previewElements.count()
-        previewElementProvider.instanceFilter = newValue
+        previewElementProvider.instanceFilter = previewElement
         sceneComponentProvider.enabled = false
         val startUpStart = System.currentTimeMillis()
         forceRefresh(quickRefresh).invokeOnCompletion {
@@ -286,11 +264,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             surface.enableMouseClickDisplay()
           }
           surface.background = INTERACTIVE_BACKGROUND_COLOR
-          interactiveMode = InteractiveMode.READY
+          interactiveMode = ComposePreviewManager.InteractiveMode.READY
         }
       }
       else { // Disable interactive
-        interactiveMode = InteractiveMode.STOPPING
+        interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
         surface.background = defaultSurfaceBackground
         surface.disableMouseClickDisplay()
         delegateInteractionHandler.delegate = staticPreviewInteractionHandler
@@ -299,7 +277,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.clearInstanceIdFilter()
         logInteractiveSessionMetrics()
         forceRefresh().invokeOnCompletion {
-          interactiveMode = InteractiveMode.DISABLED
+          interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
         }
       }
     }
@@ -558,7 +536,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun dispose() {
-    if (interactiveMode == InteractiveMode.READY) {
+    if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) {
       logInteractiveSessionMetrics()
     }
     animationInspectionPreviewElementInstance = null
@@ -600,7 +578,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       !isRefreshing && hasSyntaxErrors(),
       !isRefreshing && isOutOfDate(),
       isRefreshing,
-      interactiveMode == InteractiveMode.READY)
+      interactiveMode)
   }
 
   /**

@@ -42,6 +42,6 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
 
-    manager.interactivePreviewElementInstance = instanceId
+    manager.setInteractivePreviewElementInstance(instanceId)
   }
 }
