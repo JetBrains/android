@@ -1666,6 +1666,7 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderingQueue.cancelAllUpdates();
         }
       }
+      completeRender();
       disposeRenderTask();
     }
 
