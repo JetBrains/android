@@ -298,6 +298,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                @Nullable AndroidProject androidProject) {
     String moduleName = moduleNode.getData().getInternalName();
     File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+    @NotNull CachedVariants cachedVariants = findCachedVariants(gradleModule);
+
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
     NativeModule nativeModule = resolverCtx.getExtraProject(gradleModule, NativeModule.class);
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
@@ -305,31 +307,29 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // sync issues that have been produced by the plugin. Before this the sync issues were attached to the
     // AndroidProject.
     ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
+    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
     BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
 
-    @NotNull CachedVariants cachedVariants = findCachedVariants(gradleModule);
+
     AndroidModuleModel androidModel = null;
     JavaModuleModel javaModuleModel = null;
     NdkModuleModel ndkModuleModel = null;
     GradleModuleModel gradleModel = null;
     Collection<SyncIssueData> issueData = null;
+
     // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
     if (androidProject != null) {
       Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
       Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
       // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
       // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
-      issueData = map(syncIssues, syncIssue ->
-        new SyncIssueData(
-          syncIssue.getMessage(),
-          syncIssue.getData(),
-          syncIssue.getMultiLineMessage(),
-          syncIssue.getSeverity(),
-          syncIssue.getType()
-        ));
-
+      issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
+                                                                 syncIssue.getData(),
+                                                                 syncIssue.getMultiLineMessage(),
+                                                                 syncIssue.getSeverity(),
+                                                                 syncIssue.getType()));
 
       Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
       List<IdeVariant> fetchedIdeVariants =
@@ -376,17 +376,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       }
     }
 
+    Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
     File gradleSettingsFile = findGradleSettingsFile(rootModulePath);
-    if (gradleSettingsFile.isFile() && androidModel == null && ndkModuleModel == null &&
-        // if the module has artifacts, it is a Java library module.
-        // https://code.google.com/p/android/issues/detail?id=226802
-        !hasArtifacts(gradleModule)) {
-      // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
-      // compile it using Gradle. We still need to create the module to display files inside it.
-      javaModuleModel = createJavaProject(modelCache, gradleModule, moduleNode, false);
-    }
-    else {
+    boolean hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile() && !hasArtifacts(gradleModule));
 
+    if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
       // 3 - Now we need to create and add the GradleModuleModel
       File buildScriptPath;
       try {
@@ -396,7 +390,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         buildScriptPath = null;
       }
 
-      Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
 
       gradleModel = new GradleModuleModel(
         moduleName,
@@ -407,22 +400,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         (androidProject == null) ? null : androidProject.getModelVersion(),
         kaptGradleModel
       );
+    }
 
-      // 4 - If this is not an Android or Native project it must be a Java module.
-      // TODO: This model should eventually be removed.
-      if (androidModel == null && ndkModuleModel == null) {
-        javaModuleModel = createJavaProject(
-          modelCache,
-          gradleModule,
-          moduleNode,
-          gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin")
-        );
-      }
+    // 4 - If this is not an Android or Native project it must be a Java module.
+    // TODO: This model should eventually be removed.
+    if (androidModel == null && ndkModuleModel == null) {
+      boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
+      javaModuleModel = myIdeaJavaModuleModelFactory.create(modelCache, gradleModule, externalProject, isBuildable);
     }
     if (javaModuleModel != null) {
       moduleNode.createChild(JAVA_MODULE_MODEL, javaModuleModel);
     }
-    if (gradleModel != null){
+    if (gradleModel != null) {
       moduleNode.createChild(GRADLE_MODULE_MODEL, gradleModel);
     }
     if (androidModel != null) {
@@ -633,14 +622,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     return externalProject != null && !externalProject.getArtifacts().isEmpty();
-  }
-
-  private JavaModuleModel createJavaProject(@NotNull ModelCache modelCache,
-                                            @NotNull IdeaModule gradleModule,
-                                            @NotNull DataNode<ModuleData> ideModule,
-                                            boolean isBuildable) {
-    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    return myIdeaJavaModuleModelFactory.create(modelCache, gradleModule, externalProject, isBuildable);
   }
 
   @Override
