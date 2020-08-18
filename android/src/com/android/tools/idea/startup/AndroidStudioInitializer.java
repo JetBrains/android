@@ -283,9 +283,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
-    configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
-    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
-
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer
