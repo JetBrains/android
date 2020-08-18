@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPanel

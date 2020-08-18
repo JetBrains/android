@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu;
+package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.LazyDataSeries;
+import javax.swing.DefaultListModel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * List model that manages CpuState information. When a {@link SystemTraceCpuCapture} is selected this class is responsible for

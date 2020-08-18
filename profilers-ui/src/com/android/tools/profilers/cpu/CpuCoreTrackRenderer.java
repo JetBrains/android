@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import com.android.tools.profilers.cpu.atrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.Color;

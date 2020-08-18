@@ -29,13 +29,12 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.atrace.CpuCoreTrackModel
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import java.io.FileInputStream
 
 class CpuCoreTrackRendererTest {
@@ -59,7 +58,8 @@ class CpuCoreTrackRendererTest {
   @Test
   fun render() {
     val coreTrackModel = TrackModel.newBuilder(
-      CpuCoreTrackModel(LazyDataSeries { emptyList<SeriesData<CpuThreadSliceInfo>>() }, Range(), 123),
+      CpuCoreTrackModel(
+        LazyDataSeries { emptyList<SeriesData<CpuThreadSliceInfo>>() }, Range(), 123),
       ProfilerTrackRendererType.CPU_CORE,
       "Foo")
       .build()

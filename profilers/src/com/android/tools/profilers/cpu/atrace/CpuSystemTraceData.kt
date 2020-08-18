@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent
-import com.android.tools.profilers.cpu.atrace.SystemTraceFrame
+import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame.FrameThread
 
 /**

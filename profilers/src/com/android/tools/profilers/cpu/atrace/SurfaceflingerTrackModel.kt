@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
-import com.android.tools.adtui.model.LineChartModel
+import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.adtui.model.RangedSeries
+import com.android.tools.adtui.model.StateChartModel
+import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
 /**
- * Track model for VSYNC counter in CPU capture stage.
+ * Track model for the Surfaceflinger track in CPU capture stage.
  */
-class VsyncTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
-  val vsyncCounterSeries: RangedContinuousSeries = RangedContinuousSeries(
-    "VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.getVsyncCounterValues() }))
+class SurfaceflingerTrackModel(systemTraceData: CpuSystemTraceData,
+                               viewRange: Range) : StateChartModel<SurfaceflingerEvent?>() {
+  val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>
 
   init {
-    add(vsyncCounterSeries)
+    surfaceflingerEvents = LazyDataSeries(Supplier { systemTraceData.getSurfaceflingerEvents() })
+    addSeries(RangedSeries(viewRange, surfaceflingerEvents))
   }
 }

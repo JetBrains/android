@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.cpu.atrace.CpuKernelModel;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBDimension;

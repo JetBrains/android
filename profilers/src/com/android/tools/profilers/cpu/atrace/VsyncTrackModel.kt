@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu
+package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
 /**
- * Track model for BufferQueue counter in CPU capture stage
+ * Track model for VSYNC counter in CPU capture stage.
  */
-class BufferQueueTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
-  // Y-axis range is [0, 2].
-  // 0: no buffer in queue, app is still drawing to the buffer;
-  // 1: buffer waiting to be consumed by SurfaceFlinger;
-  // 2: another buffer is produced before the previous one is consumed by SurfaceFlinger, a.k.a. triple buffered.
-  val bufferQueueSeries: RangedContinuousSeries = RangedContinuousSeries("BufferQueue", viewRange, Range(0.0, 2.0), LazyDataSeries(
-    Supplier { systemTraceData.getBufferQueueCounterValues() })
-  )
+class VsyncTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
+  val vsyncCounterSeries: RangedContinuousSeries = RangedContinuousSeries(
+    "VSYNC", viewRange, Range(0.0, 1.0), LazyDataSeries(Supplier { systemTraceData.getVsyncCounterValues() }))
 
   init {
-    add(bufferQueueSeries)
+    add(vsyncCounterSeries)
   }
 }

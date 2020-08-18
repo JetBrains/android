@@ -27,9 +27,9 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
-import com.android.tools.profilers.cpu.CpuSystemTraceData
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
+import com.android.tools.profilers.cpu.atrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
