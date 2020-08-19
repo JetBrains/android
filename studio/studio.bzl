@@ -387,6 +387,10 @@ def _android_studio_os(ctx, platform, out):
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     files += [(platform.base_path + d, f) for (d, f) in res]
 
+    dev01 = ctx.actions.declare_file(ctx.attr.name + ".dev01." + platform.name)
+    ctx.actions.write(dev01, "")
+    files += [(platform.base_path + "license/dev01_license.txt", dev01)]
+
     for p in ctx.attr.plugins:
         stamped_xml = ctx.actions.declare_file("%s.stamped.%s.%s.xml" % (ctx.label.name, p.label.name, platform.name))
         _stamp_plugin(ctx, build_txt, p.xml, stamped_xml)
