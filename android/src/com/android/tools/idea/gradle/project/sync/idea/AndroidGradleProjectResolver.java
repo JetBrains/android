@@ -319,55 +319,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<SyncIssueData> issueData = null;
 
     if (androidProject != null) {
-      IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
-      Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
-      List<IdeVariant> fetchedIdeVariants =
-        map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
-      Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
-
-      List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
-      List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
-      androidModel = AndroidModuleModel.create(moduleName,
-                                               rootModulePath,
-                                               ideAndroidProject,
-                                               variants,
-                                               selectedVariant.getName());
+      androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidProject, variantGroup, cachedVariants);
+      issueData = createSyncIssueData(androidProject, projectSyncIssues);
+      ndkModuleModel =
+        maybeCreateNdkModuleModel(moduleName, rootModulePath, androidProject, nativeAndroidProject, nativeModule, variantGroup, cachedVariants);
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
       myShouldExportDependencies |= androidModel.getFeatures().shouldExportDependencies();
-
-      Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
-      // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
-      // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
-      issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
-                                                                 syncIssue.getData(),
-                                                                 syncIssue.getMultiLineMessage(),
-                                                                 syncIssue.getSeverity(),
-                                                                 syncIssue.getType()));
-      // Prefer V2 NativeModule if available
-      if (nativeModule != null) {
-        V2NdkModel ndkModel = new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule));
-        ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, ndkModel);
-      }
-      else {
-        // V2 model not available, fallback to V1 model.
-        if (nativeAndroidProject != null) {
-          IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
-          List<IdeNativeVariantAbi> ideNativeVariantAbis;
-          if (variantGroup != null) {
-            ideNativeVariantAbis =
-              map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
-          }
-          else {
-            ideNativeVariantAbis = new ArrayList<>();
-          }
-          // Inject cached variants from previous Gradle Sync.
-          ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
-
-          ndkModuleModel = new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
-        }
-      }
     }
 
     Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
@@ -375,32 +334,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     boolean hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile() && !hasArtifacts(externalProject));
 
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
-      // 3 - Now we need to create and add the GradleModuleModel
-      File buildScriptPath;
-      try {
-        buildScriptPath = gradleModule.getGradleProject().getBuildScript().getSourceFile();
-      }
-      catch (UnsupportedOperationException e) {
-        buildScriptPath = null;
-      }
-
-      gradleModel = new GradleModuleModel(
-        moduleName,
-        gradleModule.getGradleProject(),
-        gradlePluginList,
-        buildScriptPath,
-        (buildScriptClasspathModel == null) ? null : buildScriptClasspathModel.getGradleVersion(),
-        (androidProject == null) ? null : androidProject.getModelVersion(),
-        kaptGradleModel
-      );
+      gradleModel =
+        createGradleModuleModel(moduleName, gradleModule, androidProject, kaptGradleModel, buildScriptClasspathModel, gradlePluginList);
     }
-
-    // 4 - If this is not an Android or Native project it must be a Java module.
-    // TODO: This model should eventually be removed.
     if (androidModel == null) {
-      boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
-      javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
+      javaModuleModel = createJavaModuleModel(gradleModule, externalProject, gradlePluginList, hasArtifactsOrNoRootSettingsFile);
     }
+
     if (javaModuleModel != null) {
       moduleNode.createChild(JAVA_MODULE_MODEL, javaModuleModel);
     }
@@ -422,6 +362,114 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     // 5 - Populate extra things
     populateAdditionalClassifierArtifactsModel(gradleModule);
+  }
+
+  @NotNull
+  private JavaModuleModel createJavaModuleModel(@NotNull IdeaModule gradleModule,
+                                                ExternalProject externalProject,
+                                                Collection<String> gradlePluginList,
+                                                boolean hasArtifactsOrNoRootSettingsFile) {
+    JavaModuleModel javaModuleModel;
+    boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
+    // TODO: This model should eventually be removed.
+    javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
+    return javaModuleModel;
+  }
+
+  @NotNull
+  private GradleModuleModel createGradleModuleModel(String moduleName,
+                                                    @NotNull IdeaModule gradleModule,
+                                                    @Nullable AndroidProject androidProject,
+                                                    KaptGradleModel kaptGradleModel,
+                                                    BuildScriptClasspathModel buildScriptClasspathModel,
+                                                    Collection<String> gradlePluginList) {
+    File buildScriptPath;
+    try {
+      buildScriptPath = gradleModule.getGradleProject().getBuildScript().getSourceFile();
+    }
+    catch (UnsupportedOperationException e) {
+      buildScriptPath = null;
+    }
+
+    return new GradleModuleModel(
+      moduleName,
+      gradleModule.getGradleProject(),
+      gradlePluginList,
+      buildScriptPath,
+      (buildScriptClasspathModel == null) ? null : buildScriptClasspathModel.getGradleVersion(),
+      (androidProject == null) ? null : androidProject.getModelVersion(),
+      kaptGradleModel
+    );
+  }
+
+  @Nullable
+  private NdkModuleModel maybeCreateNdkModuleModel(@NotNull String moduleName,
+                                                   @NotNull File rootModulePath,
+                                                   @NotNull AndroidProject androidProject,
+                                                   @Nullable NativeAndroidProject nativeAndroidProject,
+                                                   @Nullable NativeModule nativeModule,
+                                                   @Nullable VariantGroup variantGroup,
+                                                   @NotNull CachedVariants cachedVariants) {
+    // Prefer V2 NativeModule if available
+    if (nativeModule != null) {
+      V2NdkModel ndkModel = new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule));
+      return new NdkModuleModel(moduleName, rootModulePath, ndkModel);
+    }
+    else {
+      // V2 model not available, fallback to V1 model.
+      if (nativeAndroidProject != null) {
+        IdeNativeAndroidProject nativeProjectCopy = modelCache.nativeAndroidProjectFrom(nativeAndroidProject);
+        List<IdeNativeVariantAbi> ideNativeVariantAbis;
+        if (variantGroup != null) {
+          ideNativeVariantAbis =
+            map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom);
+        }
+        else {
+          ideNativeVariantAbis = new ArrayList<>();
+        }
+        // Inject cached variants from previous Gradle Sync.
+        ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
+
+        return new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
+      }
+      else {
+        return null;
+      }
+    }
+  }
+
+  @NotNull
+  private Collection<SyncIssueData> createSyncIssueData(@NotNull AndroidProject androidProject, ProjectSyncIssues projectSyncIssues) {
+    Collection<SyncIssueData> issueData;
+    Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
+    // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
+    // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
+    issueData = map(syncIssues, syncIssue -> new SyncIssueData(syncIssue.getMessage(),
+                                                               syncIssue.getData(),
+                                                               syncIssue.getMultiLineMessage(),
+                                                               syncIssue.getSeverity(),
+                                                               syncIssue.getType()));
+    return issueData;
+  }
+
+  @NotNull
+  private AndroidModuleModel createAndroidModuleModel(String moduleName, File rootModulePath, @NotNull AndroidProject androidProject,
+                                                      VariantGroup variantGroup, @NotNull CachedVariants cachedVariants) {
+    AndroidModuleModel androidModel;
+    IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
+    Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
+    List<IdeVariant> fetchedIdeVariants =
+      map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
+    Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
+
+    List<IdeVariant> filteredCachedVariants = cachedVariants.getVariantsExcept(fetchedIdeVariants);
+    List<IdeVariant> variants = ContainerUtil.concat(fetchedIdeVariants, filteredCachedVariants);
+    androidModel = AndroidModuleModel.create(moduleName,
+                                             rootModulePath,
+                                             ideAndroidProject,
+                                             variants,
+                                             selectedVariant.getName());
+    return androidModel;
   }
 
   /**
