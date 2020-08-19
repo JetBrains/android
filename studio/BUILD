@@ -412,6 +412,18 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
             "//tools/adt/idea/.idea/libraries:unb.tightvnc",
         ],
+        "license": [
+            # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
+            "//tools/adt/idea/android/lib:licenses",
+            "//tools/studio/google/appindexing/lib:licenses",
+            "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
+            "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
+            "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
+            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains dupplicated licenses with google-login-plugin
+            "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
+            "//tools/vendor/google/firebase:licenses",
+            "//prebuilts/studio/layoutlib:licenses",
+        ],
     },
     searchable_options = "searchable-options",
     tags = ["manual"],
