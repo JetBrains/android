@@ -384,14 +384,15 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
-    var parentBlock = parent
-    val name: GradleNameElement
-    // Check the expression is valid.
     if (expression.operationToken != KtTokens.EQ) return
+    processAssignment(expression, parent)
+  }
+
+  private fun processAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     val left = expression.left ?: return
     val right = expression.right ?: return
-
-    name = GradleNameElement.from(left, this)
+    var parentBlock = parent
+    val name = GradleNameElement.from(left, this)
     if (name.isEmpty) return
     if (name.isQualified) {
       val nestedElement = getPropertiesElement(name.qualifyingParts(), parent, null) ?: return
@@ -409,7 +410,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         parentBlock = GradleDslSimpleExpression.dereferencePropertiesElement(parentBlock, index) ?: return
         index = matcher.group(1)
       }
-      when(parentBlock) {
+      when (parentBlock) {
         is GradleDslExpressionMap -> {
           val name = GradleNameElement.create(unquoteString(index))
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
