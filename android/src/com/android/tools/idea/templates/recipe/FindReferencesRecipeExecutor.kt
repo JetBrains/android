@@ -84,6 +84,7 @@ internal class FindReferencesRecipeExecutor(private val context: RenderingContex
   override fun setBuildFeature(name: String, value: Boolean) {}
   override fun setComposeOptions(kotlinCompilerExtensionVersion: String?, kotlinCompilerVersion: String?) {}
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {}
+  override fun setUseKotlinIrCompiler() {}
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
   override fun addDynamicFeature(name: String, toModule: File) {}

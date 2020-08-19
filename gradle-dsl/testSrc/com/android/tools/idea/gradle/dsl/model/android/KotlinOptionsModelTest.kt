@@ -36,6 +36,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     val android = gradleBuildModel.android()
     val kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_6, kotlinOptions.jvmTarget().toLanguageLevel())
+    assertEquals("useIR", false, kotlinOptions.useIR().toBoolean())
   }
 
   @Test
@@ -80,6 +81,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     kotlinOptions = android.kotlinOptions()
     checkForInValidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
     assertMissingProperty(kotlinOptions.jvmTarget())
+    assertMissingProperty(kotlinOptions.useIR())
   }
 
   @Test
@@ -91,10 +93,12 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     var kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_6, kotlinOptions.jvmTarget().toLanguageLevel())
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_9)
+    kotlinOptions.useIR().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_9, kotlinOptions.jvmTarget().toLanguageLevel())
+    assertEquals("useIR", true, kotlinOptions.useIR().toBoolean())
   }
 }
