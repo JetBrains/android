@@ -16,8 +16,8 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.ui.AbstractDialogWrapper
-import com.android.tools.idea.ui.DialogWrapperOptions
+import com.android.tools.idea.ui.SimpleDialog
+import com.android.tools.idea.ui.SimpleDialogOptions
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -27,21 +27,21 @@ import javax.swing.JComponent
 
 @UiThread
 class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
-  private val dialogWrapper: AbstractDialogWrapper
+  private val dialog: SimpleDialog
   private val pairingPanel: AdbDevicePairingPanel
 
   init {
-    val options = DialogWrapperOptions(project,
-                                       canBeParent,
-                                       ideModalityType,
-                                       title = "Pair devices over Wi-Fi",
-                                       isModal = true,
-                                       hasOkButton = false,
-                                       cancelButtonText = "Done",
-                                       centerPanelProvider = { createCenterPanel() })
-    dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(options)
-    pairingPanel = AdbDevicePairingPanel(dialogWrapper.disposable)
-    dialogWrapper.init()
+    val options = SimpleDialogOptions(project,
+                                      canBeParent,
+                                      ideModalityType,
+                                      title = "Pair devices over Wi-Fi",
+                                      isModal = true,
+                                      hasOkButton = false,
+                                      cancelButtonText = "Done",
+                                      centerPanelProvider = { createCenterPanel() })
+    dialog = SimpleDialog(options)
+    pairingPanel = AdbDevicePairingPanel(dialog.disposable)
+    dialog.init()
   }
 
   var pinCodePairInvoked: (MdnsService) -> Unit = {}
@@ -49,7 +49,7 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
   val disposable: Disposable
-    get() = dialogWrapper.disposable
+    get() = dialog.disposable
 
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough
@@ -60,7 +60,7 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
   }
 
   fun show() {
-    dialogWrapper.show()
+    dialog.show()
   }
 
   fun startLoading(text: String) {

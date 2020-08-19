@@ -80,11 +80,11 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   private var lastPinCodeView: MockPinCodePairingView? = null
   private var lastPinCodeController: PinCodePairingController? = null
 
-  override fun setUp() {
-    super.setUp()
-    FakeUi.setPortableUiFont()
-    enableHeadlessDialogs(testRootDisposable)
-  }
+    override fun setUp() {
+      super.setUp()
+      FakeUi.setPortableUiFont()
+      enableHeadlessDialogs(testRootDisposable)
+    }
 
   @Suppress("SameParameterValue")
   private fun createPinCodePairingController(mdnsService: MdnsService): PinCodePairingController {

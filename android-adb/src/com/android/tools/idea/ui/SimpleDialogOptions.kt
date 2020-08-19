@@ -18,18 +18,12 @@ package com.android.tools.idea.ui
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
-import java.awt.Component
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
- * Factory for [AbstractDialogWrapper] instances
+ * Creation options for [SimpleDialog]
  */
-interface DialogWrapperFactory {
-  fun createDialogWrapper(options: DialogWrapperOptions): AbstractDialogWrapper
-}
-
-data class DialogWrapperOptions(
+data class SimpleDialogOptions(
   val project: Project,
   val canBeParent: Boolean,
   val ideModalityType: DialogWrapper.IdeModalityType,
