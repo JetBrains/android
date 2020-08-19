@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -384,8 +385,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
-    if (expression.operationToken != KtTokens.EQ) return
-    processAssignment(expression, parent)
+    when {
+      expression.operationToken == KtTokens.EQ -> processAssignment(expression, parent)
+      // TODO(b/165576187): this allows us to parse plugins with versions, but the association between the Dsl and Psi is not ideal
+      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator.
+      expression.operationReference.getReferencedName() == "version" && parent is PluginsDslElement ->
+        expression.left?.let { it.accept(this, parent) }
+    }
   }
 
   private fun processAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {

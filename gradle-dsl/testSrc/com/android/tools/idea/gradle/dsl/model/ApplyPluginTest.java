@@ -355,6 +355,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testPluginsBlockWithVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+  }
+
+  @Test
   public void testPluginsFromApplyAndPluginsBlock() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -435,6 +442,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("applyRepeatedPluginsFromApplyAndPluginsBlocks"),
     APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPluginsFromPluginsBlock"),
     PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("pluginsBlockWithRepeatedPlugins"),
+    PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
     ;
