@@ -73,6 +73,29 @@ class ToolsTest(unittest.TestCase):
 
     self.assertEqual("<idea-version since-build=\"1234.3333\">", read_file(res))
 
+  def test_app_info(self):
+    info = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
+    build = create_file("build.txt", "AI-1234.__BUILD_NUMBER__")
+    before = create_file("p.xml", "<version major=\"4\" minor=\"3\" micro=\"2\" patch=\"1\" full=\"a\" eap=\"false\" >")
+    res = get_path("res.xml")
+    stamper.main([
+        "--info_file",
+        info,
+        "--build_file",
+        build,
+        "--version",
+        "11.22.33.44",
+        "--version_full",
+        "{0} Canary 5",
+        "--eap",
+        "true",
+        "--stamp_app_info",
+        before,
+        res,
+    ])
+
+    self.assertEqual("<version major=\"11\" minor=\"22\" micro=\"33\" patch=\"44\" full=\"{0} Canary 5\" eap=\"true\" >", read_file(res))
+
   def test_inject(self):
     info = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
     build = create_file("build.txt", "AI-1234.__BUILD_NUMBER__")

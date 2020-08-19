@@ -3,6 +3,7 @@ import argparse
 import re
 import sys
 
+
 def _read_info_file(info_file):
   with open(info_file) as f:
     ret = {}
@@ -29,6 +30,25 @@ def _read_version(build_id, build_info):
     print("Unexpected product code in build id: " + build_id)
     sys.exit(1)
   return _stamp_build_number(build_info, build_id[len("AI-"):])
+
+
+def _stamp_app_info(build_info, version, full, eap, src, dst):
+  m = re.match("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)", version)
+  if not m:
+    print("version must be of the form 1.2.3.4")
+    sys.exit(1)
+  major, minor, micro, patch = m.groups()
+  with open(src) as s:
+    content = _stamp_build_number(build_info, s.read())
+    arg = "\\s+%s=\".*\""
+    content, n = re.subn("<version%s%s%s%s%s%s" % (arg % "major", arg % "minor", arg % "micro", arg % "patch", arg % "full", arg % "eap"),
+                         "<version major=\"%s\" minor=\"%s\" micro=\"%s\" patch=\"%s\" full=\"%s\" eap=\"%s\"" % (major, minor, micro, patch, full, eap),
+                         content, 1)
+    if n != 1:
+      print("Cannot replace version number in ApplicationInfo.xml")
+      sys.exit(1)
+  with open(dst, "w") as d:
+    d.write(content)
 
 
 def _stamp_file(build_info, src, dst):
@@ -73,6 +93,29 @@ def main(argv):
       dest="stamp_plugin",
       help="Creates a stamped version of the plugin.xml <in> in <out>.")
   parser.add_argument(
+      "--version",
+      default="",
+      dest="version",
+      help="The version number in the form 1.2.3.4")
+  parser.add_argument(
+      "--version_full",
+      default="",
+      dest="version_full",
+      help="The descriptive form of the version. Can use {0} to refer to version components, like \"{0}.{1} Canary 2\"")
+  parser.add_argument(
+      "--eap",
+      default="",
+      dest="eap",
+      help="Whether this build is a canary/eap build")
+  parser.add_argument(
+      "--stamp_app_info",
+      default=[],
+      metavar=("in", "out"),
+      nargs=2,
+      action="append",
+      dest="stamp_app_info",
+      help="Stamps the ApplicationInfo.xml with the build ids and versions.")
+  parser.add_argument(
       "--stamp_build",
       default=[],
       metavar=("in", "out"),
@@ -99,7 +142,10 @@ def main(argv):
     _stamp_plugin(build_info, build_id, src, dst)
   for src, dst in args.stamp_build:
     _stamp_file(build_info, src, dst)
+  for src, dst in args.stamp_app_info:
+    _stamp_app_info(build_info, args.version, args.version_full, args.eap, src, dst)
 
 
 if __name__ == "__main__":
   main(sys.argv[1:])
+  
