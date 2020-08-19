@@ -51,6 +51,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -77,7 +78,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -250,8 +250,7 @@ public class AndroidSdks {
 
   @NotNull
   public List<Sdk> getAllAndroidSdks() {
-    List<Sdk> allSdks = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance());
-    return allSdks != null ? allSdks : Collections.emptyList();
+    return ReadAction.compute(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()));
   }
 
   @Nullable
