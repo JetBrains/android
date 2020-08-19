@@ -87,7 +87,6 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/jackson-annotations-2.10.3.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/testFramework.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/spellchecker.jar!/" type="simple"/>
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/jediterm-pty-2.27.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/intellij-deps-fastutil-8.3.1-1.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/kotlin-stdlib-jdk8-1.4.0.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/jaxb-runtime-2.3.1.jar!/" type="simple"/>
@@ -157,6 +156,7 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/slf4j-log4j12-1.7.25.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/FastInfoset-1.2.15.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/platform-statistics-uploader.jar!/" type="simple"/>
+            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/jediterm-pty-2.29.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/serviceMessages-2019.1.4.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/joni-2.1.32.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/hamcrest-core-1.3.jar!/" type="simple"/>
@@ -208,6 +208,7 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/snakeyaml-1.26.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/platform-diagnostic.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/xmlgraphics-commons-2.3.jar!/" type="simple"/>
+            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/tips-intellij-idea-community-202.13.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/nanoxml-2.2.3.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/imageio-metadata-3.5.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/batik-gvt-1.12.0-8.jar!/" type="simple"/>
@@ -294,7 +295,6 @@
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/annotations-java5.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/velocity-1.7.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/rngom-20051226-patched.jar!/" type="simple"/>
-            <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/tips-intellij-idea-community-201.11.jar!/" type="simple"/>
             <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/lib/objenesis-3.1.jar!/" type="simple"/>
           </root>
         </classPath>
