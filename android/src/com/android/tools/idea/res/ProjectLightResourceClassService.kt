@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ModuleRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
@@ -56,8 +57,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
-import org.jetbrains.android.dom.manifest.getPackageName
-import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
@@ -289,10 +288,19 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       .toList()
   }
 
-  private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
-    // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter {
-      getPackageName(it) == packageName || getTestPackageName(it) == packageName
+  private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
+    val projectSystem = project.getProjectSystem()
+    val projectScope = GlobalSearchScope.projectScope(project)
+    val facetsInferredFromPackageName = projectSystem.getAndroidFacetsWithPackageName(project, packageName, projectScope)
+
+    return if (packageName.endsWith(".test")) {
+      val facetsInferredFromTestPackageName = packageName.substringBeforeLast('.').let {
+        projectSystem.getAndroidFacetsWithPackageName(project, it, projectScope)
+      }
+      facetsInferredFromPackageName + facetsInferredFromTestPackageName
+    }
+    else {
+      facetsInferredFromPackageName
     }
   }
 
