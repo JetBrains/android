@@ -545,9 +545,6 @@ def _process_plugins(ctx, platform, data):
 
     ret = []
     for plugin, jars in plugins.items():
-        if plugin == "Compose":
-            # TODO: Compose is not a plugin, it should not be here
-            continue
         xml = ctx.actions.declare_file("%s.plugin.%s.%s.xml" % (ctx.label.name, plugin, platform.name))
         txt = ctx.actions.declare_file("%s.jar.%s.%s.txt" % (ctx.label.name, plugin, platform.name))
         args = ["--jar=%s" % jar.path for jar in jars]
