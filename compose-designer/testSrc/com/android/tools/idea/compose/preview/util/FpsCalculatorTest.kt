@@ -31,5 +31,6 @@ class FpsCalculatorTest {
     currentTimeNanos += 500_000_000
 
     assertEquals(fpsCalculator.getFps(), 40)
+    assertEquals(fpsCalculator.getDurationMs(), 500)
   }
 }
