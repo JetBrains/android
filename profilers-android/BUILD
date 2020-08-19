@@ -1,4 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
+load("//tools/base/bazel:utils.bzl", "select_project")
 
 # managed by go/iml_to_build
 iml_module(
@@ -84,6 +86,8 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/json:intellij.json[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/base/perflib:studio.android.sdktools.perflib[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
@@ -92,6 +96,51 @@ iml_module(
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
         "//tools/idea/.idea/libraries:fastutil-min",
     ],
+)
+
+kotlin_test(
+    name = "intellij.android.profilersAndroid.performance",
+    srcs = glob([
+        "testSrc/com/android/tools/idea/profilers/performance/**/*.kt",
+        "testSrc/com/android/tools/idea/profilers/performance/**/*.java",
+    ]),
+    data = [
+        "//prebuilts/tools/common/trace-processor-daemon",
+        "//tools/adt/idea/profilers:test_data",
+    ],
+    jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"],
+    test_class = "com.android.testutils.JarTestSuite",
+    runtime_deps = [
+        ":intellij.android.profilersAndroid_testlib",
+    ],
+    deps = [
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/adt/idea/android-transport:intellij.android.transport",
+        "//tools/adt/idea/profilers:intellij.android.profilers",
+        "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
+        "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui",
+        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
+    ] + select_project({
+        "unb": [
+            "//prebuilts/studio/intellij-sdk:studio-sdk",
+            "//tools/adt/idea/.idea/libraries:unb.truth",
+        ],
+        "": [
+            "//tools/idea/.idea/libraries:Guava",
+            "//tools/idea/.idea/libraries:JUnit4",
+            "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
+            "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+            "//tools/idea/.idea/libraries:studio-grpc",
+            "//tools/idea/.idea/libraries:studio-proto",
+            "//tools/idea/.idea/libraries:transport-proto",
+            "//tools/idea/.idea/libraries:truth",
+            "//tools/idea/platform/core-api:intellij.platform.core",
+            "//tools/idea/platform/util:intellij.platform.util",
+            "//tools/idea/platform/util-rt:intellij.platform.util.rt",
+        ],
+    }),
 )
 
 # managed by go/iml_to_build [unb]

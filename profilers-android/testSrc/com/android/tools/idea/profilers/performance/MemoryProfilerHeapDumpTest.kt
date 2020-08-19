@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.performance
+package com.android.tools.idea.profilers.performance
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
@@ -36,7 +36,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import kotlin.system.measureTimeMillis
 
 class MemoryProfilerHeapDumpTest {

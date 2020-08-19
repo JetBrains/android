@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.performance
+package com.android.tools.idea.profilers.performance
 
 import com.android.testutils.TestUtils
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
 import org.junit.Test
 
 /**
- * Atrace test for measuring the memory overhead of loading / parsing a atrace capture.
+ * Perfgate test for measuring the memory overhead of loading / parsing a perfetto capture.
  * Note: This test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references
  * impact the memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
  */
-class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
+class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
-  fun measureMemoryOfImportATrace() {
-    loadCaptureAndReport("Atrace-10-sec", TestUtils.getWorkspaceFile(CPU_UI_TRACES_DIR + "atrace_10s_tanks.trace"))
+  fun measureMemoryOfImportPerfetto() {
+    loadCaptureAndReport("Perfetto-10-sec", TestUtils.getWorkspaceFile(CPU_UI_TRACES_DIR + "perfetto_10s_tanks.trace"))
   }
 }
+

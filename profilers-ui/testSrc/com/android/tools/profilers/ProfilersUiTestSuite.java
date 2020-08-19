@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.profilers.ProfilersUiTestSuite.class,  // a suite mustn't contain itself
-  com.android.tools.profilers.performance.MemoryProfilerHeapDumpTest.class,  // b/152344964
 })
 public class ProfilersUiTestSuite extends IdeaTestSuiteBase {
 }
