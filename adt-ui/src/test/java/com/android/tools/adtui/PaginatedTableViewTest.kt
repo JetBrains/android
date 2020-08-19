@@ -28,6 +28,7 @@ class PaginatedTableViewTest {
     assertThat(tableView.prevPageButton.isEnabled).isFalse()
     assertThat(tableView.nextPageButton.isEnabled).isTrue()
     assertThat(tableView.lastPageButton.isEnabled).isTrue()
+    assertThat(tableView.pageInfoLabel.text).isEqualTo("1 - 2 of 3")
 
     // Go to next page
     tableView.nextPageButton.doClick()
@@ -36,6 +37,7 @@ class PaginatedTableViewTest {
     assertThat(tableView.prevPageButton.isEnabled).isTrue()
     assertThat(tableView.nextPageButton.isEnabled).isFalse()
     assertThat(tableView.lastPageButton.isEnabled).isFalse()
+    assertThat(tableView.pageInfoLabel.text).isEqualTo("3 - 3 of 3")
 
     // Go to previous page
     tableView.prevPageButton.doClick()
@@ -44,6 +46,7 @@ class PaginatedTableViewTest {
     assertThat(tableView.prevPageButton.isEnabled).isFalse()
     assertThat(tableView.nextPageButton.isEnabled).isTrue()
     assertThat(tableView.lastPageButton.isEnabled).isTrue()
+    assertThat(tableView.pageInfoLabel.text).isEqualTo("1 - 2 of 3")
 
     // Go to last page
     tableView.nextPageButton.doClick()
@@ -52,6 +55,7 @@ class PaginatedTableViewTest {
     assertThat(tableView.prevPageButton.isEnabled).isTrue()
     assertThat(tableView.nextPageButton.isEnabled).isFalse()
     assertThat(tableView.lastPageButton.isEnabled).isFalse()
+    assertThat(tableView.pageInfoLabel.text).isEqualTo("3 - 3 of 3")
 
     // Go to first page
     tableView.prevPageButton.doClick()
@@ -60,6 +64,7 @@ class PaginatedTableViewTest {
     assertThat(tableView.prevPageButton.isEnabled).isFalse()
     assertThat(tableView.nextPageButton.isEnabled).isTrue()
     assertThat(tableView.lastPageButton.isEnabled).isTrue()
+    assertThat(tableView.pageInfoLabel.text).isEqualTo("1 - 2 of 3")
   }
 
   @Test
