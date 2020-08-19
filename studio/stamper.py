@@ -1,10 +1,11 @@
 """A utility to stamp files with build numbers."""
 import argparse
+import datetime
 import re
 import sys
 
 
-def _read_info_file(info_file):
+def _read_status_file(info_file):
   with open(info_file) as f:
     ret = {}
     for line in f.read().splitlines():
@@ -15,7 +16,11 @@ def _read_info_file(info_file):
 
 def _read_build_file(build_file):
   with open(build_file) as f:
-    return f.read().strip()
+    data = f.read().strip()
+    if not data.startswith("AI-"):
+      print("Unexpected product code in build id: " + data)
+      sys.exit(1)
+    return data[len("AI-"):]
 
 
 def _stamp_build_number(build_info, data):
@@ -25,21 +30,22 @@ def _stamp_build_number(build_info, data):
   return data.replace("__BUILD_NUMBER__", label)
 
 
-def _read_version(build_id, build_info):
-  if not build_id.startswith("AI-"):
-    print("Unexpected product code in build id: " + build_id)
-    sys.exit(1)
-  return _stamp_build_number(build_info, build_id[len("AI-"):])
+def _format_build_date(build_version):
+  timestamp = build_version["BUILD_TIMESTAMP"]
+  time = datetime.datetime.fromtimestamp(int(timestamp))
+  return time.strftime("%Y%m%d%H%M")
 
 
-def _stamp_app_info(build_info, version, full, eap, src, dst):
+def _stamp_app_info(build_info, build_version, build_id, version, full, eap, src, dst):
   m = re.match("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)", version)
   if not m:
     print("version must be of the form 1.2.3.4")
     sys.exit(1)
   major, minor, micro, patch = m.groups()
   with open(src) as s:
-    content = _stamp_build_number(build_info, s.read())
+    content = s.read().replace("__BUILD__", build_id)
+    content = content.replace("__BUILD_DATE__", _format_build_date(build_version))
+    content = _stamp_build_number(build_info, content)
     arg = "\\s+%s=\".*\""
     content, n = re.subn("<version%s%s%s%s%s%s" % (arg % "major", arg % "minor", arg % "micro", arg % "patch", arg % "full", arg % "eap"),
                          "<version major=\"%s\" minor=\"%s\" micro=\"%s\" patch=\"%s\" full=\"%s\" eap=\"%s\"" % (major, minor, micro, patch, full, eap),
@@ -60,7 +66,7 @@ def _stamp_file(build_info, src, dst):
 
 def _stamp_plugin(build_info, build_id, src, dst):
   """Stamps a plugin.xml with the build ids."""
-  version = _read_version(build_id, build_info)
+  version = _stamp_build_number(build_info, build_id)
   with open(src) as s:
     content = s.read()
 
@@ -134,18 +140,24 @@ def main(argv):
       default="",
       dest="info_file",
       required=True,
-      help="Path to the bazel build info file.")
+      help="Path to the bazel build info file (bazel-out/stable-status.txt).")
+  parser.add_argument(
+      "--version_file",
+      default="",
+      dest="version_file",
+      required=True,
+      help="Path to the bazel version file (bazel-out/volatile-status.txt).")
   args = parser.parse_args(argv)
   build_id = _read_build_file(args.build_file)
-  build_info = _read_info_file(args.info_file)
+  build_info = _read_status_file(args.info_file)
+  build_version = _read_status_file(args.version_file)
   for src, dst in args.stamp_plugin:
     _stamp_plugin(build_info, build_id, src, dst)
   for src, dst in args.stamp_build:
     _stamp_file(build_info, src, dst)
   for src, dst in args.stamp_app_info:
-    _stamp_app_info(build_info, args.version, args.version_full, args.eap, src, dst)
+    _stamp_app_info(build_info, build_version, build_id, args.version, args.version_full, args.eap, src, dst)
 
 
 if __name__ == "__main__":
   main(sys.argv[1:])
-  
