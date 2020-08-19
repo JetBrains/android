@@ -425,6 +425,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     tags = ["manual"],
+    version = "0.0.0.0",
+    version_eap = True,
+    version_full = "dev build",
 )
 
 py_test(

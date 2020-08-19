@@ -295,13 +295,33 @@ def _stamp_build(ctx, build_txt, src, dst):
         mnemonic = "stamper",
     )
 
-def _stamp_app_info(ctx, platform, platform_files):
+def _stamp_app_info(ctx, build_txt, src, dst):
+    args = ["--build_file", build_txt.path]
+    args += ["--info_file", ctx.info_file.path]
+    args += ["--version", ctx.attr.version]
+    args += ["--version_full", ctx.attr.version_full]
+    args += ["--eap", "true" if ctx.attr.version_eap else "false"]
+    args += ["--stamp_app_info", src.path, dst.path]
+    ctx.actions.run(
+        inputs = [src, build_txt, ctx.info_file],
+        outputs = [dst],
+        executable = ctx.executable._stamper,
+        arguments = args,
+        progress_message = "Stamping %s file..." % src.basename,
+        mnemonic = "stamper",
+    )
+
+def _process_app_info(ctx, platform, platform_files):
     build_txt = None
     app_info_xml = None
     for rel_path, file in platform_files:
         if rel_path == platform.resource_path + "build.txt":
+            if build_txt:
+                fail("Unexpected duplicate build file in %s and %s", build_txt, file)
             build_txt = file
         if rel_path == platform.base_path + "lib/resources.jar":
+            if app_info_xml:
+                fail("Unexpected duplicate of lib/resources.jar")
             app_info_xml = ctx.actions.declare_file(ctx.attr.name + ".%s.app_info.xml" % platform.name)
             _extract(ctx, file, "idea/AndroidStudioApplicationInfo.xml", app_info_xml)
 
@@ -311,7 +331,7 @@ def _stamp_app_info(ctx, platform, platform_files):
         fail("lib/resources.jar!idea/AndroidStudioApplicationInfo.xml not found")
 
     stamped_app_info_xml = ctx.actions.declare_file(ctx.attr.name + "stamped.%s.app_info.xml" % platform.name)
-    _stamp_build(ctx, build_txt, app_info_xml, stamped_app_info_xml)
+    _stamp_app_info(ctx, build_txt, app_info_xml, stamped_app_info_xml)
     return stamped_app_info_xml, build_txt
 
 def _make_arg_file(ctx, zips, files, overrides, out):
@@ -366,7 +386,7 @@ def _android_studio_os(ctx, platform, out):
     platform_zip = ctx.actions.declare_file(ctx.attr.name + ".platform.%s.zip" % platform.name)
     platform_files = [(ctx.attr.platform.mappings[f], f) for f in platform.get(ctx.attr.platform)]
 
-    stamped_app_info_xml, build_txt = _stamp_app_info(ctx, platform, platform_files)
+    stamped_app_info_xml, build_txt = _process_app_info(ctx, platform, platform_files)
     overrides = [("#%slib/resources.jar!idea/AndroidStudioApplicationInfo.xml" % platform.base_path, stamped_app_info_xml)]
 
     platform_overrides = []
@@ -429,9 +449,10 @@ _android_studio = rule(
         "resources": attr.label_list(),
         "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
-        "searchable_options": attr.label_keyed_string_dict(
-            allow_files = True,
-        ),
+        "searchable_options": attr.label_keyed_string_dict(allow_files = True),
+        "version": attr.string(),
+        "version_eap": attr.bool(),
+        "version_full": attr.string(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
