@@ -4,13 +4,11 @@ load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "unb.studio",
-    srcs = ["src"],
     iml_files = ["studio.iml"],
     tags = [
         "manual",
         "unb",
     ],
-    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -477,23 +475,17 @@ py_binary(
     ],
 )
 
-java_binary(
+py_binary(
     name = "stamper",
-    srcs = ["src/com/android/tools/Stamper.java"],
-    main_class = "com.android.tools.Stamper",
+    srcs = ["stamper.py"],
     visibility = ["//visibility:public"],
 )
 
-java_test(
-    name = "stamper_tests",
-    srcs = ["testSrc/com/android/tools/StamperTest.java"],
-    test_class = "com.android.tools.StamperTest",
+py_test(
+    name = "tools_test",
+    srcs = ["tools_test.py"],
     visibility = ["//visibility:public"],
-    deps = [
-        ":stamper",
-        "//tools/base/third_party:com.google.guava_guava",
-        "//tools/base/third_party:junit_junit",
-    ],
+    deps = [":stamper"],
 )
 
 java_binary(
