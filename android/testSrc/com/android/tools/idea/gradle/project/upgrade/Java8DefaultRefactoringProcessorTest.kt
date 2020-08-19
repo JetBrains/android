@@ -184,6 +184,14 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryExplicitLanguageLevel8"))
   }
+
+  @Test
+  fun testSimpleJavaLibraryExplicitNamespace() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryExplicitNamespace"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("Java8Default/SimpleJavaLibraryExplicitNamespaceExpected"))
+  }
   
   @Test
   fun testIsAlwaysNoOpOnProjectSimpleApplicationExplicitLanguage7() {

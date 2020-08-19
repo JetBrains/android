@@ -128,6 +128,22 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   }
 
   @Test
+  fun testSimpleOrgGradleJavaApplication() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplication"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplicationExpected"))
+  }
+
+  @Test
+  fun testSimpleOrgGradleJavaLibrary() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibrary"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibraryExpected"))
+  }
+
+  @Test
   fun testUnknownPlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
