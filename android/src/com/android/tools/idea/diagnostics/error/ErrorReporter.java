@@ -68,7 +68,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
   public boolean submit(@NotNull IdeaLoggingEvent[] events,
                         @Nullable String description,
                         @Nullable Component parentComponent,
-                        @NotNull Consumer<SubmittedReportInfo> callback) {
+                        @NotNull Consumer<? super SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
 
