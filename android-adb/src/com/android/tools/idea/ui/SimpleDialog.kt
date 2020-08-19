@@ -15,58 +15,105 @@
  */
 package com.android.tools.idea.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
 import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JRootPane
 
 /**
- * Implementation of [AbstractDialogWrapper] that uses the [DialogWrapper] class from the platform.
+ * A simplified version of the [DialogWrapper] class from the IntelliJ platform.
  */
-class DefaultDialogWrapper(private val options: DialogWrapperOptions) : AbstractDialogWrapper() {
+class SimpleDialog(private val options: SimpleDialogOptions) {
+  companion object {
+    /**
+     * Returns the [SimpleDialog] that created the [DialogWrapper] passed as input
+     */
+    fun fromDialogWrapper(dialogWrapper: DialogWrapper): SimpleDialog? {
+      return if (dialogWrapper is DialogWrapperInner) dialogWrapper.outerInstance else null
+    }
+  }
+
   private val innerDialogWrapper: DialogWrapperInner by lazy {
     DialogWrapperInner()
   }
 
-  override val disposable = Disposer.newDisposable()
+  /**
+   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed
+   */
+  val disposable = Disposer.newDisposable()
 
-  override var title: String
+  /**
+   * The title of the dialog
+   */
+  var title: String
     get() = innerDialogWrapper.title
     set(value) { innerDialogWrapper.title = value }
 
-  override var cancelButtonText: String
+  /**
+   * The text of the `Cancel` button (default is "Cancel")
+   */
+  var cancelButtonText: String
     get() = innerDialogWrapper.cancelAction.getValue(Action.NAME)?.toString() ?: ""
     set(value) { innerDialogWrapper.cancelAction.putValue(Action.NAME, value) }
 
-  override var cancelButtonVisible: Boolean
+  /**
+   * Should the `Cancel` button be visible
+   */
+  var cancelButtonVisible: Boolean
     get() = innerDialogWrapper.cancelButton?.isVisible ?: false
     set(value) { innerDialogWrapper.cancelButton?.isVisible = value }
 
-  override var cancelButtonEnabled: Boolean
+  /**
+   * Should the `Cancel` button be enabled
+   */
+  var cancelButtonEnabled: Boolean
     get() = innerDialogWrapper.cancelButton?.isEnabled ?: false
     set(value) { innerDialogWrapper.cancelButton?.isEnabled = value }
 
-  override var okButtonText: String
+  /**
+   * The text of the `OK` button (default is "OK")
+   */
+  var okButtonText: String
     get() = innerDialogWrapper.okAction.getValue(Action.NAME)?.toString() ?: ""
     set(value) { innerDialogWrapper.okAction.putValue(Action.NAME, value) }
 
-  override var okButtonVisible: Boolean
+  /**
+   * Should the `Ok` button be shown
+   */
+  var okButtonVisible: Boolean
     get() = innerDialogWrapper.okButton?.isVisible ?: false
     set(value) { innerDialogWrapper.okButton?.isVisible = value }
 
-  override var okButtonEnabled: Boolean
+  /**
+   * Should the `Ok` button be enabled
+   */
+  var okButtonEnabled: Boolean
     get() = innerDialogWrapper.okButton?.isEnabled ?: false
     set(value) { innerDialogWrapper.okButton?.isEnabled = value }
 
-  override fun init() {
+  /**
+   * The standard [JRootPane] container of this dialog
+   */
+  val rootPane : JRootPane
+    get() = innerDialogWrapper.rootPane
+
+  /**
+   * The application specific [JComponent] used for the main content of the dialog
+   */
+  val contentPanel : JComponent
+    get() = innerDialogWrapper.contentPanel
+
+  fun init() {
     // Ensure we are disposed if our inner dialog is disposed (e.g. "Close" or "Cancel" button)
     Disposer.register(innerDialogWrapper.disposable, disposable)
     innerDialogWrapper.init()
   }
 
-  override fun show() {
+  fun show() {
     innerDialogWrapper.show()
   }
 
@@ -84,6 +131,9 @@ class DefaultDialogWrapper(private val options: DialogWrapperOptions) : Abstract
       title = options.title
       super.init()
     }
+
+    val outerInstance: SimpleDialog
+      get() = this@SimpleDialog
 
     /** Make [DialogWrapper.getOKAction] publicly accessible */
     val okAction = super.getOKAction()
