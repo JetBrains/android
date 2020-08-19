@@ -36,12 +36,12 @@ interface DeviceFileDownloaderService {
    * If the file corresponding to a path is not found, that path is skipped.
    * Returns a map where each on-device path is mapped to the corresponding VirtualFile.
    *
-   * If the device corresponding to [deviceId] is not found, the future fails with IllegalArgumentException.
+   * If the device corresponding to [deviceSerialNumber] is not found, the future fails with IllegalArgumentException.
    *
    * [downloadProgress] is a download progress for all the files, if canceled, all the running/waiting downloads will be stopped.
    */
   fun downloadFiles(
-    deviceId: String,
+    deviceSerialNumber: String,
     onDevicePaths: List<String>,
     downloadProgress: DownloadProgress
   ): ListenableFuture<Map<String, VirtualFile>>

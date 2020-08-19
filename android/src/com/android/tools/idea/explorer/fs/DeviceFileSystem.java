@@ -29,6 +29,12 @@ public interface DeviceFileSystem {
   String getName();
 
   /**
+   * A string created by adb to uniquely identify the device by its port number.
+   */
+  @NotNull
+  String getDeviceSerialNumber();
+
+  /**
    * The device state, as defined by {@link DeviceState}
    */
   @NotNull
