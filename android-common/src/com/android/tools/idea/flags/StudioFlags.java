@@ -557,7 +557,7 @@ public final class StudioFlags {
     "offline.enabled",
     "Enable offline mode in Database Inspector",
     "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
-    false
+    true
   );
   //endregion
 
