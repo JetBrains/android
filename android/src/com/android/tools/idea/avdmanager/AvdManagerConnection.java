@@ -937,7 +937,7 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
       hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
       hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "768-0-1-2152");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
       hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
       hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
     }
