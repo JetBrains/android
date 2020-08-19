@@ -90,7 +90,7 @@ class OfflineDatabaseManagerTest : LightPlatformTestCase() {
 
     // Assert
     verify(deviceFileDownloaderService).downloadFiles(
-      eq("model [serial]"),
+      eq("serial"),
       eq(listOf(
         "/data/data/com.example.package/databases/db-file",
         "/data/data/com.example.package/databases/db-file-shm",

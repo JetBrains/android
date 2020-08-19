@@ -57,7 +57,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   private val edtExecutor = EdtExecutorService.getInstance()
 
   override fun downloadFiles(
-    deviceId: String,
+    deviceSerialNumber: String,
     onDevicePaths: List<String>,
     downloadProgress: DownloadProgress
   ): ListenableFuture<Map<String, VirtualFile>> {
@@ -67,7 +67,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
 
     return deviceFileSystemService.start { AndroidSdkUtils.getAdb(project) }.transformAsyncNullable(edtExecutor) {
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
-        val deviceFileSystem = devices!!.find { it.name == deviceId }
+        val deviceFileSystem = devices!!.find { it.deviceSerialNumber == deviceSerialNumber }
         require(deviceFileSystem != null)
         doDownload(deviceFileSystem, onDevicePaths, downloadProgress)
       }

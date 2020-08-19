@@ -93,6 +93,12 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
 
   @NotNull
   @Override
+  public String getDeviceSerialNumber() {
+    return myDevice.getSerialNumber();
+  }
+
+  @NotNull
+  @Override
   public DeviceState getDeviceState() {
     IDevice.DeviceState state = myDevice.getState();
 

@@ -55,8 +55,6 @@ class OfflineDatabaseManagerImpl(
     processDescriptor: ProcessDescriptor,
     databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
   ): DatabaseFileData {
-    val deviceId = "${processDescriptor.model} [${processDescriptor.serial}]"
-
     val path = databaseToDownload.path
     // Room uses write-ahead-log, so we need to download these additional files to open the db
     val pathsToDownload = listOf(path, "$path-shm", "$path-wal")
@@ -65,9 +63,9 @@ class OfflineDatabaseManagerImpl(
     Disposer.register(project, disposableDownloadProgress)
 
     val files = try {
-      deviceFileDownloaderService.downloadFiles(deviceId, pathsToDownload, disposableDownloadProgress).await()
+      deviceFileDownloaderService.downloadFiles(processDescriptor.serial, pathsToDownload, disposableDownloadProgress).await()
     } catch (e: IllegalArgumentException) {
-      throw IOException("Can't download database '${databaseToDownload.path}', device '$deviceId' not found.", e)
+      throw IOException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
     }
 
     val mainFile = files[path] ?: throw FileNotFoundException("Can't download database '${databaseToDownload.path}'")
