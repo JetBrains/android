@@ -1093,7 +1093,7 @@ android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.48.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jdom.jar
-android-studio/lib/jediterm-pty-2.27.jar
+android-studio/lib/jediterm-pty-2.29.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jing-20030619.jar
 android-studio/lib/jna-platform.jar
@@ -1214,7 +1214,7 @@ android-studio/lib/testFramework.core.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/tests_bootstrap.jar
 android-studio/lib/tightvnc.jar
-android-studio/lib/tips-intellij-idea-community-201.11.jar
+android-studio/lib/tips-intellij-idea-community-202.13.jar
 android-studio/lib/trang-core.jar
 android-studio/lib/transport_java_proto.jar
 android-studio/lib/trove4j.jar
@@ -2130,7 +2130,7 @@ android-studio/plugins/coverage/lib/resources_en.jar
 android-studio/plugins/editorconfig/lib/editorconfig-core-java.jar
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/editorconfig/lib/resources_en.jar
-android-studio/plugins/filePrediction/lib/file-prediction-model-0.0.1.jar
+android-studio/plugins/filePrediction/lib/file-prediction-model-0.1.1.jar
 android-studio/plugins/filePrediction/lib/filePrediction.jar
 android-studio/plugins/filePrediction/lib/resources_en.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar
