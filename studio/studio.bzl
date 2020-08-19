@@ -262,9 +262,10 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_win = 
 def _stamp_plugin(ctx, build_txt, in_xml, stamped_xml):
     args = ["--build_file", build_txt.path]
     args += ["--info_file", ctx.info_file.path]
+    args += ["--version_file", ctx.version_file.path]
     args += ["--stamp_plugin", in_xml.path, stamped_xml.path]
     ctx.actions.run(
-        inputs = [in_xml, build_txt, ctx.info_file],
+        inputs = [in_xml, build_txt, ctx.info_file, ctx.version_file],
         outputs = [stamped_xml],
         executable = ctx.executable._stamper,
         arguments = args,
@@ -284,10 +285,11 @@ def _extract(ctx, zip, file, target):
 
 def _stamp_build(ctx, build_txt, src, dst):
     args = ["--build_file", build_txt.path]
+    args += ["--version_file", ctx.version_file.path]
     args += ["--info_file", ctx.info_file.path]
     args += ["--stamp_build", src.path, dst.path]
     ctx.actions.run(
-        inputs = [src, build_txt, ctx.info_file],
+        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
         outputs = [dst],
         executable = ctx.executable._stamper,
         arguments = args,
@@ -297,13 +299,14 @@ def _stamp_build(ctx, build_txt, src, dst):
 
 def _stamp_app_info(ctx, build_txt, src, dst):
     args = ["--build_file", build_txt.path]
+    args += ["--version_file", ctx.version_file.path]
     args += ["--info_file", ctx.info_file.path]
     args += ["--version", ctx.attr.version]
     args += ["--version_full", ctx.attr.version_full]
     args += ["--eap", "true" if ctx.attr.version_eap else "false"]
     args += ["--stamp_app_info", src.path, dst.path]
     ctx.actions.run(
-        inputs = [src, build_txt, ctx.info_file],
+        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
         outputs = [dst],
         executable = ctx.executable._stamper,
         arguments = args,
