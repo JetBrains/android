@@ -87,7 +87,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
     if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
 
     if (DumbService.isDumb(module.project)) {
-      LOG.warn("Safe Args classes may by temporarily stale due to indices not being ready right now.")
+      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
       return descriptorsCache
     }
 
