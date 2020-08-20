@@ -159,13 +159,16 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
   }
 
-  processedModuleDependencies.forEach { (_, moduleDependencyData) ->
-    moduleDependencyData.order = orderIndex++
-    createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
-  }
   processedLibraries.forEach { (_, libraryDependencyData) ->
     libraryDependencyData.order = orderIndex++
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
+  }
+  // Due to the way intellij collects classpaths for test (using all transitive deps) we are putting all module dependencies last so that
+  // their dependencies will be last on the classpath and not overwrite actual dependencies of the module being tested.
+  // This should be removed once we have a way to correct the order of the classpath, or we start running tests via Gradle.
+  processedModuleDependencies.forEach { (_, moduleDependencyData) ->
+    moduleDependencyData.order = orderIndex++
+    createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
   }
 }
 
