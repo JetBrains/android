@@ -3,7 +3,11 @@ package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlFile;
@@ -12,13 +16,13 @@ import com.intellij.psi.xml.XmlToken;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.analysis.XmlAnalysisBundle;
 import com.intellij.xml.util.XmlTagUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAnyTagDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -83,14 +87,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
           if (startTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlAnalysisBundle.message(
-              "xml.annotator.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
+              "xml.inspections.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
           if (endTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlAnalysisBundle.message(
-              "xml.annotator.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
+              "xml.inspections.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
         }
