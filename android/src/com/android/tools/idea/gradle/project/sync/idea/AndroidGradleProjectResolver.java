@@ -62,6 +62,7 @@ import com.android.builder.model.Variant;
 import com.android.builder.model.v2.models.ndk.NativeModule;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.impl.BuildFolderPaths;
 import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
@@ -179,7 +180,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
-  @NotNull private final ModelCache modelCache = ModelCache.create();
+  @NotNull private ModelCache modelCache;
   private boolean myShouldExportDependencies;
 
   public AndroidGradleProjectResolver() {
@@ -787,7 +788,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    populateModuleBuildDirs(gradleProject);
+    BuildFolderPaths buildFolderPaths = populateModuleBuildDirs(gradleProject);
+    modelCache = ModelCache.create(buildFolderPaths);
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -798,13 +800,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * Set map from project path to build directory for all modules.
    * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
    */
-  private void populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+  private BuildFolderPaths populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+    BuildFolderPaths buildFolderPaths = new BuildFolderPaths();
     // Set root build id.
     for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
         String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-        modelCache.setRootBuildId(rootBuildId);
+        buildFolderPaths.setRootBuildId(rootBuildId);
         break;
       }
     }
@@ -825,7 +828,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         if (gradleProject != null) {
           try {
             String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-            modelCache.addBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+            buildFolderPaths.addBuildFolderMapping(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {
             // getBuildDirectory is not available for Gradle older than 2.0.
@@ -834,6 +837,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         }
       }
     }
+    return buildFolderPaths;
   }
 
   /**
