@@ -16,12 +16,12 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import kotlinx.coroutines.CoroutineScope
@@ -30,16 +30,10 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class DatabaseInspectorClientTest : LightPlatformTestCase() {
-  private lateinit var databaseInspectorClient: DatabaseInspectorClient
-  private lateinit var mockMessenger: AppInspectorClient
-
   private lateinit var openDatabaseFunction: (SqliteDatabaseId, DatabaseConnection) -> Unit
   private var openDatabaseInvoked = false
 
@@ -58,8 +52,6 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    mockMessenger = mock(AppInspectorClient::class.java)
-    `when`(mockMessenger.rawEventFlow).thenReturn(emptyFlow())
     openDatabaseInvoked = false
     openDatabaseFunction = { _, _ -> openDatabaseInvoked = true }
 
@@ -74,9 +66,18 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
     executor = Executors.newSingleThreadExecutor()
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
+  }
 
-    databaseInspectorClient = DatabaseInspectorClient(
-      mockMessenger,
+  override fun tearDown() {
+    scope.cancel()
+    executor.shutdownNow()
+    super.tearDown()
+  }
+
+  private fun createDefaultDatabaseInspectorClient(): DatabaseInspectorClient {
+    val mockClient = TestDatabaseInspectorClient(scope)
+    return DatabaseInspectorClient(
+      mockClient,
       testRootDisposable,
       handleErrorFunction,
       openDatabaseFunction,
@@ -87,16 +88,20 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     )
   }
 
-  override fun tearDown() {
-    scope.cancel()
-    executor.shutdownNow()
-    super.tearDown()
-  }
-
   fun testStartTrackingDatabaseConnectionSendsMessage() = runBlocking<Unit> {
     // Prepare
     val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(emptyResponse)
+    val mockClient = TestDatabaseInspectorClient(scope, emptyResponse)
+    val databaseInspectorClient = DatabaseInspectorClient(
+      mockClient,
+      testRootDisposable,
+      handleErrorFunction,
+      openDatabaseFunction,
+      hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
+      executor,
+      scope
+    )
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
@@ -107,13 +112,15 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     databaseInspectorClient.startTrackingDatabaseConnections()
 
     // Assert
-    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertThat(mockClient.rawDataSent).isEqualTo(trackDatabasesCommand)
   }
 
   fun testOnDatabaseOpenedEventOpensDatabase() {
     // Prepare
     val databaseOpenEvent = SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder().setDatabaseId(1).setPath("path").build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
+
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
 
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
@@ -134,6 +141,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     ).build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
+
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -152,6 +161,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
         .build()
     ).build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
 
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
@@ -172,6 +183,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     ).build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
+
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -185,6 +198,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     val databasePossiblyChangedEvent = SqliteInspectorProtocol.DatabasePossiblyChangedEvent.newBuilder().build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabasePossiblyChanged(databasePossiblyChangedEvent).build()
 
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
+
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -197,6 +212,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     // Prepare
     val databaseClosedEvent = SqliteInspectorProtocol.DatabaseClosedEvent.newBuilder().setDatabaseId(1).build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseClosed(databaseClosedEvent).build()
+
+    val databaseInspectorClient = createDefaultDatabaseInspectorClient()
 
     // Act
     databaseInspectorClient.onRawEvent(event.toByteArray())
@@ -214,7 +231,17 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(keepDbsOpenResponse)
+    val mockClient = TestDatabaseInspectorClient(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = DatabaseInspectorClient(
+      mockClient,
+      testRootDisposable,
+      handleErrorFunction,
+      openDatabaseFunction,
+      hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
+      executor,
+      scope
+    )
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -225,7 +252,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
 
     // Assert
-    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertThat(mockClient.rawDataSent).isEqualTo(trackDatabasesCommand)
     assertEquals(true, result)
   }
 
@@ -244,7 +271,17 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(keepDbsOpenResponse)
+    val mockClient = TestDatabaseInspectorClient(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = DatabaseInspectorClient(
+      mockClient,
+      testRootDisposable,
+      handleErrorFunction,
+      openDatabaseFunction,
+      hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
+      executor,
+      scope
+    )
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -256,7 +293,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertThat(mockClient.rawDataSent).isEqualTo(trackDatabasesCommand)
   }
 
   fun testKeepConnectionOpenNotSetInResponse() = runBlocking {
@@ -265,7 +302,17 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(keepDbsOpenResponse)
+    val mockClient = TestDatabaseInspectorClient(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = DatabaseInspectorClient(
+      mockClient,
+      testRootDisposable,
+      handleErrorFunction,
+      openDatabaseFunction,
+      hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
+      executor,
+      scope
+    )
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -276,7 +323,23 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
 
     // Assert
-    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertThat(mockClient.rawDataSent).isEqualTo(trackDatabasesCommand)
     assertEquals(null, result)
   }
+}
+
+private val EMPTY_BYTEARRAY = ByteArray(0)
+
+private class TestDatabaseInspectorClient(scope: CoroutineScope,
+                                  private val singleRawCommandResponse: ByteArray = EMPTY_BYTEARRAY) : AppInspectorClient {
+  lateinit var rawDataSent: ByteArray
+  override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+    rawDataSent = rawData
+    return singleRawCommandResponse
+  }
+
+  override val rawEventFlow = emptyFlow<ByteArray>()
+
+  override val scope: CoroutineScope = scope
+  override val crashMessage: String? = null
 }
