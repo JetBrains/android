@@ -19,6 +19,7 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.common.scene.draw.ColorSet;
@@ -88,11 +89,11 @@ public class ScreenView extends ScreenViewBase {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
-      if (result != null) {
-        ImagePool.Image image = result.getRenderedImage();
+      if (result != null && result.getSystemRootViews().size() == 1) {
+        ViewInfo viewInfo = result.getSystemRootViews().get(0);
 
         try {
-          outDimension.setSize(image.getWidth(), image.getHeight());
+          outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
           if (cachedDimension == null) {
