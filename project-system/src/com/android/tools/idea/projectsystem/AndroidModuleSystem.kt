@@ -19,7 +19,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.Library
+import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.intellij.openapi.module.Module
@@ -127,7 +127,7 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
-  fun getResolvedLibraryDependencies(): Collection<Library>
+  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary>
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.

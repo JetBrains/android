@@ -26,7 +26,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.Library
+import com.android.projectmodel.ExternalLibrary
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -159,12 +159,12 @@ class GradleModuleSystem(
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
     module)
 
-  override fun getResolvedLibraryDependencies(): Collection<Library> {
+  override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
     return getResolvedLibraryDependencies(module)
   }
 
-  private fun getResolvedLibraryDependencies(module: Module): Collection<Library> {
+  private fun getResolvedLibraryDependencies(module: Module): Collection<ExternalLibrary> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)
