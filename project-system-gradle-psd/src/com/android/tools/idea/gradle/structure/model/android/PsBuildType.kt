@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.ide.common.gradle.model.IdeBaseConfig
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.buildTypeMatchingFallbackValues
@@ -53,6 +55,7 @@ import java.io.File
 import javax.swing.Icon
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
+fun IdeBaseConfig.kotlinUnitWorkAround() : Unit? = null
 
 open class PsBuildType(
   final override val parent: PsAndroidModule,
@@ -200,9 +203,9 @@ open class PsBuildType(
 
     val signingConfig: SimpleProperty<PsBuildType, Unit> = property(
       "Signing Config",
-      resolvedValueGetter = { null },
+      resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
       parsedPropertyGetter = { signingConfig() },
-      getter = { asUnit() },
+      getter = ResolvedPropertyModel::asUnit,
       setter = {},
       parser = ::parseReferenceOnly,
       formatter = ::formatUnit,

@@ -52,6 +52,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -211,6 +212,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
      */
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
+      ProgressManager.checkCanceled()
       val index = FileBasedIndex.getInstance()
       val scope = GlobalSearchScope.fileScope(project, manifestFile)
       val values = mutableListOf<AndroidManifestRawText>()

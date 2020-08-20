@@ -1744,7 +1744,7 @@ fun addValueResource(
 
 fun getResourceSubdirs(
   resourceType: ResourceFolderType,
-  resourceDirs: Collection<VirtualFile?>
+  resourceDirs: Iterable<VirtualFile?>
 ): List<VirtualFile> {
   val dirs: MutableList<VirtualFile> = ArrayList()
   for (resourcesDir in resourceDirs) {

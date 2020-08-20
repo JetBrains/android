@@ -80,7 +80,7 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
   }
 
 private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
-  val variants = androidProject.variants.filterIsInstance<IdeVariant>()
+  val variants = variants
   return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())

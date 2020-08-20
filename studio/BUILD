@@ -31,40 +31,39 @@ iml_module(
         "//tools/adt/idea/smali:unb.intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder:unb.test-recorder[module]",
         "//tools/vendor/google/url-assistant:unb.url-assistant[module]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Compose",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-configurationScript",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-copyright",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-coverage",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-editorconfig",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-filePrediction",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-git4idea",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-github",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Groovy",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-hg4idea",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-IntelliLang",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-decompiler",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-i18n",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java-ide-customization",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-junit",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-maven-model",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-platform-images",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-properties-resource-bundle-editor",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-repository-search",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-settings-repository",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-sh",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-stream-debugger",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-svn4idea",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-tasks",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-terminal",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-testng",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-textmate",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-vcs-changeReminder",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-yaml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-configurationScript",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-coverage",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-editorconfig",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-filePrediction",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-github",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-model",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties-resource-bundle-editor",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-repository-search",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-settings-repository",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-sh",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-stream-debugger",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-svn4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-tasks",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-testng",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-changeReminder",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
     ],
 )
 
@@ -223,12 +222,12 @@ studio_plugin(
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//prebuilts/studio/layoutlib:layoutlib",
-            "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
         ],
         "resources": [
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
+            "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
             "//tools/base/transport:transport-bundle",
             "//prebuilts/tools:simpleperf-bundle",
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
@@ -367,7 +366,7 @@ android_studio(
             "//tools/analytics-library/crash:unb.analytics-crash",
         ],
     },
-    platform = "//prebuilts/studio/intellij-sdk:studio-platform",
+    platform = "//prebuilts/studio/intellij-sdk:studio-sdk.platform",
     plugins = [
         ":intellij.android.plugin",
         ":com.android.tools.apk",
@@ -413,7 +412,20 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
             "//tools/adt/idea/.idea/libraries:unb.tightvnc",
         ],
+        "license": [
+            # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
+            "//tools/adt/idea/android/lib:licenses",
+            "//tools/studio/google/appindexing/lib:licenses",
+            "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
+            "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
+            "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
+            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains dupplicated licenses with google-login-plugin
+            "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
+            "//tools/vendor/google/firebase:licenses",
+            "//prebuilts/studio/layoutlib:licenses",
+        ],
     },
+    searchable_options = "searchable-options",
     tags = ["manual"],
 )
 
@@ -429,6 +441,40 @@ py_test(
         ":android-studio.win.zip",
     ],
     tags = ["manual"],
+)
+
+py_test(
+    name = "searchable_options_test",
+    timeout = "eternal",
+    srcs = [
+        "tests/searchable_options_test.py",
+        "tests/update_searchable_options.py",
+    ],
+    data = [
+        ":android-studio.linux.zip",
+        ":android-studio.plugin.lst",
+    ],
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+)
+
+py_binary(
+    name = "update_searchable_options",
+    srcs = ["tests/update_searchable_options.py"],
+    data = [
+        ":android-studio.linux.zip",
+        ":android-studio.plugin.lst",
+    ],
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
 )
 
 java_binary(
@@ -448,4 +494,49 @@ java_test(
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:junit_junit",
     ],
+)
+
+java_binary(
+    name = "updater",
+    main_class = "com.intellij.updater.Runner",
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # Uses jars directly to avoid pulling in all dependencies.
+        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.8.6:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/29.0-jre:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/nothome/javaxdelta/2.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/8.4.0:jar",
+        "//prebuilts/tools/common/m2/repository/log4j/log4j/1.2.17:jar",
+        "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna-platform/5.5.0:jar",
+        "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna/5.5.0:jar",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/studio-updater:unb.intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater
+        "//tools/analytics-library/shared:analytics-shared.jar",
+        "//tools/analytics-library/tracker:analytics-tracker.jar",
+        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations.jar",
+        "//tools/base/common:unb.studio.android.sdktools.common.jar",
+    ],
+)
+
+py_binary(
+    name = "process_plugin",
+    srcs = ["process_plugin.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "arg_maker",
+    srcs = ["arg_maker.py"],
+    visibility = ["//visibility:public"],
 )

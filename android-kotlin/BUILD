@@ -34,7 +34,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
@@ -86,7 +86,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -156,7 +156,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -235,7 +235,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -292,7 +292,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
     ],
@@ -312,9 +312,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
@@ -342,9 +342,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
         "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea[module]",
@@ -380,8 +380,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
         "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea[module, test]",

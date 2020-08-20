@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST
-import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN
-import com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_ANDROID_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode

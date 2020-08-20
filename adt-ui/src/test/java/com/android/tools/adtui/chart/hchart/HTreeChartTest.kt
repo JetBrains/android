@@ -26,19 +26,19 @@ import java.awt.*
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo.isMac
-import com.intellij.openapi.util.SystemInfoRt
 import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
   private lateinit var myChart: HTreeChart<DefaultHNode<String>>
   private lateinit var myRange: Range
-  // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
-  // towards north and south.
-  private val myContentHeight = 75
+
+  // Height is calulated in setup. It is based off the font metrics. With JDK 11 the font metrics return slightly different sizes on windows
+  // vs linux or mac.
   // The total height is the height of the content plus the height of the padding.
-  private val myTotalHeight = myContentHeight + 10
+  private var myTotalHeight = 0
   private val myViewHeight = 50
+
   // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
   private val myInitialYPosition = 0
 
@@ -49,20 +49,21 @@ class HTreeChartTest {
 
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
-
-    myChart = HTreeChart.Builder(HNodeTree(0, 5, 2), myRange, FakeRenderer())
+    val treeHeight = 4
+    myChart = HTreeChart.Builder(HNodeTree(0, treeHeight, 2), myRange, FakeRenderer())
       .setGlobalXRange(Range(0.0, 100.0))
       .setOrientation(orientation)
       .build()
+    val contentHeight = (myChart.defaultFontMetrics.height +
+                         HTreeChart.PADDING) * /* Default padding */
+                        treeHeight /* Height of tree node. */
+    myTotalHeight = contentHeight + HTreeChart.HEIGHT_PADDING
 
     myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
     // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
-
-    if (!SystemInfoRt.isWindows) { // b/163140294
-      assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
-    }
+    assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
   }
 
   /**
@@ -147,9 +148,6 @@ class HTreeChartTest {
 
   @Test
   fun testMouseOverDragToSouth() {
-    if (SystemInfoRt.isWindows) {
-      return // b/163140294
-    }
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
 
@@ -255,10 +253,6 @@ class HTreeChartTest {
 
   @Test
   fun testTopDownChartOverDragToNorth() {
-    if (SystemInfoRt.isWindows) {
-      return // b/163140294
-    }
-
     setUp(HTreeChart.Orientation.TOP_DOWN)
 
     assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)

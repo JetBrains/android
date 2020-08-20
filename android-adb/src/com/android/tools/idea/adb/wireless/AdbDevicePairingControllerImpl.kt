@@ -25,6 +25,7 @@ import java.util.concurrent.Executor
 
 @UiThread
 class AdbDevicePairingControllerImpl(private val project: Project,
+                                     private val parentDisposable: Disposable,
                                      edtExecutor: Executor,
                                      private val pairingService: AdbDevicePairingService,
                                      private val view: AdbDevicePairingView
@@ -32,12 +33,18 @@ class AdbDevicePairingControllerImpl(private val project: Project,
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val qrCodeScanningController = QrCodeScanningController(pairingService, view, edtExecutor, this)
 
+  private val viewListener = MyViewListener(this)
+
   init {
     // Ensure we are disposed when the project closes
-    Disposer.register(project, this)
+    Disposer.register(parentDisposable, this)
 
     // Ensure we are disposed when the view closes
-    view.addListener(MyViewListener(this))
+    view.addListener(viewListener)
+  }
+
+  override fun dispose() {
+    view.removeListener(viewListener)
   }
 
   override fun showDialog() {
@@ -64,10 +71,6 @@ class AdbDevicePairingControllerImpl(private val project: Project,
 
     // Note: This call is blocking and returns only when the dialog is closed
     view.showDialog()
-  }
-
-  override fun dispose() {
-    // Nothing to do (the view or project disposal is what makes us being disposed)
   }
 
   inner class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {

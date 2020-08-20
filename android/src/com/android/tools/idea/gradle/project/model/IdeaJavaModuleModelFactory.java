@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -63,13 +62,19 @@ public class IdeaJavaModuleModelFactory {
 
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
-                                @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
                                 boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
-                                  getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
-                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject), isBuildable);
+    return JavaModuleModel.create(
+      ideaModule.getName(),
+                                  getContentRoots(ideaModule),
+                                  dependencies.first,
+                                  dependencies.second,
+                                  getArtifactsByConfiguration(externalProject),
+                                  getCompilerOutput(externalProject),
+                                  ideaModule.getGradleProject().getBuildDirectory(),
+                                  getLanguageLevel(externalProject),
+                                  isBuildable);
   }
 
   @NotNull

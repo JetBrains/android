@@ -26,7 +26,9 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -34,6 +36,12 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.pom.Navigatable
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.ClassUtil
+import kotlinx.coroutines.withContext
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
 
@@ -70,6 +78,29 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
           notification.expire()
         }
       }).notify(project)
+    }
+
+    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
+      val fqcn = codeLocation.fqcn
+      val navigatable: Navigatable? = if (fqcn != null) {
+        ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
+      }
+      else {
+        runReadAction {
+          val fileName = codeLocation.fileName!!
+          FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
+            .firstOrNull()?.virtualFile
+            ?.let { virtualFile ->
+              OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
+            }
+        }
+      }
+
+      if (navigatable != null) {
+        withContext(AndroidDispatchers.uiThread) {
+          navigatable.navigate(true)
+        }
+      }
     }
   }
 

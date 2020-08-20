@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
@@ -26,10 +27,15 @@ import org.junit.Test
 
 class TasksNodePresentationTest {
 
+  val timeDistributionBuilder = TimeDistributionBuilder()
+
   @Test
   fun testTaskWithoutWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
@@ -44,7 +50,10 @@ class TasksNodePresentationTest {
   fun testTaskWithWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
@@ -61,7 +70,10 @@ class TasksNodePresentationTest {
     val task = mockUiData.mockTask(":app", "resources", "resources.plugin", 855)
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin)
+    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
@@ -79,7 +91,10 @@ class TasksNodePresentationTest {
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin)
+    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
@@ -93,7 +108,10 @@ class TasksNodePresentationTest {
   @Test
   fun testTaskUnderPluginWithoutWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
@@ -108,7 +126,10 @@ class TasksNodePresentationTest {
   fun testTaskUnderPluginWithWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",

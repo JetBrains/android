@@ -33,8 +33,11 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
+import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip
+import com.android.tools.profilers.cpu.atrace.VsyncTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -186,6 +189,9 @@ class CpuCaptureStageViewTest {
     val vsyncTrackPos = trackGroups[0].trackList.indexToLocation(2)
     displayTrackUi.mouse.moveTo(vsyncTrackPos.x, vsyncTrackPos.y)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(VsyncTooltip::class.java)
+    val bufferQueuePos = trackGroups[0].trackList.indexToLocation(3)
+    displayTrackUi.mouse.moveTo(bufferQueuePos.x, bufferQueuePos.y)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(BufferQueueTooltip::class.java)
 
     // Thread tooltip
     // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.

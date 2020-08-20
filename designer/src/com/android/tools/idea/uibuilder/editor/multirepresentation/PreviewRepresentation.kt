@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 
 /**
@@ -57,5 +56,20 @@ interface PreviewRepresentation : Disposable {
    * [onActivate] will be called if the representation becomes active again.
    */
   fun onDeactivate() {}
+  // endregion
+
+  // region State handling
+  /**
+   * Called to restore any saved state in [getState] after this preview is loaded. The method will not be called if there is no saved
+   * state.
+   *
+   * This method will only be invoked once after the representation has been instantiated.
+   */
+  fun setState(state: PreviewRepresentationState) {}
+
+  /**
+   * Called to retrieve any saved state for this [PreviewRepresentation].
+   */
+  fun getState(): PreviewRepresentationState? = null
   // endregion
 }

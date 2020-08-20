@@ -53,7 +53,7 @@ internal class GroupSwitchAction : DropDownAction(
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
     presentation.isEnabledAndVisible = availableGroups.isNotEmpty()
     if (presentation.isEnabledAndVisible) {
-      presentation.text = previewManagers.map { it.groupFilter?.displayName }.firstOrNull()
+      presentation.text = previewManagers.map { it.groupFilter.displayName }.firstOrNull()
     }
   }
 

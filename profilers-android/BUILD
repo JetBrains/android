@@ -9,6 +9,7 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
     ],
     test_resources = ["testResources"],
@@ -43,7 +44,7 @@ iml_module(
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -107,6 +108,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
+        "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
     ],
     test_resources = ["testResources"],
@@ -115,7 +117,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//tools/adt/idea/profilers-ui:unb.intellij.android.profilers.ui[module]",
         "//tools/adt/idea/profilers:unb.intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",

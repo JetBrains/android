@@ -61,6 +61,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager;
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -69,6 +71,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
@@ -77,6 +80,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -96,6 +100,22 @@ public class AndroidGradleTests {
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
+
+  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) {
+    SourceFolderManagerImpl instance = (SourceFolderManagerImpl)SourceFolderManager.getInstance(project);
+    Future<?> state = instance.getBulkOperationState();
+    TestCase.assertNotNull(state);
+    long started = System.currentTimeMillis();
+    do {
+      try {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      }
+      catch (InterruptedException exception) {
+        throw new RuntimeException(exception);
+      }
+    }
+    while (System.currentTimeMillis() - started < 1000 && !state.isDone());
+  }
 
   /**
    * Thrown when Android Studios Gradle imports obtains and SyncIssues from Gradle that have SyncIssues.SEVERITY_ERROR.

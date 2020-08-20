@@ -19,6 +19,7 @@ import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.HashCodes;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -34,6 +35,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
@@ -66,6 +68,12 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @NotNull private final Consumer<String> mySetAttributeTask;
 
   /**
+   * TODO(b/163360968): Remove 'myCanModify' once we properly support writing in Kotlin and Java files. Currently,
+   * {@link org.jetbrains.android.AndroidAnnotatorUtil#createSetAttributeTask(PsiElement)} only works on XML files.
+   */
+  private final boolean myCanModify;
+
+  /**
    * @param element {@link PsiElement} being annotated, usually an XML attribute or tag.
    * @param resourceResolver {@link ResourceResolver} instance used to resolve resources from the active theme.
    * @param facet the {@link AndroidFacet} for the active module.
@@ -82,6 +90,8 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     myFile = file;
     myConfiguration = configuration;
     mySetAttributeTask = createSetAttributeTask(element);
+    PsiFile containingFile = element.getContainingFile();
+    myCanModify = containingFile != null && containingFile.getFileType() == XmlFileType.INSTANCE;
   }
 
   @Override
@@ -94,9 +104,9 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   }
 
   @Override
-  @NotNull
+  @Nullable
   public AnAction getClickAction() {
-    return new GutterIconClickAction(myFile, myResourceResolver, myFacet, myConfiguration);
+    return myCanModify ? new GutterIconClickAction(myFile, myResourceResolver, myFacet, myConfiguration) : null;
   }
 
   @Override

@@ -60,48 +60,6 @@ public class ToolbarActionGroups implements Disposable {
   }
 
   /**
-   * The default groups of zoom actions with their respective shortcuts.
-   * <p>
-   * Prefer for non-editable {@link DesignerEditorFileType}.
-   * <p>
-   * Returns an empty list if {@link StudioFlags#NELE_DESIGN_SURFACE_ZOOM} is enabled.
-   *
-   * @see DesignSurface#reactivateInteractionManager()
-   */
-  @NotNull
-  public static List<AnAction> getZoomActions() {
-    ArrayList<AnAction> zoomActions = new ArrayList<AnAction>();
-    if (!StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      zoomActions.add(ZoomOutAction.getInstance());
-      zoomActions.add(ZoomLabelAction.INSTANCE);
-      zoomActions.add(ZoomInAction.getInstance());
-      zoomActions.add(ZoomToFitAction.getInstance());
-    }
-    return zoomActions;
-  }
-
-  /**
-   * The default groups of zoom actions with their respective shortcuts.
-   * <p>
-   * Prefer for editable {@link DesignerEditorFileType}.
-   * <p>
-   * Returns an empty list if {@link StudioFlags#NELE_DESIGN_SURFACE_ZOOM} is enabled.
-   *
-   * @see DesignSurface#reactivateInteractionManager()
-   */
-  @NotNull
-  public static List<AnAction> getZoomActionsWithShortcuts(@NotNull JComponent shortcutConsumer, @NotNull Disposable parentDisposable) {
-    ArrayList<AnAction> zoomActions = new ArrayList<AnAction>();
-    if (!StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      zoomActions.add(ZoomOutAction.getInstance());
-      zoomActions.add(ZoomLabelAction.INSTANCE);
-      zoomActions.add(ZoomInAction.getInstance());
-      zoomActions.add(ZoomToFitAction.getInstance());
-    }
-    return zoomActions;
-  }
-
-  /**
    * Includes a trailing separator when adding a non-empty collection of {@link AnAction}s to a {@link DefaultActionGroup}.
    */
   protected static void addActionsWithSeparator(@NotNull DefaultActionGroup group, @NotNull Collection<AnAction> actions) {

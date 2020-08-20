@@ -82,6 +82,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
@@ -91,6 +92,8 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FontMetrics;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -243,7 +246,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     myNativeAllocationButton
       .addActionListener(e -> {
         getStage().toggleNativeAllocationTracking();
-        myNativeAllocationButton.setEnabled(false);
+        disableRecordingButtons();
       });
     myNativeAllocationButton.setVisible(getStage().isNativeAllocationSamplingEnabled());
     myNativeAllocationAction =
@@ -387,11 +390,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
-      boolean isAlive = profilers.getSessionsManager().isSessionAlive();
-      myForceGarbageCollectionButton.setEnabled(isAlive);
-      myHeapDumpButton.setEnabled(isAlive);
-      myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
+      resetRecordingButtons();
       liveAllocationStatusChanged();  // update myAllocationSamplingRateLabel and myAllocationSamplingRateDropDown
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
@@ -399,6 +398,20 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
                                                         this::liveAllocationStatusChanged);
     toggleButtons.run();
     return panel;
+  }
+
+  private void resetRecordingButtons() {
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    myForceGarbageCollectionButton.setEnabled(isAlive);
+    myHeapDumpButton.setEnabled(isAlive && !getStage().isTrackingAllocations());
+    myAllocationButton.setEnabled(isAlive);
+    myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
+  }
+
+  private void disableRecordingButtons() {
+    myAllocationButton.setEnabled(false);
+    myNativeAllocationButton.setEnabled(false);
+    myHeapDumpButton.setEnabled(false);
   }
 
   @VisibleForTesting
@@ -502,8 +515,6 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
   }
 
   private void allocationTrackingChanged() {
-    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText(STOP_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
@@ -520,10 +531,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myAllocationButton.setToolTipText("Record memory allocations");
       myNativeAllocationButton.setText(RECORD_NATIVE_TEXT);
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
-      myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
+      myNativeAllocationButton.setToolTipText(isSelectedSessionDeviceX86OrX64() ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
-    myHeapDumpButton.setEnabled(isAlive && !getStage().isTrackingAllocations());
-    myNativeAllocationButton.setEnabled(!isX86OrX64Device && isAlive);
+    resetRecordingButtons();
   }
 
   private void updateCaptureElapsedTime() {
@@ -727,21 +737,13 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
-    legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
-    legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
-    legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
-    legend.configure(legends.getStackLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getStackSeries())));
-    legend.configure(legends.getCodeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getCodeSeries())));
-    legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
-    legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
-    legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
+    JComponent fullLegend = makeLegendComponent(lineChart, memoryUsage, true);
+    JComponent compactLegend = makeLegendComponent(lineChart, memoryUsage, false);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
-    legendPanel.add(legend, BorderLayout.EAST);
+    legendPanel.add(fullLegend, BorderLayout.EAST);
 
     if (!getStage().hasUserUsedMemoryCapture()) {
       installProfilingInstructions(monitorPanel);
@@ -755,7 +757,35 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     layout.setRowSizing(1, "*"); // Give monitor as much space as possible
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
+
+    panel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        legendPanel.remove(fullLegend);
+        legendPanel.remove(compactLegend);
+        legendPanel.add(fullLegend.getPreferredSize().width + 60 < panel.getWidth() ? fullLegend : compactLegend, BorderLayout.EAST);
+      }
+    });
     return panel;
+  }
+
+  private JComponent makeLegendComponent(LineChart lineChart, DetailedMemoryUsage memoryUsage, boolean full) {
+    MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends)
+      .setRightPadding(PROFILER_LEGEND_RIGHT_PADDING)
+      .setShowValues(full)
+      .setExcludedLegends(full ? ArrayUtil.EMPTY_STRING_ARRAY : new String[]{"Total"})
+      .build();
+
+    legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
+    legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
+    legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));
+    legend.configure(legends.getStackLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getStackSeries())));
+    legend.configure(legends.getCodeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getCodeSeries())));
+    legend.configure(legends.getOtherLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getOtherSeries())));
+    legend.configure(legends.getTotalLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getTotalMemorySeries())));
+    legend.configure(legends.getObjectsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getObjectsSeries())));
+    return legend;
   }
 
   static Icon getIconForSamplingMode(LiveAllocationSamplingMode mode) {
@@ -866,11 +896,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     stopLoadingUi();
     myCaptureObject = getStage().getCaptureSelection().getSelectedCapture();
     if (myCaptureObject == null) {
-      boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
-      boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-      myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
-      myHeapDumpButton.setEnabled(isAlive);
+      resetRecordingButtons();
       myLayout.setShowingCaptureUi(false);
       return;
     }
@@ -880,24 +906,19 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       captureObjectFinishedLoading();
     }
     else {
-      myAllocationButton.setEnabled(false);
-      myNativeAllocationButton.setEnabled(false);
-      myHeapDumpButton.setEnabled(false);
+      disableRecordingButtons();
       myLayout.setLoadingUiVisible(true);
     }
   }
 
   private void captureObjectFinishedLoading() {
-    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
-    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
-    myAllocationButton.setEnabled(isAlive);
-    myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
+    resetRecordingButtons();
     // If the capture is an imported file, myRangeSelectionComponent is null.
     // If it is part of a profiler session, myRangeSelectionComponent is not null and should obtain the focus.
     if (myRangeSelectionComponent != null) {
       myRangeSelectionComponent.requestFocus();
     }
-    myHeapDumpButton.setEnabled(isAlive);
+
     if (myCaptureObject != getStage().getCaptureSelection().getSelectedCapture() || myCaptureObject == null) {
       return;
     }
@@ -927,50 +948,6 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
   private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {
     chart.configure(series, new LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-  }
-
-  /**
-   * TODO currently we have slightly different icons for the MemoryClassSetView vs the MemoryInstanceDetailsView.
-   * Re-investigate and see if they should share the same conditions.
-   */
-  @NotNull
-  static Icon getValueObjectIcon(@NotNull ValueObject valueObject) {
-    if (valueObject instanceof FieldObject) {
-      FieldObject field = (FieldObject)valueObject;
-      if (field.getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
-      }
-      else if (field.getValueType().getIsPrimitive()) {
-        return AllIcons.Debugger.Db_primitive;
-      }
-      else {
-        return getStackedIcon(field.getAsInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
-      }
-    }
-    else if (valueObject instanceof ReferenceObject) {
-      ReferenceObject referrer = (ReferenceObject)valueObject;
-      if (referrer.getReferenceInstance().getIsRoot()) {
-        return AllIcons.Hierarchy.Subtypes;
-      }
-      else if (referrer.getReferenceInstance().getValueType() == ValueObject.ValueType.ARRAY) {
-        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.ARRAY_STACK, AllIcons.Debugger.Db_array);
-      }
-      else {
-        return getStackedIcon(referrer.getReferenceInstance(), StudioIcons.Profiler.Overlays.FIELD_STACK, PlatformIcons.FIELD_ICON);
-      }
-    }
-    else if (valueObject instanceof InstanceObject) {
-      return getStackedIcon((InstanceObject)valueObject, StudioIcons.Profiler.Overlays.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
-    }
-    else {
-      return PlatformIcons.INTERFACE_ICON;
-    }
-  }
-
-  private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
-    return (instance == null || instance.getCallStackDepth() == 0)
-           ? nonStackedIcon
-           : stackedIcon;
   }
 
   @VisibleForTesting

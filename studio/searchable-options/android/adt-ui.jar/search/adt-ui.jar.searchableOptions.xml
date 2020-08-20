@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="reset" path="ActionManager" hit="Reset Zoom" />
+    <option name="zoom" path="ActionManager" hit="Reset Zoom" />
+    <option name="default" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="level" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="reset" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="to" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="zoom" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="in" path="ActionManager" hit="Zoom In" />
+    <option name="zoom" path="ActionManager" hit="Zoom In" />
+    <option name="out" path="ActionManager" hit="Zoom Out" />
+    <option name="zoom" path="ActionManager" hit="Zoom Out" />
+    <option name="in" path="ActionManager" hit="Zoom in preview" />
+    <option name="preview" path="ActionManager" hit="Zoom in preview" />
+    <option name="zoom" path="ActionManager" hit="Zoom in preview" />
+    <option name="out" path="ActionManager" hit="Zoom out preview" />
+    <option name="preview" path="ActionManager" hit="Zoom out preview" />
+    <option name="zoom" path="ActionManager" hit="Zoom out preview" />
+    <option name="fit" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="preview" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="screen" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="size" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="the" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="to" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="zoom" path="ActionManager" hit="Zoom the preview to fit the screen size" />
+    <option name="100" path="ActionManager" hit="Zoom to Actual Size (100%)" />
+    <option name="actual" path="ActionManager" hit="Zoom to Actual Size (100%)" />
+    <option name="size" path="ActionManager" hit="Zoom to Actual Size (100%)" />
+    <option name="to" path="ActionManager" hit="Zoom to Actual Size (100%)" />
+    <option name="zoom" path="ActionManager" hit="Zoom to Actual Size (100%)" />
+    <option name="fit" path="ActionManager" hit="Zoom to Fit Screen" />
+    <option name="screen" path="ActionManager" hit="Zoom to Fit Screen" />
+    <option name="to" path="ActionManager" hit="Zoom to Fit Screen" />
+    <option name="zoom" path="ActionManager" hit="Zoom to Fit Screen" />
+    <option name="actual" path="ActionManager" hit="Zoom to actual size of preview" />
+    <option name="of" path="ActionManager" hit="Zoom to actual size of preview" />
+    <option name="preview" path="ActionManager" hit="Zoom to actual size of preview" />
+    <option name="size" path="ActionManager" hit="Zoom to actual size of preview" />
+    <option name="to" path="ActionManager" hit="Zoom to actual size of preview" />
+    <option name="zoom" path="ActionManager" hit="Zoom to actual size of preview" />
+  </configurable>
+</options>
+

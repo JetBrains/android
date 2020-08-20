@@ -32,7 +32,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -122,8 +121,7 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     };
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder,
-                                                         myIdeaJavaModuleModelFactory, new IdeDependenciesFactory());
+    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myIdeaJavaModuleModelFactory);
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
     GradleProjectResolverExtension next = new CommonGradleProjectResolverExtension();

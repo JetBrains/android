@@ -39,18 +39,20 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
   private val LOG = logger<QrCodeScanningController>()
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val pollingAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
-  private val listener = MyModelListener()
+  private val modelListener = MyModelListener()
+  private val viewListener = MyViewListener()
   private var state = State.Init
 
   init {
     Disposer.register(parentDisposable, this)
-    view.addListener(MyViewListener())
-    view.model.addListener(listener)
+    view.addListener(viewListener)
+    view.model.addListener(modelListener)
   }
 
   override fun dispose() {
     pollingAlarm.cancelAllRequests()
-    view.model.removeListener(listener)
+    view.model.removeListener(modelListener)
+    view.removeListener(viewListener)
     state = State.Disposed
   }
 

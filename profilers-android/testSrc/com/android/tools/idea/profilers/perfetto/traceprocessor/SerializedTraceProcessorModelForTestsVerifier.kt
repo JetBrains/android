@@ -61,9 +61,6 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto trace`() {
-    // This test is only supported when running from the IDE.
-    Assume.assumeFalse(TestUtils.runningFromBazel())
-
     val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeFeatureTracker)
     assertThat(loadOk).isTrue()
     val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
@@ -93,9 +90,6 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto_cpu_usage trace`() {
-    // This test is only supported when running from the IDE.
-    Assume.assumeFalse(TestUtils.runningFromBazel())
-
     val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), fakeFeatureTracker)
     assertThat(loadOk).isTrue()
     val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
@@ -142,11 +136,8 @@ class SerializedTraceProcessorModelForTestsVerifier {
   }
 
   @Test
-  @Ignore("Manual test to be invoked from inside the IDE, to regenerate _process_list and _tpd_model " +
-          "for perfetto traces in testData")
+  @Ignore("To be invoked manually to regenerate _process_list and _tpd_model for perfetto traces in testData")
   fun `regen TPD model files`() {
-    Assume.assumeFalse(TestUtils.runningFromBazel())
-
     produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
     produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"))
   }

@@ -15,29 +15,122 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.HoverRowTable
+import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
+import com.intellij.openapi.ui.popup.IconButton
+import com.intellij.ui.InplaceButton
+import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.JBTable
+import com.intellij.util.containers.ComparatorUtil.min
+import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineScope
+import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.event.ActionListener
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JSeparator
+import javax.swing.JTable
+import javax.swing.table.DefaultTableCellRenderer
+
+private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
+private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
 
 /**
  * View class for the WorkManger Inspector Tab with a table of all active works.
  */
-class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient) {
-  private val root = JPanel(VerticalLayout(0))
+class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
+                              ideServices: AppInspectionIdeServices,
+                              scope: CoroutineScope) {
 
-  val component: JComponent = root
+  private class WorksTableCellRenderer : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(table: JTable?,
+                                               value: Any?,
+                                               isSelected: Boolean,
+                                               hasFocus: Boolean,
+                                               row: Int,
+                                               column: Int): Component =
+      when (table?.convertColumnIndexToModel(column)) {
+        // TODO(163343710): Add icons on the left of state text
+        WorksTableModel.Column.STATE.ordinal -> {
+          val text = WorkInfo.State.forNumber(value as Int).name
+          val capitalizedText = text[0] + text.substring(1).toLowerCase(Locale.getDefault())
+          super.getTableCellRendererComponent(table, capitalizedText, isSelected, hasFocus, row, column)
+        }
+        WorksTableModel.Column.TIME_STARTED.ordinal -> {
+          val formatter = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
+          val time = value as Long
+          val timeText = if (time == -1L) "-" else formatter.format(Date(value))
+          super.getTableCellRendererComponent(table, timeText, isSelected, hasFocus, row, column)
+        }
+        else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+      }
+  }
 
-  init {
-    root.add(JScrollPane(buildWorksTable()))
+  private inner class CancelButton(actionListener: ActionListener?) : InplaceButton(
+    IconButton("Cancel Selected Work", AllIcons.Actions.Suspend,
+               AllIcons.Ide.Notification.CloseHover), actionListener) {
+    init {
+      preferredSize = BUTTON_DIMENS
+      minimumSize = preferredSize // Prevent layout phase from squishing this button
+    }
+
+    override fun isEnabled() = selectedModelRow != -1
+  }
+
+  private val classNameProvider = ClassNameProvider(ideServices, scope)
+  private val timeProvider = TimeProvider()
+  private val enqueuedAtProvider = EnqueuedAtProvider(ideServices, scope)
+  private val stringListProvider = StringListProvider()
+  private val constraintProvider = ConstraintProvider()
+  private val outputDataProvider = OutputDataProvider()
+
+  private val splitter = JBSplitter(false).apply {
+    border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
+    isOpaque = true
+    firstComponent = buildTablePanel()
+    secondComponent = null
+  }
+
+  val component: JComponent = splitter
+
+  private var selectedModelRow = -1
+
+  private fun buildTablePanel(): JComponent {
+    val headingPanel = JPanel(BorderLayout())
+    val cancelButton = CancelButton(ActionListener {
+      val id = client.getWorkInfoOrNull(selectedModelRow)?.id
+      if (id != null) {
+        client.cancelWorkById(id)
+      }
+    })
+    headingPanel.add(cancelButton, BorderLayout.WEST)
+
+    val panel = JPanel(TabularLayout("*", "Fit,*"))
+    panel.add(headingPanel, TabularLayout.Constraint(0, 0))
+    panel.add(JScrollPane(buildWorksTable()), TabularLayout.Constraint(1, 0))
+
+    return panel
   }
 
   private fun buildWorksTable(): JBTable {
@@ -45,6 +138,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient) {
     val table: JBTable = HoverRowTable(model)
 
     table.autoCreateRowSorter = true
+    table.setDefaultRenderer(Object::class.java, WorksTableCellRenderer())
 
     // Adjusts width for each column.
     table.addComponentListener(object : ComponentAdapter() {
@@ -54,6 +148,99 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient) {
         }
       }
     })
+
+    model.addTableModelListener {
+      ApplicationManager.getApplication().invokeLater {
+        if (splitter.secondComponent == null) {
+          return@invokeLater
+        }
+        if (selectedModelRow != -1) {
+          val tableRow = table.convertRowIndexToView(selectedModelRow)
+          table.addRowSelectionInterval(tableRow, tableRow)
+          splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(selectedModelRow))
+        }
+        else {
+          splitter.secondComponent = buildDetailedPanel(table, null)
+        }
+      }
+    }
+
+    table.selectionModel.addListSelectionListener {
+      if (table.selectedRow != -1) {
+        selectedModelRow = table.convertRowIndexToModel(table.selectedRow)
+        splitter.secondComponent = buildDetailedPanel(table, client.getWorkInfoOrNull(selectedModelRow))
+      }
+    }
     return table
+  }
+
+  private fun buildDetailedPanel(table: JTable, work: WorkInfo?): JComponent? {
+    if (work == null) return splitter.secondComponent
+
+    val headingPanel = JPanel(BorderLayout())
+    val instanceViewLabel = JLabel("Work Details")
+    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+    headingPanel.add(instanceViewLabel, BorderLayout.WEST)
+    val closeButton = CloseButton(ActionListener {
+      splitter.secondComponent = null
+      selectedModelRow = -1
+    })
+    headingPanel.add(closeButton, BorderLayout.EAST)
+
+
+    val panel = JPanel(TabularLayout("*", "Fit,Fit,*"))
+    panel.add(headingPanel, TabularLayout.Constraint(0, 0))
+    panel.add(JSeparator(), TabularLayout.Constraint(1, 0))
+    val detailPanel = object : ScrollablePanel(VerticalLayout(2)) {
+      override fun getScrollableTracksViewportWidth() = false
+      override fun getPreferredScrollableViewportSize(): Dimension {
+        val result = super.getPreferredScrollableViewportSize()
+        return Dimension(min(700, result.width), result.height)
+      }
+    }
+
+    val idListProvider = IdListProvider(client, table, work)
+    detailPanel.preferredScrollableViewportSize
+    val scrollPane = JBScrollPane(detailPanel)
+    scrollPane.border = BorderFactory.createEmptyBorder()
+    detailPanel.add(buildKeyValuePair("Class", work.workerClassName, classNameProvider))
+    detailPanel.add(buildKeyValuePair("Periodicity", if (work.isPeriodic) "Periodic" else "One Time"))
+    if (work.namesCount > 0) {
+      val uniqueName = work.namesList[0]
+      detailPanel.add(buildKeyValuePair("Unique Work Name", uniqueName))
+      detailPanel.add(buildKeyValuePair("", client.getWorkIdsWithUniqueName(uniqueName), idListProvider))
+    }
+    detailPanel.add(buildKeyValuePair("Tags", work.tagsList, stringListProvider))
+    detailPanel.add(buildKeyValuePair("Enqueued At", work.callStack, enqueuedAtProvider))
+    detailPanel.add(buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider))
+    detailPanel.add(buildKeyValuePair("Retry Count", work.runAttemptCount))
+    detailPanel.add(buildKeyValuePair("Prerequisites", work.prerequisitesList.toList(), idListProvider))
+    detailPanel.add(buildKeyValuePair("Dependencies", work.dependentsList.toList(), idListProvider))
+    detailPanel.add(buildKeyValuePair("Constraints", work.constraints, constraintProvider))
+    detailPanel.add(buildKeyValuePair("State", work.state.name))
+    detailPanel.add(buildKeyValuePair("Output Data", work.data, outputDataProvider))
+    panel.add(scrollPane, TabularLayout.Constraint(2, 0))
+    return panel
+  }
+
+  private fun <T> buildKeyValuePair(key: String,
+                                    value: T,
+                                    componentProvider: ComponentProvider<T> = ToStringProvider()): JPanel {
+    val panel = JPanel(TabularLayout("180px,*"))
+    val keyPanel = JPanel(BorderLayout())
+    keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
+    panel.add(keyPanel, TabularLayout.Constraint(0, 0))
+    panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
+    return panel
+  }
+}
+
+class CloseButton(actionListener: ActionListener?) : InplaceButton(
+  IconButton("Close", AllIcons.Ide.Notification.Close,
+             AllIcons.Ide.Notification.CloseHover), actionListener) {
+
+  init {
+    preferredSize = BUTTON_DIMENS
+    minimumSize = preferredSize // Prevent layout phase from squishing this button
   }
 }

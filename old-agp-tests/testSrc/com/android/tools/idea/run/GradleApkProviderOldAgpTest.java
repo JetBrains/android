@@ -154,7 +154,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     createApkFiles(apkFolder, "base-master.apk", "feature1-master.apk", "feature2-master.apk");
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet),
-                                                       outputProvider, false, () -> GradleApkProvider.OutputKind.AppBundleOutputModel);
+                                                       outputProvider, false, it -> GradleApkProvider.OutputKind.AppBundleOutputModel);
     outputProvider.setAppBundleProjectBuildOutput(myAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertSize(1, apks);
@@ -180,7 +180,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
 
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet),
-                                                       outputProvider, true, () -> GradleApkProvider.OutputKind.AppBundleOutputModel);
+                                                       outputProvider, true, it -> GradleApkProvider.OutputKind.AppBundleOutputModel);
     outputProvider.setAppBundleProjectBuildOutput(baseAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
     outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", testApk));
     IDevice iDevice = mock(IDevice.class);

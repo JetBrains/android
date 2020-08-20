@@ -15,145 +15,49 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
-import com.android.annotations.concurrency.AnyThread
-import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.WorkerThread
-import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 
 /**
- * Base class for implementing a client of known app-inspector.
- *
- * Implementations can use [messenger] to send commands to an inspector and listens for events from it via [rawEventListener].
+ * A client class that facilitates two-way communication between it and the inspector.
  */
-abstract class AppInspectorClient(
-  val messenger: CommandMessenger
-) {
-  /** Interface for defining a connection that sends basic commands and receives callbacks between studio and inspectors. */
-  interface CommandMessenger {
-    /**
-     * Disposes the inspector.
-     *
-     * This is an idempotent operation (no additional effects if called more than once). Upon return this inspector will be considered
-     * disposed, no matter if the actual command succeeded or failed. The inspector will be considered unusable in either case. All pending
-     * commands at the moment of disposal are resolved exceptionally.
-     */
-    @WorkerThread
-    fun disposeInspector()
-
-    /**
-     * Sends a raw command using the provided [rawData]. Returns the raw response.
-     *
-     * This function can throw [AppInspectionConnectionException] which happens when App Inspection framework encounters an
-     * issue with the underlying connection to the process. Clients must be able to handle it gracefully.
-     * An example would be the connection ended because the app crashed.
-     */
-    @WorkerThread
-    suspend fun sendRawCommand(rawData: ByteArray): ByteArray
-  }
-
+interface AppInspectorClient {
   /**
-   * Interface for raw events from an inspector.
-   */
-  interface RawEventListener {
-    /**
-     * Callback for raw events sent by inspector.
-     */
-    @WorkerThread
-    fun onRawEvent(eventData: ByteArray) {}
-  }
-
-  /**
-   * Interface for service related events from an inspector.
-   */
-  interface ServiceEventListener {
-    /**
-     * Callback for when inspector crashes.
-     *
-     * It is needed only for error handling. Resources clean up should be done as
-     * usual in [onDispose], that will be triggered right after this call.
-     */
-    @WorkerThread
-    fun onCrashEvent(message: String) {}
-
-    /**
-     * Callback when this inspector was disposed to free any held resources and notify any interested parties.
-     *
-     * After this call you shouldn't try to send any new commands via [CommandMessenger] to this inspector
-     * and all pending commands are resolved with an exception.
-     *
-     * It can occur for various reasons: developer explicitly asked requested
-     * via [CommandMessenger.disposeInspector], app's process was terminated or inspector crashed on the device.
-     */
-    @WorkerThread
-    fun onDispose() {}
-  }
-
-  /**
-   * Class that allows for the triggering of notifications on all current [ServiceEventListener] associated with this client.
+   * Sends a raw command using the provided [rawData]. Returns the raw response.
    *
-   * It is exposed publicly but should only be used by internal AppInspection API.
+   * This function can throw [AppInspectionConnectionException] which happens when App Inspection framework encounters an
+   * issue with the underlying connection to the process. Clients must be able to handle it gracefully.
+   * An example would be the connection ended because the app crashed.
    */
-  @AnyThread
-  class ServiceEventNotifier {
-    private val lock = Any()
-
-    @GuardedBy("lock")
-    private val listeners = mutableMapOf<ServiceEventListener, Executor>()
-
-    @GuardedBy("lock")
-    private var isCrashed = false
-
-    @GuardedBy("lock")
-    private lateinit var crashMessage: String
-
-    @GuardedBy("lock")
-    private var isDisposed = false
-
-    internal fun addListener(listener: ServiceEventListener, executor: Executor) {
-      synchronized(lock) {
-        // A client is disposed soon after it crashes. There is a very small window in which it is in crashed state but not disposed, so we
-        // still want to add listener if that's the case.
-        if (isCrashed) {
-          executor.execute { listener.onCrashEvent(crashMessage) }
-        }
-        if (isDisposed) {
-          executor.execute { listener.onDispose() }
-        } else {
-          listeners[listener] = executor
-        }
-      }
-    }
-
-    /**
-     * Only to be used by AppInspection internal modules.
-     */
-    fun notifyCrash(message: String) {
-      synchronized(lock) {
-        isCrashed = true
-        crashMessage = message
-        listeners.forEach { (listener, executor) -> executor.execute { listener.onCrashEvent(message) } }
-      }
-    }
-
-    /**
-     * Only to be used by AppInspection internal modules.
-     */
-    fun notifyDispose() {
-      synchronized(lock) {
-        isDisposed = true
-        listeners.forEach { (listener, executor) -> executor.execute { listener.onDispose() } }
-        listeners.clear()
-      }
-    }
-  }
-
-  abstract val rawEventListener: RawEventListener
-
-  val serviceEventNotifier = ServiceEventNotifier()
+  @WorkerThread
+  suspend fun sendRawCommand(rawData: ByteArray): ByteArray
 
   /**
-   * Adds a [ServiceEventListener] to listen to dispose and crash events of this client. Callbacks are executed on [executor].
+   * A cold data stream of Raw Events sent by the inspector on device.
+   *
+   * Note: Once the inspector client is disposed by any means, collection won't be possible and will result in
+   * CancellationException being thrown immediately.
    */
-  fun addServiceEventListener(listener: ServiceEventListener, executor: Executor) = serviceEventNotifier.addListener(listener, executor)
+  val rawEventFlow: Flow<ByteArray>
+
+  /**
+   * The coroutine scope this inspector client runs in.
+   *
+   * Cancelling this scope has the side effect of disposing the inspector running on device. Likewise, exceptional events that happen to
+   * the inspector (such as crash) will result in the cancellation of this scope. Therefore, calling join() on this scope is a reliable
+   * way to find out when the inspector is disposed.
+   */
+  val scope: CoroutineScope
+
+  /**
+   * If the inspector was disposed exceptionally (ex: crashed), then this will be set to the error message. Otherwise null.
+   */
+  val crashMessage: String?
 }
+
+/**
+ * A convenience function that awaits until the inspector is disposed.
+ */
+suspend fun AppInspectorClient.awaitForDisposal() = scope.coroutineContext[Job]!!.join()

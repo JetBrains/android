@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.model
 
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
 import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
@@ -50,7 +49,6 @@ import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SigningConfigStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
-import com.android.ide.common.gradle.model.stubs.SyncIssueStub
 import com.android.ide.common.gradle.model.stubs.TestOptionsStub
 import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
@@ -76,8 +74,7 @@ import java.io.File
  * serialization mechanisms for DataNodes. This is used to cache the results of sync when we load the project structure from cache.
  */
 class ModelSerializationTest {
-  private val modelCache = ModelCache()
-  private val dependenciesFactory = IdeDependenciesFactory()
+  private val modelCache = ModelCache.createForTesting()
   private val gradleVersion = GradleVersion.parse("3.2")
 
   /*
@@ -106,16 +103,13 @@ class ModelSerializationTest {
 
   @Test
   fun androidModuleModel() = assertSerializable(disableEqualsCheck = true) {
-    val androidProject = modelCache.androidProjectFrom(
-      AndroidProjectStub("3.6.0"),
-      dependenciesFactory,
-      listOf(VariantStub()),
-      emptyList(),
-      listOf(SyncIssueStub()))
+    val variants = listOf(VariantStub())
+    val androidProject = modelCache.androidProjectFrom(AndroidProjectStub("3.6.0"))
     AndroidModuleModel.create(
       "moduleName",
       File("some/file/path"),
       androidProject,
+      variants.map { modelCache.variantFrom(it, GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.modelVersion)) },
       "variantName"
     )
   }
@@ -206,8 +200,7 @@ class ModelSerializationTest {
   @Test
   fun level2Dependencies() = assertSerializable {
     // We use a local one to avoid changing the global one that is used for other tests.
-    val localDependenciesFactory = IdeDependenciesFactory()
-    localDependenciesFactory.create(AndroidArtifactStub()) as IdeDependenciesImpl
+    modelCache.dependenciesFrom(AndroidArtifactStub()) as IdeDependenciesImpl
   }
 
   /*
@@ -222,7 +215,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifact() = assertSerializable {
-    modelCache.androidArtifactFrom(AndroidArtifactStub(), dependenciesFactory, gradleVersion)
+    modelCache.androidArtifactFrom(AndroidArtifactStub(), gradleVersion)
   }
 
   @Test
@@ -232,12 +225,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidProject() = assertSerializable {
-    modelCache.androidProjectFrom(
-      AndroidProjectStub("3.6.0"),
-      dependenciesFactory,
-      listOf(VariantStub()),
-      emptyList(),
-      listOf(SyncIssueStub()))
+    modelCache.androidProjectFrom(AndroidProjectStub("3.6.0"))
   }
 
   @Test
@@ -267,7 +255,7 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() = assertSerializable {
-    modelCache.javaArtifactFrom(JavaArtifactStub(), dependenciesFactory)
+    modelCache.javaArtifactFrom(JavaArtifactStub())
   }
 
   @Test
@@ -287,7 +275,7 @@ class ModelSerializationTest {
 
   @Test
   fun mavenCoordinates() = assertSerializable {
-    ModelCache.mavenCoordinatesFrom(MavenCoordinatesStub())
+    modelCache.mavenCoordinatesFrom(MavenCoordinatesStub())
   }
 
   @Test
@@ -361,11 +349,6 @@ class ModelSerializationTest {
   }
 
   @Test
-  fun syncIssue() = assertSerializable {
-    modelCache.syncIssueFrom(SyncIssueStub())
-  }
-
-  @Test
   fun testedTargetVariant() = assertSerializable {
     modelCache.testedTargetVariantFrom(TestedTargetVariantStub())
   }
@@ -377,7 +360,7 @@ class ModelSerializationTest {
 
   @Test
   fun variant() = assertSerializable {
-    modelCache.variantFrom(VariantStub(), dependenciesFactory, gradleVersion)
+    modelCache.variantFrom(VariantStub(), gradleVersion)
   }
 
   @Test

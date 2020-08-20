@@ -4,8 +4,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": ".gradle",
+        },
+        "non-gradle": {},
+    },
     tags = [
-        "no_test_mac",  # b/152941757
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
@@ -49,7 +56,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -117,7 +124,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
@@ -174,8 +181,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
         "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
@@ -195,7 +202,6 @@ iml_module(
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
     tags = [
         "manual",
-        "no_test_mac",  # b/152941757
         "no_test_windows",
         "unb",
     ],
@@ -219,8 +225,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-java",
-        "//tools/adt/idea/.idea/libraries:unb.studio-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:unb.intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",

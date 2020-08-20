@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-import com.android.tools.idea.common.editor.SetZoomActionGroups
-import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
@@ -26,6 +24,4 @@ object MenuFileType : LayoutEditorFileType("menu") {
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.MENU
 
   override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && MenuDomFileDescription.isMenuFile(file)
-
-  override fun getToolbarActionGroups(surface: DesignSurface) = SetZoomActionGroups(surface)
 }

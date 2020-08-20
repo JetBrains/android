@@ -11,7 +11,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -193,7 +192,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.applicationid", getId())));
     }
 
-    ApkProvider apkProvider = getApkProvider(null);
+    ApkProvider apkProvider = getApkProvider();
     if (apkProvider != null) {
       errors.addAll(apkProvider.validate());
     }
@@ -337,8 +336,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices());
-    ApkProvider apkProvider = getApkProvider(targetDeviceSpec);
+    ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
@@ -393,8 +391,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  protected ApkProvider getApkProvider(@Nullable AndroidDeviceSpec targetDeviceSpec) {
-    return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this, targetDeviceSpec);
+  protected ApkProvider getApkProvider() {
+    return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
   }
 
   public abstract boolean isTestConfiguration();

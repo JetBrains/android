@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.ide.common.gradle.model.impl.ModelCache
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -45,9 +44,8 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        ModelCache().androidArtifactFrom(
+        ModelCache.createForTesting().androidArtifactFrom(
           AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
-          IdeDependenciesFactory(),
           null
         ),
         mock(IDevice::class.java)!!.also {

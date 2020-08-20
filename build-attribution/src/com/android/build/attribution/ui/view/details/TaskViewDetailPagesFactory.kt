@@ -21,6 +21,7 @@ import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.TaskDetailsPageType
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
@@ -43,8 +44,27 @@ import javax.swing.SwingConstants
  * This class creates task detail pages from the node provided.
  */
 class TaskViewDetailPagesFactory(
+  val model: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) {
+
+  fun createDetailsPage(pageId: TasksPageId): JComponent = if (pageId.pageType == TaskDetailsPageType.EMPTY_SELECTION) {
+    createEmptyPage()
+  }
+  else {
+    model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
+      createDetailsPage(nodeDescriptor)
+    } ?: JPanel()
+  }
+
+  private fun createEmptyPage() = JPanel().apply {
+    layout = BorderLayout()
+    val messageLabel = JLabel("Select page for details").apply {
+      verticalAlignment = SwingConstants.CENTER
+      horizontalAlignment = SwingConstants.CENTER
+    }
+    add(messageLabel, BorderLayout.CENTER)
+  }
 
   fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
@@ -97,16 +117,16 @@ class TaskViewDetailPagesFactory(
 
     return JPanel().apply {
       layout = BorderLayout()
-      val tasksNumber = descriptor.pluginData.criticalPathTasks.size
+      val tasksNumber = descriptor.filteredTaskNodes.size
       val pluginInfoText = """
         <b>${descriptor.pluginData.name}</b><br/>
-        Total duration: ${descriptor.pluginData.criticalPathDuration.durationString()}<br/>
+        Total duration: ${descriptor.filteredPluginTime.toTimeWithPercentage().durationString()}<br/>
         Number of tasks: $tasksNumber ${StringUtil.pluralize("task", tasksNumber)}<br/>
         <br/>
         <b>Warnings</b>
       """.trimIndent()
       add(htmlTextLabelWithFixedLines(pluginInfoText), BorderLayout.NORTH)
-      descriptor.pluginData.criticalPathTasks.tasks.filter { it.hasWarning }.let { tasksWithWarnings ->
+      descriptor.filteredTaskNodes.filter { it.hasWarning }.let { tasksWithWarnings ->
         if (tasksWithWarnings.isEmpty()) {
           add(JBLabel("No warnings detected for this plugin."), BorderLayout.CENTER)
         }

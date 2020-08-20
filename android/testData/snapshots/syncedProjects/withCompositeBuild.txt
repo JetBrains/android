@@ -80,11 +80,11 @@ PROJECT             : testWithCompositeBuild
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -104,11 +104,11 @@ PROJECT             : testWithCompositeBuild
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -593,11 +593,11 @@ PROJECT             : testWithCompositeBuild
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -617,11 +617,11 @@ PROJECT             : testWithCompositeBuild
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1112,11 +1112,11 @@ PROJECT             : testWithCompositeBuild
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1136,11 +1136,11 @@ PROJECT             : testWithCompositeBuild
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2118,11 +2118,11 @@ PROJECT             : testWithCompositeBuild
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2142,11 +2142,11 @@ PROJECT             : testWithCompositeBuild
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2632,11 +2632,11 @@ PROJECT             : testWithCompositeBuild
         FACET               : Kotlin
             TypeId              : kotlin-language
             ExternalSource      : GRADLE
-            ApiLevel            : 1.3
+            ApiLevel            : 1.4
             CompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2656,11 +2656,11 @@ PROJECT             : testWithCompositeBuild
             CoroutineSupport    : ENABLED_WITH_WARNING
             IsTestModule        : false
             Kind                : DEFAULT
-            LanguageLevel       : 1.3
+            LanguageLevel       : 1.4
             MergedCompilerArguments
-                apiVersion          : 1.3
+                apiVersion          : 1.4
                 coroutinesState     : default
-                languageVersion     : 1.3
+                languageVersion     : 1.4
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar

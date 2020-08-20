@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view.chart
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.TreePathUtil
@@ -58,28 +59,18 @@ class TimeDistributionTreeChart(
   }
 
   private val treeExpansionListener = object : TreeExpansionListener {
-    override fun treeExpanded(event: TreeExpansionEvent?) {
-      repaint()
-    }
-
-    override fun treeCollapsed(event: TreeExpansionEvent?) {
-      repaint()
-    }
+    override fun treeExpanded(event: TreeExpansionEvent?) = repaint()
+    override fun treeCollapsed(event: TreeExpansionEvent?) = repaint()
   }
 
   private val focusListener = object : FocusListener {
-    override fun focusLost(e: FocusEvent?) {
-      model.refreshSelectionArea(tree.selectionPath, tree.isFocusOwner)
-      repaint()
-    }
-
-    override fun focusGained(e: FocusEvent?) {
-      model.refreshSelectionArea(tree.selectionPath, tree.isFocusOwner)
-      repaint()
-    }
+    override fun focusLost(e: FocusEvent?) = refreshSelectionArea()
+    override fun focusGained(e: FocusEvent?) = refreshSelectionArea()
   }
 
-  private val treeSelectionListener = TreeSelectionListener {
+  private val treeSelectionListener = TreeSelectionListener { refreshSelectionArea() }
+
+  private fun refreshSelectionArea() {
     model.refreshSelectionArea(tree.selectionPath, tree.isFocusOwner)
     repaint()
   }
@@ -91,17 +82,11 @@ class TimeDistributionTreeChart(
     tree.addTreeSelectionListener(treeSelectionListener)
   }
 
-  override fun getPreferredSize(): Dimension {
-    return JBUI.size(super.getPreferredSize()).withWidth(FULL_WIDTH_PX)
-  }
+  private fun Dimension.makeFullWidth() = JBUI.size(this).withWidth(FULL_WIDTH_PX)
 
-  override fun getMinimumSize(): Dimension {
-    return JBUI.size(super.getMinimumSize()).withWidth(FULL_WIDTH_PX)
-  }
-
-  override fun getMaximumSize(): Dimension {
-    return JBUI.size(super.getMaximumSize()).withWidth(FULL_WIDTH_PX)
-  }
+  override fun getPreferredSize(): Dimension = super.getPreferredSize().makeFullWidth()
+  override fun getMinimumSize(): Dimension = super.getMinimumSize().makeFullWidth()
+  override fun getMaximumSize(): Dimension = super.getMaximumSize().makeFullWidth()
 
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
@@ -145,11 +130,11 @@ interface ChartValueProvider : TreeNode {
  * It does not observe any changes itself, all recalculations should be triggered by the client.
  */
 class TimeDistributionTreeChartCalculationModel(
-  val treeModel: TreeModel,
-  val treePathToCoordinates: (TreePath) -> Rectangle?
+  private val treeModel: TreeModel,
+  private val treePathToCoordinates: (TreePath) -> Rectangle?
 ) {
 
-  val chartItems = mutableListOf<ChartRowItem>()
+  var chartItems: List<ChartRowItem> = emptyList()
   val mergedItemsBar = MergedItemsBar()
   val selectionArea = ChartSelectionArea()
 
@@ -206,9 +191,8 @@ class TimeDistributionTreeChartCalculationModel(
    * Load new data from the TreeModel and rebuild chart items.
    * To be called when tree structure changes.
    */
+  @VisibleForTesting
   fun refreshModel() {
-    chartItems.clear()
-
     val firstLevelNodes = (treeModel.root as TreeNode).children()
       .asSequence()
       .filterIsInstance<ChartValueProvider>()
@@ -217,13 +201,12 @@ class TimeDistributionTreeChartCalculationModel(
     // Calculate Stack items
     val itemsSum = firstLevelNodes.sumByDouble { it.relativeWeight }
 
-    firstLevelNodes.forEach { node ->
+    chartItems = firstLevelNodes.map { node ->
       val color = node.itemColor
       val treePath = TreePathUtil.toTreePath(node)
 
       val itemPercentage = 100 * node.relativeWeight / itemsSum
-      val chartItem = ChartRowItem(treePath, itemPercentage, color)
-      chartItems.add(chartItem)
+      ChartRowItem(treePath, itemPercentage, color)
     }
   }
 

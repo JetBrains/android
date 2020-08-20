@@ -40,11 +40,20 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
+import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip;
+import com.android.tools.profilers.cpu.atrace.BufferQueueTrackModel;
+import com.android.tools.profilers.cpu.atrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip;
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerTrackModel;
 import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
+import com.android.tools.profilers.cpu.atrace.VsyncTooltip;
+import com.android.tools.profilers.cpu.atrace.VsyncTrackModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
@@ -437,9 +446,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
 
     // Buffer Queue
-    // TODO(b/162354232): add tooltip for the track.
     BufferQueueTrackModel bufferQueueTrackModel = new BufferQueueTrackModel(systemTraceData, timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(bufferQueueTrackModel, ProfilerTrackRendererType.BUFFER_QUEUE, "BufferQueue"));
+    BufferQueueTooltip bufferQueueTooltip = new BufferQueueTooltip(timeline, bufferQueueTrackModel.getBufferQueueSeries());
+    display.addTrackModel(TrackModel.newBuilder(bufferQueueTrackModel, ProfilerTrackRendererType.BUFFER_QUEUE, "BufferQueue")
+                            .setDefaultTooltipModel(bufferQueueTooltip));
     return display;
   }
 

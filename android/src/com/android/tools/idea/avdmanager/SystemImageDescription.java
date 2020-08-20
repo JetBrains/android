@@ -88,7 +88,7 @@ public final class SystemImageDescription {
            Objects.equal(myRemotePackage, other.myRemotePackage);
   }
 
-  @Nullable
+  @NotNull
   public AndroidVersion getVersion() {
     return mySystemImage.getAndroidVersion();
   }

@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.mlkit.viewer;
 
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.AndroidModuleModelBuilder;
-import com.android.tools.idea.testing.AndroidProjectBuilder;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +31,6 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.WaitFor;
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -58,32 +51,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
   private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {
     VirtualFile result = myFixture.copyFileToProject(mlSourceFile, mlTargetFile);
-    setupTestProjectFromAndroidModel(
-      getProject(),
-      new File(myFixture.getTempDirPath()),
-      new AndroidModuleModelBuilder(
-        ":",
-        null,
-        "4.2.0-alpha8",
-        "debug",
-        new AndroidProjectBuilder()
-          .withMinSdk(it -> 28)
-          .withMlModelBindingEnabled(it -> true)
-          .withMainSourceProvider(it -> new SourceProviderStub(
-            ARTIFACT_NAME_MAIN,
-            new File(it.getBasePath(), "AndroidManifest.xml"),
-            ImmutableList.of(new File(it.getBasePath(), "src")),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            ImmutableList.of(new File(it.getBasePath(), "res")),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            ImmutableList.of(new File(it.getBasePath(), "ml")))
-      )));
+    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha8", 28);
     return result;
   }
 
@@ -101,7 +69,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testViewerOpenEventIsLogged() throws Exception {
-    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
     TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
     UsageTracker.setWriterForTest(usageTracker);
 
@@ -124,7 +92,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_imageClassificationModel() {
-    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
@@ -168,7 +136,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_objectDetectionModel() {
-    VirtualFile modelFile = setupProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "/ml/my_model.tflite");
+    VirtualFile modelFile = setupProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
@@ -187,7 +155,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "\n" +
                  "// Runs model inference and gets result.\n" +
                  "val outputs = model.process(image)\n" +
-                 "val detectionResult = outputs.detectionResultList\n" +
+                 "val detectionResult = outputs.detectionResultList.get(0)\n" +
                  "\n" +
                  "// Gets result from DetectionResult.\n" +
                  "val locations = detectionResult.locationsAsRectF;\n" +
@@ -207,7 +175,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "\n" +
                  "    // Runs model inference and gets result.\n" +
                  "    MyModel.Outputs outputs = model.process(image);\n" +
-                 "    List<DetectionResult> detectionResult = outputs.getDetectionResultList();\n" +
+                 "    DetectionResult detectionResult = outputs.getDetectionResultList().get(0);\n" +
                  "\n" +
                  "    // Gets result from DetectionResult.\n" +
                  "    RectF locations = detectionResult.getLocationsAsRectF();\n" +
@@ -222,7 +190,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {
-    VirtualFile modelFile = setupProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
+    VirtualFile modelFile = setupProject("mobilenet_quant_no_metadata.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);

@@ -41,5 +41,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>

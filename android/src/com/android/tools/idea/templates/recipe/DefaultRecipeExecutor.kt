@@ -465,6 +465,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
+  override fun setUseKotlinIrCompiler() {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().kotlinOptions().useIR().setValue(true)
+  }
+
   /**
    * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
    */

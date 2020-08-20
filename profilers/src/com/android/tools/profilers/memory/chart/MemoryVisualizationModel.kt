@@ -32,7 +32,7 @@ class MemoryVisualizationModel {
 
   fun formatter(): BaseAxisFormatter {
     return if (isSizeAxis()) {
-      MemoryAxisFormatter(1, 10, 1)
+      MemoryAxisFormatter.DEFAULT
     }
     else {
       SingleUnitAxisFormatter(1, 10, 1, "")

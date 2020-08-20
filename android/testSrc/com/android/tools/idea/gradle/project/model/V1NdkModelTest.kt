@@ -78,7 +78,7 @@ class V1NdkModelTest {
     writeText("whatever")
   }
 
-  private val modelCache = ModelCache()
+  private val modelCache = ModelCache.createForTesting()
 
   @Mock
   private val _mockDebugX86Artifact = mock(NativeArtifact::class.java).apply {

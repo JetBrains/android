@@ -52,14 +52,13 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
    * @return true if upon return no processes related to an app are running.
    */
   public boolean killApp(@NotNull LaunchStatus launchStatus) {
+    myIDevice.forceStop(myApplicationId);
     myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
     if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
       myProcessKilledLatch.countDown();
     }
     else {
       AndroidDebugBridge.addDeviceChangeListener(this);
-      myClientsToWaitFor.forEach(Client::kill);
-      myIDevice.kill(myApplicationId);
       checkDone();
     }
 
@@ -69,12 +68,6 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
         launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);
         return false;
       }
-
-      // Apparently if we don't give Android enough time to totally clean up
-      // after it tells us the process is terminated through ADB, a subsequent
-      // launch will fail. So we do a sleep here to ensure we don't encounter
-      // that issue.
-      Thread.sleep(TimeUnit.SECONDS.toMillis(1));
     }
     catch (InterruptedException ignored) {
       launchStatus.terminateLaunch(String.format("%s is already running.", myApplicationId), true);

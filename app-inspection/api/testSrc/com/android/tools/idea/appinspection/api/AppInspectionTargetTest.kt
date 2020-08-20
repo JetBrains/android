@@ -17,23 +17,19 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeLaunchParameters
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
-import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -53,10 +49,7 @@ class AppInspectionTargetTest {
   @Test
   fun launchInspector() = runBlocking<Unit> {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor())
-    target.launchInspector(createFakeLaunchParameters()) { commandMessenger ->
-      assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
-      TestInspectorClient(commandMessenger)
-    }
+    target.launchInspector(createFakeLaunchParameters())
   }
 
   @Test
@@ -102,18 +95,14 @@ class AppInspectionTargetTest {
       })
     // Launch an inspector connection that will never be established (assuming the test passes).
     val unsuccessfulJob = launch {
-      target.launchInspector(createFakeLaunchParameters(inspectorId = "never_connects")) { commandMessenger ->
-        TestInspectorClient(commandMessenger)
-      }
+      target.launchInspector(createFakeLaunchParameters(inspectorId = "never_connects"))
     }
 
     try {
       // Launch an inspector connection that will be successfully established.
       val successfulJob = launch {
         target.launchInspector(
-          createFakeLaunchParameters(inspectorId = "connects_successfully")) { commandMessenger ->
-          TestInspectorClient(commandMessenger)
-        }
+          createFakeLaunchParameters(inspectorId = "connects_successfully"))
       }
 
       successfulJob.join()
@@ -130,10 +119,10 @@ class AppInspectionTargetTest {
     val target = appInspectionRule.launchTarget(process)
 
     // Launch an inspector.
-    val firstClient = target.launchInspector(createFakeLaunchParameters(process)) { StubTestAppInspectorClient(it) }
+    val firstClient = target.launchInspector(createFakeLaunchParameters(process))
 
     // Launch another inspector with same parameters.
-    val secondClient = target.launchInspector(createFakeLaunchParameters(process)) { StubTestAppInspectorClient(it) }
+    val secondClient = target.launchInspector(createFakeLaunchParameters(process))
 
     // Check they are the same.
     assertThat(firstClient).isSameAs(secondClient)
@@ -145,18 +134,9 @@ class AppInspectionTargetTest {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
     // Launch an inspector client.
-    val client = target.launchInspector(createFakeLaunchParameters()) { StubTestAppInspectorClient(it) }
+    val client = target.launchInspector(createFakeLaunchParameters())
 
-    // Verify there is one new client.
-    assertThat(target.clients).hasSize(1)
-
-    val disposed = CompletableDeferred<Unit>()
-    client.addServiceEventListener(
-      object : AppInspectorClient.ServiceEventListener {
-        override fun onDispose() {
-          disposed.complete(Unit)
-        }
-      }, appInspectionRule.executorService)
+    assertThat(target.clientDisposalJobs.size).isEqualTo(1)
 
     // Fake target termination to dispose of client.
     transportService.addEventToStream(
@@ -170,8 +150,13 @@ class AppInspectionTargetTest {
         .build()
     )
 
-    disposed.await()
-    assertThat(target.clients).isEmpty()
+    target.clientDisposalJobs[INSPECTOR_ID]!!.join()
+
+    // Launch the same inspector client again.
+    val client2 = target.launchInspector(createFakeLaunchParameters())
+
+    // Verify the cached inspector client was removed when it was disposed. The 2nd client is a brand new client.
+    assertThat(client).isNotSameAs(client2)
   }
 
   @Test
@@ -181,14 +166,7 @@ class AppInspectionTargetTest {
     val clientLaunchParams1 = createFakeLaunchParameters(inspectorId = "a")
     val clientLaunchParams2 = createFakeLaunchParameters(inspectorId = "b")
 
-    val client1 = target.launchInspector(clientLaunchParams1) { messenger ->
-      object : AppInspectorClient(messenger) {
-        override val rawEventListener = object : RawEventListener {
-          override fun onRawEvent(eventData: ByteArray) {
-          }
-        }
-      }
-    }
+    val client1 = target.launchInspector(clientLaunchParams1)
 
     // This job will only finish after its client gets cancelled
     val client2Launched = launch {
@@ -197,24 +175,13 @@ class AppInspectionTargetTest {
           // Keep client2 hanging so we can verify its cancellation.
         }
       })
-      target.launchInspector(clientLaunchParams2) { messenger ->
-        object : AppInspectorClient(messenger) {
-          override val rawEventListener = object : RawEventListener {
-            override fun onRawEvent(eventData: ByteArray) {
-            }
-          }
-        }
-      }
+      target.launchInspector(clientLaunchParams2)
     }
 
-    val client1Disposed = CompletableDeferred<Unit>()
-    client1.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-      override fun onDispose() {
-        client1Disposed.complete(Unit)
-      }
-    }, MoreExecutors.directExecutor())
-
     target.dispose()
-    listOf(client2Launched, client1Disposed).joinAll()
+
+    client1.awaitForDisposal()
+
+    client2Launched.join()
   }
 }

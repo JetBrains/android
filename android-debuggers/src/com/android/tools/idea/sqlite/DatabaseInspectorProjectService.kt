@@ -30,6 +30,8 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
@@ -44,7 +46,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
@@ -80,7 +81,7 @@ interface DatabaseInspectorProjectService {
    * Opens a connection to the database contained in the file passed as argument. The database is then shown in the Database Inspector.
    */
   @AnyThread
-  fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<SqliteDatabaseId.FileSqliteDatabaseId>
+  fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit>
 
   /**
    * Shows the given database in the inspector
@@ -157,11 +158,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
-  private val databaseRepository: DatabaseRepositoryImpl = DatabaseRepositoryImpl(project, taskExecutor),
+  private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, taskExecutor),
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
   private val offlineDatabaseManager: OfflineDatabaseManager = OfflineDatabaseManagerImpl(project),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
-  private val createController: (DatabaseInspectorModel, DatabaseRepositoryImpl, OfflineDatabaseManager) -> DatabaseInspectorController =
+  private val createController: (DatabaseInspectorModel, DatabaseRepository, OfflineDatabaseManager) -> DatabaseInspectorController =
     { myModel, myRepository, myOfflineDatabaseManager ->
       DatabaseInspectorControllerImpl(
         project,
@@ -230,17 +231,19 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @AnyThread
   override fun openSqliteDatabase(
     databaseFileData: DatabaseFileData
-  ): ListenableFuture<SqliteDatabaseId.FileSqliteDatabaseId> = projectScope.future {
-    val databaseId = async {
+  ): ListenableFuture<Unit> = projectScope.future {
+    val databaseId = try {
       val databaseConnection = openJdbcDatabaseConnection(project, databaseFileData.mainFile, taskExecutor, workerThread)
-      val databaseId = SqliteDatabaseId.fromFileDatabase(databaseFileData)
-
-      databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
-      databaseId
+      SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
+        databaseRepository.addDatabaseConnection(it, databaseConnection)
+      }
+    }
+    catch (e: Exception) {
+      handleError("Error opening database from '${databaseFileData.mainFile.path}'", e)
+      throw e
     }
 
     controller.addSqliteDatabase(databaseId)
-    databaseId.await() as SqliteDatabaseId.FileSqliteDatabaseId
   }
 
   @AnyThread
@@ -280,7 +283,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       model.clearDatabases()
 
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
-        for (liveSqliteDatabaseId in openDatabases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()) {
+        val databasesToDownload = openDatabases
+          .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
+          .filter { !it.isInMemoryDatabase() }
+
+        for (liveSqliteDatabaseId in databasesToDownload) {
           try {
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
             openSqliteDatabase(databaseFileData).await()

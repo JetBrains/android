@@ -19,9 +19,13 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectModelData
+import com.android.tools.idea.npw.model.TemplateMetrics
+import com.android.tools.idea.npw.model.moduleTemplateRendererToModuleType
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -34,6 +38,8 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.NO_ACTIVITY
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -49,7 +55,8 @@ abstract class ModuleModel(
   _template: NamedModuleTemplate = with(projectModelData) {
     createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
   },
-  val moduleParent: String
+  val moduleParent: String,
+  override val wizardContext: WizardUiContext
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
@@ -58,6 +65,7 @@ abstract class ModuleModel(
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
   override val isViewBindingSupported = projectModelData.isViewBindingSupported
+  override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)
@@ -119,8 +127,20 @@ abstract class ModuleModel(
       // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from templateData?
       // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
+      val metrics = if (!dryRun && sendModuleMetrics.get()) {
+        TemplateMetrics(
+          templateType = NO_ACTIVITY,
+          wizardContext = wizardContext,
+          moduleType = moduleTemplateRendererToModuleType(loggingEvent),
+          minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
+          bytecodeLevel = (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+          useGradleKts = useGradleKts.get(),
+          useAppCompat = useAppCompat.get()
+        )
+      } else null
+
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
-      return recipe.render(context, executor, loggingEvent)
+      return recipe.render(context, executor, loggingEvent, metrics)
     }
   }
 }

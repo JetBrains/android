@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
@@ -33,12 +34,13 @@ import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -78,13 +80,17 @@ internal class DefaultAppInspectionTarget(
 ) : AppInspectionTarget {
   private val scope = parentScope.createChildScope(true)
 
-  @VisibleForTesting
-  internal val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
+  private val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
 
-  override suspend fun <C: AppInspectorClient> launchInspector(
-    params: AppInspectorLauncher.LaunchParameters,
-    creator: (AppInspectorClient.CommandMessenger) -> C
-  ): C {
+  /**
+   * Used exclusively in tests. Allows tests to wait until after inspector client is removed from internal cache.
+   */
+  @VisibleForTesting
+  internal val clientDisposalJobs = ConcurrentHashMap<String, Job>()
+
+  override suspend fun launchInspector(
+    params: AppInspectorLauncher.LaunchParameters
+  ): AppInspectorClient {
     val clientDeferred = clients.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
@@ -104,14 +110,13 @@ internal class DefaultAppInspectionTarget(
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
         if (event.appInspectionResponse.status == SUCCESS) {
-          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope)
-          setupEventListener(creator, connection).also { inspectorClient ->
-            inspectorClient.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-              override fun onDispose() {
-                clients.remove(params.inspectorId)
-              }
-            }, MoreExecutors.directExecutor())
+          val client = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+          clientDisposalJobs[params.inspectorId] = scope.launch {
+            client.awaitForDisposal()
+            clients.remove(params.inspectorId)
+            clientDisposalJobs.remove(params.inspectorId)
           }
+          client
         }
         else {
           throw AppInspectionLaunchException(
@@ -120,9 +125,7 @@ internal class DefaultAppInspectionTarget(
       }
     }
     try {
-      // We always know the exact type of the client because it gets created via the passed-in creator
-      @Suppress("UNCHECKED_CAST")
-      return clientDeferred.await() as C
+      return clientDeferred.await()
     }
     catch (e: CancellationException) {
       throw e
@@ -142,21 +145,12 @@ internal class DefaultAppInspectionTarget(
   }
 }
 
-private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T,
-                                                        connection: AppInspectorConnection): T {
-  val client = creator(connection)
-  connection.setupConnection(client.rawEventListener, client.serviceEventNotifier)
-  return client
-}
-
 @VisibleForTesting
-fun <T : AppInspectorClient> launchInspectorForTest(
+fun launchInspectorForTest(
   inspectorId: String,
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
-  scope: CoroutineScope,
-  creator: (AppInspectorClient.CommandMessenger) -> T
-): T {
-  val connection = AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
-  return setupEventListener(creator, connection)
+  scope: CoroutineScope
+): AppInspectorClient {
+  return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
 }

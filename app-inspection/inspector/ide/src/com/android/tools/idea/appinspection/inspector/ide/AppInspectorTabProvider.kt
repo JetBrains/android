@@ -55,12 +55,12 @@ interface AppInspectorTabProvider {
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
    *   that will drive this UI is attached to
-   * @param messenger A class for communicating to the associated inspector
+   * @param client A class for communicating to the associated inspector
    */
   fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorClient.CommandMessenger
+    client: AppInspectorClient
   ): AppInspectorTab
 }

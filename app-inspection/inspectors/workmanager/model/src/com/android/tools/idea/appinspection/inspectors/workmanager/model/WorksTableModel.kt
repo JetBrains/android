@@ -23,22 +23,27 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
    * Columns of work info data.
    */
   enum class Column(val widthPercentage: Double, val type: Class<*>, private val myDisplayName: String) {
-    TAGS(0.2, Long::class.java, "Tags") {
+    ORDER(0.05, Long::class.java, "#") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
-        return data.tagsList
+        return Any()
+      }
+    },
+    CLASS_NAME(0.3, Long::class.java, "Class Name") {
+      override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
+        return data.workerClassName.substringAfterLast('.')
       }
     },
     STATE(0.1, String::class.java, "State") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
-        return data.state.name
+        return data.state.ordinal
       }
     },
-    TIME_STARTED(0.2, Int::class.java, "Time Started") {
+    TIME_STARTED(0.1, Int::class.java, "Time Started") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.scheduleRequestedAt
       }
     },
-    RUN_ATTEMPT_COUNT(0.1, Int::class.java, "Retry Count") {
+    RUN_ATTEMPT_COUNT(0.05, Int::class.java, "Retries") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.runAttemptCount
       }
@@ -46,7 +51,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
 
     DATA(0.4, String::class.java, "Output Data") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
-        return data.data
+        return data.data.toString()
       }
     };
 
@@ -74,10 +79,11 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
 
   override fun getColumnName(column: Int) = Column.values()[column].toDisplayString()
 
-  override fun getColumnClass(columnIndex: Int) = Column.values()[columnIndex].type
-
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-    val work = client.getWorkInfo(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
+    if (columnIndex == Column.ORDER.ordinal) {
+      return rowIndex + 1
+    }
+    val work = client.getWorkInfoOrNull(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
     return Column.values()[columnIndex].getValueFrom(work)
   }
 }

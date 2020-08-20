@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
@@ -218,6 +219,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
     assertNotNull(virtualFile);
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
     return virtualFile;
   }
 

@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.stubs.android.AndroidProjectStub.toIdeAndroidProject;
+import static com.android.tools.idea.gradle.stubs.android.AndroidProjectStub.toIdeVariants;
+import static com.android.utils.FileUtils.writeToFile;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -23,16 +30,10 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtilTest;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import java.io.*;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.utils.FileUtils.writeToFile;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Tests for {@link AndroidModuleModel}.
@@ -47,9 +48,12 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "debug" as selected variant.
-    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
     AndroidModuleModel androidModel =
-      AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "debug");
+      AndroidModuleModel.create(androidProject.getName(),
+                                getBaseDirPath(getProject()),
+                                toIdeAndroidProject(androidProject),
+                                toIdeVariants(androidProject),
+                                "debug");
 
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
@@ -67,9 +71,12 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.setVariantNames("debug", "release");
 
     // Create AndroidModuleModel with "release" as selected variant.
-    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
     AndroidModuleModel androidModel =
-      AndroidModuleModel.create(androidProject.getName(), getBaseDirPath(getProject()), ideAndroidProject, "release");
+      AndroidModuleModel.create(androidProject.getName(),
+                                getBaseDirPath(getProject()),
+                                toIdeAndroidProject(androidProject),
+                                toIdeVariants(androidProject),
+                                "release");
     // Verify that "release" is set as selected variant.
     assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
   }
@@ -89,8 +96,11 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.addVariant(variant);
 
     // Create AndroidModuleModel with "release" as selected variant.
-    IdeAndroidProject ideAndroidProject = AndroidProjectStub.toIdeAndroidProject(androidProject);
-    AndroidModuleModel androidModel = AndroidModuleModel.create(androidProject.getName(), rootFile, ideAndroidProject, "test");
+    AndroidModuleModel androidModel = AndroidModuleModel.create(androidProject.getName(),
+                                                                rootFile,
+                                                                toIdeAndroidProject(androidProject),
+                                                                toIdeVariants(androidProject),
+                                                                "test");
     Module mockModule = mock(Module.class);
     when(mockModule.getProject()).thenReturn(getProject());
     androidModel.setModule(mockModule);

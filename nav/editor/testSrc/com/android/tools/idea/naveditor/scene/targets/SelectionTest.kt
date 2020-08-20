@@ -123,10 +123,10 @@ class SelectionTest : NavTestCase() {
         action("action1", destination = "fragment1")
         fragment("fragment1")
         fragment("fragment2") {
-          action("action2", destination = "fragment1")
+          action("action2", destination = "fragment3")
         }
         fragment("fragment3") {
-          action("action3", destination = "fragment2")
+          action("action3", destination = "fragment3")
         }
       }
     }
@@ -147,6 +147,7 @@ class SelectionTest : NavTestCase() {
     val fragment3 = scene.getSceneComponent("fragment3")!!
 
     val action1 = scene.getSceneComponent("action1")!!
+    val action3 = scene.getSceneComponent("action3")!!
 
     lassoSelect(sceneView, interactionManager, fragment1);
     assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
@@ -155,7 +156,7 @@ class SelectionTest : NavTestCase() {
     assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent)
 
     lassoSelect(sceneView, interactionManager, fragment3);
-    assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent)
+    assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
 
     interactionManager.stopListening()
   }

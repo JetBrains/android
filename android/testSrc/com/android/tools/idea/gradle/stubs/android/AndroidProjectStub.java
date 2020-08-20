@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static java.util.Collections.emptyList;
+import static com.intellij.util.containers.ContainerUtil.map;
 import static org.mockito.Mockito.mock;
 
 import com.android.AndroidProjectTypes;
@@ -37,11 +37,12 @@ import com.android.builder.model.Variant;
 import com.android.builder.model.VariantBuildInformation;
 import com.android.builder.model.ViewBindingOptions;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.impl.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -51,9 +52,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -379,11 +380,13 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return new ModelCache(new HashMap<>()).androidProjectFrom(
-      androidProject,
-      new IdeDependenciesFactory(),
-      androidProject.getVariants(),
-      emptyList(),
-      emptyList());
+    return ModelCache.create().androidProjectFrom(androidProject);
+  }
+
+  @NotNull
+  public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
+    ModelCache modelCache = ModelCache.create();
+    GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
+    return map(androidProject.getVariants(), it -> modelCache.variantFrom(it, modelVersion));
   }
 }

@@ -73,6 +73,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
@@ -394,7 +395,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     autoResizeMode = AUTO_RESIZE_OFF
-    tableHeader.resizingAllowed = false
+    tableHeader.resizingAllowed = true
     tableHeader.reorderingAllowed = false
     val originalDefaultHeaderRenderer = tableHeader.defaultRenderer
     tableHeader.defaultRenderer = object: TableCellRenderer {
@@ -458,10 +459,22 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       // renders the duration text to implement it.
       override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        setupAntialiasing(g)
-        g.color = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
-        g.font = RelativeFont.SMALL.derive(font)
-        g.drawString(myDurationText, width - myDurationTextWidth, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
+        // Make sure that a duration string doesn't overlap with test name.
+        if (width >= preferredSize.width) {
+          setupAntialiasing(g)
+          g.color = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+          g.font = RelativeFont.SMALL.derive(font)
+          g.drawString(myDurationText, width - myDurationTextWidth, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
+        }
+      }
+
+      override fun getPreferredSize(): Dimension {
+        val size = super.getPreferredSize()
+        if (myDurationTextWidth > 0) {
+          // Extend the preferred width by adding duration text width plus padding in between.
+          size.width += myDurationTextWidth + 10
+        }
+        return size
       }
     }
 
@@ -618,11 +631,10 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     model.reload()
     tableChanged(null)
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
-      val width = model.columns[index].getWidth(this)
-      column.width = width
-      column.minWidth = width
-      column.maxWidth = width
-      column.preferredWidth = width
+      column.resizable = true
+      column.minWidth = 10
+      column.maxWidth = Int.MAX_VALUE / 2
+      column.preferredWidth = model.columns[index].getWidth(this)
     }
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
     prevSelectedObject?.let { addSelection(it) }

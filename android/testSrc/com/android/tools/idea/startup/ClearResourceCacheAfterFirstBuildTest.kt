@@ -55,7 +55,7 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
     projectSystem.useInTests()
 
-    clearResourceCacheAfterFirstBuild = project.getComponent(ClearResourceCacheAfterFirstBuild::class.java)
+    clearResourceCacheAfterFirstBuild = ClearResourceCacheAfterFirstBuild.getInstance(project)
 
     onCacheClean = TestRunnable {
       assertWithMessage("onCacheClean callback was called before resource cache was cleared")

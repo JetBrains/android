@@ -43,6 +43,8 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -93,6 +95,14 @@ interface ModuleModelData : ProjectModelData {
    * A value which will be logged for Studio usage tracking.
    */
   val loggingEvent: RenderLoggingEvent
+
+  val wizardContext: WizardUiContext
+
+  /**
+   * Modules with a component Render that sends metrics, should set this value to false (otherwise metrics will be duplicated).
+   * Modules without any Component Render or that have a "No Activity" selected, should leave this field set to true.
+   **/
+  val sendModuleMetrics: BoolValueProperty
 }
 
 class NewAndroidModuleModel(
@@ -101,14 +111,16 @@ class NewAndroidModuleModel(
   moduleParent: String,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
-  override val isLibrary: Boolean = false
+  override val isLibrary: Boolean = false,
+  wizardContext: WizardUiContext
 ) : ModuleModel(
   "",
   commandName,
   isLibrary,
   projectModelData,
   template,
-  moduleParent
+  moduleParent,
+  wizardContext
 ) {
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   override val renderer = ModuleTemplateRenderer()
@@ -191,7 +203,8 @@ class NewAndroidModuleModel(
       template = createSampleTemplate(),
       moduleParent = moduleParent,
       formFactor = ObjectValueProperty(formFactor),
-      isLibrary = isLibrary
+      isLibrary = isLibrary,
+      wizardContext = NEW_MODULE
     )
   }
 }

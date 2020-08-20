@@ -36,11 +36,13 @@ import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
@@ -65,6 +67,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
@@ -173,6 +176,11 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
   }
 
 /**
+ * Key for the persistent state for the Compose Preview.
+ */
+private const val SELECTED_GROUP_KEY = "selectedGroup"
+
+/**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
@@ -187,7 +195,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer<PsiFile>(psiFile)
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
@@ -243,6 +251,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var interactiveMode = InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
+  private val fpsCounter = FpsCalculator { System.nanoTime() }
+
   override var interactivePreviewElementInstance:
     PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
@@ -256,6 +266,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         forceRefresh(quickRefresh).invokeOnCompletion {
+          fpsCounter.resetAndStart()
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
 
@@ -275,6 +286,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         ticker.stop()
         sceneComponentProvider.enabled = true
         previewElementProvider.clearInstanceIdFilter()
+        logInteractiveSessionMetrics()
         forceRefresh().invokeOnCompletion {
           interactiveMode = InteractiveMode.DISABLED
         }
@@ -377,9 +389,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
-   * Callback called after refresh has happened
+   * Callback first time after the preview has loaded the initial state and it's ready to restore
+   * any saved state.
    */
-  var onRefresh: (() -> Unit)? = null
+  private var onRestoreState: (() -> Unit)? = null
 
   private val notificationsPanel = NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
@@ -423,6 +436,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val ticker = ControllableTicker({
                                             if (!RenderService.isBusy()) {
+                                              fpsCounter.incrementFrameCounter()
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(5))
@@ -521,7 +535,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (isFirstActivation.getAndSet(false)) onInit()
   }
 
+  private fun logInteractiveSessionMetrics() {
+    InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps())
+  }
+
   override fun dispose() {
+    if (interactiveMode == InteractiveMode.READY) {
+      logInteractiveSessionMetrics()
+    }
     animationInspectionPreviewElementInstance = null
   }
 
@@ -577,7 +598,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * [ComposePreviewNotificationProvider] when the editor needs to refresh the notifications.
    */
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
-    if (!parentEditor.isValid) return@invokeLaterIfNeeded
+    if (Disposer.isDisposed(this) || project.isDisposed || !parentEditor.isValid) return@invokeLaterIfNeeded
 
     notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
@@ -632,6 +653,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
+    // Restore
+    onRestoreState?.invoke()
+    onRestoreState = null
+
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
@@ -676,7 +701,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // If the model is for the same element (affinity=0) and we know that it is not spoiled by previous actions (quickRefresh)
           // we can skip reinflate and therefore refresh much quicker
           val forceReinflate = !(affinity == 0 && quickRefresh)
-          existingModels.remove(reusedModel)
 
           LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
           reusedModel.updateFileContentBlocking(fileContents)
@@ -727,6 +751,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         model to previewElement
       }
       .toList()
+
+    existingModels.removeAll(models.map { it.first })
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
@@ -785,8 +811,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     withContext(uiThread) {
       surface.zoomToFit()
     }
-
-    onRefresh?.invoke()
   }
 
   /**
@@ -848,6 +872,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         updateSurfaceVisibilityAndNotifications()
+      }
+    }
+  }
+
+  override fun getState(): PreviewRepresentationState? {
+    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
+    return mapOf(SELECTED_GROUP_KEY to selectedGroupName)
+  }
+
+  override fun setState(state: PreviewRepresentationState) {
+    val selectedGroupName = state[SELECTED_GROUP_KEY] ?: return
+    onRestoreState = {
+      availableGroups.find { it.name == selectedGroupName }?.let {
+        groupFilter = it
       }
     }
   }

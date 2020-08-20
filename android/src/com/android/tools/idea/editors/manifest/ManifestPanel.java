@@ -45,6 +45,7 @@ import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -1014,7 +1015,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
         for (NamedIdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
-          if (provider.getResDirectories().contains(vResDir)) {
+          if (Iterables.contains(provider.getResDirectories(), vResDir)) {
             source += provider.getName() + " ";
             break;
           }

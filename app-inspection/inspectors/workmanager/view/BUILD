@@ -60,7 +60,7 @@ iml_module(
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order
@@ -70,6 +70,12 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
+        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
     ],
 )
 
@@ -77,6 +83,7 @@ iml_module(
 iml_module(
     name = "unb.intellij.android.app-inspection.inspectors.workmanager.view",
     srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = [
@@ -91,5 +98,20 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/workmanager/model:unb.intellij.android.app-inspection.inspectors.workmanager.model[module]",
         "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.workmanager-inspector-proto",
+    jars = ["//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )

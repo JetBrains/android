@@ -38,20 +38,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 
 /**
- * [ProjectComponent] that listens to all test runs, recognizes "Android unit tests" and records them as [AndroidStudioEvent] events.
+ * Listener that listens to all test runs, recognizes "Android unit tests" and records them as [AndroidStudioEvent] events.
  *
  * @see UsageTrackerTestRunListener for how we track instrumentation test runs
  */
-class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsAdapter(), ExecutionListener, ProjectComponent {
+class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsAdapter(), ExecutionListener {
   companion object {
     /** [Key] used to store the [TestRun.Builder] in a [ProcessHandler]. */
     private val TEST_RUN_KEY = Key.create<TestRun.Builder>(AnalyticsTestRunnerEventsListener::class.qualifiedName!!)
-  }
-
-  override fun projectOpened() {
-    val connection = project.messageBus.connect()
-    connection.subscribe(SMTRunnerEventsListener.TEST_STATUS, this)
-    connection.subscribe(ExecutionManager.EXECUTION_TOPIC, this)
   }
 
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {

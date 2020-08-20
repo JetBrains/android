@@ -172,6 +172,8 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
     assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
+
+    panel.destroyContent()
   }
 
   private fun FakeUi.mousePressOn(component: Component) {

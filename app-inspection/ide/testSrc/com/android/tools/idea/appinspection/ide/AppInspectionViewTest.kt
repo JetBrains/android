@@ -33,6 +33,7 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -79,6 +80,7 @@ class AppInspectionViewTest {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
+    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   }
 
   private val ideServices = TestIdeServices()
@@ -102,6 +104,7 @@ class AppInspectionViewTest {
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       inspectionView.tabsChangedOneShotListener = {
         assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(2)
@@ -128,6 +131,7 @@ class AppInspectionViewTest {
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedOneShotListener = {
         assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(1)
         tabsAdded.complete(Unit)
@@ -152,6 +156,7 @@ class AppInspectionViewTest {
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       processModel = inspectionView.processModel
       inspectionView.tabsChangedOneShotListener = {
@@ -202,6 +207,7 @@ class AppInspectionViewTest {
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       // Test initial tabs added.
       inspectionView.tabsChangedOneShotListener = {
@@ -291,6 +297,7 @@ class AppInspectionViewTest {
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       inspectionView.tabsChangedOneShotListener = {
         assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
@@ -335,6 +342,7 @@ class AppInspectionViewTest {
         appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedOneShotListener = {
         assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(3)
         tabsAdded.complete(Unit)

@@ -495,7 +495,11 @@ class AgpUpgradeRefactoringProcessor(
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
   }
 
-  override fun getCommandName() = "Upgrade AGP version from ${current} to ${new}"
+  var myCommandName = "Upgrade AGP version from ${current} to ${new}"
+
+  override fun getCommandName() = myCommandName
+
+  fun setCommandName(value: String) { myCommandName = value }
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
 }

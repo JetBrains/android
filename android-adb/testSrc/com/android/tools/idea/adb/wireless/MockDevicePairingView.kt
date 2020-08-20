@@ -16,9 +16,11 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.tools.idea.FutureValuesTracker
+import com.intellij.openapi.project.Project
 import java.util.ArrayList
 
-class MockDevicePairingView(override val model: AdbDevicePairingModel) : AdbDevicePairingView {
+class MockDevicePairingView(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
+  private val viewImpl = AdbDevicePairingViewImpl(project, model)
   private val myListeners = ArrayList<AdbDevicePairingView.Listener>()
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
@@ -26,51 +28,74 @@ class MockDevicePairingView(override val model: AdbDevicePairingModel) : AdbDevi
   val showMdnsNotSupportedErrorTracker = FutureValuesTracker<Unit>()
   val showMdnsNotSupportedByAdbErrorTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckErrorTracker = FutureValuesTracker<Unit>()
+  val showQrCodePairingStartedTracker = FutureValuesTracker<Unit>()
+  val showQrCodePairingInProgressTracker = FutureValuesTracker<MdnsService>()
+  val showQrCodePairingWaitForDeviceTracker = FutureValuesTracker<PairingResult>()
+  val showQrCodePairingSuccessTracker = FutureValuesTracker<Pair<MdnsService,AdbOnlineDevice>>()
+  val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<MdnsService,Throwable>>()
 
   override fun showDialog() {
     showDialogTracker.produce(Unit)
+    viewImpl.showDialog()
   }
 
   override fun startMdnsCheck() {
     startMdnsCheckTracker.produce(Unit)
+    viewImpl.startMdnsCheck()
   }
 
   override fun showMdnsCheckSuccess() {
     showMdnsCheckSuccessTracker.produce(Unit)
+    viewImpl.showMdnsCheckSuccess()
   }
 
   override fun showMdnsNotSupportedError() {
     showMdnsNotSupportedErrorTracker.produce(Unit)
+    viewImpl.showMdnsNotSupportedError()
   }
 
   override fun showMdnsNotSupportedByAdbError() {
     showMdnsNotSupportedByAdbErrorTracker.produce(Unit)
+    viewImpl.showMdnsNotSupportedByAdbError()
   }
 
   override fun showMdnsCheckError() {
     showMdnsCheckErrorTracker.produce(Unit)
+    viewImpl.showMdnsCheckSuccess()
   }
 
   override fun showQrCodePairingStarted() {
+    showQrCodePairingStartedTracker.produce(Unit)
+    viewImpl.showQrCodePairingStarted()
   }
 
   override fun showQrCodePairingInProgress(mdnsService: MdnsService) {
+    showQrCodePairingInProgressTracker.produce(mdnsService)
+    viewImpl.showQrCodePairingInProgress(mdnsService)
   }
 
   override fun showQrCodePairingWaitForDevice(pairingResult: PairingResult) {
+    showQrCodePairingWaitForDeviceTracker.produce(pairingResult)
+    viewImpl.showQrCodePairingWaitForDevice(pairingResult)
   }
 
   override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
+    showQrCodePairingSuccessTracker.produce(Pair(mdnsService, device))
+    viewImpl.showQrCodePairingSuccess(mdnsService, device)
   }
 
   override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
+    showQrCodePairingErrorTracker.produce(Pair(mdnsService, error))
+    viewImpl.showQrCodePairingError(mdnsService, error)
   }
 
   override fun addListener(listener: AdbDevicePairingView.Listener) {
     myListeners.add(listener)
+    viewImpl.addListener(listener)
   }
 
   override fun removeListener(listener: AdbDevicePairingView.Listener) {
     myListeners.remove(listener)
+    viewImpl.removeListener(listener)
   }
 }

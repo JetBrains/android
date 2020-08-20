@@ -141,16 +141,19 @@ class SourceProviderUtilTest {
     NamedIdeaSourceProviderImpl(
       name,
       scopeType,
-      manifestFileUrl = root.resolve(manifestFile).toIdeaUrl(),
-      javaDirectoryUrls = javaDirectories.map { root.resolve(it).toIdeaUrl() },
-      resourcesDirectoryUrls = resourcesDirectories.map { root.resolve(it).toIdeaUrl() },
-      aidlDirectoryUrls = aidlDirectories.map { root.resolve(it).toIdeaUrl() },
-      renderscriptDirectoryUrls = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() },
-      jniDirectoryUrls = jniDirectories.map { root.resolve(it).toIdeaUrl() },
-      resDirectoryUrls = resDirectories.map { root.resolve(it).toIdeaUrl() },
-      assetsDirectoryUrls = assetsDirectories.map { root.resolve(it).toIdeaUrl() },
-      shadersDirectoryUrls = shadersDirectories.map { root.resolve(it).toIdeaUrl() },
-      mlModelsDirectoryUrls = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }
+      core = object : NamedIdeaSourceProviderImpl.Core {
+        override val manifestFileUrl: String get() = root.resolve(manifestFile).toIdeaUrl()
+        override val javaDirectoryUrls: Sequence<String> get() = javaDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val resourcesDirectoryUrls: Sequence<String> get() = resourcesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val aidlDirectoryUrls: Sequence<String> get() = aidlDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val renderscriptDirectoryUrls: Sequence<String> get() = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val jniDirectoryUrls: Sequence<String> get() = jniDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val jniLibsDirectoryUrls: Sequence<String> get() = emptySequence()
+        override val resDirectoryUrls: Sequence<String> get() = resDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val assetsDirectoryUrls: Sequence<String> get() = assetsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val shadersDirectoryUrls: Sequence<String> get() = shadersDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val mlModelsDirectoryUrls: Sequence<String> get() = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+      }
     )
 }
 

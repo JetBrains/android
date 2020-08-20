@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -29,6 +30,7 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
@@ -40,7 +42,6 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -66,6 +67,7 @@ import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import java.nio.file.Path
+import java.util.function.Function
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
@@ -122,14 +124,13 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
-  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
-    val version = targetDeviceSpec?.version
+  override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
     if (runConfiguration !is AndroidRunConfigurationBase) return null
     val facet = AndroidFacet.getInstance(module)!!
 
-    fun outputKind(): GradleApkProvider.OutputKind {
-      return when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, version)) {
+    fun outputKind(targetDevicesMinVersion: AndroidVersion?): GradleApkProvider.OutputKind {
+      return when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDevicesMinVersion)) {
         true -> GradleApkProvider.OutputKind.AppBundleOutputModel
         false -> GradleApkProvider.OutputKind.Default
       }
@@ -140,7 +141,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       getApplicationIdProvider(runConfiguration) ?: return null,
       PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       runConfiguration.isTestConfiguration,
-      Computable { outputKind() }
+      Function{ outputKind(it) }
     )
   }
 
@@ -191,7 +192,12 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
       model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) }
     )
 
-  fun IdeSourceProvider.toIdeaSourceProvider() = all.getValue(this)
+  fun IdeSourceProvider.toIdeaSourceProvider(): NamedIdeaSourceProvider {
+    if (!all.containsKey(this)) {
+      println("Does not contain: $this")
+    }
+    return all.getValue(this)
+  }
 
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),

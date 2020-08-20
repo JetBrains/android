@@ -79,7 +79,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       javaModuleDependencies = ${javaModuleDependencies}
       jarLibraryDependencies = ${jarLibraryDependencies}
       artifactsByConfiguration = ${artifactsByConfiguration}
-      syncIssues = ${syncIssues}
       configurations = ${configurations}
       """.replaceIndent("    ")
     is AndroidModuleModel -> format()
@@ -149,7 +148,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     variantNames = ${variantNames.format()}
     javaLanguageLevel = $javaLanguageLevel
     overridesManifestPackage = ${overridesManifestPackage()}
-    syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
     flavorSourceProviders = ${flavorSourceProviders.format()}

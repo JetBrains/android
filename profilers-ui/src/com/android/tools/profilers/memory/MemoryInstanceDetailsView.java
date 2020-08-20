@@ -170,7 +170,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           onSubclass(ReferenceObject.class,
                      v -> v.getName() + " in " + v.getValueText(),
                      ValueObject::getValueText),
-          value -> MemoryProfilerStageView.getValueObjectIcon(value.getAdapter()),
+          value -> ValueColumnRenderer.getValueObjectIcon(value.getAdapter()),
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,

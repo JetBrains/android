@@ -18,8 +18,8 @@ package com.android.tools.idea.res;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
@@ -633,26 +633,34 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   void updateRootsAndLibraries() {
-    resetVisibility();
+    try {
+      resetVisibility();
 
-    ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
-    AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
-    if (projectResources != null) {
-      projectResources.updateRoots();
-    }
+      ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
+      AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
+      if (projectResources != null) {
+        projectResources.updateRoots();
+      }
 
-    Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
-    synchronized (myLibraryLock) {
-      // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
-      oldLibraryResourceMap = myLibraryResourceMap;
-      myLibraryResourceMap = null;
-    }
-    if (appResources != null) {
-      appResources.updateRoots(getLibraryResources());
-    }
+      Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
+      synchronized (myLibraryLock) {
+        // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
+        oldLibraryResourceMap = myLibraryResourceMap;
+        myLibraryResourceMap = null;
+      }
+      if (appResources != null) {
+        appResources.updateRoots(getLibraryResources());
+      }
 
-    if (oldLibraryResourceMap != null) {
-      oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      if (oldLibraryResourceMap != null) {
+        oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      }
+    }
+    catch (IllegalStateException e) {
+      if (!myFacet.isDisposed()) {
+        throw e;
+      }
+      // Ignore exceptions caused by the facet disposal (b/162211246).
     }
   }
 

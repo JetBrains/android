@@ -70,8 +70,8 @@ class AndroidTestSuiteDetailsViewTest {
     view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className.methodName")
-    assertThat(view.contentViewForTesting.myTestResultLabel.text)
+    assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
+    assertThat(view.contentView.myTestResultLabel.text)
       .isEqualTo("<html><font color='#6cad74'>Passed</font> on deviceName</html>")
   }
 
@@ -82,8 +82,8 @@ class AndroidTestSuiteDetailsViewTest {
 
     view.setAndroidTestResults(createTestResults(null))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className.methodName")
-    assertThat(view.contentViewForTesting.myTestResultLabel.text).isEqualTo("No test status available on deviceName")
+    assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
+    assertThat(view.contentView.myTestResultLabel.text).isEqualTo("No test status available on deviceName")
   }
 
   @Test
@@ -91,7 +91,7 @@ class AndroidTestSuiteDetailsViewTest {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, ""))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("packageName.className")
+    assertThat(view.titleTextView.text).isEqualTo("packageName.className")
   }
 
   @Test
@@ -99,14 +99,14 @@ class AndroidTestSuiteDetailsViewTest {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, "", "", ""))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("Test Results")
+    assertThat(view.titleTextView.text).isEqualTo("Test Results")
   }
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
 
-    view.closeButtonForTesting.doClick()
+    view.closeButton.doClick()
 
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }

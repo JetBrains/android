@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import androidx.work.inspection.WorkManagerInspectorProtocol.Command
 import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCommand
@@ -23,22 +24,22 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 
 /**
- * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
+ * Class used to send commands to and handle events from the on-device work manager inspector through its [client].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineScope) : AppInspectorClient(messenger) {
+class WorkManagerInspectorClient(private val client: AppInspectorClient, private val clientScope: CoroutineScope) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
 
   private val lock = Any()
-  private val clientScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+
   @GuardedBy("lock")
   private val works = mutableListOf<WorkInfo>()
 
@@ -48,14 +49,12 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineSc
   init {
     val command = Command.newBuilder().setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance()).build()
     clientScope.launch {
-      messenger.sendRawCommand(command.toByteArray())
+      client.sendRawCommand(command.toByteArray())
     }
-  }
-
-  override val rawEventListener = object : RawEventListener {
-    override fun onRawEvent(eventData: ByteArray) {
-      super.onRawEvent(eventData)
-      handleEvent(eventData)
+    clientScope.launch {
+      client.rawEventFlow.collect { eventData ->
+        handleEvent(eventData)
+      }
     }
   }
 
@@ -63,8 +62,30 @@ class WorkManagerInspectorClient(messenger: CommandMessenger, scope: CoroutineSc
     works.size
   }
 
-  fun getWorkInfo(index: Int) = synchronized(lock) {
+  /**
+   * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
+   */
+  fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
     works.getOrNull(index)
+  }
+
+  /**
+   * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
+   */
+  fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
+    works.indexOfFirst(predicate)
+  }
+
+  fun getWorkIdsWithUniqueName(uniqueName: String): List<String> = synchronized(lock) {
+    works.filter { it.namesList.contains(uniqueName) }.map { it.id }.toList()
+  }
+
+  fun cancelWorkById(id: String) {
+    val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
+    val command = Command.newBuilder().setCancelWork(cancelCommand).build()
+    clientScope.launch {
+      client.sendRawCommand(command.toByteArray())
+    }
   }
 
   private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {

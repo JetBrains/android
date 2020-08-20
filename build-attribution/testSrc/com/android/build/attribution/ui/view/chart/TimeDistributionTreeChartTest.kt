@@ -70,6 +70,6 @@ class TimeDistributionTreeChartTest {
 
     Truth.assertThat(chart.model.chartItems).hasSize(3)
 
-    // TODO(b/163480652): Add rendering tests for new Vizualisation (using ImageDiffUtil)
+    // TODO(b/163480652): Add rendering tests for new Visualization (using ImageDiffUtil)
   }
 }

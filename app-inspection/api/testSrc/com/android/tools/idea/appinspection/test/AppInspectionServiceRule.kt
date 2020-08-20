@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
@@ -32,6 +31,7 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectorLauncher
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -140,13 +140,11 @@ class AppInspectionServiceRule(
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-    eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener(),
     parentScope: CoroutineScope = scope
   ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope) {
-      TestInspectorClient(it, eventListener)
-    }.also { timer.currentTimeNs += 1 }
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope.createChildScope(false))
+      .also { timer.currentTimeNs += 1 }
   }
 
   fun addEvent(event: Common.Event) {
@@ -174,19 +172,5 @@ class AppInspectionServiceRule(
 
   fun addProcessListener(listener: ProcessListener) {
     processNotifier.addProcessListener(executorService, listener)
-  }
-
-  /**
-   * Keeps track of all events so they can be gotten later and compared.
-   */
-  open class TestInspectorRawEventListener : AppInspectorClient.RawEventListener {
-    private val events = mutableListOf<ByteArray>()
-
-    val rawEvents
-      get() = events.toList()
-
-    override fun onRawEvent(eventData: ByteArray) {
-      events.add(eventData)
-    }
   }
 }

@@ -34,9 +34,6 @@ class TraceProcessorDaemonManagerTest {
 
   @Test
   fun `spawn and shutdown daemon`() {
-    // TODO: Find proper tpd binary path when running sandboxes in Bazel.
-    Assume.assumeFalse(TestUtils.runningFromBazel())
-
     val manager = TraceProcessorDaemonManager(fakeTicker)
     assertThat(manager.processIsRunning()).isFalse()
 

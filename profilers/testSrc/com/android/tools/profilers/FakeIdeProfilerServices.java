@@ -69,6 +69,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
+  private final FakeTraceProcessorService myFakeTraceProcessorService = new FakeTraceProcessorService();
   private NativeFrameSymbolizer myFakeSymbolizer = new NativeFrameSymbolizer() {
     @NotNull
     @Override
@@ -423,7 +424,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
   public TraceProcessorService getTraceProcessorService() {
-    return new FakeTraceProcessorService();
+    return myFakeTraceProcessorService;
   }
 
   @Nullable

@@ -23,7 +23,7 @@ internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollecti
   }
 
   override fun getKeys(from: PsAndroidModule): Set<PsVariantKey> =
-    from.resolvedModel?.androidProject?.variants?.map { PsVariantKey(it.buildType, it.productFlavors) }.orEmpty().toSet()
+    from.resolvedModel?.variants?.map { PsVariantKey(it.buildType, it.productFlavors) }.orEmpty().toSet()
 
   override fun create(key: PsVariantKey): PsVariant = PsVariant(parent, key)
 
@@ -31,7 +31,6 @@ internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollecti
     val resolvedVariant =
       parent
         .resolvedModel
-        ?.androidProject
         ?.variants
         ?.singleOrNull { it.buildType == key.buildType && it.productFlavors == key.productFlavors } as? IdeVariant
                           ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SceneModeAction
 import com.android.tools.idea.common.actions.IssueNotificationAction
@@ -28,6 +29,7 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildAction
+import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -67,27 +69,29 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     listOfNotNull(
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
-      GroupSwitchAction(),
-      if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
+      GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
+      StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.ifEnabled { ToggleAutoBuildAction() },
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
-        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS),
-      if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null,
-      if (StudioFlags.COMPOSE_BLUEPRINT_MODE.get() && surface is NlDesignSurface)
-        DropDownAction(message("action.scene.mode.title"), message(
-          "action.scene.mode.description"),
-          // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
-                       StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
-          addAction(SceneModeAction(SceneMode.COMPOSE, surface))
-          addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
+        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS).visibleOnlyInComposeStaticPreview(),
+      StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
+      StudioFlags.COMPOSE_BLUEPRINT_MODE.ifEnabled {
+        if (surface is NlDesignSurface) {
+          DropDownAction(message("action.scene.mode.title"), message(
+            "action.scene.mode.description"),
+            // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
+                         StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
+            addAction(SceneModeAction(SceneMode.COMPOSE, surface))
+            addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
+          }
         }
-      else null
+        else null
+      }
     )
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))
     add(IssueNotificationAction.getInstance())
   }
 }

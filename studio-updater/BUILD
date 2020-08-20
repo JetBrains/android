@@ -82,6 +82,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/adt/idea/.idea/libraries:unb.assertJ[test]",
         "//tools/base/common:unb.studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:unb.analytics-shared[module]",

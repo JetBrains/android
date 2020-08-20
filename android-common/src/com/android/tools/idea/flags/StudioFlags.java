@@ -217,11 +217,6 @@ public final class StudioFlags {
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
     false);
 
-  public static final Flag<Boolean> NELE_DEFAULT_LIVE_RENDER = Flag.create(
-    NELE, "live.render", "Enable the Live Render by default",
-    "Enable the continuous rendering of the surface when moving/resizing components unless the user disables it.",
-    true);
-
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
     NELE, "convert.view", "Enable the Convert View action",
     "Enable the Convert View Action when right clicking on a component",
@@ -283,25 +278,10 @@ public final class StudioFlags {
     "New architecture for dragging widgets in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
-    NELE, "high.quality.shadow", "Enable the high quality shadows",
-    "Enable the high quality shadow rendering in Layout Editor",
-    true);
-
-  public static final Flag<Boolean> NELE_ENABLE_SHADOW = Flag.create(
-    NELE, "enable.shadow", "Enable shadows",
-    "Enable the shadow rendering in Layout Editor",
-    true);
-
   public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
     false);
-
-  public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
-    NELE, "design.surface.zoom", "Zoom panel in Design Surface",
-    "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
-    true);
 
   public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
     NELE, "visualisation", "Layout Validation Tool",
@@ -577,7 +557,7 @@ public final class StudioFlags {
     "offline.enabled",
     "Enable offline mode in Database Inspector",
     "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
-    false
+    true
   );
   //endregion
 
@@ -941,7 +921,7 @@ public final class StudioFlags {
     COMPOSE, "preview.animation.inspector",
     "Enable compose preview animation inspection",
     "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(

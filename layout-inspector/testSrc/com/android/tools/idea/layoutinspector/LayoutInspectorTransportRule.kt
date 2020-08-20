@@ -118,6 +118,7 @@ class LayoutInspectorTransportRule(
   lateinit var inspectorClient: InspectorClient
   lateinit var inspectorModel: InspectorModel
   val project: Project get() = projectRule.project
+  val testRootDisposable: Disposable get() = projectRule.fixture.testRootDisposable
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true

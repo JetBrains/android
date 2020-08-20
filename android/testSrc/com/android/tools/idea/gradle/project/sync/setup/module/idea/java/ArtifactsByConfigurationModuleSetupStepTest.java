@@ -25,6 +25,7 @@ import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -70,8 +71,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model = JavaModuleModel
-      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true);
+      .create(module.getName(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              artifactsByConfiguration,
+              null,
+              null,
+              null,
+              true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -95,8 +103,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     Module module = getModule();
 
     JavaModuleModel model = JavaModuleModel
-      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true);
+      .create(module.getName(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              artifactsByConfiguration,
+              null,
+              null,
+              null,
+              true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -155,8 +170,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
     JavaModuleModel model =
       JavaModuleModel
-        .create(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-                Collections.emptyList(), null, buildFolderPath, null, true);
+        .create(moduleName,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                artifactsByConfiguration,
+                null,
+                buildFolderPath,
+                null,
+                true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 

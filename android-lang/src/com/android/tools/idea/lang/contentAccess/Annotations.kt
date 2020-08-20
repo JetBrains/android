@@ -27,3 +27,4 @@ internal const val CONTENT_INSERT_ANNOTATION = "androidx.contentaccess.ContentIn
 
 internal const val URI_PARAM = "uri"
 internal const val CONTENT_ENTITY_PARAM = "contentEntity"
+internal const val COLUMN_NAME = "columnName"

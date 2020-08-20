@@ -43,6 +43,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTempDirTestFixture
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -142,6 +143,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder]. Such a project will have a module from which an instance of [AndroidModel] can be retrieved.
      */
+    @JvmStatic
     fun withAndroidModel(
       androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
     ): AndroidProjectRule {
@@ -158,6 +160,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder].
      */
+    @JvmStatic
     fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
       lightFixture = false,
@@ -306,6 +309,7 @@ class AndroidProjectRule private constructor(
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()
+    AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }
 

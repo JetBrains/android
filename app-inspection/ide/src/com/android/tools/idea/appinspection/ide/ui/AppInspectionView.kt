@@ -29,17 +29,15 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -83,6 +81,12 @@ class AppInspectionView(
    */
   @VisibleForTesting
   var tabsChangedOneShotListener: (() -> Unit)? = null
+    set(value) {
+      if (value != null) {
+        check(field == null) { "Attempting to set two one-shot listeners at the same time" }
+      }
+      field = value
+    }
 
   @VisibleForTesting
   val inspectorTabs = CommonTabbedPane(object : CommonTabbedPaneUI() {
@@ -171,7 +175,7 @@ class AppInspectionView(
       }
       else {
         // Note: This is fired by populateTabs in the other case
-        fireTabsChangedListeners()
+        fireTabsChangedListener()
       }
     }
     updateUi()
@@ -207,28 +211,23 @@ class AppInspectionView(
                 project.name,
                 force
               )
-            ) { messenger ->
-              invokeAndWaitIfNeeded {
-                provider.createTab(project, ideServices, currentProcess, messenger)
-                  .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                  .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
-              }.client
+            )
+            withContext(uiDispatcher) {
+              provider.createTab(project, ideServices, currentProcess, client)
+                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+                .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
             }
-            client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-              var crashed = false
-              override fun onCrashEvent(message: String) {
+            scope.launch {
+              client.awaitForDisposal()
+              if (client.crashMessage != null) {
                 AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-                crashed = true
-              }
-
-              override fun onDispose() {
                 // Wait until AFTER we're disposed before showing the notification. This ensures if
                 // the user hits restart, which requests launching a new inspector, it won't reuse
                 // the existing client. (Users probably would never hit restart fast enough but it's
                 // possible to trigger in tests.)
-                if (crashed) showCrashNotification(provider.displayName)
+                showCrashNotification(provider.displayName)
               }
-            }, MoreExecutors.directExecutor())
+            }
           }
           catch (e: CancellationException) {
             // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels
@@ -258,13 +257,17 @@ class AppInspectionView(
     jobs.joinAll()
     withContext(uiDispatcher) {
       updateUi()
-      fireTabsChangedListeners()
+      fireTabsChangedListener()
     }
   }
 
-  private fun fireTabsChangedListeners() {
-    tabsChangedOneShotListener?.let { listener -> listener() }
-    tabsChangedOneShotListener = null
+  private fun fireTabsChangedListener() {
+    tabsChangedOneShotListener?.let { listener ->
+      // Clear the one-shot before firing the listener, in case the listener itself registers a new
+      // listener (or unblocks another thread from doing so)
+      tabsChangedOneShotListener = null
+      listener()
+    }
   }
 
   private fun updateUi() {

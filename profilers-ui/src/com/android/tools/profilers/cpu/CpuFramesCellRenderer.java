@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.cpu.atrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;

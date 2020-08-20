@@ -99,7 +99,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE
+      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
     )
   }
 
@@ -158,7 +158,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
@@ -177,7 +177,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
@@ -213,8 +213,8 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
-      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
@@ -223,8 +223,8 @@ class BuildAnalyzerViewControllerTest {
   fun testTasksNodeSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
-    // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.tasksPageModel.selectedNode!!.nextNode as TasksTreeNode
+    // First node in current (ungrouped) tasks tree.
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
 
     // Act
     controller.tasksTreeNodeSelected(nodeToSelect)
@@ -244,7 +244,7 @@ class BuildAnalyzerViewControllerTest {
   fun testTasksDetailsLinkClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.tasksPageModel.selectedNode!!.nextNode as TasksTreeNode
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
 
     // Act
     controller.tasksDetailsLinkClicked(nodeToSelect.descriptor.pageId)
@@ -307,7 +307,11 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testGenerateReportClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+    // Prepare: Select first node
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
+    controller.tasksTreeNodeSelected(nodeToSelect)
     val taskData = (model.tasksPageModel.selectedNode!!.descriptor as TaskDetailsNodeDescriptor).taskData
+    tracker.usages.clear()
 
     // Act
     controller.generateReportClicked(taskData)

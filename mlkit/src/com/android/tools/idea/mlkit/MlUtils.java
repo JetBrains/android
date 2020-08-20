@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.google.common.collect.Streams.stream;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -22,6 +24,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.mlkit.MlNames;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -56,7 +59,7 @@ public class MlUtils {
     return androidFacet != null &&
            file.getFileType() == TfliteModelFileType.INSTANCE &&
            SourceProviders.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
-             .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
+             .flatMap(sourceProvider -> stream(sourceProvider.getMlModelsDirectories()))
              .anyMatch(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true));
   }
 
@@ -78,7 +81,7 @@ public class MlUtils {
 
     Optional<VirtualFile> ancestor =
       SourceProviders.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
-        .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
+        .flatMap(sourceProvider -> stream(sourceProvider.getMlModelsDirectories()))
         .filter(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true))
         .findFirst();
     return ancestor.map(virtualFile -> VfsUtilCore.getRelativePath(file, virtualFile)).orElse(null);

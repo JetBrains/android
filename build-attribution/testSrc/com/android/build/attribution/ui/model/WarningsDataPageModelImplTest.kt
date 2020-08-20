@@ -174,7 +174,7 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("7 Warnings")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 7, Filtered: 7")
   }
 
   @Test

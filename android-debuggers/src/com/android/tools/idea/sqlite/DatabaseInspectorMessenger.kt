@@ -28,7 +28,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
 class DatabaseInspectorMessenger(
-  private val messenger: AppInspectorClient.CommandMessenger,
+  private val client: AppInspectorClient,
   private val scope: CoroutineScope,
   taskExecutor: Executor,
   private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
@@ -36,7 +36,7 @@ class DatabaseInspectorMessenger(
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
 
   suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response = withContext(workerDispatcher) {
-    val rawResponse = messenger.sendRawCommand(command.toByteArray())
+    val rawResponse = client.sendRawCommand(command.toByteArray())
     val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
     if (parsedResponse.hasErrorOccurred()) {
       val errorResponse = parsedResponse.errorOccurred

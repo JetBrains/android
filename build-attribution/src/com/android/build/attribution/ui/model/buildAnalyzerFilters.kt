@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -147,3 +148,80 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
   }
   return actionGroup
 }
+
+data class TasksFilter(
+  val showTaskSourceTypes: Set<PluginSourceType>,
+  val showTasksWithoutWarnings: Boolean
+) {
+
+  fun acceptTask(taskData: TaskUiData): Boolean =
+    (showTasksWithoutWarnings || taskData.hasWarning) &&
+    showTaskSourceTypes.contains(taskData.sourceType)
+
+  companion object {
+    fun default() = TasksFilter(
+      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
+      showTasksWithoutWarnings = true
+    )
+  }
+}
+
+private abstract class TasksFilterToggleAction(
+  uiName: String,
+  val tasksModel: TasksDataPageModel,
+  val actionHandlers: ViewActionHandlers
+) : ToggleAction(uiName), DumbAware {
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    val updatedFilter = if (state) onAdd(tasksModel.filter) else onRemove(tasksModel.filter)
+    actionHandlers.applyTasksFilter(updatedFilter)
+  }
+
+  override fun isSelected(e: AnActionEvent): Boolean = isSelected(tasksModel.filter)
+
+  abstract fun onAdd(filter: TasksFilter): TasksFilter
+  abstract fun onRemove(filter: TasksFilter): TasksFilter
+  abstract fun isSelected(filter: TasksFilter): Boolean
+}
+
+private class TaskSourceTypeTasksFilterToggleAction(
+  uiName: String,
+  val sourceType: PluginSourceType,
+  tasksModel: TasksDataPageModel,
+  actionHandlers: ViewActionHandlers
+) : TasksFilterToggleAction(uiName, tasksModel, actionHandlers) {
+  override fun onAdd(filter: TasksFilter): TasksFilter =
+    filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes + sourceType)
+
+  override fun onRemove(filter: TasksFilter): TasksFilter =
+    filter.copy(showTaskSourceTypes = filter.showTaskSourceTypes - sourceType)
+
+  override fun isSelected(filter: TasksFilter): Boolean = filter.showTaskSourceTypes.contains(sourceType)
+}
+
+private class TasksWithoutWarningsFilterToggleAction(
+  uiName: String,
+  tasksModel: TasksDataPageModel,
+  actionHandlers: ViewActionHandlers
+) : TasksFilterToggleAction(uiName, tasksModel, actionHandlers) {
+  override fun isSelected(filter: TasksFilter): Boolean = filter.showTasksWithoutWarnings
+
+  override fun onAdd(filter: TasksFilter): TasksFilter = filter.copy(showTasksWithoutWarnings = true)
+
+  override fun onRemove(filter: TasksFilter): TasksFilter = filter.copy(showTasksWithoutWarnings = false)
+
+}
+
+fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup =
+  DefaultActionGroup("Filters", true).apply {
+    templatePresentation.icon = AllIcons.Actions.Show
+    add(TaskSourceTypeTasksFilterToggleAction(
+      "Show tasks for Android/Java/Kotlin plugins", PluginSourceType.ANDROID_PLUGIN, model, actionHandlers
+    ))
+    add(TaskSourceTypeTasksFilterToggleAction("Show tasks for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers))
+    add(TaskSourceTypeTasksFilterToggleAction(
+      "Show tasks for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
+    ))
+    addSeparator()
+    add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
+  }

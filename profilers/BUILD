@@ -1,6 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
+# Export testData traces
+filegroup(
+    name = "test_data",
+    srcs = glob(["testData/**"]),
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.profilers",
@@ -11,7 +18,10 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.profilers.ProfilersTestSuite",
-    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
@@ -43,7 +53,7 @@ iml_module(
         "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -76,6 +86,7 @@ iml_module(
         "//tools/idea/.idea/libraries:perfetto-proto",
         "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
@@ -108,6 +119,7 @@ kotlin_test(
 iml_module(
     name = "unb.intellij.android.profilers",
     srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/profilers:unb.traceprocessor-proto"],
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
@@ -116,7 +128,10 @@ iml_module(
         "unb",
     ],
     test_class = "com.android.tools.profilers.ProfilersTestSuite",
-    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -141,6 +156,19 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
+        "//tools/adt/idea/profilers:unb.traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.traceprocessor-proto",
+    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
 )

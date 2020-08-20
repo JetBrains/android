@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
@@ -53,6 +54,7 @@ class PsAndroidModule(
   override val descriptor by AndroidModuleDescriptors
   var resolvedModel: AndroidModuleModel? = null; private set
   var resolvedNativeModel: NdkModuleModel? = null; private set
+  var resolvedSyncIssues: SyncIssues? = null ; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
   var isLibrary: Boolean = false; private set
   override var rootDir: File? = null; private set
@@ -78,11 +80,13 @@ class PsAndroidModule(
     parentModule: PsModule?,
     resolvedModel: AndroidModuleModel?,
     resolvedNativeModel: NdkModuleModel?,
+    resolvedSyncIssues: SyncIssues?,
     parsedModel: GradleBuildModel?
   ) {
     super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
     this.resolvedNativeModel = resolvedNativeModel
+    this.resolvedSyncIssues = resolvedSyncIssues
 
     projectType =
       moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }

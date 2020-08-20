@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:utils.bzl", "flat_archive")
 
 # managed by go/iml_to_build
 iml_module(
@@ -35,7 +36,7 @@ iml_module(
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
@@ -68,8 +69,40 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/base/repository:unb.studio.android.sdktools.repository[module]",
         "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/android:unb.intellij.android.core[module]",
+    ],
+)
+
+java_binary(
+    name = "patcher",
+    main_class = "com.intellij.updater.Runner",
+    stamp = 0,
+    tags = [
+        "block_network",
+        "manual",
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        ":unb.intellij.android.updater.ui.jar",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
+    ],
+)
+
+flat_archive(
+    name = "sdk-patcher",
+    ext = "zip",
+    files = {
+        ":source.properties": "sdk-patcher/source.properties",
+        ":patcher_deploy.jar": "sdk-patcher/patcher.jar",
+    },
+    tags = [
+        "manual",
+        "no_mac",
+        "no_windows",
     ],
 )

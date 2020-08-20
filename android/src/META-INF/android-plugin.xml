@@ -42,37 +42,10 @@
   </application-components>
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.stats.ProjectSizeUsageTracker</implementation-class>
-    </component>
-    <component>
-      <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
     <component>
       <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
@@ -316,7 +289,14 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
+    <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
+    <projectService serviceImplementation="org.jetbrains.android.AndroidPropertyFilesUpdater" />
+    <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
+    <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
+    <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
@@ -1009,13 +989,18 @@
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
-  </projectListeners>
-
-  <projectListeners>
+    <listener class="com.android.tools.idea.project.SyncTimestampListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
+              topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
+              topic="com.intellij.execution.ExecutionListener"/>
+    <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
+              topic="com.intellij.openapi.roots.ModuleRootListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->

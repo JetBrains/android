@@ -366,6 +366,50 @@ class LegendComponentTest {
     assertText(legendComponent, listOf("Value"))
   }
 
+  @Test
+  fun `legend not showing values is smaller`() {
+    val model = LegendComponentModel(Range(0.0, 0.0))
+    val legends = makeSimpleLegends(3)
+
+    fun make(showValues: Boolean) = LegendComponent.Builder(model)
+      .setShowValues(showValues)
+      .build().apply {
+        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
+        // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+        addNotify()
+      }
+
+    val fullLegend = make(true)
+    val compactLegend = make(false)
+    legends.forEach(model::add)
+
+    assertThat(compactLegend.instructions.size).isLessThan(fullLegend.instructions.size)
+    assertThat(compactLegend.preferredSize.width).isLessThan(fullLegend.preferredSize.width)
+  }
+
+  @Test
+  fun `legend with excluded name is smaller`() {
+    val model = LegendComponentModel(Range(0.0, 0.0))
+    val legends = makeSimpleLegends(3)
+
+    fun make(vararg excluded: String) = LegendComponent.Builder(model)
+      .setExcludedLegends(*excluded)
+      .build().apply {
+        // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
+        // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+        addNotify()
+      }
+
+    val fullLegend = make() // full legend contains Test1, Test2, Test3
+    val partLegend = make("Test2")
+    legends.forEach(model::add)
+
+    assertThat(partLegend.instructions.size).isLessThan(fullLegend.instructions.size)
+    assertThat(partLegend.preferredSize.width).isLessThan(fullLegend.preferredSize.width)
+  }
+
+  private fun makeSimpleLegends(n: Int) = (1 .. n).map { FakeLegend("Test$it", "Value$it") }
+
   private fun assertText(legend: LegendComponent, text: List<String>) {
     assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text })
       .containsExactlyElementsIn(text).inOrder()

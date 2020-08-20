@@ -42,12 +42,4 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     return group;
   }
-
-  @NotNull
-  @Override
-  protected ActionGroup getNorthEastGroup() {
-    DefaultActionGroup group = new DefaultActionGroup();
-    group.addAll(getZoomActions());
-    return group;
-  }
 }

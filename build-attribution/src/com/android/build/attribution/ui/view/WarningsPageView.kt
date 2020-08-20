@@ -168,14 +168,13 @@ class WarningsPageView(
       detailsPanel.removeAll()
     }
 
-    model.selectedNode.let { selectedNode ->
-      if (selectedNode != null) {
-        detailsPanel.select(selectedNode.descriptor.pageId, true)
-        TreeUtil.selectNode(tree, selectedNode)
-      }
-      else {
-        detailsPanel.select(WarningsPageId.emptySelection, true)
-      }
+    val selectedNode = model.selectedNode
+    if (selectedNode == null) {
+      detailsPanel.select(WarningsPageId.emptySelection, true)
+    }
+    else {
+      detailsPanel.select(selectedNode.descriptor.pageId, true)
+      TreeUtil.selectNode(tree, selectedNode)
     }
     fireActionHandlerEvents = true
   }

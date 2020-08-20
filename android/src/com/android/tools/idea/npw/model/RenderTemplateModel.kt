@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getPackageForApplication
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -51,7 +52,8 @@ import java.io.File
 private val log = logger<RenderTemplateModel>()
 
 private class ExistingNewModuleModelData(
-  existingProjectModelData: ExistingProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate
+  existingProjectModelData: ExistingProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate,
+  override val wizardContext: WizardUiContext
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
@@ -63,6 +65,7 @@ private class ExistingNewModuleModelData(
     throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
   override val isLibrary: Boolean = false
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
+  override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
 }
 
 /**
@@ -72,8 +75,7 @@ class RenderTemplateModel private constructor(
   private val moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
   private val commandName: String,
-  private val shouldOpenFiles: Boolean,
-  private val wizardContext: WizardUiContext
+  private val shouldOpenFiles: Boolean
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -121,6 +123,8 @@ class RenderTemplateModel private constructor(
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
       }
+
+      sendModuleMetrics.set(!hasActivity)
 
       moduleTemplateDataBuilder.apply {
         // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
@@ -224,23 +228,20 @@ class RenderTemplateModel private constructor(
     ) = RenderTemplateModel(
       moduleModelData = ExistingNewModuleModelData(
         ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { initialPackageSuggestion?.let { packageName.set(it) }},
-        facet, template),
+        facet, template, wizardContext),
       androidFacet = facet,
       commandName = commandName,
-      shouldOpenFiles = shouldOpenFiles,
-      wizardContext = wizardContext)
+      shouldOpenFiles = shouldOpenFiles)
 
     @JvmStatic
     fun fromModuleModel(
       moduleModel: NewAndroidModuleModel,
-      commandName: String = "Render new ${moduleModel.formFactor.get().name} template",
-      wizardContext: WizardUiContext
+      commandName: String = "Render new ${moduleModel.formFactor.get().name} template"
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,
       commandName = commandName,
-      shouldOpenFiles = true,
-      wizardContext = wizardContext
+      shouldOpenFiles = true
     ).apply { multiTemplateRenderer.incrementRenders() }
 
     /**

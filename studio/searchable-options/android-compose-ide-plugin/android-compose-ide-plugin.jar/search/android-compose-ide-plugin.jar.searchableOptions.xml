@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Compose" configurable_name="Compose">
+    <option name="compose" hit="Compose" />
+    <option name="calls" hit="Calls to @Compose functions" />
+    <option name="compose" hit="Calls to @Compose functions" />
+    <option name="functions" hit="Calls to @Compose functions" />
+    <option name="to" hit="Calls to @Compose functions" />
+  </configurable>
+</options>
+

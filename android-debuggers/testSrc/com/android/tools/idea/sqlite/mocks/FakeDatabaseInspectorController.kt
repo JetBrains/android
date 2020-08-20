@@ -23,22 +23,17 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
-import kotlinx.coroutines.Deferred
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class FakeDatabaseInspectorController(private val repository: DatabaseRepositoryImpl, val model: DatabaseInspectorModel) : DatabaseInspectorController {
+open class FakeDatabaseInspectorController(private val repository: DatabaseRepository, val model: DatabaseInspectorModel) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
 
   override fun setUp() { }
-
-  override suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>) = withContext(uiThread) {
-    addSqliteDatabase(deferredDatabaseId.await())
-  }
 
   override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
     model.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))

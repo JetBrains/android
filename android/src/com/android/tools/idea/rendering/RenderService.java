@@ -355,8 +355,8 @@ public class RenderService implements Disposable {
     private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
-    private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
-    private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    private boolean isShadowEnabled = true;
+    private boolean useHighQualityShadows = true;
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;

@@ -100,9 +100,9 @@ class AndroidTestSuiteViewTest {
   fun detailsViewIsVisibleAndRawTestOutputIsDisplayedInitially() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
-    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.tableForTesting.getTableViewForTesting().selectedColumn).isEqualTo(0)
-    assertThat(view.tableForTesting.getTableViewForTesting().selectedRow).isEqualTo(0)
+    assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
+    assertThat(view.myResultsTableView.getTableViewForTesting().selectedColumn).isEqualTo(0)
+    assertThat(view.myResultsTableView.getTableViewForTesting().selectedRow).isEqualTo(0)
   }
 
   @Test
@@ -142,27 +142,27 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Click on the test case 2 results row.
-    view.onAndroidTestResultsRowSelected(view.tableForTesting.getTableViewForTesting().getItem(4),
+    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(4),
                                          /*selectedDevice=*/null)
 
     // Verifies the details view is visible now.
-    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package2.class2.method2")
-    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device1)
+    assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
+    assertThat(view.myDetailsView.titleTextView.text).isEqualTo("package2.class2.method2")
+    assertThat(view.myDetailsView.selectedDevice).isEqualTo(device1)
 
     // Click on the test case 1 results row in device2 column.
-    view.onAndroidTestResultsRowSelected(view.tableForTesting.getTableViewForTesting().getItem(2),
+    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(2),
                                          /*selectedDevice=*/device2)
 
     // Verifies the details view is visible now.
-    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package1.class1.method1")
-    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device2)
+    assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
+    assertThat(view.myDetailsView.titleTextView.text).isEqualTo("package1.class1.method1")
+    assertThat(view.myDetailsView.selectedDevice).isEqualTo(device2)
 
     // Finally, close the details view.
     view.onAndroidTestSuiteDetailsViewCloseButtonClicked()
 
-    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
+    assertThat(view.myDetailsView.rootPanel.isVisible).isFalse()
 
     assertThat(view.myLogger.getImpressionsForTesting()).containsExactly(
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
@@ -206,7 +206,7 @@ class AndroidTestSuiteViewTest {
     testcase5OnDevice1.result = AndroidTestCaseResult.CANCELLED
     view.onTestCaseFinished(device1, testsuiteOnDevice1, testcase5OnDevice1)
 
-    val tableView = view.tableForTesting.getTableViewForTesting()
+    val tableView = view.myResultsTableView.getTableViewForTesting()
 
     // Initially, all tests are displayed.
     assertThat(tableView.rowCount).isEqualTo(9)
@@ -249,7 +249,7 @@ class AndroidTestSuiteViewTest {
     // Remove "Skipped" and select "In Progress".
     view.mySkippedToggleButton.isSelected = false
     view.myInProgressToggleButton.isSelected = true
-    view.tableForTesting.createExpandAllAction().actionPerformed(mock())
+    view.myResultsTableView.createExpandAllAction().actionPerformed(mock())
 
     assertThat(tableView.rowCount).isEqualTo(5)
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
@@ -334,8 +334,8 @@ class AndroidTestSuiteViewTest {
     }
     requireNotNull(selectDevice2Action).actionPerformed(mock())
 
-    val tableView = view.tableForTesting.getTableViewForTesting()
-    val tableViewModel = view.tableForTesting.getModelForTesting()
+    val tableView = view.myResultsTableView.getTableViewForTesting()
+    val tableViewModel = view.myResultsTableView.getModelForTesting()
     assertThat(tableView.columnCount).isEqualTo(3)
     assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
     assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
@@ -385,8 +385,8 @@ class AndroidTestSuiteViewTest {
     }
     requireNotNull(selectApi29Action).actionPerformed(mock())
 
-    val tableView = view.tableForTesting.getTableViewForTesting()
-    val tableViewModel = view.tableForTesting.getModelForTesting()
+    val tableView = view.myResultsTableView.getTableViewForTesting()
+    val tableViewModel = view.myResultsTableView.getModelForTesting()
     assertThat(tableView.columnCount).isEqualTo(3)
     assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
     assertThat(tableViewModel.columns[1].name).isEqualTo("Status")
@@ -434,7 +434,7 @@ class AndroidTestSuiteViewTest {
 
     view.onTestSuiteFinished(device1, testsuite)
 
-    val tableView = view.tableForTesting.getTableViewForTesting()
+    val tableView = view.myResultsTableView.getTableViewForTesting()
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package.Z_class.")
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package.Z_class.Z_method1")

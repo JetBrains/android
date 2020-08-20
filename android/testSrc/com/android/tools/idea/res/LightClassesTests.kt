@@ -1397,6 +1397,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -1408,6 +1409,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+b/165051180 */
   }
 
   fun testLibTestResources() {
@@ -1438,6 +1440,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -1449,6 +1452,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+b/165051180 */
   }
 
   fun testResolveScope() {
@@ -1474,7 +1478,9 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(unitTest)
+/* b/165051180
     myFixture.checkHighlighting()
+b/165051180 */
 
     val normalClass = createFile(
       project.guessProjectDir()!!,
@@ -1568,6 +1574,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       """.trimIndent()
     )
 
+/* b/165051180
     val appTestScope = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)!!.useScope as GlobalSearchScope
     assertFalse(appTestScope.isSearchInLibraries)
     assertEquals(appTestScope, myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").useScope)
@@ -1575,6 +1582,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     val libTestScope = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)!!.useScope as GlobalSearchScope
     assertFalse(libTestScope.isSearchInLibraries)
     assertEquals(libTestScope, myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").useScope)
+b/165051180 */
   }
 }
 
@@ -1621,10 +1629,12 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
+b/165051180 */
   }
 
   fun testLibTestResources() {
@@ -1657,10 +1667,12 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+b/165051180 */
   }
 }
 
