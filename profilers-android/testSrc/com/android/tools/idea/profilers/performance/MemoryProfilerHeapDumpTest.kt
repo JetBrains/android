@@ -74,7 +74,7 @@ class MemoryProfilerHeapDumpTest {
   }
 
   private fun testFile(name: String) {
-    val file = TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/hprofs/$name.hprof")
+    val file = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/performance/$name.hprof")
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     assertThat(profilers.sessionsManager.importSessionFromFile(file)).isTrue()
     val dumpInfo =
