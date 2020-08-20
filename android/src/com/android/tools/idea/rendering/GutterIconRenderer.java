@@ -4,7 +4,7 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
-import static org.jetbrains.android.AndroidAnnotatorUtil.createSetAttributeTask;
+import static org.jetbrains.android.AndroidAnnotatorUtil.createSetXmlAttributeTask;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
@@ -89,7 +89,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     myFacet = facet;
     myFile = file;
     myConfiguration = configuration;
-    mySetAttributeTask = createSetAttributeTask(element);
+    mySetAttributeTask = createSetXmlAttributeTask(element);
     PsiFile containingFile = element.getContainingFile();
     myCanModify = containingFile != null && containingFile.getFileType() == XmlFileType.INSTANCE;
   }
