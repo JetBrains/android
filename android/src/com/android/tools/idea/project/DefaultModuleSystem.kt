@@ -23,6 +23,7 @@ import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
@@ -174,7 +175,7 @@ class DefaultModuleSystem(override val module: Module) :
           else -> return@forEachLibrary true
         }
 
-        libraries.add(ExternalLibrary(
+        libraries.add(ExternalLibraryImpl(
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
           classJars = if (classesJar == null) emptyList() else listOf(classesJar),

@@ -402,7 +402,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
-      if (library.hasResources()) {
+      if (library.getHasResources()) {
         registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
