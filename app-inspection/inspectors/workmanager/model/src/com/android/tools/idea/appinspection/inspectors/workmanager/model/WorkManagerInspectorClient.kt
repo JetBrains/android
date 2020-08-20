@@ -76,8 +76,14 @@ class WorkManagerInspectorClient(private val client: AppInspectorClient, private
     works.indexOfFirst(predicate)
   }
 
-  fun getWorkIdsWithUniqueName(uniqueName: String): List<String> = synchronized(lock) {
-    works.filter { it.namesList.contains(uniqueName) }.map { it.id }.toList()
+  // TODO(b/165789713): Return work chain ids with topological order.
+  fun getWorkChain(id: String): List<String> = synchronized(lock) {
+    val work = works.first { it.id == id}
+    if (work.namesCount > 0) {
+      val name = work.getNames(0)!!
+      return works.filter { it.namesList.contains(name) }.map { it.id }.toList()
+    }
+    return listOf(id)
   }
 
   fun cancelWorkById(id: String) {
