@@ -533,6 +533,36 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun fragmentTagsDoNotGenerateFields() {
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <View
+            android:id="@+id/id_view_one"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+          <fragment
+            android:id="@+id/id_fragment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+          <View
+            android:id="@+id/id_view_two"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.fields.map { it.name }).containsExactly("idViewOne", "idViewTwo")
+  }
+
+  @Test
   fun createMergeFieldWithTargetLayoutType() {
     fixture.addFileToProject("res/layout/other_activity.xml", """
       <?xml version="1.0" encoding="utf-8"?>
