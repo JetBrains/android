@@ -23,7 +23,6 @@ import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
-import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
@@ -146,8 +145,8 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedLibraryDependencies(): Collection<Library> {
-    val libraries = mutableListOf<Library>()
+  override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
+    val libraries = mutableListOf<ExternalLibrary>()
 
     ModuleRootManager.getInstance(module)
       .orderEntries()
