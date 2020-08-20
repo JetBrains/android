@@ -41,6 +41,8 @@ import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -53,6 +55,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
@@ -647,36 +650,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.moveCaret("mylib.R.string.|libString")
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
-    }
-
-    fun testNonTransitive_withoutRestart() {
-      myFixture.loadNewFile(
-        "/src/p1/p2/MainActivity.java",
-        // language=java
-        """
-      package p1.p2;
-
-      import android.app.Activity;
-      import android.os.Bundle;
-
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(R.string.${caret});
-          }
-      }
-      """.trimIndent()
-      )
-
-      myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "libString", "anotherLibString", "class")
-
-      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST)
-
-      myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
     }
 
     fun testUseScope() {
@@ -1365,6 +1338,48 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """)
   }
 }
+
+/**
+ * Tests to verify that the AndroidResolveScopeEnlarger cache is invalidated when gradle sync is triggered to use using
+ * android.nonTransitiveRClass=true gradle property.
+ *
+ * @see AndroidResolveScopeEnlarger
+ */
+class EnableNonTransitiveRClassTest: TestRClassesTest() {
+  fun testNonTransitive_withoutRestart() {
+    val normalClass = createFile(
+      project.guessProjectDir()!!,
+      "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class NormalClass {
+          void useResources() {
+             int layout = R.layout.${caret};
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(normalClass)
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
+                                                               "fragment_navigation_drawer", "support_simple_spinner_dropdown_item",
+                                                               "class")
+
+    val projectRoot = File(FileUtil.toSystemDependentName(project.basePath!!))
+    File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
+    requestSyncAndWait()
+
+    // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is not present.
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
+                                                               "fragment_navigation_drawer", "class")
+  }
+}
+
 class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
