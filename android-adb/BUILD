@@ -190,6 +190,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.zxing-core[test]",
         "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
     ],
 )

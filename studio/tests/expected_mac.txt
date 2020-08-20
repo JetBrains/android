@@ -984,7 +984,7 @@ Android Studio.app/Contents/plugins/android/lib/auto-common-0.10.jar
 Android Studio.app/Contents/plugins/android/lib/build-common.jar
 Android Studio.app/Contents/plugins/android/lib/commons-compress-1.8.1.jar
 Android Studio.app/Contents/plugins/android/lib/commons-lang-2.6.jar
-Android Studio.app/Contents/plugins/android/lib/core-proto-0.0.1-dev.jar
+Android Studio.app/Contents/plugins/android/lib/core-proto-0.0.2-dev.jar
 Android Studio.app/Contents/plugins/android/lib/data-binding.jar
 Android Studio.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio.app/Contents/plugins/android/lib/device-art-resources/automotive_1024/back.png

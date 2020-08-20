@@ -86,7 +86,6 @@ iml_module(
         "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
         "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
-        "//tools/adt/idea/.idea/libraries:unb.Guava",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
