@@ -100,7 +100,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     if (node != null) {
       // If our root node has an empty ID it is the visual node. As such we look at the type of the first child to determine which tooltip
       // we will display.
-      if (node.getData().getId().isEmpty()) {
+      if (node.getData().getId().isEmpty() && node.getChildCount() > 0) {
         node = node.getFirstChild();
       }
       if (node.getData() instanceof SystemTraceNodeModel) {
