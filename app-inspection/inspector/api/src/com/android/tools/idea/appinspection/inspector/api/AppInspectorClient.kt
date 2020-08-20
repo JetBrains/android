@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.WorkerThread
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -50,14 +51,19 @@ interface AppInspectorClient {
    * way to find out when the inspector is disposed.
    */
   val scope: CoroutineScope
-
-  /**
-   * If the inspector was disposed exceptionally (ex: crashed), then this will be set to the error message. Otherwise null.
-   */
-  val crashMessage: String?
 }
 
 /**
  * A convenience function that awaits until the inspector is disposed.
+ *
+ * This method returns true if the client was disposed normally, or false if it was caused by a crash.
  */
-suspend fun AppInspectorClient.awaitForDisposal() = scope.coroutineContext[Job]!!.join()
+suspend fun AppInspectorClient.awaitForDisposal(): Boolean {
+  val job = scope.coroutineContext[Job]!!
+  var crashed = false
+  job.invokeOnCompletion { cause ->
+    crashed = (cause is CancellationException && cause.cause is AppInspectionCrashException)
+  }
+  job.join()
+  return !crashed
+}

@@ -53,9 +53,6 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
     override val scope: CoroutineScope
       get() = throw NotImplementedError()
-
-    override val crashMessage: String?
-      get() = throw NotImplementedError()
   }
 
   fun testColumnsReturnCorrectListOfColumns() = runBlocking<Unit> {

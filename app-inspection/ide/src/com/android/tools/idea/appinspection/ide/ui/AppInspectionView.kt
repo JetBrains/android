@@ -218,8 +218,7 @@ class AppInspectionView(
                 .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
             }
             scope.launch {
-              client.awaitForDisposal()
-              if (client.crashMessage != null) {
+              if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
                 AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
                 // Wait until AFTER we're disposed before showing the notification. This ensures if
                 // the user hits restart, which requests launching a new inspector, it won't reuse

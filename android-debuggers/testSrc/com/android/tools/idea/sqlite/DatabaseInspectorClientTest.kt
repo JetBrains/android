@@ -302,6 +302,5 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     }
 
     override val rawEventFlow = emptyFlow<ByteArray>()
-    override val crashMessage: String? = null
   }
 }
