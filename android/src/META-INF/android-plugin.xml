@@ -286,7 +286,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
@@ -999,6 +998,8 @@
               topic="com.intellij.execution.ExecutionListener"/>
     <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>
+    <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
