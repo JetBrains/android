@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
@@ -38,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Panel
 import java.awt.event.ActionListener
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -187,39 +189,57 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     })
     headingPanel.add(closeButton, BorderLayout.EAST)
 
-
     val panel = JPanel(TabularLayout("*", "Fit,Fit,*"))
     panel.add(headingPanel, TabularLayout.Constraint(0, 0))
     panel.add(JSeparator(), TabularLayout.Constraint(1, 0))
-    val detailPanel = object : ScrollablePanel(VerticalLayout(2)) {
-      override fun getScrollableTracksViewportWidth() = false
-      override fun getPreferredScrollableViewportSize(): Dimension {
-        val result = super.getPreferredScrollableViewportSize()
-        return Dimension(min(700, result.width), result.height)
-      }
-    }
+    val detailPanel = ScrollablePanel(VerticalLayout(18))
+    detailPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
     val idListProvider = IdListProvider(client, table, work)
     detailPanel.preferredScrollableViewportSize
     val scrollPane = JBScrollPane(detailPanel)
     scrollPane.border = BorderFactory.createEmptyBorder()
-    detailPanel.add(buildKeyValuePair("Class", work.workerClassName, classNameProvider))
-    detailPanel.add(buildKeyValuePair("Periodicity", if (work.isPeriodic) "Periodic" else "One Time"))
-    if (work.namesCount > 0) {
-      val uniqueName = work.namesList[0]
-      detailPanel.add(buildKeyValuePair("Unique Work Name", uniqueName))
-      detailPanel.add(buildKeyValuePair("", client.getWorkIdsWithUniqueName(uniqueName), idListProvider))
-    }
-    detailPanel.add(buildKeyValuePair("Tags", work.tagsList, stringListProvider))
-    detailPanel.add(buildKeyValuePair("Enqueued At", work.callStack, enqueuedAtProvider))
-    detailPanel.add(buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider))
-    detailPanel.add(buildKeyValuePair("Retry Count", work.runAttemptCount))
-    detailPanel.add(buildKeyValuePair("Prerequisites", work.prerequisitesList.toList(), idListProvider))
-    detailPanel.add(buildKeyValuePair("Dependencies", work.dependentsList.toList(), idListProvider))
-    detailPanel.add(buildKeyValuePair("Constraints", work.constraints, constraintProvider))
-    detailPanel.add(buildKeyValuePair("State", work.state.name))
-    detailPanel.add(buildKeyValuePair("Output Data", work.data, outputDataProvider))
+    detailPanel.add(buildCategoryPanel("Description", listOf(
+      buildKeyValuePair("Class", work.workerClassName, classNameProvider),
+      buildKeyValuePair("Tags", work.tagsList, stringListProvider),
+      buildKeyValuePair("UUID", work.id)
+    )))
+
+    detailPanel.add(buildCategoryPanel("Execution", listOf(
+      buildKeyValuePair("Enqueued by", work.callStack, enqueuedAtProvider),
+      buildKeyValuePair("Constraints", work.constraints, constraintProvider),
+      buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
+      buildKeyValuePair("State", work.state.name)
+    )))
+
+    detailPanel.add(buildCategoryPanel("WorkContinuation", listOf(
+      buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
+      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
+      buildKeyValuePair("Unique work chain", client.getWorkChain(work.id), idListProvider)
+    )))
+
+    detailPanel.add(buildCategoryPanel("Results", listOf(
+      buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider),
+      buildKeyValuePair("Retries", work.runAttemptCount),
+      buildKeyValuePair("Output Data", work.data, outputDataProvider)
+    )))
+
     panel.add(scrollPane, TabularLayout.Constraint(2, 0))
+    return panel
+  }
+
+  private fun buildCategoryPanel(name: String, subPanels: List<Component>): JPanel {
+    val panel = JPanel(VerticalLayout(0))
+
+    val headingPanel = TitledSeparator(name)
+    panel.add(headingPanel)
+
+    for (subPanel in subPanels) {
+      val borderedPanel = JPanel(BorderLayout())
+      borderedPanel.add(subPanel, BorderLayout.WEST)
+      borderedPanel.border = BorderFactory.createEmptyBorder(0, 20, 0, 0)
+      panel.add(borderedPanel)
+    }
     return panel
   }
 
