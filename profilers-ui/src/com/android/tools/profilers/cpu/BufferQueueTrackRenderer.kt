@@ -21,7 +21,7 @@ import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerTrackRendererType
-import com.android.tools.profilers.cpu.atrace.BufferQueueTrackModel
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel

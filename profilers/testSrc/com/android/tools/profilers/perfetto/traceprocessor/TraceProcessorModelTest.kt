@@ -17,8 +17,8 @@ package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
-import com.android.tools.profilers.systemtrace.SchedulingEventModel
-import com.android.tools.profilers.systemtrace.TraceEventModel
+import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
+import com.android.tools.profilers.cpu.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

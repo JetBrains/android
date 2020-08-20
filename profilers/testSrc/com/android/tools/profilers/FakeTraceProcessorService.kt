@@ -18,12 +18,12 @@ package com.android.tools.profilers
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
-import com.android.tools.profilers.systemtrace.CpuCoreModel
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import java.io.File
 import java.io.FileInputStream
 import java.io.ObjectInputStream
