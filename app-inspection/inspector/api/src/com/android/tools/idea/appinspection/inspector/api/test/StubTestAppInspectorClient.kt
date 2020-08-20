@@ -29,6 +29,4 @@ class StubTestAppInspectorClient : AppInspectorClient {
     get() = throw NotImplementedError()
 
   override val rawEventFlow: Flow<ByteArray> = emptyFlow()
-
-  override val crashMessage = null
 }
