@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.profilers.performance
 
-import com.android.testutils.TestUtils
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils.getTraceFile
 import org.junit.Test
 
 /**
@@ -27,7 +26,7 @@ import org.junit.Test
 class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
   fun measureMemoryOfImportPerfetto() {
-    loadCaptureAndReport("Perfetto-10-sec", TestUtils.getWorkspaceFile(CPU_UI_TRACES_DIR + "perfetto_10s_tanks.trace"))
+    loadCaptureAndReport("Perfetto-10-sec", getTraceFile("performance/perfetto_10s_tanks.trace"))
   }
 }
 

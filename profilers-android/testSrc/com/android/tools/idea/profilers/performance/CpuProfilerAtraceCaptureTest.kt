@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.profilers.performance
 
-import com.android.testutils.TestUtils
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import org.junit.Test
 
 /**
@@ -27,6 +26,6 @@ import org.junit.Test
 class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
   fun measureMemoryOfImportATrace() {
-    loadCaptureAndReport("Atrace-10-sec", TestUtils.getWorkspaceFile(CPU_UI_TRACES_DIR + "atrace_10s_tanks.trace"))
+    loadCaptureAndReport("Atrace-10-sec", CpuProfilerTestUtils.getTraceFile("performance/atrace_10s_tanks.trace"))
   }
 }
