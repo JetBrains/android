@@ -17,7 +17,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,14 +83,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
           if (startTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlAnalysisBundle.message(
-              "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
+              "xml.annotator.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
           if (endTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlAnalysisBundle.message(
-              "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
+              "xml.annotator.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
         }
