@@ -214,7 +214,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private VirtualFile createFileIfNotExists(@NotNull String relativePath) {
+  private VirtualFile createFileIfNotExists(@NotNull String relativePath) throws Exception {
     File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);

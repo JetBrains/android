@@ -56,7 +56,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -80,7 +79,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -101,20 +99,11 @@ public class AndroidGradleTests {
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
 
-  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) {
-    SourceFolderManagerImpl instance = (SourceFolderManagerImpl)SourceFolderManager.getInstance(project);
-    Future<?> state = instance.getBulkOperationState();
-    TestCase.assertNotNull(state);
-    long started = System.currentTimeMillis();
-    do {
-      try {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-      }
-      catch (InterruptedException exception) {
-        throw new RuntimeException(exception);
-      }
-    }
-    while (System.currentTimeMillis() - started < 1000 && !state.isDone());
+  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
+    ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
+      PlatformTestUtil.waitForFuture(future, 1000);
+      return null;
+    });
   }
 
   /**
