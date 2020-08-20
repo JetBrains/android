@@ -232,6 +232,11 @@ public final class StudioFlags {
     "Show the popup picker for resource picking or attribute customization in layout editor.",
     true);
 
+  public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
+    NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
+    "Show the popup color resource picker when clicking the gutter icon of color resource in java and kotlin files.",
+    false);
+
   public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
     NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
     "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
