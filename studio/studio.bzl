@@ -4,7 +4,7 @@ load("//tools/base/bazel:functions.bzl", "create_option_file")
 def _zipper(ctx, desc, map, out):
     files = [f for (p, f) in map]
     zipper_files = [r + "=" + f.path + "\n" for r, f in map]
-    zipper_args = ["c", out.path]
+    zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
     zipper_args += ["@" + zipper_list.path]
     ctx.actions.run(
@@ -134,6 +134,7 @@ _studio_plugin = rule(
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),
         "directory": attr.string(),
+        "compress": attr.bool(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -152,6 +153,12 @@ _studio_plugin = rule(
     },
     implementation = _studio_plugin_impl,
 )
+
+def _is_release():
+    return select({
+        "//tools/base/bazel:release": True,
+        "//conditions:default": False,
+    })
 
 # Build an Android Studio plugin.
 # This plugin is a zip file with the final layout inside Android Studio plugin's directory.
@@ -182,6 +189,7 @@ def studio_plugin(
         jars = jars,
         resources = resources_list,
         resources_dirs = resources_dirs,
+        compress = _is_release(),
         **kwargs
     )
 
@@ -346,7 +354,7 @@ def _make_arg_file(ctx, zips, files, overrides, out):
     return arg_file, data
 
 def _zip_merger(ctx, arg_files, out):
-    zipper_args = ["c", out.path]
+    zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     all_files = []
     for arg_file, files in arg_files:
         all_files += files + [arg_file]
@@ -456,6 +464,7 @@ _android_studio = rule(
         "version": attr.string(),
         "version_eap": attr.bool(),
         "version_full": attr.string(),
+        "compress": attr.bool(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -524,6 +533,7 @@ def android_studio(
         resources = resources_list,
         resources_dirs = resources_dirs,
         searchable_options = searchable_options_dict,
+        compress = _is_release(),
         **kwargs
     )
 
