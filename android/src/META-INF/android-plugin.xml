@@ -58,6 +58,7 @@
     </group>
 
     <group id="ExternalCppProject">
+      <action id="Android.AddCppToModule" class="com.android.tools.idea.gradle.actions.AddCppToModuleAction" />
       <action id="Android.LinkExternalCppProject" class="com.android.tools.idea.gradle.actions.LinkExternalCppProjectAction" />
       <separator/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="CutCopyPasteGroup"/>
