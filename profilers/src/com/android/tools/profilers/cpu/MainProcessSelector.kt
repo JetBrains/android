@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profilers.IdeProfilerServices
-import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import java.util.function.Function
 
 /**

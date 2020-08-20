@@ -22,12 +22,12 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRespon
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
 import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModel
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
@@ -37,7 +37,6 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.io.File
-import java.lang.IllegalStateException
 import java.util.concurrent.TimeUnit
 
 /**

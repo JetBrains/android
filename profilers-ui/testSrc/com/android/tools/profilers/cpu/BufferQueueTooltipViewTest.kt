@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit

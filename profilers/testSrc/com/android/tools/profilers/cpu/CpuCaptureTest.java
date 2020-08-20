@@ -21,8 +21,8 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;

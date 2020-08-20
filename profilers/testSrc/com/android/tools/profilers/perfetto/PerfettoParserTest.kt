@@ -19,10 +19,8 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
-import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import org.junit.Test
 
 class PerfettoParserTest {

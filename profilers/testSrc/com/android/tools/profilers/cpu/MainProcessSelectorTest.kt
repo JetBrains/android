@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.ThreadModel
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test

@@ -16,10 +16,10 @@
 package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import java.io.File
 
 /**

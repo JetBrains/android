@@ -30,7 +30,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;

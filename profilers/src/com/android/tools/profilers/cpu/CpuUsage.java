@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
