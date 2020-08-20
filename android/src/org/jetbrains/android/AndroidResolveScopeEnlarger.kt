@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointer
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
@@ -46,7 +47,6 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.util.AndroidUtils
@@ -155,12 +155,13 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     /** Returns the (possibly cached) additional resolve scope for the given module. */
     fun getAdditionalResolveScopeForModule(module: Module, includeTests: Boolean): SearchScope? {
-      // Cache is invalidated on any PSI change.
+      // Cache is invalidated after a gradle sync.
       val cacheKey = if (includeTests) resolveScopeWithTestsKey else resolveScopeSansTestsKey
-      return CachedValuesManager.getManager(module.project).getCachedValue(module, cacheKey, {
+      val project = module.project
+      return CachedValuesManager.getManager(project).getCachedValue(module, cacheKey, {
         CachedValueProvider.Result(
           computeAdditionalResolveScopeForModule(module, includeTests),
-          PsiModificationTracker.MODIFICATION_COUNT
+          ProjectRootModificationTracker.getInstance(project)
         )
       }, false)
     }
