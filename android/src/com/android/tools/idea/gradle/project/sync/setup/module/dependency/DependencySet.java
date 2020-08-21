@@ -29,7 +29,22 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
  * Collection of an IDEA module's dependencies.
  */
 public class DependencySet {
-  @NotNull public static final DependencySet EMPTY = new DependencySet();
+  @NotNull public static final DependencySet EMPTY = new DependencySet() {
+    @Override
+    void add(@NotNull LibraryDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addAll(DependencySet other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void add(@NotNull ModuleDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+  };
 
   // Use linked list to maintain insertion order.
   private final Multimap<String, LibraryDependency> myLibrariesByName = LinkedListMultimap.create();
