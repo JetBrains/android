@@ -200,6 +200,7 @@ public class GradleUtilTest {
   public void isSafeArgGeneratedSourceFolder() {
     myTempDir = createTempDir();
 
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(false);
     assertFalse(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
 
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true);

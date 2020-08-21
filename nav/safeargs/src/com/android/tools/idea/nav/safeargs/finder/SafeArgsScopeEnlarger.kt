@@ -49,10 +49,8 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
-    val module = facet.module
-    val project = module.project
-    return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val allFacets = listOf(facet) + ModuleRootManager.getInstance(module)
+    return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
+      val allFacets = listOf(facet) + ModuleRootManager.getInstance(facet.module)
         .getDependencies(false)
         .mapNotNull { module -> module.androidFacet }
 
