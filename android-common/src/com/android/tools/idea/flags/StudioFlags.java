@@ -338,7 +338,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
-    false);
+    true);
   //endregion
 
   //region Resource Manager
