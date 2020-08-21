@@ -49,6 +49,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
@@ -366,6 +367,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createDisplayTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
+      // RSS memory counters.
+      myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
     }
 
     // Thread states and trace events.
@@ -508,5 +511,26 @@ public class CpuCaptureStage extends Stage<Timeline> {
           .setDefaultTooltipModel(kernelTooltip));
     }
     return cores;
+  }
+
+  private static TrackGroupModel createRssMemoryTrackGroup(@NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+    TrackGroupModel memory = TrackGroupModel.newBuilder()
+      .setTitle("RSS Memory")
+      .setTitleHelpText("This section shows the memory footprint of the app." +
+                        "<p><b>Resident Set Size (RSS)</b> is the portion of memory the app occupies in RAM, " +
+                        "combining both shared and non-shared pages.</p>")
+      .setTitleHelpLink("Learn more", "https://developer.android.com/topic/performance/memory-management#calculating_memory_footprint")
+      .setCollapsedInitially(true)
+      .build();
+    RssMemoryTrackModel.Companion.getIncludedCountersNameMap().forEach(
+      (counterName, displayName) -> {
+        if (systemTraceData.getMemoryCounters().containsKey(counterName)) {
+          RssMemoryTrackModel trackModel =
+            new RssMemoryTrackModel(systemTraceData.getMemoryCounters().get(counterName), timeline.getViewRange());
+          memory.addTrackModel(TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.RSS_MEMORY, displayName));
+        }
+      }
+    );
+    return memory;
   }
 }
