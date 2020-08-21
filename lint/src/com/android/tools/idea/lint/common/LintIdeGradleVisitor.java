@@ -236,30 +236,6 @@ public class LintIdeGradleVisitor extends GradleVisitor {
     return textRange.getStartOffset();
   }
 
-  @NonNull
-  @Override
-  public Object getPropertyPairCookie(@NonNull Object cookie) {
-    PsiElement element = (PsiElement)cookie;
-    return element.getParent();
-  }
-
-  @NonNull
-  @Override
-  public Object getPropertyKeyCookie(@NonNull Object cookie) {
-    PsiElement element = (PsiElement)cookie;
-    PsiElement parent = element.getParent();
-    if (parent instanceof GrApplicationStatement) {
-      GrApplicationStatement call = (GrApplicationStatement)parent;
-      return call.getInvokedExpression();
-    }
-    else if (parent instanceof GrAssignmentExpression) {
-      GrAssignmentExpression assignment = (GrAssignmentExpression)parent;
-      return assignment.getLValue();
-    }
-
-    return super.getPropertyKeyCookie(cookie);
-  }
-
   @NotNull
   @Override
   public Location createLocation(@NotNull GradleContext context, @NotNull Object cookie) {
