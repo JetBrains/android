@@ -11,16 +11,12 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +39,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     myUseCustomSettings = new JBCheckBox(AndroidBundle.message("checkbox.use.custom.formatting.settings.for.android.xml.files"));
     myPanel.add(myUseCustomSettings, BorderLayout.NORTH);
 
-    myCodeStylePanels = new ArrayList<MyFileSpecificPanel>();
+    myCodeStylePanels = new ArrayList<>();
 
     myCodeStylePanels.add(new ManifestCodeStylePanel());
     myCodeStylePanels.add(new LayoutCodeStylePanel());
@@ -137,7 +133,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
   public abstract static class MyFileSpecificPanel<T extends AndroidXmlCodeStyleSettings.MySettings> extends JPanel {
     private JPanel myPanel;
     private JPanel myAdditionalOptionsPanel;
-    private JComboBox myWrapAttributesCombo;
+    private JComboBox<CodeStyleSettings.WrapStyle> myWrapAttributesCombo;
 
     protected JBCheckBox myInsertLineBreakBeforeFirstAttributeCheckBox;
     protected JBCheckBox myInsertLineBreakBeforeNamespaceDeclarationCheckBox;
@@ -182,7 +178,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     }
 
     protected void apply(T s) {
-      s.WRAP_ATTRIBUTES = ourWrappings[myWrapAttributesCombo.getSelectedIndex()];
+      s.WRAP_ATTRIBUTES = CodeStyleSettings.WrapStyle.getSelectedId(myWrapAttributesCombo);
       s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE = myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected();
       s.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION = myInsertLineBreakBeforeNamespaceDeclarationCheckBox.isSelected();
       s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = myInsertLineBreakAfterLastAttributeCheckbox.isSelected();
@@ -193,7 +189,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     }
 
     protected boolean isModified(T s) {
-      if (s.WRAP_ATTRIBUTES != ourWrappings[myWrapAttributesCombo.getSelectedIndex()]) {
+      if (s.WRAP_ATTRIBUTES != CodeStyleSettings.WrapStyle.getSelectedId(myWrapAttributesCombo)) {
         return true;
       }
       if (s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE != myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected()) {
@@ -213,7 +209,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     }
 
     protected void resetImpl(T s) {
-      myWrapAttributesCombo.setSelectedIndex(getIndexForWrapping(s.WRAP_ATTRIBUTES));
+      myWrapAttributesCombo.setSelectedItem(CodeStyleSettings.WrapStyle.forWrapping(s.WRAP_ATTRIBUTES));
       myInsertLineBreakBeforeFirstAttributeCheckBox.setSelected(s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE);
       myInsertLineBreakBeforeNamespaceDeclarationCheckBox.setSelected(s.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION);
       myInsertLineBreakAfterLastAttributeCheckbox.setSelected(s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE);
