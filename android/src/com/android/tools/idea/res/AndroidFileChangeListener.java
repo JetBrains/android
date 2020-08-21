@@ -37,6 +37,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -93,25 +94,33 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  @NotNull private final ResourceFolderRegistry myRegistry;
-  @NotNull private final Project myProject;
-  @NotNull private final ResourceNotificationManager myResourceNotificationManager;
-  @NotNull private final EditorNotifications myEditorNotifications;
+  @NotNull private ResourceFolderRegistry myRegistry;
+  @NotNull private Project myProject;
+  @NotNull private ResourceNotificationManager myResourceNotificationManager;
+  @NotNull private EditorNotifications myEditorNotifications;
 
   @Nullable private SampleDataListener mySampleDataListener;
 
   @NotNull
   public static AndroidFileChangeListener getInstance(@NotNull Project project) {
-    return project.getComponent(AndroidFileChangeListener.class);
+    return project.getService(AndroidFileChangeListener.class);
   }
 
-  public AndroidFileChangeListener(@NotNull Project project) {
+  public static class MyStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      final AndroidFileChangeListener serviceInstance = getInstance(project);
+      serviceInstance.onProjectOpened(project);
+    }
+  }
+
+  public void onProjectOpened(@NotNull Project project) {
     myProject = project;
-    myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
-    myRegistry = ResourceFolderRegistry.getInstance(project);
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
+    myRegistry = ResourceFolderRegistry.getInstance(myProject);
     myEditorNotifications = EditorNotifications.getInstance(myProject);
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(new MyPsiListener(), this);
+    PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
 
     MessageBusConnection connection = myProject.getMessageBus().connect(this);

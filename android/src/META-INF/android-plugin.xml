@@ -42,9 +42,6 @@
   </application-components>
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
     </component>
     <component>
@@ -290,6 +287,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
+    <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
+    <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
