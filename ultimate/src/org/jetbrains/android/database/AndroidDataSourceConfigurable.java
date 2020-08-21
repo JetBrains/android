@@ -47,10 +47,10 @@ import javax.swing.*;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.CalledInAwt;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.RequiresEdt;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -262,7 +262,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     return result.toArray(new AndroidSourceDevice[0]);
   }
 
-  @CalledInAwt
+  @RequiresEdt
   private void updateDbCombo() {
     if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
     IDevice selectedDevice = getSelectedDevice();
@@ -339,7 +339,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     return (String)myDataBaseComboBox.getEditor().getItem();
   }
 
-  @CalledInAwt
+  @RequiresEdt
   private void updatePackageCombo() {
     if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
     String selectedPackage = getSelectedPackage();
