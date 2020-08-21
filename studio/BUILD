@@ -487,6 +487,10 @@ py_binary(
 py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
     visibility = ["//visibility:public"],
     deps = [":stamper"],
 )
