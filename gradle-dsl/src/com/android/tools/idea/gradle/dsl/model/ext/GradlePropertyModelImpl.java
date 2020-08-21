@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -58,6 +59,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myTransforms.add(DEFAULT_TRANSFORM);
 
     GradleDslElement parent = element.getParent();
+    if (parent == null) {
+      assert (element instanceof GradleDslFile);
+      parent = element;
+    }
     assert (parent instanceof GradlePropertiesDslElement ||
             parent instanceof GradleDslMethodCall) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
