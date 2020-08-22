@@ -87,7 +87,6 @@ fun chooseSelectedVariants(
     // Request the native Variant model (this won't do any work for non-native projects) and get the name of it's ABI
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, selectedVariants.getSelectedAbi(moduleId))
     // Store the requested/obtained information in the IdeaAndroidModule
-    module.addSelectedVariant(variant)
     val moduleDependencies = getModuleDependencies(variant.mainArtifact.dependencies, abi)
     // Request models for the dependencies of this module.
     selectVariantForDependencyModules(controller, modulesById, visitedModules, moduleDependencies)
@@ -131,18 +130,15 @@ private fun selectVariantForDependencyModules(
   moduleDependencies: List<ModuleDependency>
 ) {
   moduleDependencies.forEach { dependency ->
-    if (visitedModules.contains(dependency.id)) return@forEach
-    visitedModules.add(dependency.id)
+    if (!visitedModules.add(dependency.id)) return@forEach
 
     if (dependency.variant == null) return@forEach
 
     val dependencyModule = modulesById[dependency.id] ?: return@forEach
-    if (dependencyModule.containsVariant(dependency.variant)) return@forEach
 
     val dependencyVariant = syncAndAddVariant(controller, dependencyModule, dependency.variant) ?: return@forEach
     val abiName = syncAndAddNativeVariantAbi(controller, dependencyModule, dependency.variant, dependency.abi)
 
-    dependencyModule.addSelectedVariant(dependencyVariant)
     val childModuleDependencies = getModuleDependencies(dependencyVariant.mainArtifact.dependencies, abiName)
     selectVariantForDependencyModules(controller, modulesById, visitedModules, childModuleDependencies)
   }

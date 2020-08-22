@@ -48,16 +48,8 @@ class AndroidModule private constructor(
               nativeAndroidProject: NativeAndroidProject?) : this(gradleProject, androidProject, nativeAndroidProject, null)
 
 
-  private val variantsByName: MutableMap<String, Variant> = mutableMapOf()
-
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
-
-  fun containsVariant(variantName: String) = variantsByName.containsKey(variantName)
-
-  fun addSelectedVariant(selectedVariant: Variant) {
-    variantsByName[selectedVariant.name] = selectedVariant
-  }
 }
 
 data class ModuleDependency(val id: String, val variant: String?, val abi: String?)
