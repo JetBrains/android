@@ -24,6 +24,7 @@ import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertAbout;
@@ -44,6 +45,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -59,7 +61,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.TestApplicationManagerKt;
 import com.intellij.testFramework.ThreadTracker;
@@ -366,6 +367,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     latch.await(5, MINUTES);
     GradleInvocationResult result = resultRef.get();
+    refreshProjectFiles();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        waitForSourceFolderManagerToProcessUpdates(project);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
     assert result != null;
     return result;
   }

@@ -28,7 +28,6 @@ public class ExportProjectZipTest extends AndroidGradleTestCase {
   public void testExportProject() throws Exception {
     loadProject(TestProjectPaths.DEPENDENT_MODULES);
     invokeGradleTasks(getProject(), "assembleDebug");
-
     File zip = new File(myFixture.getTempDirPath(), "project.zip");
     ExportProjectZip.save(zip, getProject(), null);
     List<String> zipContent = new ArrayList<>();
