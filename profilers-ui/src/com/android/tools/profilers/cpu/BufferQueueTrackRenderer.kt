@@ -37,6 +37,7 @@ class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel, ProfilerTr
       lineChart.configure(lineChartModel.bufferQueueSeries,
                           LineConfig(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
                             .setStepped(true))
+      lineChart.setFillEndGap(true)
       add(lineChart)
     }
   }
