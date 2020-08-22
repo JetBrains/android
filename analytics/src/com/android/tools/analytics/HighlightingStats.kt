@@ -15,6 +15,7 @@
  */
 package com.android.tools.analytics
 
+import com.android.tools.analytics.HighlightingStats.reportHighlightingStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.EditorFileType.GROOVY
@@ -28,9 +29,9 @@ import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
 import com.google.wireless.android.sdk.stats.EditorHighlightingStats
 import com.intellij.concurrency.JobScheduler
+import com.intellij.ide.AppLifecycleListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.BaseComponent
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
@@ -43,13 +44,17 @@ import java.util.concurrent.TimeUnit
  * Tracks highlighting latency across file types.
  * To log an [AndroidStudioEvent] with the collected data, call [reportHighlightingStats].
  */
-object HighlightingStats : BaseComponent {
+object HighlightingStats : AppLifecycleListener {
   private const val MAX_LATENCY_MS = 10 * 60 * 1000 // Limit latencies to 10 minutes to ensure reasonable histogram size.
 
-  override fun initComponent() {
-    // Send reports hourly and on application close.
+  override fun appStarted() {
+    // Send reports hourly.
     JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportHighlightingStats, 1, 1, TimeUnit.HOURS)
-    Disposer.register(ApplicationManager.getApplication(), Disposable(this::reportHighlightingStats))
+  }
+
+  override fun appWillBeClosed(isRestart: Boolean) {
+    // Send reports on application close.
+    reportHighlightingStats()
   }
 
   /**
