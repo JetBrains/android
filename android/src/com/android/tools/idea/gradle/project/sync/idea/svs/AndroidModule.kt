@@ -47,27 +47,23 @@ class AndroidModule private constructor(
               androidProject: AndroidProject,
               nativeAndroidProject: NativeAndroidProject?) : this(gradleProject, androidProject, nativeAndroidProject, null)
 
-  data class ModuleDependency(val id: String, val variant: String?, val abi: String?)
 
-  private val _moduleDependencies: MutableList<ModuleDependency> = mutableListOf()
   private val variantsByName: MutableMap<String, Variant> = mutableMapOf()
 
   val variantGroup: VariantGroup = VariantGroup()
-  val moduleDependencies: List<ModuleDependency> get() = _moduleDependencies
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
 
   fun containsVariant(variantName: String) = variantsByName.containsKey(variantName)
 
-  fun addSelectedVariant(selectedVariant: Variant, abi: String?) {
+  fun addSelectedVariant(selectedVariant: Variant) {
     variantsByName[selectedVariant.name] = selectedVariant
-    val artifact = selectedVariant.mainArtifact
-    populateDependencies(artifact.dependencies, abi)
   }
+}
 
-  private fun populateDependencies(dependencies: Dependencies, abi: String?) = dependencies.libraries.forEach { library ->
-    val project = library.project ?: return@forEach
-    addModuleDependency(createUniqueModuleId(library?.buildId ?: "", project), library.projectVariant, abi)
+data class ModuleDependency(val id: String, val variant: String?, val abi: String?)
+fun getModuleDependencies(dependencies: Dependencies, abi: String?): List<ModuleDependency> {
+  return dependencies.libraries.mapNotNull { library ->
+    val project = library.project ?: return@mapNotNull null
+    ModuleDependency(createUniqueModuleId(library?.buildId ?: "", project), library.projectVariant, abi)
   }
-
-  private fun addModuleDependency(id: String, variant: String?, abi: String?) = _moduleDependencies.add(ModuleDependency(id, variant, abi))
 }

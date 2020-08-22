@@ -87,9 +87,10 @@ fun chooseSelectedVariants(
     // Request the native Variant model (this won't do any work for non-native projects) and get the name of it's ABI
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, selectedVariants.getSelectedAbi(moduleId))
     // Store the requested/obtained information in the IdeaAndroidModule
-    module.addSelectedVariant(variant, abi)
+    module.addSelectedVariant(variant)
+    val moduleDependencies = getModuleDependencies(variant.mainArtifact.dependencies, abi)
     // Request models for the dependencies of this module.
-    selectVariantForDependencyModules(controller, module, modulesById, visitedModules)
+    selectVariantForDependencyModules(controller, modulesById, visitedModules, moduleDependencies)
   }
 }
 
@@ -125,11 +126,11 @@ private fun selectVariantForAppOrLeaf(
 @UsedInBuildAction
 private fun selectVariantForDependencyModules(
   controller: BuildController,
-  androidModule: AndroidModule,
   modulesById: Map<String, AndroidModule>,
-  visitedModules: MutableSet<String>
+  visitedModules: MutableSet<String>,
+  moduleDependencies: List<ModuleDependency>
 ) {
-  androidModule.moduleDependencies.forEach { dependency ->
+  moduleDependencies.forEach { dependency ->
     if (visitedModules.contains(dependency.id)) return@forEach
     visitedModules.add(dependency.id)
 
@@ -141,8 +142,9 @@ private fun selectVariantForDependencyModules(
     val dependencyVariant = syncAndAddVariant(controller, dependencyModule, dependency.variant) ?: return@forEach
     val abiName = syncAndAddNativeVariantAbi(controller, dependencyModule, dependency.variant, dependency.abi)
 
-    dependencyModule.addSelectedVariant(dependencyVariant, abiName)
-    selectVariantForDependencyModules(controller, dependencyModule, modulesById, visitedModules)
+    dependencyModule.addSelectedVariant(dependencyVariant)
+    val childModuleDependencies = getModuleDependencies(dependencyVariant.mainArtifact.dependencies, abiName)
+    selectVariantForDependencyModules(controller, modulesById, visitedModules, childModuleDependencies)
   }
 }
 
