@@ -94,7 +94,8 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       }
   }
 
-  private inner class CancelAction : AnAction("Cancel Selected Work", "", AllIcons.Actions.Suspend) {
+  private inner class CancelAction :
+    AnAction(WorkManagerInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
 
     override fun actionPerformed(e: AnActionEvent) {
       val id = client.getWorkInfoOrNull(selectedModelRow)?.id
@@ -105,7 +106,9 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   }
 
   private inner class SelectTagAction :
-    DropDownAction("All tags", "Select tag to filter", null) {
+    DropDownAction(WorkManagerInspectorBundle.message("action.tag.all"),
+                   WorkManagerInspectorBundle.message("action.tag.tooltip"),
+                   null) {
     private var lastTag: String? = null
 
     override fun update(event: AnActionEvent) {
