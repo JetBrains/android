@@ -46,6 +46,33 @@ public class DependencySet {
     }
   };
 
+  @NotNull public static final DependencySet THROWING = new DependencySet() {
+    @Override
+    void add(@NotNull LibraryDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addAll(DependencySet other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void add(@NotNull ModuleDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull ImmutableCollection<LibraryDependency> onLibraries() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull ImmutableCollection<ModuleDependency> onModules() {
+      throw new UnsupportedOperationException();
+    }
+  };
+
   // Use linked list to maintain insertion order.
   private final Set<LibraryDependency> myDependencies = new LinkedHashSet<>();
   private final Map<Module, ModuleDependency> myModuleDependenciesByModule = Maps.newLinkedHashMap();
