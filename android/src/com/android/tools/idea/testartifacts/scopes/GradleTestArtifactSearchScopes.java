@@ -41,6 +41,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -347,7 +349,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
                                                  @Nullable DependencySet toMergeAndroid,
                                                  @Nullable DependencySet toMergeUnit) {
     // We have to copy the collection because the Map where it comes from is modified inside the loop (see http://b.android.com/230391)
-    Set<ModuleDependency> moduleDependencies = new HashSet<>(original.onModules());
+    Set<ModuleDependency> moduleDependencies = new LinkedHashSet<>(original.onModules());
     synchronized (ourLock) {
       for (ModuleDependency moduleDependency : moduleDependencies) {
         Module module = moduleDependency.getModule();
