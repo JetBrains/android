@@ -33,9 +33,9 @@ import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import kotlin.math.min
 
-const val HAXM_DOCUMENTATION_URL = "https://software.intel.com/android/articles/intel-hardware-accelerated-execution-manager"
-const val HAXM_WINDOWS_INSTALL_URL = "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-windows"
-const val HAXM_MAC_INSTALL_URL = "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x"
+const val HAXM_DOCUMENTATION_URL = "https://github.com/intel/haxm"
+const val HAXM_WINDOWS_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-Windows"
+const val HAXM_MAC_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-macOS"
 const val GVM_WINDOWS_INSTALL_URL = "https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors"
 
 /**
