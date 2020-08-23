@@ -108,14 +108,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    // GlobalLibraryMap must be requested after Variant models since it is built during dependency resolution.
-    if (androidModules.isNotEmpty()) {
-      val project = androidModules[0].gradleProject
-      controller.findModel(project, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
-        consumer.consumeProjectModel(project, globalLibraryMap, GlobalLibraryMap::class.java)
-      }
-    }
-
     // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
     getAdditionalClassifierArtifactsModel(
       controller,
