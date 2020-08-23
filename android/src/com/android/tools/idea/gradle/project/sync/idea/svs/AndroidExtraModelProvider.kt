@@ -83,15 +83,15 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
         val nativeModule = controller.getNativeModuleFromGradle(gradleProject)?.also {
           consumer.consumeProjectModel(gradleProject, it, NativeModule::class.java)
         }
-        if (nativeModule != null) {
-          androidModules.add(AndroidModule(gradleProject, androidProject, nativeModule))
-          return@forEach
-        }
+        val nativeAndroidProject: NativeAndroidProject? =
+          if (nativeModule != null) null
+          else {
+            findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)?.also {
+              consumer.consumeProjectModel(gradleProject, it, NativeAndroidProject::class.java)
+            }
+          }
 
-        val nativeAndroidProject = findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)?.also {
-          consumer.consumeProjectModel(gradleProject, it, NativeAndroidProject::class.java)
-        }
-        androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject))
+        androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule))
       }
     }
 
