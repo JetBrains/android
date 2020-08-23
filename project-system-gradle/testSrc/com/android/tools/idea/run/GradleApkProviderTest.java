@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.testing.TestModuleUtil.*;
+import static com.android.tools.idea.testing.TestModuleUtil.findModule;
 import static com.android.tools.idea.testing.TestProjectPaths.BUDDY_APKS;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.containers.ContainerUtil.map;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,9 +30,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Iterables;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -139,9 +138,9 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     assertSize(1, apks);
     ApkInfo apkInfo = apks.iterator().next();
     assertThat(apkInfo.getFiles().size()).isEqualTo(3);
-    assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getApkFile().getName()))
+    assertThat(map(apkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("app-debug.apk", "feature1-debug.apk", "dependsOnFeature1-debug.apk");
-    assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getModuleName()))
+    assertThat(map(apkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly(findModule(getProject(), "app").getName(),
                        findModule(getProject(), "feature1").getName(),
                        findModule(getProject(), "dependsOnFeature1").getName());
@@ -165,17 +164,17 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     ApkInfo testApkInfo = apkList.get(1);
 
     assertThat(mainApkInfo.getFiles().size()).isEqualTo(3);
-    assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getApkFile().getName()))
+    assertThat(map(mainApkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("app-debug.apk", "feature1-debug.apk", "dependsOnFeature1-debug.apk");
-    assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getModuleName()))
+    assertThat(map(mainApkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly(findModule(getProject(), "app").getName(),
                        findModule(getProject(), "feature1").getName(),
                        findModule(getProject(), "dependsOnFeature1").getName());
 
     assertThat(testApkInfo.getFiles().size()).isEqualTo(1);
-    assertThat(ContainerUtil.map(testApkInfo.getFiles(), x -> x.getApkFile().getName()))
+    assertThat(map(testApkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("app-debug-androidTest.apk");
-    assertThat(ContainerUtil.map(testApkInfo.getFiles(), x -> x.getModuleName()))
+    assertThat(map(testApkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly("");
   }
 

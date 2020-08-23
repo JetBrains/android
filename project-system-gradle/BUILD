@@ -156,6 +156,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/idea/.idea/libraries:studio-proto[test]",
         "//tools/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
     ],
 )
 
