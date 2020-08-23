@@ -21,6 +21,7 @@ import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNI
 import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
@@ -33,8 +34,11 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Module
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.io.File;
@@ -78,14 +82,19 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   }
 
   /**
-   * Initialize the test scopes in the given module if the module is Gradle-based Android.
-   *
-   * @param module the given module.
+   * Initialize the test scopes in the given project.
    */
-  public static void initializeScope(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    GradleTestArtifactSearchScopes scopes = androidModel == null ? null : new GradleTestArtifactSearchScopes(module, androidModel);
-    module.putUserData(SEARCH_SCOPES_KEY, scopes);
+  public static void initializeScopes(@NotNull Project project) {
+    List<Pair<Module, AndroidModuleModel>> models =
+      map(ModuleManager.getInstance(project).getModules(), it -> Pair.create(it, AndroidModuleModel.get(it)));
+
+    synchronized (ourLock) {
+      for (Pair<Module, AndroidModuleModel> modelPair : models) {
+        @NotNull Module module = modelPair.first;
+        @Nullable AndroidModuleModel model = modelPair.second;
+        module.putUserData(SEARCH_SCOPES_KEY, model == null ? null : new GradleTestArtifactSearchScopes(module, model));
+      }
+    }
   }
 
   private GradleTestArtifactSearchScopes(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
