@@ -43,6 +43,17 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
   @GuardedBy("lock")
   private val works = mutableListOf<WorkInfo>()
 
+  private var filteredWorks: List<WorkInfo> = works
+
+  var filterTag: String? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        updateFilteredWork()
+        _worksChangedListeners.forEach { listener -> listener() }
+      }
+    }
+
   private val _worksChangedListeners = mutableListOf<() -> Unit>()
   fun addWorksChangedListener(listener: () -> Unit) = _worksChangedListeners.add(listener)
 
@@ -59,26 +70,26 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
   }
 
   fun getWorkInfoCount() = synchronized(lock) {
-    works.size
+    filteredWorks.size
   }
 
   /**
    * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
    */
   fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
-    works.getOrNull(index)
+    filteredWorks.getOrNull(index)
   }
 
   /**
    * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
    */
   fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
-    works.indexOfFirst(predicate)
+    filteredWorks.indexOfFirst(predicate)
   }
 
   // TODO(b/165789713): Return work chain ids with topological order.
   fun getWorkChain(id: String): List<String> = synchronized(lock) {
-    val work = works.first { it.id == id}
+    val work = works.first { it.id == id }
     if (work.namesCount > 0) {
       val name = work.getNames(0)!!
       return works.filter { it.namesList.contains(name) }.map { it.id }.toList()
@@ -94,16 +105,28 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
     }
   }
 
+  fun getAllTags() = synchronized(lock) {
+    works.flatMap { it.tagsList }.toSortedSet().toList()
+  }
+
+  private fun updateFilteredWork() {
+    filteredWorks = filterTag?.let { tag ->
+      works.filter { workInfo -> workInfo.tagsList.contains(tag) }
+    } ?: works
+  }
+
   private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
     val event = Event.parseFrom(eventBytes)
     when (event.oneOfCase!!) {
       Event.OneOfCase.WORK_ADDED -> {
         works.add(event.workAdded.work)
+        updateFilteredWork()
       }
       Event.OneOfCase.WORK_REMOVED -> {
         works.removeAll {
           it.id == event.workRemoved.id
         }
+        updateFilteredWork()
       }
       Event.OneOfCase.WORK_UPDATED -> {
         val updateWorkEvent = event.workUpdated
