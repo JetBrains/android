@@ -61,7 +61,7 @@ public class AndroidStudioAnalyticsImpl extends AndroidStudioAnalytics {
 
   @Override
   public void recordHighlightingLatency(Document document, long latencyMs) {
-    HighlightingStats.INSTANCE.recordHighlightingLatency(document, latencyMs);
+    HighlightingStats.getInstance().recordHighlightingLatency(document, latencyMs);
   }
 
   @Override

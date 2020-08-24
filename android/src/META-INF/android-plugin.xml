@@ -35,10 +35,6 @@
   <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
-  <applicationListeners>
-    <listener class="com.android.tools.analytics.HighlightingStats"
-              topic="com.intellij.ide.AppLifecycleListener"/>
-  </applicationListeners>
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
