@@ -53,8 +53,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
@@ -62,11 +64,12 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.time.Clock
+import java.time.Duration
 import java.util.function.Supplier
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -90,16 +93,20 @@ private const val SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteVi
  * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup
  * will be disabled in this view.
  */
-class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
-                                                 private val myProject: Project,
-                                                 module: Module?) : ConsoleView,
-                                                                    AndroidTestResultListener,
-                                                                    AndroidTestResultsTableListener,
-                                                                    AndroidTestSuiteDetailsViewListener,
-                                                                    AndroidTestSuiteViewController {
-  @VisibleForTesting val myProgressBar: JProgressBar = JProgressBar()
-  private val myStatusText: JBLabel = JBLabel()
-  private val myStatusBreakdownText: JBLabel = JBLabel()
+class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable: Disposable,
+                                                               private val myProject: Project,
+                                                               module: Module?,
+                                                               private val myClock: Clock = Clock.systemDefaultZone()) : ConsoleView,
+                AndroidTestResultListener,
+                AndroidTestResultsTableListener,
+                AndroidTestSuiteDetailsViewListener,
+                AndroidTestSuiteViewController {
+  @VisibleForTesting val myProgressBar: JProgressBar = JProgressBar().apply {
+    preferredSize = Dimension(170, preferredSize.height)
+    maximumSize = preferredSize
+  }
+  @VisibleForTesting val myStatusText: JBLabel = JBLabel()
+  @VisibleForTesting val myStatusBreakdownText: JBLabel = JBLabel()
 
   @VisibleForTesting val myDeviceAndApiLevelFilterComboBoxAction = DeviceAndApiLevelFilterComboBoxAction()
 
@@ -141,13 +148,17 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
 
   // Number of devices which we will run tests against.
   private var myScheduledDevices = 0
-
-  // Number of devices which we have started running tests on.
   private var myStartedDevices = 0
+  private var myFinishedDevices = 0
+
   private var scheduledTestCases = 0
   private var passedTestCases = 0
   private var failedTestCases = 0
   private var skippedTestCases = 0
+
+  // A timestamp when the test execution is scheduled.
+  private var myTestStartTimeMillis: Long = 0
+  private var myTestFinishedTimeMillis: Long = 0
 
   init {
     val testArtifactSearchScopes = module?.let { getInstance(module) }
@@ -216,7 +227,7 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
           add(JBLabel("Status"))
           add(Box.createRigidArea(Dimension(10, 0)))
           add(myProgressBar)
-          add(Box.createRigidArea(Dimension(10, 0)))
+          add(MyItemSeparator())
           add(myStatusText)
           add(MyItemSeparator())
           add(myStatusBreakdownText)
@@ -268,17 +279,57 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
         myProgressBar.foreground = ColorProgressBar.GREEN
       }
     }
-    myStatusText.text =
-      AndroidBundle.message("android.testartifacts.instrumented.testsuite.status.summary",
-                            completedTestCases)
-    myStatusBreakdownText.text = AndroidBundle.message(
-      "android.testartifacts.instrumented.testsuite.status.breakdown",
-      failedTestCases, passedTestCases, skippedTestCases,  /*errorTestCases=*/0)
+    updateStatusText()
+  }
+
+  @UiThread
+  private fun updateStatusText() {
+    val statusText = StringBuilder()
+    if (failedTestCases > 0) {
+      statusText.append("<font color='#${ColorUtil.toHex(ColorProgressBar.RED)}'>${failedTestCases} failed</font>")
+    }
+    if (passedTestCases > 0) {
+      if (statusText.isNotEmpty()) {
+        statusText.append(", ")
+      }
+      statusText.append("${passedTestCases} passed")
+    }
+    if (skippedTestCases > 0) {
+      if (statusText.isNotEmpty()) {
+        statusText.append(", ")
+      }
+      statusText.append("${skippedTestCases} skipped")
+    }
+    if (statusText.isEmpty()) {
+      statusText.append("0 passed")
+    }
+    myStatusText.text = "<html><nobr>${statusText}</nobr></html>"
+    myStatusText.maximumSize = myStatusText.preferredSize
+
+    val statusBreakdownText = StringBuilder("${scheduledTestCases} tests")
+    if (myScheduledDevices > 1) {
+      statusBreakdownText.append(", ${myScheduledDevices} devices")
+    }
+
+    if (myTestFinishedTimeMillis != 0L) {
+      val testDuration = Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
+      val roundedTestDuration = if (testDuration < Duration.ofHours(1)) {
+        testDuration
+      } else {
+        Duration.ofSeconds(testDuration.seconds)
+      }
+      statusBreakdownText.append(", ${StringUtil.formatDuration(roundedTestDuration.toMillis(), "\u2009")}")
+    }
+
+    myStatusBreakdownText.text = statusBreakdownText.toString()
   }
 
   @AnyThread
   override fun onTestSuiteScheduled(device: AndroidDevice) {
     AppUIUtil.invokeOnEdt {
+      if (myTestStartTimeMillis == 0L) {
+        myTestStartTimeMillis = myClock.millis()
+      }
       myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
       myScheduledDevices++
       if (myScheduledDevices == 1) {
@@ -310,7 +361,7 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
       myResultsTableView.addTestCase(device, testCase)
         .iterator()
         .forEachRemaining { results: AndroidTestResults ->
-          myInsertionOrderMap.computeIfAbsent(results) { unused: AndroidTestResults? -> myInsertionOrderMap.size }
+          myInsertionOrderMap.computeIfAbsent(results) { myInsertionOrderMap.size }
         }
       myDetailsView.reloadAndroidTestResults()
     }
@@ -321,7 +372,6 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
                                   testSuite: AndroidTestSuite,
                                   testCase: AndroidTestCase) {
     AppUIUtil.invokeOnEdt {
-
       // Include a benchmark output to a raw output console for backward compatibility.
       val benchmarkOutput = testCase.benchmark
       if (!benchmarkOutput.isBlank()) {
@@ -343,6 +393,11 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
     AppUIUtil.invokeOnEdt {
+      myFinishedDevices++
+      if (myFinishedDevices == myScheduledDevices) {
+        myTestFinishedTimeMillis = myClock.millis()
+      }
+      updateProgress()
       myResultsTableView.refreshTable()
       myDetailsView.reloadAndroidTestResults()
     }
@@ -363,7 +418,13 @@ class AndroidTestSuiteView @UiThread constructor(parentDisposable: Disposable,
   private fun openAndroidTestSuiteDetailsView(results: AndroidTestResults,
                                               selectedDevice: AndroidDevice?) {
     myLogger.addImpression(
-      if (orientation === AndroidTestSuiteViewController.Orientation.HORIZONTAL) ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW else ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_VERTICAL_VIEW)
+      if (orientation === AndroidTestSuiteViewController.Orientation.HORIZONTAL) {
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW
+      }
+      else {
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_VERTICAL_VIEW
+      }
+    )
     myDetailsView.setAndroidTestResults(results)
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice)
