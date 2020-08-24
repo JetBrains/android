@@ -129,7 +129,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgWear = new FakePackage.FakeLocalPackage(wearPath);
     DetailsTypes.SysImgDetailsType detailsWear =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWear.setTag(IdDisplay.create("android-wear", "Android Wear"));
+    detailsWear.setTag(IdDisplay.create("android-wear", "Wear OS"));
     detailsWear.setAbi("x86");
     detailsWear.setVendor(IdDisplay.create("google", "Google"));
     detailsWear.setApiLevel(25);
@@ -142,7 +142,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgWear29 = new FakePackage.FakeLocalPackage(wear29Path);
     DetailsTypes.SysImgDetailsType detailsWear29 =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWear29.setTag(IdDisplay.create("android-wear", "Android Wear"));
+    detailsWear29.setTag(IdDisplay.create("android-wear", "Wear OS"));
     detailsWear29.setAbi("x86");
     detailsWear29.setVendor(IdDisplay.create("google", "Google"));
     detailsWear29.setApiLevel(29);
@@ -155,7 +155,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgCnWear = new FakePackage.FakeLocalPackage(wearCnPath);
     DetailsTypes.SysImgDetailsType detailsWearCn =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsWearCn.setTag(IdDisplay.create("android-wear", "Android Wear for China"));
+    detailsWearCn.setTag(IdDisplay.create("android-wear", "Wear OS for China"));
     detailsWearCn.setAbi("x86");
     detailsWearCn.setVendor(IdDisplay.create("google", "Google"));
     detailsWearCn.setApiLevel(25);
