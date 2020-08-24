@@ -32,7 +32,10 @@ fun getSelectedComponents(tree: NlComponentTree, model: NlModel?): SelectedCompo
   val components = ArrayList<NlComponent>()
   val referenced = ArrayList<NlComponent>()
 
-  selected.forEach {
+  selected?.forEach {
+    if (it == null) {
+      return@forEach
+    }
     val last = it.lastPathComponent
     if (last is NlComponent) {
       components.add(last)
