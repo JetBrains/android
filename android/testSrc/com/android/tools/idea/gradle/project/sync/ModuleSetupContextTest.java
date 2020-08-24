@@ -22,11 +22,12 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.util.Calendar;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,6 +42,7 @@ public class ModuleSetupContextTest extends HeavyPlatformTestCase {
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
   }
 
+  @Bombed(year = 2020, month = Calendar.SEPTEMBER, day = 8, user = "Mikhail Mazurkevich", description = "Please recheck this test with strict mode in workspace model")
   public void testGetModuleFinder() {
     Module app = createGradleModule("app");
     Module lib = createGradleModule("lib");
