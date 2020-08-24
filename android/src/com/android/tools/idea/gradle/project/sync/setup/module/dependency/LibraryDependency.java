@@ -46,25 +46,19 @@ public class LibraryDependency extends Dependency {
    * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  public static LibraryDependency create(@NotNull File artifactPath,
-                                         @NotNull DependencyScope scope,
-                                         @NotNull Collection<File> binaryPaths) {
-    return new LibraryDependency(artifactPath, scope, binaryPaths);
+  public static LibraryDependency create(@NotNull File artifactPath, @NotNull Collection<File> binaryPaths) {
+    return new LibraryDependency(artifactPath, binaryPaths);
   }
 
 
   /**
    * Creates a new {@link LibraryDependency}.
    *
-   * @param artifactPath     the path, in the file system, of the binary file that represents the library to depend on.
-   * @param scope            the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
+   * @param artifactPath    the path, in the file system, of the binary file that represents the library to depend on.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public LibraryDependency(@NotNull File artifactPath,
-                           @NotNull DependencyScope scope,
-                           @NotNull Collection<File> binaryPaths) {
-    super(scope);
+  public LibraryDependency(@NotNull File artifactPath, @NotNull Collection<File> binaryPaths) {
     myBinaryPaths = new LinkedHashSet<>(binaryPaths);
     myArtifactPath = artifactPath;
   }
@@ -100,7 +94,6 @@ public class LibraryDependency extends Dependency {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" +
-           ", scope=" + getScope() +
            ", pathsByType=" + myBinaryPaths +
            "]";
   }

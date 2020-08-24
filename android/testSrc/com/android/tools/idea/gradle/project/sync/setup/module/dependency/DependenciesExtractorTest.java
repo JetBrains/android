@@ -69,15 +69,12 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
     builder.setJavaLibraries(ImmutableList.of(javaLibrary));
 
-    Collection<LibraryDependency> dependencies =
-      myDependenciesExtractor.extractFrom(builder.build(), COMPILE, myModuleFinder).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(builder.build(), myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
     assertEquals(jarFile, dependency.getArtifactPath());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(COMPILE, dependency.getScope());
 
     File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(1);
@@ -106,7 +103,6 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
 
     DependencySet dependencySet = myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(),
-                                                                      COMPILE,
                                                                       myModuleFinder
     );
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
@@ -135,15 +131,11 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
-    Collection<ModuleDependency> dependencies =
-      myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(), COMPILE, myModuleFinder).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(), myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals(libModule, dependency.getModule());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(COMPILE, dependency.getScope());
     assertSame(libModule, dependency.getModule());
   }
 

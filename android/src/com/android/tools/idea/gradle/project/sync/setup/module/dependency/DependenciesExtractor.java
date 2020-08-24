@@ -27,7 +27,6 @@ import com.android.tools.idea.io.FilePaths;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.DependencyScope;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,32 +41,28 @@ public class DependenciesExtractor {
 
   /**
    * @param artifactDependencies to extract dependencies from.
-   * @param scope                Scope of the dependencies, e.g. "compile" or "test".
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
   public DependencySet extractFrom(@NotNull IdeDependencies artifactDependencies,
-                                   @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifactDependencies, moduleFinder, scope);
+    populate(dependencies, artifactDependencies, moduleFinder);
     return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull IdeDependencies artifactDependencies,
-                               @NotNull ModuleFinder moduleFinder,
-                               @NotNull DependencyScope scope) {
+                               @NotNull ModuleFinder moduleFinder) {
 
     for (IdeLibrary library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
-        LibraryDependency
-          .create(library.getArtifact(), scope, ImmutableList.of(library.getArtifact()));
+        LibraryDependency.create(library.getArtifact(), ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
     for (IdeLibrary library : artifactDependencies.getAndroidLibraries()) {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(library));
     }
 
     for (IdeLibrary library : artifactDependencies.getModuleDependencies()) {
@@ -75,7 +70,7 @@ public class DependenciesExtractor {
       if (isNotEmpty(gradlePath)) {
         Module module = moduleFinder.findModuleFromLibrary(library);
         if (module != null) {
-          ModuleDependency dependency = new ModuleDependency(scope, module);
+          ModuleDependency dependency = new ModuleDependency(module);
           dependencies.add(dependency);
         }
       }
@@ -83,15 +78,14 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeLibrary library,
-                                                                             @NotNull DependencyScope scope) {
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeLibrary library) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
     for (String localJar : library.getLocalJars()) {
       binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
     }
-    return LibraryDependency.create(library.getArtifact(), scope, binaryPaths.build());
+    return LibraryDependency.create(library.getArtifact(), binaryPaths.build());
   }
 
   /**
