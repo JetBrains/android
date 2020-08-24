@@ -44,8 +44,11 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.time.Clock
+import java.time.Duration
 
 /**
  * Unit tests for [AndroidTestSuiteView].
@@ -63,6 +66,7 @@ class AndroidTestSuiteViewTest {
     .around(disposableRule)
 
   @Mock lateinit var processHandler: ProcessHandler
+  @Mock lateinit var mockClock: Clock
 
   @Before
   fun setup() {
@@ -539,6 +543,74 @@ class AndroidTestSuiteViewTest {
 
     assertThat(view.myProgressBar.value).isEqualTo(4 * 2)
     assertThat(view.myProgressBar.maximum).isEqualTo(4 * 2)
+  }
+
+  @Test
+  fun initialStatusText() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+
+    assertThat(view.myStatusText.text).isEqualTo("<html><nobr>0 passed</nobr></html>")
+    assertThat(view.myStatusBreakdownText.text).isEqualTo("0 tests")
+  }
+
+  @Test
+  fun singleDeviceStatusText() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+
+    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
+      view.onTestCaseStarted(device, suite, testcase)
+      testcase.result = result
+      view.onTestCaseFinished(device, suite, testcase)
+    }
+
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    `when`(mockClock.millis()).thenReturn(Duration.ofHours(2).plusSeconds(1).plusMillis(123).toMillis())
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><font color='#d67b76'>2 failed</font></nobr></html>")
+    assertThat(view.myStatusBreakdownText.text).isEqualTo("2 tests, 2 h 0 m 1 s")
+  }
+
+  @Test
+  fun multipleDevicesStatusText() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+
+    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
+      view.onTestCaseStarted(device, suite, testcase)
+      testcase.result = result
+      view.onTestCaseFinished(device, suite, testcase)
+    }
+
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    view.onTestSuiteScheduled(device1)
+    view.onTestSuiteScheduled(device2)
+
+    `when`(mockClock.millis()).thenReturn(12345)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.SKIPPED)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice2)
+    runTestCase(device2, testsuiteOnDevice2, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(device2, testsuiteOnDevice2, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    view.onTestSuiteFinished(device2, testsuiteOnDevice2)
+
+    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><font color='#d67b76'>1 failed</font>, 2 passed, 1 skipped</nobr></html>")
+    assertThat(view.myStatusBreakdownText.text).isEqualTo("4 tests, 2 devices, 12 s 345 ms")
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
