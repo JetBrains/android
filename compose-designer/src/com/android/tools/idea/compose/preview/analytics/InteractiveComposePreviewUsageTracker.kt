@@ -30,19 +30,8 @@ class InteractiveComposePreviewUsageTracker(private val myExecutor: Executor,
                                             private val myEventLogger: Consumer<AndroidStudioEvent.Builder>) :
   InteractivePreviewUsageTracker {
 
-  override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {
-    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS) {
-      it.fps = fps
-      it.durationMs = durationMs
-      it.actions = userInteractions
-    }
-  }
-
-  override fun logStartupTime(timeMs: Int, peers: Int) {
-    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME) {
-      it.startupTimeMs = timeMs
-      it.peerPreviews = peers
-    }
+  override fun logInteractiveSession(fps: Int) {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS) { it.fps = fps }
   }
 
   /**

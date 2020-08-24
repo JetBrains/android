@@ -23,16 +23,9 @@ import com.android.tools.idea.common.surface.DesignSurface
  */
 interface InteractivePreviewUsageTracker {
   /**
-   * Logs interactive session info at the end of the session (when exiting interactive preview or closing the tab), including frames per
-   * second, duration and number of user interactions.
+   * Logs frames per second info for an interactive session at the end of the session (when exiting interactive preview or closing the tab).
    */
-  fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int)
-
-  /**
-   * Logs startup time of an interactive session. A period from the time a user enables interactive preview to the time the user can
-   * actually interact with the preview.
-   */
-  fun logStartupTime(timeMs: Int, peers: Int)
+  fun logInteractiveSession(fps: Int)
 
   companion object {
     private val NOP_TRACKER = InteractiveNopTracker()

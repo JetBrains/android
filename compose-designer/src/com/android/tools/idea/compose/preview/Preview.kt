@@ -263,14 +263,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       if (isInteractive) { // Enable interactive
         interactiveMode = InteractiveMode.STARTING
         val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
-        val peerPreviews = previewElementProvider.previewElements.count()
         previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
-        val startUpStart = System.currentTimeMillis()
         forceRefresh(quickRefresh).invokeOnCompletion {
-          surface.layoutlibSceneManagers.forEach { it.resetTouchEventsCounter() }
-          InteractivePreviewUsageTracker.getInstance(surface).logStartupTime(
-            (System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
           fpsCounter.resetAndStart()
           ticker.start()
           delegateInteractionHandler.delegate = interactiveInteractionHandler
@@ -541,8 +536,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private fun logInteractiveSessionMetrics() {
-    val touchEvents = surface.layoutlibSceneManagers.map { it.touchEventsCount }.sum()
-    InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
+    InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps())
   }
 
   override fun dispose() {

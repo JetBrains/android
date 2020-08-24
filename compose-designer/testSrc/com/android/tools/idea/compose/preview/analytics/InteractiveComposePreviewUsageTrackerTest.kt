@@ -38,7 +38,7 @@ class InteractiveComposePreviewUsageTrackerTest {
 
   @Test
   fun testFpsTracking() {
-    myInteractivePreviewUsageTracker.logInteractiveSession(30, 15000, 15)
+    myInteractivePreviewUsageTracker.logInteractiveSession(30)
 
     assertNotNull(myLastEventBuilder)
 
@@ -50,24 +50,5 @@ class InteractiveComposePreviewUsageTrackerTest {
 
     assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS)
     assertEquals(interactiveEvent.fps, 30)
-    assertEquals(interactiveEvent.durationMs, 15000)
-    assertEquals(interactiveEvent.actions, 15)
-  }
-
-  @Test
-  fun testStartUpLogging() {
-    myInteractivePreviewUsageTracker.logStartupTime(500, 3)
-
-    assertNotNull(myLastEventBuilder)
-
-    val event = myLastEventBuilder!!.build()
-
-    assertEquals(event.kind, AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
-
-    val interactiveEvent = event.interactivePreviewEvent
-
-    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME)
-    assertEquals(interactiveEvent.startupTimeMs, 500)
-    assertEquals(interactiveEvent.peerPreviews, 3)
   }
 }

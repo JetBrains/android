@@ -107,13 +107,11 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.Timer;
-import kotlin.jvm.Volatile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -233,9 +231,6 @@ public class LayoutlibSceneManager extends SceneManager {
 
   /** Time it took to render. It does not account for inflation time. */
   private long myRenderTimeMs = 0;
-
-  /** Counter for user touch events during the interactive session. */
-  private AtomicInteger myTouchEventsCounter = new AtomicInteger(0);
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -1579,7 +1574,6 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
       }
-      myTouchEventsCounter.incrementAndGet();
       return myRenderTask.triggerTouchEvent(type, x, y, timeNanos);
     }
   }
@@ -1677,19 +1671,5 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     return deactivated;
-  }
-
-  /**
-   * Resets the counter of user touch events received by this scene to 0.
-   */
-  public void resetTouchEventsCounter() {
-    myTouchEventsCounter.set(0);
-  }
-
-  /**
-   * @return number of user touch events received by this scene since last reset.
-   */
-  public int getTouchEventsCount() {
-    return myTouchEventsCounter.get();
   }
 }
