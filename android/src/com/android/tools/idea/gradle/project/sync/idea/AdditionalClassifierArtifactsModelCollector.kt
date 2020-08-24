@@ -34,7 +34,6 @@ fun getAdditionalClassifierArtifactsModel(
   controller: BuildController,
   inputModules: List<AndroidModule>,
   cachedLibraries: Collection<String>,
-  consumer: ProjectImportModelProvider.BuildModelConsumer,
   downloadAndroidxUISamplesSources: Boolean
 ) {
   inputModules.forEach { module ->
@@ -48,12 +47,10 @@ fun getAdditionalClassifierArtifactsModel(
 
     // Query for AdditionalClassifierArtifactsModel model.
     if (identifiers.isNotEmpty()) {
-      controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
+      module.additionalClassifierArtifacts = controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
                            AdditionalClassifierArtifactsModelParameter::class.java) { parameter ->
         parameter.artifactIdentifiers = identifiers
         parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
-      }?.also {
-        consumer.consumeProjectModel(module.gradleProject, it, AdditionalClassifierArtifactsModel::class.java)
       }
     }
   }
