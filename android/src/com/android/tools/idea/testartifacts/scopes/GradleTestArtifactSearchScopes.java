@@ -263,12 +263,13 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       if (myAlreadyResolved) {
         return;
       }
+      Project project = myModule.getProject();
+      myMainDependencies = extractDependencies(project, COMPILE, myAndroidModel.getMainArtifact());
+      myAndroidTestDependencies = extractDependencies(project, TEST, myAndroidModel.getSelectedVariant().getAndroidTestArtifact());
+      myUnitTestDependencies = extractDependencies(project, TEST, myAndroidModel.getSelectedVariant().getUnitTestArtifact());
 
+      // Assign resolved earlier since mergeSubmoduleDependencies may recurse into this method of this instance again.
       myAlreadyResolved = true;
-
-      extractMainDependencies();
-      extractAndroidTestDependencies();
-      extractUnitTestDependencies();
 
       // mainDependencies' mainDependencies should be merged to own mainDependencies, others shouldn't be merged
       mergeSubmoduleDependencies(myMainDependencies, myMainDependencies, null, null);
@@ -281,49 +282,21 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
     }
   }
 
-  private void extractMainDependencies() {
-    synchronized (ourLock) {
-      if (myMainDependencies == null) {
-        myMainDependencies = extractDependencies(getProjectBasePath(), COMPILE, myAndroidModel.getMainArtifact());
-      }
-    }
-  }
-
-  private void extractUnitTestDependencies() {
-    synchronized (ourLock) {
-      if (myUnitTestDependencies == null) {
-        IdeBaseArtifact artifact = myAndroidModel.getSelectedVariant().getUnitTestArtifact();
-        myUnitTestDependencies = extractTestDependencies(artifact);
-      }
-    }
-  }
-
-  private void extractAndroidTestDependencies() {
-    synchronized (ourLock) {
-      if (myAndroidTestDependencies == null) {
-        IdeBaseArtifact artifact = myAndroidModel.getSelectedVariant().getAndroidTestArtifact();
-        myAndroidTestDependencies = extractTestDependencies(artifact);
-      }
-    }
-  }
-
   @NotNull
-  private DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
-    return extractDependencies(getProjectBasePath(), TEST, artifact);
-  }
-
-  @NotNull
-  private DependencySet extractDependencies(@NotNull File basePath, @NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
+  private static DependencySet extractDependencies(@NotNull Project project,
+                                                   @NotNull DependencyScope scope,
+                                                   @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
-      ModuleFinder moduleFinder = ProjectStructure.getInstance(myModule.getProject()).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(basePath, artifact.getLevel2Dependencies(), scope, moduleFinder);
+      ModuleFinder moduleFinder = ProjectStructure.getInstance(project).getModuleFinder();
+      return DependenciesExtractor.getInstance()
+        .extractFrom(getProjectBasePath(project), artifact.getLevel2Dependencies(), scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }
 
   @NotNull
-  private File getProjectBasePath() {
-    return new File(Objects.requireNonNull(getModule().getProject().getBasePath()));
+  private static File getProjectBasePath(@NotNull Project project) {
+    return new File(Objects.requireNonNull(project.getBasePath()));
   }
 
   /**
