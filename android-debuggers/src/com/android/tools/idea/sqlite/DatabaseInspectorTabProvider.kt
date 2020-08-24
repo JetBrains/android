@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -53,7 +53,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    inspectorClient: AppInspectorClient
+    messenger: AppInspectorMessenger
   ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -69,10 +69,10 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
         databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
 
-      override val client = inspectorClient
+      override val messenger = messenger
 
       private val dbClient = DatabaseInspectorClient(
-        inspectorClient,
+        messenger,
         project,
         handleError,
         openDatabase,
@@ -93,7 +93,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
         databaseInspectorProjectService.projectScope.launch {
           databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices)
           dbClient.startTrackingDatabaseConnections()
-          inspectorClient.awaitForDisposal()
+          messenger.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
             databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
           }

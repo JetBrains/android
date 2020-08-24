@@ -17,24 +17,18 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
  */
 internal interface AppInspectionTarget {
   /**
-   * Creates an inspector in the connected process using the provided [parmas].
-   *
-   * Breakdown of params:
-   * [inspectorJar] is the path to a jar on the host filesystem that contains ".dex" code of an inspector and
-   * configuration file: META-INF/services/androidx.inspection.InspectorFactory, where a factory for an inspector should be registered.
-   * [inspectorJar] will be injected into the app's process and an inspector will be instantiated with the registered factory.
-   * [inspectorId] an id of an inspector to launch; the factory injected into the app with [inspectorJar] must have the same id as
-   * a value passed into this function.
+   * Launches an inspector in the connected process using the provided [params], returning an
+   * [AppInspectorMessenger] that can be used to communicate with it.
    */
   @WorkerThread
-  suspend fun launchInspector(params: AppInspectorLauncher.LaunchParameters): AppInspectorClient
+  suspend fun launchInspector(params: AppInspectorLauncher.LaunchParameters): AppInspectorMessenger
 
   /**
    * Disposes all of the clients that were launched on this target.

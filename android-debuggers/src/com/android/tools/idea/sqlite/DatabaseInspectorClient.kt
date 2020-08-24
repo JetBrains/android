@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
@@ -41,7 +41,7 @@ import java.util.concurrent.Executor
  * The job in this scope must be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient constructor(
-  private val client: AppInspectorClient,
+  private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
   private val onDatabaseAddedListener: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit,
@@ -51,11 +51,11 @@ class DatabaseInspectorClient constructor(
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) {
-  private val dbMessenger = DatabaseInspectorMessenger(client, scope, taskExecutor, errorsSideChannel)
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
   init {
     scope.launch {
-      client.rawEventFlow.collect { eventData ->
+      messenger.rawEventFlow.collect { eventData ->
         onRawEvent(eventData)
       }
     }

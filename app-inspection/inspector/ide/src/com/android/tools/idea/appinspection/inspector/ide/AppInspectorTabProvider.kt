@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -55,12 +55,12 @@ interface AppInspectorTabProvider {
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
    *   that will drive this UI is attached to
-   * @param client A class for communicating to the associated inspector
+   * @param messenger A class for communicating to the associated inspector
    */
   fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    client: AppInspectorClient
+    messenger: AppInspectorMessenger
   ): AppInspectorTab
 }

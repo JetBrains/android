@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -78,8 +78,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     // Prepare
     val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
 
-    val appInspectorClient = FakeAppInspectorClient(scope, emptyResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorClient)
+    val appInspectorMessenger = FakeAppInspectorMessenger(scope, emptyResponse)
+    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
@@ -90,7 +90,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     databaseInspectorClient.startTrackingDatabaseConnections()
 
     // Assert
-    assertThat(appInspectorClient.rawDataSent).isEqualTo(trackDatabasesCommand)
+    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
   }
 
   fun testOnDatabaseOpenedEventOpensDatabase() {
@@ -209,8 +209,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    val appInspectorClient = FakeAppInspectorClient(scope, keepDbsOpenResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorClient)
+    val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -221,7 +221,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
 
     // Assert
-    assertThat(appInspectorClient.rawDataSent).isEqualTo(trackDatabasesCommand)
+    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
     assertEquals(true, result)
   }
 
@@ -240,8 +240,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    val appInspectorClient = FakeAppInspectorClient(scope, keepDbsOpenResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorClient)
+    val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -253,7 +253,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertThat(appInspectorClient.rawDataSent).isEqualTo(trackDatabasesCommand)
+    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
   }
 
   fun testKeepConnectionOpenNotSetInResponse() = runBlocking {
@@ -262,8 +262,8 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
       .build()
       .toByteArray()
 
-    val appInspectorClient = FakeAppInspectorClient(scope, keepDbsOpenResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorClient)
+    val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
+    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
@@ -274,13 +274,14 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
 
     // Assert
-    assertThat(appInspectorClient.rawDataSent).isEqualTo(trackDatabasesCommand)
+    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
     assertEquals(null, result)
   }
 
-  private fun createDatabaseInspectorClient(appInspectorClient: AppInspectorClient = FakeAppInspectorClient(scope)): DatabaseInspectorClient {
+  private fun createDatabaseInspectorClient(appInspectorMessenger: AppInspectorMessenger = FakeAppInspectorMessenger(scope))
+    : DatabaseInspectorClient {
     return DatabaseInspectorClient(
-      appInspectorClient,
+      appInspectorMessenger,
       testRootDisposable,
       handleErrorFunction,
       openDatabaseFunction,
@@ -291,10 +292,10 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     )
   }
 
-  private class FakeAppInspectorClient(
+  private class FakeAppInspectorMessenger(
     override val scope: CoroutineScope,
     private val singleRawCommandResponse: ByteArray = ByteArray(0)
-  ) : AppInspectorClient {
+  ) : AppInspectorMessenger {
     lateinit var rawDataSent: ByteArray
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       rawDataSent = rawData

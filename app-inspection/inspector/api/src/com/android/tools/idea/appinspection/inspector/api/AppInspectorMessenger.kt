@@ -22,9 +22,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 
 /**
- * A client class that facilitates two-way communication between it and the inspector.
+ * A class that facilitates two-way communication between ourselves (the host) and the app
+ * inspector that lives on the device.
  */
-interface AppInspectorClient {
+interface AppInspectorMessenger {
   /**
    * Sends a raw command using the provided [rawData]. Returns the raw response.
    *
@@ -56,9 +57,9 @@ interface AppInspectorClient {
 /**
  * A convenience function that awaits until the inspector is disposed.
  *
- * This method returns true if the client was disposed normally, or false if it was caused by a crash.
+ * This method returns true if the messenger was disposed normally, or false if it was caused by a crash.
  */
-suspend fun AppInspectorClient.awaitForDisposal(): Boolean {
+suspend fun AppInspectorMessenger.awaitForDisposal(): Boolean {
   val job = scope.coroutineContext[Job]!!
   var crashed = false
   job.invokeOnCompletion { cause ->
