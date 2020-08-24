@@ -368,7 +368,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()
         if (isValidBlockName(referenceName)) {
-          return GradleDslLiteral(parent, expression, name, expression, true)
+          return GradleDslLiteral(parent, expression, name, expression, GradleDslLiteral.LiteralType.REFERENCE)
         }
         else {
           // This is the case of method calls for which we want to keep all the expression name as reference and resolve the nested
@@ -505,7 +505,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       "mapOf", "mutableMapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
       "listOf", "mutableListOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, false)
       "setOf", "mutableSetOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, true)
-      "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+      "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, GradleDslLiteral.LiteralType.LITERAL)
       FILE_CONSTRUCTOR_NAME -> return getMethodCall(parentElement, psiElement, name, FILE_CONSTRUCTOR_NAME, argumentsList, true)
     }
 
@@ -666,19 +666,29 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     return when (propertyExpression) {
       // Ex: versionName = 1.0. isQualified = false.
-      is KtStringTemplateExpression, is KtConstantExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression, false)
+      is KtStringTemplateExpression ->
+        GradleDslLiteral(
+          parentElement,
+          psiElement,
+          propertyName,
+          propertyExpression,
+          if (propertyExpression.hasInterpolation()) GradleDslLiteral.LiteralType.INTERPOLATION else GradleDslLiteral.LiteralType.LITERAL)
+      is KtConstantExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.LITERAL)
       // Ex: compileSdkVersion(SDK_VERSION).
-      is KtNameReferenceExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtNameReferenceExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: KotlinCompilerVersion.VERSION.
-      is KtDotQualifiedExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtDotQualifiedExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: Delete::class.
       is KtClassLiteralExpression -> when (val receiverExpression = propertyExpression.receiverExpression) {
         null -> unknownElement()
-        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, true)
+        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, GradleDslLiteral.LiteralType.REFERENCE)
       }
       // Ex: extra["COMPILE_SDK_VERSION"]
-      is KtArrayAccessExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtArrayAccessExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: extra["COMPILE_SDK_VERSION"]!!, false!!
       is KtPostfixExpression -> when (val baseExpression = propertyExpression.baseExpression) {
         null -> unknownElement()

@@ -24,6 +24,7 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.addQuotes;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStringCharacters;
 
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
@@ -378,6 +379,20 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof ReferenceTo) {
       unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
       if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
+    }
+    else if (unsavedValue instanceof InterpolatedText) {
+      InterpolatedText interpolatedValue = (InterpolatedText)unsavedValue;
+      StringBuilder builder = new StringBuilder();
+      for (InterpolatedText.InterpolatedTextItem elem : interpolatedValue.getInterpolationElements()) {
+        if (elem.getTextItem() != null) {
+          builder.append(elem.getTextItem());
+        }
+        if (elem.getReferenceItem() != null) {
+          String externalText = convertToExternalTextValue(elem.getReferenceItem().getReferredElement(), context, applyContext, true);
+          builder.append(externalText != null ? externalText : elem.getReferenceItem().getReferredElement().getFullName());
+        }
+      }
+      unsavedValueText = addQuotes(builder.toString(), true);
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();

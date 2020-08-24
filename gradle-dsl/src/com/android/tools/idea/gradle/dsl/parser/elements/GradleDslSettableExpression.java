@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.intellij.psi.PsiElement;
@@ -76,7 +77,8 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
           value instanceof Boolean ||
           value instanceof RawText ||
           value instanceof ReferenceTo ||
-          value instanceof BigDecimal)) {
+          value instanceof BigDecimal ||
+          value instanceof InterpolatedText)) {
       throw new IllegalArgumentException(
         "Can't set a property value with: " + value.getClass() + " type must be one of [Boolean, Integer, String, ReferenceTo]");
     }

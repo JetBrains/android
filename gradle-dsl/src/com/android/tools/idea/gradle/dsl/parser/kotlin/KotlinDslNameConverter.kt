@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescripti
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import java.util.regex.Pattern
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
@@ -90,6 +91,14 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
       }
     }
     return result ?: defaultResult
+  }
+
+  override fun getPatternForUnwrappedVariables(): Pattern {
+    return Pattern.compile("(([a-zA-Z0-9_]\\w*))")
+  }
+
+  override fun getPatternForWrappedVariables(): Pattern {
+    return Pattern.compile("\\$\\{([^}]*)}")
   }
 
   @JvmDefault

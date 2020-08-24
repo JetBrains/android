@@ -40,6 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
+import java.util.regex.Pattern;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,6 +119,18 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
       }
     }
     return result;
+  }
+
+  @NotNull
+  @Override
+  public Pattern getPatternForUnwrappedVariables() {
+    return Pattern.compile("\\$(([a-zA-Z0-9_]\\w*)(\\.([a-zA-Z0-9_]\\w+))*)");
+  }
+
+  @NotNull
+  @Override
+  public Pattern getPatternForWrappedVariables() {
+    return Pattern.compile("\\$\\{(.*)}");
   }
 
   @Nullable
