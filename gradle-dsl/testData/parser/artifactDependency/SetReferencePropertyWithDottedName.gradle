@@ -1,0 +1,6 @@
+ext {
+  versions = [first:"3.6", second:"3.5"]
+}
+dependencies {
+  testCompile 'org.gradle.test.classifiers:service:1.0'
+}

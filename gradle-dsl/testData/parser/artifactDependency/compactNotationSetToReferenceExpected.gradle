@@ -3,5 +3,5 @@ ext {
   name = "guava"
 }
 dependencies {
-  testCompile "org.gradle.test.classifiers:service:${version}", "com.google.guava:${name}:+"
+  testCompile "org.gradle.test.classifiers:service:$version", "com.google.guava:$name:+"
 }

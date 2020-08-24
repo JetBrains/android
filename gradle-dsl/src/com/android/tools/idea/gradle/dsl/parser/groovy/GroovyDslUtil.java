@@ -463,7 +463,14 @@ public final class GroovyDslUtil {
       return null;
     }
     else {
-      return externalName.toString();
+      if (!forInjection) return externalName.toString();
+      Pattern varShouldNotBeWrapped = Pattern.compile("(([a-zA-Z0-9_]\\w*)(\\.([a-zA-Z0-9_]\\w+))*)");
+      if (varShouldNotBeWrapped.matcher(externalName.toString()).matches()) {
+        return "$" + externalName.toString();
+      }
+      else {
+        return "${" + externalName.toString() + "}";
+      }
     }
   }
 
