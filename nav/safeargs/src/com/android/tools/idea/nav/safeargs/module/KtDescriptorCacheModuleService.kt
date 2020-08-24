@@ -100,7 +100,6 @@ class KtDescriptorCacheModuleService(val module: Module) {
       val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
 
       if (lastModificationCount != now) {
-        lastModificationCount = now
         val moduleNavResources = getNavResourceFromIndex()
 
         val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
@@ -119,6 +118,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
           .groupBy({ it.fqName }, { it.descriptor })
 
         descriptorsCache = packageDescriptors
+        lastModificationCount = now
       }
 
       // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService
