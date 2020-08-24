@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
@@ -48,10 +48,10 @@ interface AppInspectorLauncher {
   )
 
   /**
-   * Launches an inspector based on the information given by [params].
+   * Launches an inspector based on the information given by [params], returning an
+   * [AppInspectorMessenger] which can be used to communicate with it.
    *
    * [params] contains information such as the inspector's id and dex location, as well as the targeted process's descriptor.
-   * [creator] is a callback used to set up a client's [AppInspectorClient.rawEventListener].
    */
-  suspend fun launchInspector(params: LaunchParameters): AppInspectorClient
+  suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 }

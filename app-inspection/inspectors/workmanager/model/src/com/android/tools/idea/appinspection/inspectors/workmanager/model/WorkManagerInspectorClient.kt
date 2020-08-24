@@ -21,7 +21,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCommand
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -30,10 +30,10 @@ import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 
 /**
- * Class used to send commands to and handle events from the on-device work manager inspector through its [client].
+ * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(private val client: AppInspectorClient, private val clientScope: CoroutineScope) {
+class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, private val clientScope: CoroutineScope) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -49,10 +49,10 @@ class WorkManagerInspectorClient(private val client: AppInspectorClient, private
   init {
     val command = Command.newBuilder().setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance()).build()
     clientScope.launch {
-      client.sendRawCommand(command.toByteArray())
+      messenger.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      client.rawEventFlow.collect { eventData ->
+      messenger.rawEventFlow.collect { eventData ->
         handleEvent(eventData)
       }
     }
@@ -90,7 +90,7 @@ class WorkManagerInspectorClient(private val client: AppInspectorClient, private
     val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
     val command = Command.newBuilder().setCancelWork(cancelCommand).build()
     clientScope.launch {
-      client.sendRawCommand(command.toByteArray())
+      messenger.sendRawCommand(command.toByteArray())
     }
   }
 

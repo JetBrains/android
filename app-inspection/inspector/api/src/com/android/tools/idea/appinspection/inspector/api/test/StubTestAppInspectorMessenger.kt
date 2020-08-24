@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.test
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
-class StubTestAppInspectorClient : AppInspectorClient {
+class StubTestAppInspectorMessenger : AppInspectorMessenger {
   override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
     throw NotImplementedError()
   }

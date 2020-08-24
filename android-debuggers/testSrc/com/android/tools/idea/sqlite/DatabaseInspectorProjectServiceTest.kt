@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
@@ -113,13 +113,13 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
       2,
       EdtExecutorService.getInstance()
     )
@@ -177,7 +177,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )
@@ -257,7 +257,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorClient::class.java), scope, taskExecutor),
+      DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
       0,
       EdtExecutorService.getInstance()
     )
