@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,6 +143,58 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
     }
     return null;
+  }
+
+  /**
+   * Given a value of type {@link ValueType.INTERPOLATED} , get the element value as a {@link InterpolatedText} when possible.
+   * If it is not possible to do so (Ex: injected text isn't valid), then, we return a {@link RawText} object instead to represent
+   * the value. This is because in such cases, we will not be able to provide any DSL syntax interoperability support to the value, so we will
+   * treat it as a {@link RawText}.
+   * @return Object to represent the most suitable value, or null if none is possible.
+   */
+  @Nullable
+  private Object getInterpolatedValueIfPossible() {
+    GradleDslSimpleExpression interpolated = (GradleDslSimpleExpression)getElement();
+    PsiElement expression = interpolated.getExpression();
+    if (expression == null) return null;
+
+    // An Interpolated Text is a list of InterpolatedTextItem.
+    List<InterpolatedText.InterpolatedTextItem> interpolationElements = new ArrayList<>();
+
+    // Go through all the psiElements and treat them based on their type.
+    for (PsiElement child : expression.getChildren()) {
+      if (child.getText().startsWith("$")) { // This is an injected string.
+        // TODO(b/173698662): improve the regexp patterns for complex injections.
+        Matcher wrappedValueMatcher = getElement().getDslFile().getParser().getPatternForWrappedVariables().matcher(child.getText());  // Ex:  ${abc}
+        Matcher unwrappedValueMatcher = getElement().getDslFile().getParser().getPatternForUnwrappedVariables().matcher(child.getText());  //Ex: $abc
+        String injectedText = null;
+        if (wrappedValueMatcher.find()) {
+          injectedText = wrappedValueMatcher.group(1);
+        } else if (unwrappedValueMatcher.find()) {
+          injectedText = unwrappedValueMatcher.group(1);
+        }
+        // The injection doesn't match the pattern of injections we support, hence, we won't be able to extract a InterpolatedText object.
+        if (injectedText == null) {
+          return interpolated.getReferenceText() != null ?
+                 new RawText(interpolated.getReferenceText(), interpolated.getReferenceText()) : null;
+        }
+        // The injectedReference should be resolvable (i.e. Resolves to a referenceTo), otherwise treat the expression as a RawText.
+        ReferenceTo injectionReference = ReferenceTo.createReferenceFromText(injectedText, this);
+        // If the injectedText is not resolvable, then treat the expression as a RawText.
+        if (injectionReference == null) {
+          return interpolated.getReferenceText() != null ?
+                 new RawText(interpolated.getReferenceText(), interpolated.getReferenceText()) : null;
+        }
+        // Otherwise, we have now an InterpolatedTextItem (simpleText, InjectedReference).
+        else {
+          interpolationElements.add(new InterpolatedText.InterpolatedTextItem(injectionReference));
+        }
+      } else {
+        // This is a simple text value.
+        interpolationElements.add(new InterpolatedText.InterpolatedTextItem(child.getText()));
+      }
+    }
+    return new InterpolatedText(interpolationElements);
   }
 
   @NotNull
@@ -519,6 +573,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (element instanceof GradleDslExpressionList) {
       return LIST;
     }
+    else if (element instanceof GradleDslSimpleExpression && ((GradleDslSimpleExpression)element).isInterpolated()) {
+      return INTERPOLATED;
+    }
     else if (element instanceof GradleDslSimpleExpression && ((GradleDslSimpleExpression)element).isReference()) {
       return REFERENCE;
     }
@@ -592,6 +649,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       else {
         value = refText == null ? null : typeReference.castTo(refText);
       }
+    }
+    else if (valueType == INTERPOLATED && (typeReference == INTERPOLATED_TEXT_TYPE || typeReference == OBJECT_TYPE)) {
+      // when extracting a value for the type INTERPOLATED_TEXT_TYPE or OBJECT_TYPE, return InterpolatedText object.
+      // Otherwise, return the expression value when resolved=true, or the unresolvedValue when resolved=false.
+      Object extractedDslObject = getInterpolatedValueIfPossible();
+      value = extractedDslObject == null ? null : typeReference.castTo(extractedDslObject);
     }
     else if (valueType == UNKNOWN) {
       // If its a GradleDslBlockElement use the name, otherwise use the psi text. This prevents is dumping the whole

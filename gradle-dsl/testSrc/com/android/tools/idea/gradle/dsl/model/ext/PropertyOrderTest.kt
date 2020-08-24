@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYP
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
@@ -629,10 +630,10 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(firstPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
       verifyPropertyModel(secondPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
       verifyPropertyModel(thirdPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop2")
-      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop3")
-      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop4")
-      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop5")
-      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop6")
+      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop3")
+      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop4")
+      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop5")
+      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop6")
     }
 
     applyChangesAndReparse(buildModel)
@@ -650,10 +651,10 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(firstPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
       verifyPropertyModel(secondPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
       verifyPropertyModel(thirdPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop2")
-      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop3")
-      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop4")
-      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop5")
-      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop6")
+      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop3")
+      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop4")
+      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop5")
+      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1, "prop6")
     }
 
     verifyFileContents(myBuildFile, TestFile.CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED)

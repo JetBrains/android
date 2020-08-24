@@ -37,6 +37,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followEle
  * Represents an expression element.
  */
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
+  private boolean myIsInterpolated;
   private boolean myIsReference;
   @Nullable private PsiElement myUnsavedConfigBlock;
 
@@ -159,6 +160,14 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
     return myDependencies.stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+  }
+
+  public boolean isInterpolated() {
+    return myIsInterpolated;
+  }
+
+  public void setInterpolated(boolean isInterpolated) {
+    myIsInterpolated = isInterpolated;
   }
 
   public boolean isReference() {

@@ -615,7 +615,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       case BOOLEAN:
         assertEquals(message, expected, model.getValue(BOOLEAN_TYPE));
         break;
-      case REFERENCE:
+      case REFERENCE: case INTERPOLATED:
         if (resolve) {
           GradlePropertyModel resultModel = model.resolve().getResultModel();
           if (resultModel != model) {
