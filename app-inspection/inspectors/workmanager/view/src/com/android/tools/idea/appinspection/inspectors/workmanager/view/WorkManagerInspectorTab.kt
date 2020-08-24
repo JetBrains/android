@@ -48,9 +48,6 @@ import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -80,15 +77,11 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       when (table?.convertColumnIndexToModel(column)) {
         // TODO(163343710): Add icons on the left of state text
         WorksTableModel.Column.STATE.ordinal -> {
-          val text = WorkInfo.State.forNumber(value as Int).name
-          val capitalizedText = text[0] + text.substring(1).toLowerCase(Locale.getDefault())
-          super.getTableCellRendererComponent(table, capitalizedText, isSelected, hasFocus, row, column)
+          val state = WorkInfo.State.forNumber(value as Int)
+          super.getTableCellRendererComponent(table, state.capitalizedName(), isSelected, hasFocus, row, column)
         }
         WorksTableModel.Column.TIME_STARTED.ordinal -> {
-          val formatter = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
-          val time = value as Long
-          val timeText = if (time == -1L) "-" else formatter.format(Date(value))
-          super.getTableCellRendererComponent(table, timeText, isSelected, hasFocus, row, column)
+          super.getTableCellRendererComponent(table, (value as Long).toFormattedTimeString(), isSelected, hasFocus, row, column)
         }
         else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
       }
@@ -250,7 +243,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       buildKeyValuePair("Enqueued by", work.callStack, enqueuedAtProvider),
       buildKeyValuePair("Constraints", work.constraints, constraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
-      buildKeyValuePair("State", work.state.name)
+      buildKeyValuePair("State", work.state.capitalizedName())
     )))
 
     detailPanel.add(buildCategoryPanel("WorkContinuation", listOf(
