@@ -41,7 +41,6 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -77,8 +76,6 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -121,7 +118,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.*;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -810,32 +806,6 @@ public final class GradleUtil {
       return null;
     }
     return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
-  }
-
-  public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
-
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
-        if (buildModel != null) {
-          AndroidModel android = buildModel.android();
-          if (!version.equals(android.buildToolsVersion().toString())) {
-            android.buildToolsVersion().setValue(version);
-            modelsToUpdate.add(buildModel);
-          }
-        }
-      }
-    }
-
-    if (!modelsToUpdate.isEmpty()) {
-      runWriteCommandAction(project, () -> {
-        for (GradleBuildModel buildModel : modelsToUpdate) {
-          buildModel.applyChanges();
-        }
-      });
-    }
   }
 
   /**
