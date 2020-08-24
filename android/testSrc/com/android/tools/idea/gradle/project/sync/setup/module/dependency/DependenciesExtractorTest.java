@@ -70,12 +70,12 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     builder.setJavaLibraries(ImmutableList.of(javaLibrary));
 
     Collection<LibraryDependency> dependencies =
-      myDependenciesExtractor.extractFrom(getProjectBasePath(), builder.build(), COMPILE, myModuleFinder).onLibraries();
+      myDependenciesExtractor.extractFrom(builder.build(), COMPILE, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("Gradle: guava", dependency.getName());
+    assertEquals(jarFile, dependency.getArtifactPath());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
 
@@ -87,6 +87,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   public void testExtractFromAndroidLibraryWithLocalJar() {
     String rootDirPath = myProject.getBasePath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
+    File libAar = new File(rootDirPath, "bundle.aar");
     File libCompileJar = new File(rootDirPath, join("api.jar"));
 
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
@@ -94,6 +95,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     AndroidLibraryStubBuilder builder = new AndroidLibraryStubBuilder();
     builder.setArtifactAddress("com.android.support:support-core-ui:25.3.1@aar");
+    builder.setArtifactFile(libAar);
     builder.setJarFile(libJar.getPath());
     builder.setCompileJarFile(libCompileJar.getPath());
     builder.setResFolder(resFolder.getPath());
@@ -103,8 +105,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
 
-    DependencySet dependencySet = myDependenciesExtractor.extractFrom(getProjectBasePath(),
-                                                                      dependenciesStubBuilder.build(),
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(),
                                                                       COMPILE,
                                                                       myModuleFinder
     );
@@ -113,7 +114,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("Gradle: com.android.support:support-core-ui:25.3.1@aar", dependency.getName());
+    assertEquals(libAar, dependency.getArtifactPath());
 
     File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);
@@ -135,7 +136,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
     Collection<ModuleDependency> dependencies =
-      myDependenciesExtractor.extractFrom(getProjectBasePath(), dependenciesStubBuilder.build(), COMPILE, myModuleFinder).onModules();
+      myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(), COMPILE, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
@@ -171,10 +172,5 @@ public class DependenciesExtractorTest extends PlatformTestCase {
         "foo:bar:1.0", new File("")
       ), false);
     assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
-  }
-
-  @NotNull
-  private File getProjectBasePath() {
-    return new File(getProject().getBasePath());
   }
 }

@@ -46,17 +46,15 @@ public class DependenciesExtractor {
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull File basePath,
-                                   @NotNull IdeDependencies artifactDependencies,
+  public DependencySet extractFrom(@NotNull IdeDependencies artifactDependencies,
                                    @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(basePath, dependencies, artifactDependencies, moduleFinder, scope);
+    populate(dependencies, artifactDependencies, moduleFinder, scope);
     return dependencies;
   }
 
-  private static void populate(@NotNull File basePath,
-                               @NotNull DependencySet dependencies,
+  private static void populate(@NotNull DependencySet dependencies,
                                @NotNull IdeDependencies artifactDependencies,
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
@@ -64,12 +62,12 @@ public class DependenciesExtractor {
     for (IdeLibrary library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
         LibraryDependency
-          .create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, ImmutableList.of(library.getArtifact()));
+          .create(library.getArtifact(), scope, ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
     for (IdeLibrary library : artifactDependencies.getAndroidLibraries()) {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(basePath, library, scope));
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
     }
 
     for (IdeLibrary library : artifactDependencies.getModuleDependencies()) {
@@ -85,8 +83,7 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull File basePath,
-                                                                             @NotNull IdeLibrary library,
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeLibrary library,
                                                                              @NotNull DependencyScope scope) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
@@ -94,7 +91,7 @@ public class DependenciesExtractor {
     for (String localJar : library.getLocalJars()) {
       binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
     }
-    return LibraryDependency.create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, binaryPaths.build());
+    return LibraryDependency.create(library.getArtifact(), scope, binaryPaths.build());
   }
 
   /**
