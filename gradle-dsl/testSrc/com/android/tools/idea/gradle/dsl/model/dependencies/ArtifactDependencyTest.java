@@ -1343,11 +1343,28 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     firstModel = artifacts.get(0);
     verifyPropertyModel(firstModel.version(), STRING_TYPE, "3.6", STRING, FAKE, 1, "version");
-    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:${version}");
+    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:$version");
 
     secondModel = artifacts.get(1);
     verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, FAKE, 1, "name");
-    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${name}:+");
+    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:$name:+");
+  }
+
+  @Test
+  public void testSetPropertyWithDottedName() throws IOException {
+    writeToBuildFile(TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.version().setValue(ReferenceTo.createReferenceFromText("versions.first", firstModel.version()));
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME_EXPECTED);
   }
 
   @Test
@@ -2155,6 +2172,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_VERSION_REFERENCE_EXPECTED("setVersionReferenceExpected"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES("setExcludesBlockToReferences"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED("setExcludesBlockToReferencesExpected"),
+    SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME("SetReferencePropertyWithDottedName"),
+    SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME_EXPECTED("SetReferencePropertyWithDottedNameExpected"),
     ARTIFACT_NOTATION_EDGE_CASES("artifactNotationEdgeCases"),
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),

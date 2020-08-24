@@ -95,11 +95,10 @@ public class FakeArtifactElement extends FakeElement {
     String strValue = null;
     if (value instanceof ReferenceTo) {
       if (((ReferenceTo)value).getReferredElement() != null) {
-        strValue = "${" + resolved.getDslFile().getParser().convertReferenceToExternalText(
-          resolved, ((ReferenceTo)value).getReferredElement(), true) + "}";
+        strValue =
+          resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, ((ReferenceTo)value).getReferredElement(), true);
       } else {
-        strValue = "${" + resolved.getDslFile().getParser().convertReferenceToExternalText(
-          resolved, ((ReferenceTo)value).getText(), true) + "}";
+        strValue = resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, ((ReferenceTo)value).getText(), true);
       }
 
       shouldQuote = true;

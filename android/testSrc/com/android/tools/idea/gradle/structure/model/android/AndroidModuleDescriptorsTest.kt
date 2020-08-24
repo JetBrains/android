@@ -215,7 +215,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
   fun testSetDependencyReferenceVersionGroovy() {
     loadProject(PSD_SAMPLE_GROOVY)
-    val expectedValues = listOf("${'$'}{myVariable}", "${'$'}{versionVal}", "${'$'}{localList[0]}", "${'$'}{dependencyVersion}")
+    val expectedValues = listOf("${'$'}myVariable", "${'$'}versionVal", "${'$'}{localList[0]}", "${'$'}dependencyVersion")
     doTestSetDependencyReferenceVersion(expectedValues)
   }
 
@@ -223,7 +223,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     loadProject(PSD_SAMPLE_KOTLIN)
     val expectedValues =
       listOf(
-        "${'$'}{myVariable}",
+        "${'$'}myVariable",
         "${'$'}{project.extra[\"versionVal\"]}",
         "${'$'}{localList[0]}",
         "${'$'}{rootProject.extra[\"dependencyVersion\"]}")

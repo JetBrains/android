@@ -87,6 +87,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getContentRange
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
+import java.util.regex.Pattern
 import kotlin.reflect.KClass
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
@@ -268,7 +269,16 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
     parentElement = currentElement
   }
 
-  return if (externalName.isNotEmpty()) externalName.toString() else null
+  if (externalName.isEmpty()) return null
+
+  val varShouldNotBeWrapped = Pattern.compile("(([a-zA-Z0-9_]\\w*))")
+  return when {
+    !forInjection -> externalName.toString()
+    else -> {
+      if (varShouldNotBeWrapped.matcher(externalName.toString()).matches()) "\$$externalName"
+      else "\${$externalName}"
+    }
+  }
 }
 
 internal fun isValidBlockName(blockName : String?) =
