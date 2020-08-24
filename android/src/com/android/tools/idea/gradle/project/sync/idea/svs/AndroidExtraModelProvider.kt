@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
-import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
@@ -39,10 +38,14 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    populateAndroidModels(controller, buildModel, consumer)
-    // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
-    populateProjectSyncIssues(controller, buildModel, consumer)
+    consumer: ProjectImportModelProvider.BuildModelConsumer
+  ) {
+    val androidModules = populateAndroidModels(controller, buildModel)
+    // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
+    // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+    populateProjectSyncIssues(controller, androidModules)
+
+    androidModules.forEach { it.deliverModels(consumer) }
   }
 
   override fun populateProjectModels(controller: BuildController,
@@ -55,7 +58,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   }
 
   /**
-   * Requests Android project models for the given [buildModel] and registers them with the [consumer]
+   * Requests Android project models for the given [buildModel]
    *
    * We do this by going through each module and query Gradle for the following models:
    *   1. Query for the AndroidProject for the module
@@ -72,24 +75,16 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    */
   private fun populateAndroidModels(
     controller: BuildController,
-    buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer
-  ) {
+    buildModel: GradleBuild
+  ): List<AndroidModule> {
     val androidModules: MutableList<AndroidModule> = mutableListOf()
     buildModel.projects.forEach { gradleProject ->
-      findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)?.also { androidProject ->
-        consumer.consumeProjectModel(gradleProject, androidProject, AndroidProject::class.java)
-
-        val nativeModule = controller.getNativeModuleFromGradle(gradleProject)?.also {
-          consumer.consumeProjectModel(gradleProject, it, NativeModule::class.java)
-        }
+      val androidProject = findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)
+      if (androidProject != null) {
+        val nativeModule = controller.getNativeModuleFromGradle(gradleProject)
         val nativeAndroidProject: NativeAndroidProject? =
           if (nativeModule != null) null
-          else {
-            findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)?.also {
-              consumer.consumeProjectModel(gradleProject, it, NativeAndroidProject::class.java)
-            }
-          }
+          else findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)
 
         androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule))
       }
@@ -100,12 +95,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
       // e.g the ones that should be selected by the IDE.
       chooseSelectedVariants(controller, androidModules, syncActionOptions)
-      androidModules.forEach { module ->
-        // Variants can be empty if single-variant sync is enabled but not supported for current module.
-        if (module.variantGroup.variants.isNotEmpty()) {
-          consumer.consumeProjectModel(module.gradleProject, module.variantGroup, VariantGroup::class.java)
-        }
-      }
     }
 
     // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
@@ -113,20 +102,17 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       controller,
       androidModules,
       syncActionOptions.cachedLibraries,
-      consumer,
       syncActionOptions.downloadAndroidxUISamplesSources
     )
+    return androidModules
   }
 
   private fun populateProjectSyncIssues(
     controller: BuildController,
-    buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer
+    androidModules: List<AndroidModule>
   ) {
-    buildModel.projects.forEach { gradleProject ->
-      controller.findModel(gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
-        consumer.consumeProjectModel(gradleProject, projectSyncIssues, ProjectSyncIssues::class.java)
-      }
+    androidModules.forEach { module ->
+      module.projectSyncIssues = controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)
     }
   }
 

@@ -18,10 +18,13 @@ package com.android.tools.idea.gradle.project.sync.idea.svs
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Dependencies
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.model.gradle.BasicGradleProject
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
@@ -37,6 +40,27 @@ class AndroidModule(
 ) {
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
+
+  var projectSyncIssues: ProjectSyncIssues? = null
+  var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
+
+  private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
+    inline fun <reified T : Any> T.deliver() {
+      println("Consuming ${T::class.simpleName} for ${gradleProject.path}")
+      buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
+    }
+  }
+
+  fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      androidProject.deliver()
+      nativeModule?.deliver()
+      nativeAndroidProject?.deliver()
+      variantGroup.takeUnless { it.variants.isEmpty() }?.deliver()
+      projectSyncIssues?.deliver()
+      additionalClassifierArtifacts?.deliver()
+    }
+  }
 }
 
 data class ModuleDependency(val id: String, val variant: String?, val abi: String?)
