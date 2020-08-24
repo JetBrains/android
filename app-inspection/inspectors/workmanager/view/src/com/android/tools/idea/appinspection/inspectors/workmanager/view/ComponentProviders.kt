@@ -18,6 +18,7 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.protobuf.ProtocolStringList
@@ -25,13 +26,12 @@ import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.FlowLayout
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -72,15 +72,7 @@ class ClassNameProvider(private val ideServices: AppInspectionIdeServices, priva
  * Provides a component that represents a timestamp in a human readable format.
  */
 class TimeProvider : ComponentProvider<Long> {
-  override fun convert(timestamp: Long): JComponent {
-    return if (timestamp != -1L) {
-      val formatter = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
-      JBLabel(formatter.format(Date(timestamp)))
-    }
-    else {
-      JBLabel("-")
-    }
-  }
+  override fun convert(timestamp: Long) = JBLabel(timestamp.toFormattedTimeString())
 }
 
 /**
@@ -147,7 +139,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
           val index = client.indexOfFirstWorkInfo { it.id == id }
           if (index >= 0 && index < table.rowCount) {
             add(HyperlinkLabel().apply {
-              val suffix = if (id == currId) " (*)" else ""
+              val suffix = if (id == currId) " (Current)" else ""
               setHyperlinkText("", id, suffix)
               addHyperlinkListener {
                 table.selectionModel.setSelectionInterval(index, index)
@@ -219,11 +211,19 @@ class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constr
 class OutputDataProvider : ComponentProvider<WorkManagerInspectorProtocol.Data> {
   override fun convert(data: WorkManagerInspectorProtocol.Data): JComponent {
     return if (data.entriesList.isNotEmpty()) {
-      JPanel(VerticalFlowLayout(0, 0)).apply {
+      val panel = JPanel(VerticalFlowLayout(0, 0)).apply {
         data.entriesList.forEach { pair ->
-          add(JBLabel("${pair.key}: ${pair.value}"))
+          val pairPanel = JPanel(HorizontalLayout(0))
+          pairPanel.add(JLabel("${pair.key} = "))
+          pairPanel.add(JLabel("\"${pair.value}\"").apply {
+            foreground = WorkManagerInspectorColors.DATA_TEXT_COLOR
+          })
+          add(pairPanel)
         }
       }
+      HideablePanel(HideablePanel.Builder("Data", panel)
+                      .setPanelBorder(JBUI.Borders.empty())
+                      .setContentBorder(JBUI.Borders.empty(0, 20, 0, 0)))
     }
     else {
       JBLabel("None")
