@@ -278,7 +278,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="58"/>
+            line="60"/>
     </issue>
 
     <issue
@@ -286,7 +286,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="59"/>
+            line="61"/>
     </issue>
 
     <issue
@@ -549,14 +549,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/DependenciesExtractor.java"
-            line="80"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
             line="388"/>
     </issue>
@@ -694,7 +686,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/LibraryDependency.java"
-            line="138"/>
+            line="91"/>
     </issue>
 
     <issue
@@ -702,7 +694,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="994"/>
+            line="995"/>
     </issue>
 
     <issue

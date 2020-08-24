@@ -19,8 +19,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -36,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -264,9 +261,9 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         return;
       }
       Project project = myModule.getProject();
-      myMainDependencies = extractDependencies(project, COMPILE, myAndroidModel.getMainArtifact());
-      myAndroidTestDependencies = extractDependencies(project, TEST, myAndroidModel.getSelectedVariant().getAndroidTestArtifact());
-      myUnitTestDependencies = extractDependencies(project, TEST, myAndroidModel.getSelectedVariant().getUnitTestArtifact());
+      myMainDependencies = extractDependencies(project, myAndroidModel.getMainArtifact());
+      myAndroidTestDependencies = extractDependencies(project, myAndroidModel.getSelectedVariant().getAndroidTestArtifact());
+      myUnitTestDependencies = extractDependencies(project, myAndroidModel.getSelectedVariant().getUnitTestArtifact());
 
       // Assign resolved earlier since mergeSubmoduleDependencies may recurse into this method of this instance again.
       myAlreadyResolved = true;
@@ -283,12 +280,10 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   }
 
   @NotNull
-  private static DependencySet extractDependencies(@NotNull Project project,
-                                                   @NotNull DependencyScope scope,
-                                                   @Nullable IdeBaseArtifact artifact) {
+  private static DependencySet extractDependencies(@NotNull Project project, @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
       ModuleFinder moduleFinder = ProjectStructure.getInstance(project).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(artifact.getLevel2Dependencies(), scope, moduleFinder);
+      return DependenciesExtractor.getInstance().extractFrom(artifact.getLevel2Dependencies(), moduleFinder);
     }
     return DependencySet.EMPTY;
   }
