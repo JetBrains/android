@@ -47,7 +47,7 @@ public class DependencySet {
   };
 
   // Use linked list to maintain insertion order.
-  private final Multimap<String, LibraryDependency> myLibrariesByName = LinkedListMultimap.create();
+  private final Multimap<String, LibraryDependency> myLibrariesByArtifact = LinkedListMultimap.create();
   private final Map<Module, ModuleDependency> myModuleDependenciesByModule = Maps.newLinkedHashMap();
 
   DependencySet() {
@@ -64,38 +64,29 @@ public class DependencySet {
    * @param dependency the dependency to add.
    */
   void add(@NotNull LibraryDependency dependency) {
-    String originalName = dependency.getName();
-    Collection<LibraryDependency> allStored = myLibrariesByName.get(originalName);
+    String artifactPath = dependency.getArtifactPath().getPath();
+    Collection<LibraryDependency> allStored = myLibrariesByArtifact.get(artifactPath);
     allStored = allStored == null ? null : ImmutableSet.copyOf(allStored);
     if (allStored == null || allStored.isEmpty()) {
-      myLibrariesByName.put(originalName, dependency);
+      myLibrariesByArtifact.put(artifactPath, dependency);
       return;
     }
 
-    LibraryDependency toAdd = dependency;
     LibraryDependency replaced = null;
 
     for (LibraryDependency stored : allStored) {
       if (areSameArtifact(dependency, stored)) {
-        toAdd = null;
         if (hasHigherScope(dependency, stored)) {
           // replace the existing one if the new one has higher scope. (e.g. "compile" scope is higher than "test" scope.)
           replaced = stored;
-          dependency.setName(stored.getName());
-          myLibrariesByName.put(originalName, dependency);
+          myLibrariesByArtifact.put(artifactPath, dependency);
         }
         break;
       }
     }
 
     if (replaced != null) {
-      myLibrariesByName.remove(originalName, replaced);
-    }
-
-    if (toAdd != null) {
-      String newName = dependency.getName() + "_" + allStored.size();
-      dependency.setName(newName);
-      myLibrariesByName.put(originalName, dependency);
+      myLibrariesByArtifact.remove(artifactPath, replaced);
     }
   }
 
@@ -141,7 +132,7 @@ public class DependencySet {
 
   @NotNull
   public ImmutableCollection<LibraryDependency> onLibraries() {
-    return ImmutableList.copyOf(myLibrariesByName.values());
+    return ImmutableList.copyOf(myLibrariesByArtifact.values());
   }
 
   @NotNull

@@ -288,8 +288,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
                                                    @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
       ModuleFinder moduleFinder = ProjectStructure.getInstance(project).getModuleFinder();
-      return DependenciesExtractor.getInstance()
-        .extractFrom(getProjectBasePath(project), artifact.getLevel2Dependencies(), scope, moduleFinder);
+      return DependenciesExtractor.getInstance().extractFrom(artifact.getLevel2Dependencies(), scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }
