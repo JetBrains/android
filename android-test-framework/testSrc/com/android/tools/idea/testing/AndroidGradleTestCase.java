@@ -35,7 +35,6 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -485,12 +484,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected static void overrideJdkTo8() throws IOException {
-    String embeddedJdk8Path = getEmbeddedJdk8Path();
+    String jdk8Path = getEmbeddedJdk8Path();
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
     ideSdks.cleanJdkEnvVariableInitialization();
-    LOG.info("Using JDK from " + embeddedJdk8Path);
-    ideSdks.initializeJdkEnvVariable(embeddedJdk8Path);
-    assertThat(ideSdks.isJdkEnvVariableValid()).isTrue();
+    LOG.info("Using JDK from " + jdk8Path);
+    ideSdks.initializeJdkEnvVariable(jdk8Path);
+    assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
   }
 
   protected static void restoreJdk() {
