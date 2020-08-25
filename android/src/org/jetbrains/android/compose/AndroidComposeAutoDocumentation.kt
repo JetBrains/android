@@ -30,17 +30,20 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.Alarm
+import sun.security.jca.GetInstance
 import java.beans.PropertyChangeListener
 
 /**
  * Automatically shows quick documentation for Compose functions during code completion
  */
-class AndroidComposeAutoDocumentation(
-  private val docManager: DocumentationManager,
-  private val lookupManager: LookupManager,
-  private val completionService: CompletionService
-) {
+class AndroidComposeAutoDocumentation(project: Project) {
+  private val docManager = DocumentationManager.getInstance(project)
+  private val lookupManager: LookupManager = LookupManager.getInstance(project)
+  private val completionService: CompletionService = CompletionService.getCompletionService()
+
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->
@@ -64,10 +67,19 @@ class AndroidComposeAutoDocumentation(
     }
   }
 
-  init {
-    if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get () && !ApplicationManager.getApplication().isUnitTestMode) {
+  fun onProjectOpened() {
+    if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get() && !ApplicationManager.getApplication().isUnitTestMode) {
       lookupManager.addPropertyChangeListener(lookupListener)
     }
+  }
+
+  class MyStartupActivity : StartupActivity {
+    override fun runActivity(project: Project) = getInstance(project).onProjectOpened()
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): AndroidComposeAutoDocumentation = project.getService(AndroidComposeAutoDocumentation::class.java)
   }
 
   private fun showJavaDoc(lookup: Lookup) {
