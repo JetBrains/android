@@ -189,4 +189,4 @@ private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleB
     }
 
 private val ProjectBuildModel.modules: Set<String>
-  get() = projectSettingsModel.let { it?.modulePaths()?.toSet() ?: setOf(":") }
+  get() = projectSettingsModel.let { it?.modulePaths() ?: setOf(":") }

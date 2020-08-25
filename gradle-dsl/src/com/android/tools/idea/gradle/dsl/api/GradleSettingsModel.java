@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
 
 public interface GradleSettingsModel extends GradleFileModel {
   /**
@@ -44,7 +44,7 @@ public interface GradleSettingsModel extends GradleFileModel {
   }
 
   @NotNull
-  List<String> modulePaths();
+  Set<String> modulePaths();
 
   void addModulePath(@NotNull String modulePath);
 
