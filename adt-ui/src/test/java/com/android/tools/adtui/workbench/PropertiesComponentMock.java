@@ -16,7 +16,6 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.util.NlsSafe;
 import java.util.Properties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +40,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
 
   @Nullable
   @Override
-  public @NlsSafe String getValue(@NotNull @NonNls String name) {
+  public String getValue(@NotNull @NonNls String name) {
     return myProperties.getProperty(name);
   }
 
@@ -56,7 +55,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
       myProperties.remove(name);
     }
     else {
-      setValue(name, String.valueOf(value));
+      setValue(name, value);
     }
   }
 
