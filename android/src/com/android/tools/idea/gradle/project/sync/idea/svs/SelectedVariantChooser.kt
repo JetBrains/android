@@ -87,12 +87,12 @@ fun chooseSelectedVariants(
   // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
   // requests any other modules that can't be reached.
   val visitedModules = HashSet<String>()
-  allModulesToSetUp.forEach { moduleConfiguration ->
-    if (!visitedModules.add(moduleConfiguration.id)) return@forEach
+  while (allModulesToSetUp.isNotEmpty()) {
+    val moduleConfiguration = allModulesToSetUp.removeFirst()
+    if (!visitedModules.add(moduleConfiguration.id)) continue
 
-    val moduleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, moduleConfiguration) ?: return@forEach
-    // Request models for the dependencies of this module.
-    selectVariantForDependencyModules(controller, modulesById, visitedModules, moduleDependencies)
+    val moduleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, moduleConfiguration) ?: continue
+    allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
   }
 }
 
@@ -123,21 +123,6 @@ private fun selectVariantForAppOrLeaf(
   }
 
   return variant
-}
-
-@UsedInBuildAction
-private fun selectVariantForDependencyModules(
-  controller: BuildController,
-  modulesById: Map<String, AndroidModule>,
-  visitedModules: MutableSet<String>,
-  moduleDependencies: List<ModuleConfiguration>
-) {
-  moduleDependencies.forEach { dependency ->
-    if (!visitedModules.add(dependency.id)) return@forEach
-
-    val childModuleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, dependency) ?: return@forEach
-    selectVariantForDependencyModules(controller, modulesById, visitedModules, childModuleDependencies)
-  }
 }
 
 private fun syncVariantAndGetModuleDependencies(
