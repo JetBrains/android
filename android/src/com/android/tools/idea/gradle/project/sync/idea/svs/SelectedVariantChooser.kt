@@ -129,8 +129,6 @@ private fun selectVariantForDependencyModules(
   moduleDependencies.forEach { dependency ->
     if (!visitedModules.add(dependency.id)) return@forEach
 
-    if (dependency.variant == null) return@forEach
-
     val dependencyModule = modulesById[dependency.id] ?: return@forEach
 
     val childModuleDependencies = syncVariantAndGetModuleDependencies(controller, dependencyModule, dependency.variant, dependency.abi)
