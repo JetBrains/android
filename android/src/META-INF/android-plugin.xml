@@ -35,11 +35,6 @@
   <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
-  <project-components>
-    <component>
-      <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
-    </component>
-  </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
     <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
@@ -363,6 +358,8 @@
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
     <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
                         serviceImplementation="org.jetbrains.android.util.AndroidUtils"/>
+    <projectService serviceImplementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation" />
+    <postStartupActivity implementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation$MyStartupActivity"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
