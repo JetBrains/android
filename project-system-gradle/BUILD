@@ -274,5 +274,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module, test]",
     ],
 )

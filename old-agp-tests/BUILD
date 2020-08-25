@@ -195,5 +195,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:unb.intellij.android.projectSystem.gradle.psd[module, test]",
         "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle.tests[module, test]",
     ],
 )

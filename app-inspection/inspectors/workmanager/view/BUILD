@@ -77,6 +77,7 @@ iml_module(
     bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
     tags = [
         "manual",
         "unb",
@@ -93,6 +94,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto",
+        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
     ],
 )
 
