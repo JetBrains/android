@@ -50,41 +50,47 @@ fun chooseSelectedVariants(
   inputModules: List<AndroidModule>,
   syncActionOptions: SyncActionOptions
 ) {
-  val selectedVariants = syncActionOptions.selectedVariants
-                         ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
+  val selectedVariants = syncActionOptions.selectedVariants ?: error("Single variant sync requested, but SelectedVariants were null!")
+
+  fun createRequestedModuleConfiguration(module: AndroidModule): ModuleConfiguration? {
+    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
+    val requestedAbi = selectedVariants.getSelectedAbi(module.id)
+    return ModuleConfiguration(module.id, requestedVariantName, requestedAbi)
+  }
+
   val modulesById = HashMap<String, AndroidModule>()
-  val allModules = LinkedList<String>()
-  val visitedModules = HashSet<String>()
+  val allModulesToSetUp = LinkedList<ModuleConfiguration>()
   // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
   // adding this module to the head of allModules so that its dependency modules are resolved first.
-  var moduleWithVariantSwitched: String? = null
+  var moduleWithVariantSwitched: ModuleConfiguration? = null
 
   inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
     modulesById[module.id] = module
+    val moduleConfiguration = createRequestedModuleConfiguration(module) ?: return@forEach
     if (module.id == syncActionOptions.moduleIdWithVariantSwitched) {
-      moduleWithVariantSwitched = module.id
+      moduleWithVariantSwitched = moduleConfiguration
     }
     else {
       // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
-      if (module.androidProject.projectType == PROJECT_TYPE_APP) allModules.addFirst(module.id) else allModules.addLast(module.id)
+      // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
+      // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
+      // `createRequestedModuleConfiguration()` is cheap.
+      when (module.androidProject.projectType) {
+        PROJECT_TYPE_APP -> allModulesToSetUp.addFirst(moduleConfiguration)
+        else -> allModulesToSetUp.addLast(moduleConfiguration)
+      }
     }
   }
 
-  if (moduleWithVariantSwitched != null) allModules.addFirst(moduleWithVariantSwitched)
+  moduleWithVariantSwitched?.let { allModulesToSetUp.addFirst(it) }
 
   // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
   // requests any other modules that can't be reached.
-  allModules.forEach { moduleId ->
-    if (visitedModules.contains(moduleId)) return@forEach
+  val visitedModules = HashSet<String>()
+  allModulesToSetUp.forEach { moduleConfiguration ->
+    if (!visitedModules.add(moduleConfiguration.id)) return@forEach
 
-    visitedModules.add(moduleId)
-    val module = modulesById[moduleId]!!
-
-    // Request the Variant model for the module
-    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return@forEach
-    val requestedAbi = selectedVariants.getSelectedAbi(moduleId)
-
-    val moduleDependencies = syncVariantAndGetModuleDependencies(controller, module, requestedVariantName, requestedAbi) ?: return@forEach
+    val moduleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, moduleConfiguration) ?: return@forEach
     // Request models for the dependencies of this module.
     selectVariantForDependencyModules(controller, modulesById, visitedModules, moduleDependencies)
   }
@@ -124,27 +130,24 @@ private fun selectVariantForDependencyModules(
   controller: BuildController,
   modulesById: Map<String, AndroidModule>,
   visitedModules: MutableSet<String>,
-  moduleDependencies: List<ModuleDependency>
+  moduleDependencies: List<ModuleConfiguration>
 ) {
   moduleDependencies.forEach { dependency ->
     if (!visitedModules.add(dependency.id)) return@forEach
 
-    val dependencyModule = modulesById[dependency.id] ?: return@forEach
-
-    val childModuleDependencies = syncVariantAndGetModuleDependencies(controller, dependencyModule, dependency.variant, dependency.abi)
-                                  ?: return@forEach
+    val childModuleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, dependency) ?: return@forEach
     selectVariantForDependencyModules(controller, modulesById, visitedModules, childModuleDependencies)
   }
 }
 
 private fun syncVariantAndGetModuleDependencies(
   controller: BuildController,
-  module: AndroidModule,
-  requestedVariantName: String,
-  requestedAbi: String?
-): List<ModuleDependency>? {
-  val variant = syncAndAddVariant(controller, module, requestedVariantName) ?: return null
-  val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, requestedAbi)
+  moduleByIds: Map<String, AndroidModule>,
+  moduleConfiguration: ModuleConfiguration
+): List<ModuleConfiguration>? {
+  val module = moduleByIds[moduleConfiguration.id] ?: return null // Composite build modules will not be resolved here.
+  val variant = syncAndAddVariant(controller, module, moduleConfiguration.variant) ?: return null
+  val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
   return getModuleDependencies(variant.mainArtifact.dependencies, abi)
 }
 
