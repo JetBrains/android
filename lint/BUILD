@@ -67,7 +67,9 @@ iml_module(
         "//tools/idea:intellij.java.analysis.impl[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
+        "//tools/idea/plugins/properties/properties-psi-api:intellij.properties.psi[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module]",
     ],
 )
