@@ -38,11 +38,12 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +51,18 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   public GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
   }
+
+  private static class ModulePathsCache {
+    long committedCount = -1;
+    @NotNull LinkedHashSet<String> paths;
+
+    ModulePathsCache() {
+      paths = new LinkedHashSet<>();
+      paths.add(":");
+    }
+  }
+
+  private final ModulePathsCache myModulePathsCache = new ModulePathsCache();
 
   /**
    * Returns the module paths specified by the include statements. Note that these path are not file paths, but instead specify the
@@ -59,21 +72,39 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
    */
   @NotNull
   @Override
-  public List<String> modulePaths() {
-    List<String> result = Lists.newArrayList();
-    result.add(":"); // Indicates the root module.
-
+  public Set<String> modulePaths() {
+    long committedCount = myGradleDslFile.getLastCommittedModificationCount();
+    long modificationCount = myGradleDslFile.getModificationCount();
     IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
-    if (includePaths == null) {
-      return result;
-    }
 
-    for (GradleDslSimpleExpression includePath : includePaths.getModules()) {
-      String value = includePath.getValue(String.class);
-      if (value != null) {
-        result.add(standardiseModulePath(value));
+    // if we the committedCount in our cache is equal to the current modification count, we must be unmodified since a previous
+    // already-committed count.  Since counts increase monotonically, and modificationCount >= lastCommittedCount, if modificationCount is
+    // equal to our cached committedCount the GradleDslFile must be unchanged since the last cache save, so our cached result is valid.
+    synchronized(myModulePathsCache) {
+      if (myModulePathsCache.committedCount == modificationCount) {
+        return myModulePathsCache.paths;
       }
     }
+
+    LinkedHashSet<String> result = new LinkedHashSet<>();
+    result.add(":"); // Indicates the root module.
+
+    if (includePaths != null) {
+      for (GradleDslSimpleExpression includePath : includePaths.getModules()) {
+        String value = includePath.getValue(String.class);
+        if (value != null) {
+          result.add(standardiseModulePath(value));
+        }
+      }
+    }
+
+    // update the cache.  (It does not matter if the GradleDslFile was initially modified, or has been modified since; any difference
+    // in either counter from thie initial committedCount will simply render this cache entry invalid.)
+    synchronized(myModulePathsCache) {
+      myModulePathsCache.paths = result;
+      myModulePathsCache.committedCount = committedCount;
+    }
+
     return result;
   }
 
@@ -234,7 +265,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public String parentModule(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-    List<String> allModulePaths = modulePaths();
+    Collection<String> allModulePaths = modulePaths();
     if (!allModulePaths.contains(modulePath)) {
       return null;
     }
