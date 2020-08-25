@@ -132,7 +132,8 @@ class LegacyProcessManager(
     when {
       timesAttempted > MAX_RETRY_COUNT -> return
       iDevice.state == IDevice.DeviceState.DISCONNECTED -> return
-      iDevice.arePropertiesSet() -> devices.getOrPut(iDevice.serialNumber) { DeviceSpec(iDevice) }
+      iDevice.arePropertiesSet() && (iDevice.avdName != null || !iDevice.isEmulator || timesAttempted == MAX_RETRY_COUNT) ->
+        devices.getOrPut(iDevice.serialNumber) { DeviceSpec(iDevice) }
       else -> scheduler.schedule({ addDeviceWhenPropertiesAreLoaded(iDevice, timesAttempted + 1) }, 50, TimeUnit.MILLISECONDS)
     }
   }
