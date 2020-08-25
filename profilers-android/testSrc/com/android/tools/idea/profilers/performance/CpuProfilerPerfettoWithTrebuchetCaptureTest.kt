@@ -16,37 +16,21 @@
 package com.android.tools.idea.profilers.performance
 
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils.getTraceFile
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 /**
- * Perfgate test for measuring the memory overhead of loading / parsing a perfetto capture with TraceProcessorService backend.
+ * Perfgate test for measuring the memory overhead of loading / parsing a perfetto capture with Trebuchet (ATrace) backend.
  * Note: This test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references
  * impact the memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
  */
-class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
-  lateinit var traceProcessorService: TraceProcessorServiceImpl
-
-  @Before
-  fun setUp() {
-    // Use a real instance of TPD Service instead of the fake one.
-    traceProcessorService = TraceProcessorServiceImpl()
-    myIdeServices.traceProcessorService = traceProcessorService
-  }
-
-  @After
-  fun tearDown() {
-    // Dispose it to make sure we shutdown the daemon so we don't leave dangling processes.
-    Disposer.dispose(traceProcessorService)
-  }
-
+class CpuProfilerPerfettoWithTrebuchetCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
-  fun measureMemoryOfImportPerfettoWithTPD() {
-    myIdeServices.enableUseTraceProcessor(true)
-    loadCaptureAndReport("Perfetto-TPD-10-sec", getTraceFile("performance/perfetto_10s_tanks.trace"))
+  fun measureMemoryOfImportPerfettoWithTrebuchet() {
+    myIdeServices.enableUseTraceProcessor(false)
+    loadCaptureAndReport("Perfetto-Trebuchet-10-sec", CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"))
   }
 }
-
