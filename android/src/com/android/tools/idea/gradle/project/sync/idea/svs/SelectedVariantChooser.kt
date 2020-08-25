@@ -21,7 +21,6 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -61,14 +60,13 @@ fun chooseSelectedVariants(
   var moduleWithVariantSwitched: String? = null
 
   inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
-    val id = createUniqueModuleId(module.gradleProject)
-    modulesById[id] = module
-    if (id == syncActionOptions.moduleIdWithVariantSwitched) {
-      moduleWithVariantSwitched = id
+    modulesById[module.id] = module
+    if (module.id == syncActionOptions.moduleIdWithVariantSwitched) {
+      moduleWithVariantSwitched = module.id
     }
     else {
       // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
-      if (module.androidProject.projectType == PROJECT_TYPE_APP) allModules.addFirst(id) else allModules.addLast(id)
+      if (module.androidProject.projectType == PROJECT_TYPE_APP) allModules.addFirst(module.id) else allModules.addLast(module.id)
     }
   }
 
@@ -83,7 +81,7 @@ fun chooseSelectedVariants(
     val module = modulesById[moduleId]!!
 
     // Request the Variant model for the module
-    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants, moduleId) ?: return@forEach
+    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return@forEach
     val requestedAbi = selectedVariants.getSelectedAbi(moduleId)
 
     val moduleDependencies = syncVariantAndGetModuleDependencies(controller, module, requestedVariantName, requestedAbi) ?: return@forEach
@@ -95,10 +93,9 @@ fun chooseSelectedVariants(
 @UsedInBuildAction
 private fun selectVariantForAppOrLeaf(
   androidModule: AndroidModule,
-  selectedVariants: SelectedVariants,
-  moduleId: String
+  selectedVariants: SelectedVariants
 ): String? {
-  var variant = selectedVariants.getSelectedVariant(moduleId)
+  var variant = selectedVariants.getSelectedVariant(androidModule.id)
   val variantNames =
     try {
       androidModule.androidProject.variantNames
