@@ -19,12 +19,13 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.utils.HtmlBuilder
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,6 +37,8 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.JBTabsPaneImpl
+import com.intellij.ui.TabbedPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBDimension
@@ -60,7 +63,7 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
-import javax.swing.SwingConstants
+import javax.swing.JTabbedPane.TOP
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.ceil
@@ -76,10 +79,11 @@ private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
 
   /**
-   * [CommonTabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline],
-   * but have their own playback toolbar, from/to state combo boxes and animated properties panel.
+   * [TabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but
+   * have their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
-  private val tabbedPane = CommonTabbedPane().apply {
+  @VisibleForTesting
+  val tabbedPane = JBTabsPaneImpl(surface.project, TOP, this).apply {
     addChangeListener {
       if (selectedIndex < 0) return@addChangeListener
 
@@ -157,7 +161,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    * Replaces the [tabbedPane] with [noAnimationsPanel].
    */
   private fun showNoAnimationsPanel() {
-    remove(tabbedPane)
+    remove(tabbedPane.component)
     noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
@@ -172,14 +176,14 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
       noAnimationsPanel.stopLoading()
       remove(noAnimationsPanel)
-      add(tabbedPane, TabularLayout.Constraint(1, 0, 2))
+      add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
     }
 
     val animationTab = AnimationTab(animation)
     animationTabs[animation] = animationTab
     val tabName = animation.label ?: message("animation.inspector.tab.default.title")
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
-    tabbedPane.addTab("${tabName} #${tabNamesCount[tabName]}", animationTab)
+    tabbedPane.insertTab("${tabName} #${tabNamesCount[tabName]}", null, animationTab, null, tabbedPane.tabCount)
   }
 
   /**
@@ -192,6 +196,16 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     if (tabbedPane.tabCount == 0) {
       // There are no more tabs. Replace the TabbedPane with the placeholder panel.
       showNoAnimationsPanel()
+    }
+  }
+
+  private fun TabbedPane.remove(animationTab: AnimationTab?) {
+    if (animationTab == null) return
+    for (i in 0 until tabCount) {
+      if (animationTab === getComponentAt(i)) {
+        removeTabAt(i)
+        return
+      }
     }
   }
 
