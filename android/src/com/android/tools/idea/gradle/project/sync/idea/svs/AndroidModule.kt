@@ -64,11 +64,12 @@ class AndroidModule(
   }
 }
 
-data class ModuleDependency(val id: String, val variant: String, val abi: String?)
-fun getModuleDependencies(dependencies: Dependencies, abi: String?): List<ModuleDependency> {
+data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+
+fun getModuleDependencies(dependencies: Dependencies, abi: String?): List<ModuleConfiguration> {
   return dependencies.libraries.mapNotNull { library ->
     val project = library.project ?: return@mapNotNull null
     val variant = library.projectVariant ?: return@mapNotNull null
-    ModuleDependency(createUniqueModuleId(library?.buildId ?: "", project), variant, abi)
+    ModuleConfiguration(createUniqueModuleId(library?.buildId ?: "", project), variant, abi)
   }
 }
