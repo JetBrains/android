@@ -1,0 +1,46 @@
+parts {
+    portrait {
+        background {
+            image   device_bezel.png
+        }
+    }
+
+    device {
+        display {
+            width   320
+            height  290
+            x       0
+            y       0
+        }
+    }
+}
+
+layouts {
+    portrait {
+        width     380
+        height    380
+        color     0x1f1f1f
+        event     EV_SW:0:1
+
+        part1 {
+            name    portrait
+            x       0
+            y       0
+        }
+
+        part2 {
+            name    device
+            x       30
+            y       30
+        }
+    }
+}
+
+keyboard {
+    charmap qwerty2
+}
+
+network {
+    speed  full
+    delay  none
+}

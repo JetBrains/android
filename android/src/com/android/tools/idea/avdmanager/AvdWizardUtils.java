@@ -304,6 +304,9 @@ public class AvdWizardUtils {
       else if (deviceName.equals("AndroidWearRound")) {
         deviceName = "wear_round";
       }
+      else if (deviceName.equals("AndroidWearRoundChin320x290")){
+        deviceName = "wear_round_chin_320_290";
+      }
       resourcePath = new File(resourceParent, deviceName);
     }
     // Find the local SDK and the directory for the local copy of the skin.
