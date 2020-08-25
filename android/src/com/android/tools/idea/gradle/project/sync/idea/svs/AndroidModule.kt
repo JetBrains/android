@@ -38,6 +38,7 @@ class AndroidModule(
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   val nativeModule: NativeModule?
 ) {
+  val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
 
