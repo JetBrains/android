@@ -79,7 +79,6 @@ public class PackageKeyTest {
 
   @Test
   public void testEqualsHash() {
-    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageKey.class);
-    equalsVerifier.verify();
+    EqualsVerifier.forClass(PackageKey.class).verify();
   }
 }
