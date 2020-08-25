@@ -320,6 +320,7 @@ public class IdeSdks {
       myEnvVariableJdkFile = validateJdkPath(new File(toSystemDependentName(myEnvVariableJdkValue)));
       if (myEnvVariableJdkFile == null) {
         // Environment variable is defined but not valid
+        LOG.warn("The provided JDK path is invalid: " + myEnvVariableJdkValue);
         myIsJdkEnvVariableValid = false;
         myUseJdkEnvVariable = false;
         return;
