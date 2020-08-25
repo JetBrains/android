@@ -22,12 +22,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.lang.reflect.InvocationTargetException;
 
 public abstract class GradleModelProvider {
 
   @NotNull
   public static GradleModelProvider get() {
-    return null;//new GradleModelSource();
+    //TODO
+    try {
+      return (GradleModelProvider)Class.forName("com.android.tools.idea.gradle.dsl.GradleModelSource").getDeclaredConstructor().newInstance();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException();
+    }
   }
 
   @NotNull
