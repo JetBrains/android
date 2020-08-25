@@ -83,11 +83,10 @@ fun chooseSelectedVariants(
     val module = modulesById[moduleId]!!
 
     // Request the Variant model for the module
-    val variant = selectVariantForAppOrLeaf(controller, module, selectedVariants, moduleId) ?: return@forEach
-    // Request the native Variant model (this won't do any work for non-native projects) and get the name of it's ABI
-    val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, selectedVariants.getSelectedAbi(moduleId))
-    // Store the requested/obtained information in the IdeaAndroidModule
-    val moduleDependencies = getModuleDependencies(variant.mainArtifact.dependencies, abi)
+    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants, moduleId) ?: return@forEach
+    val requestedAbi = selectedVariants.getSelectedAbi(moduleId)
+
+    val moduleDependencies = syncVariantAndGetModuleDependencies(controller, module, requestedVariantName, requestedAbi) ?: return@forEach
     // Request models for the dependencies of this module.
     selectVariantForDependencyModules(controller, modulesById, visitedModules, moduleDependencies)
   }
@@ -95,17 +94,18 @@ fun chooseSelectedVariants(
 
 @UsedInBuildAction
 private fun selectVariantForAppOrLeaf(
-  controller: BuildController,
   androidModule: AndroidModule,
   selectedVariants: SelectedVariants,
   moduleId: String
-): Variant? {
+): String? {
   var variant = selectedVariants.getSelectedVariant(moduleId)
-  val variantNames = try {
-    androidModule.androidProject.variantNames
-  } catch (e: UnsupportedMethodException) {
-    null
-  } ?: return null
+  val variantNames =
+    try {
+      androidModule.androidProject.variantNames
+    }
+    catch (e: UnsupportedMethodException) {
+      null
+    } ?: return null
 
   // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
   if (variant == null || !variantNames.contains(variant)) {
@@ -119,7 +119,7 @@ private fun selectVariantForAppOrLeaf(
     }
   }
 
-  return variant?.let { syncAndAddVariant(controller, androidModule, variant) }
+  return variant
 }
 
 @UsedInBuildAction
@@ -136,12 +136,21 @@ private fun selectVariantForDependencyModules(
 
     val dependencyModule = modulesById[dependency.id] ?: return@forEach
 
-    val dependencyVariant = syncAndAddVariant(controller, dependencyModule, dependency.variant) ?: return@forEach
-    val abiName = syncAndAddNativeVariantAbi(controller, dependencyModule, dependency.variant, dependency.abi)
-
-    val childModuleDependencies = getModuleDependencies(dependencyVariant.mainArtifact.dependencies, abiName)
+    val childModuleDependencies = syncVariantAndGetModuleDependencies(controller, dependencyModule, dependency.variant, dependency.abi)
+                                  ?: return@forEach
     selectVariantForDependencyModules(controller, modulesById, visitedModules, childModuleDependencies)
   }
+}
+
+private fun syncVariantAndGetModuleDependencies(
+  controller: BuildController,
+  module: AndroidModule,
+  requestedVariantName: String,
+  requestedAbi: String?
+): List<ModuleDependency>? {
+  val variant = syncAndAddVariant(controller, module, requestedVariantName) ?: return null
+  val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, requestedAbi)
+  return getModuleDependencies(variant.mainArtifact.dependencies, abi)
 }
 
 /**
