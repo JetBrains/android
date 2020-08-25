@@ -37,9 +37,6 @@
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
-    </component>
-    <component>
       <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
     </component>
   </project-components>
@@ -298,6 +295,8 @@
                        order="first, before gradle"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
+    <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService"/>
+    <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectDumbStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first, before OpenFilesActivity"/>

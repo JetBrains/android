@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -117,32 +118,38 @@ class MergedManifestModificationListener(
    * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
    * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
    */
-  private class SubscriptionComponent(
-    val project: Project
-  ) : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project), project),
-      ProjectComponent {
-    override fun projectOpened() {
+  private class SubscriptionStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) = project.getService(SubscriptionService::class.java).onProjectOpened()
+  }
+
+  private class SubscriptionService(private val project: Project) {
+    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project),
+                                                                                             project) {
+      override fun subscribe() {
+        // To receive all changes happening in the VFS. File modifications may
+        // not be picked up immediately if such changes are not saved on the disk yet
+        VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+
+        // To receive all changes to documents that are open in an editor
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+
+        // To receive notifications when any Documents are saved or reloaded from disk
+        project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+      }
+    }
+
+    fun onProjectOpened() {
       project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = ensureSubscribed()
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = subscriber.ensureSubscribed()
       })
     }
 
-    override fun subscribe() {
-      // To receive all changes happening in the VFS. File modifications may
-      // not be picked up immediately if such changes are not saved on the disk yet
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
-
-      // To receive all changes to documents that are open in an editor
-      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
-
-      // To receive notifications when any Documents are saved or reloaded from disk
-      project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
-    }
+    fun ensureSubscribed() = subscriber.ensureSubscribed()
   }
 
   companion object {
     @JvmStatic
-    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
+    fun ensureSubscribed(project: Project) = project.getService(SubscriptionService::class.java).ensureSubscribed()
   }
 }
 
