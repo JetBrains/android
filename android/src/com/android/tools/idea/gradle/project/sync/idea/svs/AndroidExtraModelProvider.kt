@@ -25,6 +25,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
+import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -186,14 +187,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     inputModules: List<AndroidModule>
   ) {
-    val selectedVariants = syncActionOptions.selectedVariants ?: error("Single variant sync requested, but SelectedVariants were null!")
-
-    fun createRequestedModuleConfiguration(module: AndroidModule): ModuleConfiguration? {
-      val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
-      val requestedAbi = selectedVariants.getSelectedAbi(module.id)
-      return ModuleConfiguration(module.id, requestedVariantName, requestedAbi)
-    }
-
     val modulesById = HashMap<String, AndroidModule>()
     val allModulesToSetUp = LinkedList<ModuleConfiguration>()
     // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
@@ -202,7 +195,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
     inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
       modulesById[module.id] = module
-      val moduleConfiguration = createRequestedModuleConfiguration(module) ?: return@forEach
+      val moduleConfiguration = selectedOrDefaultModuleConfiguration(module) ?: return@forEach
       if (module.id == syncActionOptions.moduleIdWithVariantSwitched) {
         moduleWithVariantSwitched = moduleConfiguration
       }
@@ -232,6 +225,13 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     }
   }
 
+  private fun selectedOrDefaultModuleConfiguration(module: AndroidModule): ModuleConfiguration? {
+    val selectedVariants = syncActionOptions.selectedVariants ?: error("Single variant sync requested, but SelectedVariants were null!")
+    val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
+    val requestedAbi = selectedVariants.getSelectedAbi(module.id)
+    return ModuleConfiguration(module.id, requestedVariantName, requestedAbi)
+  }
+
   private fun selectVariantForAppOrLeaf(
     androidModule: AndroidModule,
     selectedVariants: SelectedVariants
@@ -259,7 +259,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
     return variant
   }
-
   private fun syncVariantAndGetModuleDependencies(
     controller: BuildController,
     moduleByIds: Map<String, AndroidModule>,
@@ -268,7 +267,11 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     val module = moduleByIds[moduleConfiguration.id] ?: return null // Composite build modules will not be resolved here.
     val variant = syncAndAddVariant(controller, module, moduleConfiguration.variant) ?: return null
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
-    return getModuleDependencies(variant.mainArtifact.dependencies, abi)
+    return variant.mainArtifact.dependencies.libraries.mapNotNull { library ->
+      val dependencyProject = library.project ?: return@mapNotNull null
+      val dependencyVariant = library.projectVariant ?: return@mapNotNull null
+      ModuleConfiguration(createUniqueModuleId(library?.buildId ?: "", dependencyProject), dependencyVariant, abi)
+    }
   }
 
   /**

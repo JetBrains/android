@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.builder.model.AndroidProject
-import com.android.builder.model.Dependencies
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -65,11 +64,3 @@ class AndroidModule(
 }
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
-
-fun getModuleDependencies(dependencies: Dependencies, abi: String?): List<ModuleConfiguration> {
-  return dependencies.libraries.mapNotNull { library ->
-    val project = library.project ?: return@mapNotNull null
-    val variant = library.projectVariant ?: return@mapNotNull null
-    ModuleConfiguration(createUniqueModuleId(library?.buildId ?: "", project), variant, abi)
-  }
-}
