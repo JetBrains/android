@@ -21,12 +21,14 @@ import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
 const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
+const val DAGGER_LAZY = "dagger.Lazy"
 const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
@@ -152,8 +155,15 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
   val scope = GlobalSearchScope.moduleWithDependentsScope(module)
     .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
+  var consumers = getDaggerConsumers(type, qualifierInfo, scope)
 
-  return getDaggerConsumers(type, qualifierInfo, scope)
+  val lazyClass = JavaPsiFacade.getInstance(element.project).findClass(DAGGER_LAZY, scope)
+  if (lazyClass != null) {
+    val lazyType = PsiElementFactory.getInstance(element.project).createType(lazyClass, type)
+    consumers += getDaggerConsumers(lazyType, qualifierInfo, scope)
+  }
+
+  return consumers
 }
 
 /**
@@ -296,7 +306,7 @@ internal val PsiElement?.isDaggerSubcomponentFactory get() = isClassOrObjectAnno
  * Returns null if it's impossible to extract type.
  */
 private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, QualifierInfo?>? {
-  val type: PsiType =
+  var type: PsiType =
     when (element) {
       is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
       is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
@@ -306,6 +316,11 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
       is KtParameter -> element.psiType
       else -> null
     } ?: return null
+
+  if (type is PsiClassType && type.resolve()?.qualifiedName == DAGGER_LAZY) {
+    // For dagger.Lazy<String> assigns String.
+    type = type.parameters.firstOrNull() ?: return null
+  }
 
   return Pair(type, element.getQualifierInfo())
 }
