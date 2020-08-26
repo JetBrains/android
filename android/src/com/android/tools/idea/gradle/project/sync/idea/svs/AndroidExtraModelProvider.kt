@@ -132,7 +132,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     androidModules: List<AndroidModule>
   ) {
     androidModules.forEach { module ->
-      module.projectSyncIssues = controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)
+      module.projectSyncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
     }
   }
 
@@ -302,7 +302,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     module: AndroidModule,
     variantName: String
-  ): Variant? = controller.findModel(module.gradleProject, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
+  ): Variant? = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
     parameter.setVariantName(variantName)
   }?.also {
     module.variantGroup.variants.add(it)
@@ -350,14 +350,14 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
     if (module.nativeModule != null) {
       // V2 model is available, trigger the sync with V2 API
-      controller.findModel(module.gradleProject, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+      controller.findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
         it.variantsToGenerateBuildInformation = listOf(variantName)
         it.abisToGenerateBuildInformation = listOf(abiToRequest)
       }
     }
     else {
       // Fallback to V1 models otherwise.
-      controller.findModel(module.gradleProject, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
+      controller.findModel(module.findModelRoot, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
         parameter.setVariantName(variantName)
         parameter.setAbiName(abiToRequest)
       }?.also {

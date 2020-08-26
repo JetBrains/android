@@ -27,7 +27,6 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 fun getAdditionalClassifierArtifactsModel(
@@ -47,7 +46,7 @@ fun getAdditionalClassifierArtifactsModel(
 
     // Query for AdditionalClassifierArtifactsModel model.
     if (identifiers.isNotEmpty()) {
-      module.additionalClassifierArtifacts = controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
+      module.additionalClassifierArtifacts = controller.findModel(module.findModelRoot, AdditionalClassifierArtifactsModel::class.java,
                            AdditionalClassifierArtifactsModelParameter::class.java) { parameter ->
         parameter.artifactIdentifiers = identifiers
         parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
