@@ -49,7 +49,7 @@ class AnnotationProcessorsAnalyzerTest {
 
   private fun setUpProject() {
     //TODO use the default gradle version instead of a temporary nightly one that contains the fix for b/162742227.
-    myProjectRule.load(SIMPLE_APPLICATION, gradleVersion = "6.7-20200810220043+0000")
+    myProjectRule.load(SIMPLE_APPLICATION, gradleVersion = "6.7-20200825220036+0000")
 
     FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
       dependencies {
