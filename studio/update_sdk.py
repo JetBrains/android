@@ -272,7 +272,7 @@ def extract(workspace, dir, delete_after):
 
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
-  os.system("unzip -d \"%s\" \"%s\"" % (path + "/darwin", dir + "/" + mac))
+  os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin", dir + "/" + mac))
   # TODO: Decide if we want to rename or not, as we need to rename back on bundling
   os.rename(path + "/darwin/Android Studio 0.0 Preview.app",
             path + "/darwin/android-studio")
