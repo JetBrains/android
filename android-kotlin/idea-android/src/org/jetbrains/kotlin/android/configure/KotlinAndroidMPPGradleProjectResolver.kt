@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -25,7 +25,7 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
     private val isAndroidProject by lazy {
-      resolverCtx.hasModulesWithModel(IdeAndroidProject::class.java)
+      resolverCtx.hasModulesWithModel(AndroidProject::class.java)
       || resolverCtx.hasModulesWithModel(NativeAndroidProject::class.java)
       || resolverCtx.hasModulesWithModel(NativeModule::class.java)
     }
