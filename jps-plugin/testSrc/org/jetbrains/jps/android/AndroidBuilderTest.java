@@ -149,7 +149,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "root/src/com/example/simple/MyActivity.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "root/src/com/example/simple/MyActivity.java");
 
     checkMakeUpToDate(executor);
 
@@ -157,7 +157,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
 
     checkMakeUpToDate(executor);
 
@@ -181,7 +181,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
     checkMakeUpToDate(executor);
 
     FileUtil.rename(new File(getProjectPath("res/drawable-hdpi/ic_launcher.png")),
@@ -190,7 +190,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
     checkMakeUpToDate(executor);
 
     FileUtil.writeToFile(new File(getProjectPath("res/drawable-hdpi/new_file.png")),
@@ -199,7 +199,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_5");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
 
     checkMakeUpToDate(executor);
 
@@ -207,7 +207,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_11");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
 
     assertOutput(module, TestFileSystemItem.fs()
       .file("com")
@@ -225,7 +225,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_6");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
 
     checkMakeUpToDate(executor);
 
@@ -236,7 +236,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.setPackage("com.example.simple1");
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_7");
-    assertCompiled(JavaBuilder.BUILDER_NAME,
+    assertCompiled(JavaBuilder.BUILDER_ID,
                    "targets/java-production/module/android/generated_sources/aapt/com/example/simple1/R.java",
                    "targets/java-production/module/android/generated_sources/build_config/com/example/simple1/BuildConfig.java");
 
@@ -246,7 +246,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_8");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
 
     checkMakeUpToDate(executor);
 
@@ -255,7 +255,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.clear();
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_9");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
     checkMakeUpToDate(executor);
 
     assertOutput(module, TestFileSystemItem.fs()
@@ -466,13 +466,13 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "}\n");
     buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "root/src/com/example/simple/MyActivity.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "root/src/com/example/simple/MyActivity.java");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("java_module/src/com/example/simple/MyClass.java"));
     buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
-    assertCompiled(JavaBuilder.BUILDER_NAME, "root/java_module/src/com/example/simple/MyClass.java");
+    assertCompiled(JavaBuilder.BUILDER_ID, "root/java_module/src/com/example/simple/MyClass.java");
     checkMakeUpToDate(executor);
 
     final String systemProguardCfgPath = FileUtil.toSystemDependentName(androidModule.getSdk(
@@ -879,7 +879,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
-    assertCompiled(JavaBuilder.BUILDER_NAME,
+    assertCompiled(JavaBuilder.BUILDER_ID,
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
     checkMakeUpToDate(executor);
     change(getProjectPath("gen/com/example/simple/R.java"));
@@ -889,7 +889,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
-    assertCompiled(JavaBuilder.BUILDER_NAME,
+    assertCompiled(JavaBuilder.BUILDER_ID,
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
     checkMakeUpToDate(executor);
 
@@ -900,7 +900,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
-    assertCompiled(JavaBuilder.BUILDER_NAME);
+    assertCompiled(JavaBuilder.BUILDER_ID);
     checkMakeUpToDate(executor);
 
     change(getProjectPath("gen/com/example/simple/MyGeneratedClass.java"),
@@ -920,7 +920,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_5");
-    assertCompiled(JavaBuilder.BUILDER_NAME,
+    assertCompiled(JavaBuilder.BUILDER_ID,
                    "root/src/com/example/simple/MyActivity.java",
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
     checkMakeUpToDate(executor);
