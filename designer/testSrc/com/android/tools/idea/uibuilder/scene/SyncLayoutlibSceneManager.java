@@ -131,6 +131,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   public void fireRenderCompleted() {
-    fireRenderListeners();
+    fireOnRenderComplete();
   }
 }

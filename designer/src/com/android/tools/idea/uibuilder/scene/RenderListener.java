@@ -20,6 +20,11 @@ package com.android.tools.idea.uibuilder.scene;
  */
 public interface RenderListener {
   /**
+   * Called when the [SceneManager] starts a new render request.
+   */
+  default void onRenderStarted() {}
+
+  /**
    * Called when the {@link SceneManager} has finished a render request
    */
   void onRenderCompleted();

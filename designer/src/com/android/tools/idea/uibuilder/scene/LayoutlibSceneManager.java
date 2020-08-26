@@ -113,7 +113,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.Timer;
-import kotlin.jvm.Volatile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1198,6 +1197,7 @@ public class LayoutlibSceneManager extends SceneManager {
       logConfigurationChange(surface);
       getModel().resetLastChange();
 
+      fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl(trigger)
         .handle((result, exception) -> {
@@ -1236,7 +1236,7 @@ public class LayoutlibSceneManager extends SceneManager {
               update();
             }
           });
-          fireRenderListeners();
+          fireOnRenderComplete();
           completeRender();
 
           return result;
@@ -1518,7 +1518,10 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  protected void fireRenderListeners() {
+  protected void fireOnRenderStart() {
+    myRenderListeners.forEach(RenderListener::onRenderStarted);
+  }
+  protected void fireOnRenderComplete() {
     myRenderListeners.forEach(RenderListener::onRenderCompleted);
   }
 
