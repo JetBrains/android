@@ -16,8 +16,9 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.fileTypes.LanguageFileType
-import com.intellij.openapi.fileTypes.StdFileTypes
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -47,7 +48,7 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(StdFileTypes.JAVA, KotlinFileType.INSTANCE as LanguageFileType, StdFileTypes.XML), PROJECT_NAME)
+    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
   }
 
   @Test

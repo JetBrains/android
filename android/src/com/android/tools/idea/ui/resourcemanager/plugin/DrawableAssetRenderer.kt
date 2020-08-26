@@ -18,8 +18,8 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.SdkConstants
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.DrawableRenderer
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -72,7 +72,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
   }
 
   override fun isFileSupported(file: VirtualFile): Boolean {
-    if (file.fileType != StdFileTypes.XML || file.length == 0L) {
+    if (file.fileType != XmlFileType.INSTANCE || file.length == 0L) {
       return false
     }
 

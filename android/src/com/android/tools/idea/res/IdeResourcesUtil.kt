@@ -93,6 +93,7 @@ import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -104,7 +105,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
@@ -2243,8 +2243,8 @@ fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
     0
   }
   else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === StdFileTypes.XML
-    val xml2 = file2.fileType === StdFileTypes.XML
+    val xml1 = file1.fileType === XmlFileType.INSTANCE
+    val xml2 = file2.fileType === XmlFileType.INSTANCE
     if (xml1 != xml2) {
       return if (xml1) -1 else 1
     }
@@ -2298,8 +2298,8 @@ fun compareResourceFiles(file1: PsiFile?, file2: PsiFile?): Int {
     0
   }
   else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === StdFileTypes.XML
-    val xml2 = file2.fileType === StdFileTypes.XML
+    val xml1 = file1.fileType === XmlFileType.INSTANCE
+    val xml2 = file2.fileType === XmlFileType.INSTANCE
     if (xml1 != xml2) {
       return if (xml1) -1 else 1
     }

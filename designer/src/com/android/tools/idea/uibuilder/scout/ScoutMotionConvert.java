@@ -22,8 +22,8 @@ import static com.android.SdkConstants.SHERPA_URI;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -93,7 +93,7 @@ public class ScoutMotionConvert {
     }
     motion_scene_name += countStr;
     PsiFile file =
-      PsiFileFactory.getInstance(project).createFileFromText(motion_scene_name + ".xml", StdFileTypes.XML, text);
+      PsiFileFactory.getInstance(project).createFileFromText(motion_scene_name + ".xml", XmlFileType.INSTANCE, text);
     xmlDir.add(file);
 
     AttributesTransaction transaction = layout.startAttributeTransaction();
