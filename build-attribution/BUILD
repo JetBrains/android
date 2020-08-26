@@ -76,7 +76,7 @@ iml_module(
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/external/gradle:gradle-distrib-6.7-20200810220043+0000",
+        "//tools/external/gradle:gradle-distrib-6.7-20200825220036+0000",
         "//tools/base/build-system:studio_repo.zip",
     ],
     # do not sort: must match IML order
@@ -183,7 +183,7 @@ iml_module(
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/external/gradle:gradle-distrib-6.7-20200810220043+0000",
+        "//tools/external/gradle:gradle-distrib-6.7-20200825220036+0000",
         "//tools/base/build-system:studio_repo.zip",
     ],
     test_srcs = ["testSrc"],
