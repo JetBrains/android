@@ -48,9 +48,11 @@ import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.lang.properties.PropertiesFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypes
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -137,12 +139,12 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       return false
     }
     val fileType = file.fileType
-    if (fileType === StdFileTypes.JAVA
+    if (fileType === JavaFileType.INSTANCE
         || fileType === KotlinFileType.INSTANCE
-        || fileType === StdFileTypes.PROPERTIES) {
+        || fileType === PropertiesFileType.INSTANCE) {
       return true
     }
-    if (fileType === StdFileTypes.XML) {
+    if (fileType === XmlFileType.INSTANCE) {
       return facet != null && (ModuleResourceManagers.getInstance(
         facet).localResourceManager.getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
     }

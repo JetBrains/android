@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.intellij.openapi.fileTypes.StdFileTypes
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 
 fun VirtualFile.hasSourceFileExtension() = when (extension) {
-  KotlinFileType.INSTANCE.defaultExtension, StdFileTypes.JAVA.defaultExtension -> true
+  KotlinFileType.INSTANCE.defaultExtension, JavaFileType.INSTANCE.defaultExtension -> true
   else -> false
 }

@@ -172,6 +172,7 @@ iml_module(
         "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/plugins/gradle:intellij.gradle[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
