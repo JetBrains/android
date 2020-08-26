@@ -82,7 +82,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
     bufferOffset = newPosition
 
     // Force clean up previous buffer
-    (oldBuffer as? DirectBuffer)?.cleaner()?.clean()
+    invokeCleaner(oldBuffer)
   }
 
   override fun isEof(): Boolean {
