@@ -55,7 +55,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
-        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:Trove4j",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
