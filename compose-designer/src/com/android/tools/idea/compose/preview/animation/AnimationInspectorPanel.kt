@@ -41,6 +41,7 @@ import com.intellij.ui.JBTabsPaneImpl
 import com.intellij.ui.TabbedPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -66,6 +67,7 @@ import javax.swing.JSlider
 import javax.swing.JTabbedPane.TOP
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
+import javax.swing.text.DefaultCaret
 import kotlin.math.ceil
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
@@ -357,7 +359,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
       preferredSize = JBDimension(200, 200)
-      add(animatedPropertiesPanel, TabularLayout.Constraint(0, 0))
+      add(JBScrollPane(animatedPropertiesPanel), TabularLayout.Constraint(0, 0))
     }
 
     /**
@@ -389,6 +391,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         editorKit = UIUtil.getHTMLEditorKit()
         isEditable = false
         text = createNoPropertiesPanel()
+        // If the caret updates, every time we change the animated properties panel content, the panel will be scrolled to the end.
+        (caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
       }
 
       private fun createNoPropertiesPanel() =
@@ -403,19 +407,23 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
           createNoPropertiesPanel()
         }
         else {
-          val htmlBuilder = HtmlBuilder().openHtmlBody()
-          animatedPropKeys.forEach { property ->
+          val htmlBuilder = HtmlBuilder().openHtmlBody().beginDiv("white-space: nowrap")
+          animatedPropKeys.forEachIndexed { index, property ->
+            if (index > 0) {
+              // Don't add line breaks before the first property, only to separate properties.
+              htmlBuilder.newline().newline()
+            }
+
             htmlBuilder
               .beginSpan("color: ${UIUtil.getLabelForeground().toCss()}")
               .add(property.label)
               .endSpan()
-              .addNbsps(2)
+              .newline()
               .beginSpan("color: ${UIUtil.getLabelDisabledForeground().toCss()}")
               .add(property.value.toString())
               .endSpan()
-              .newline()
           }
-          htmlBuilder.closeHtmlBody().html
+          htmlBuilder.endDiv().closeHtmlBody().html
         }
       }
 
