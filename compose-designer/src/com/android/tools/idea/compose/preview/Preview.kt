@@ -814,7 +814,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       refreshCallsCount.incrementAndGet()
-      updateNotifications()
       try {
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
