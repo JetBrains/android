@@ -16,11 +16,16 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.builder.model.AndroidProject
+import com.android.builder.model.BaseArtifact
+import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
+import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.ArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -34,7 +39,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 @UsedInBuildAction
 class AndroidModule(
   private val gradleProject: BasicGradleProject,
-  val androidProject: AndroidProject,
+  private val androidProject: AndroidProject,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
@@ -61,6 +66,17 @@ class AndroidModule(
   var projectSyncIssues: ProjectSyncIssues? = null
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
 
+  /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
+   * libraries other variants depend on.
+   **/
+  fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
+    // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
+    // The first case indicates full-variants sync and the later single-variant sync.
+    val androidProjectVariants = safeGet(androidProject::getVariants, emptyList())
+    val variants = if (androidProjectVariants.isNotEmpty()) androidProjectVariants else variantGroup.variants
+    return collectIdentifiers(variants)
+  }
+
   private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
       println("Consuming ${T::class.simpleName} for ${gradleProject.path}")
@@ -85,3 +101,26 @@ data class ModuleConfiguration(val id: String, val variant: String, val abi: Str
 @UsedInBuildAction
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
   if (contains(defaultValue)) defaultValue else minBy { it }
+
+@UsedInBuildAction
+private fun collectIdentifiers(
+  variants: Collection<Variant>
+): List<ArtifactIdentifier> {
+  val libraries = mutableListOf<Library>()
+  // Collect libraries from all artifacts of all variants.
+  @Suppress("DEPRECATION")
+  variants.forEach { variant ->
+    val artifacts = mutableListOf<BaseArtifact>(variant.mainArtifact)
+    artifacts.addAll(variant.extraAndroidArtifacts)
+    artifacts.addAll(variant.extraJavaArtifacts)
+    artifacts.forEach {
+      libraries.addAll(it.compileDependencies.javaLibraries)
+      libraries.addAll(it.compileDependencies.libraries)
+    }
+  }
+
+  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
+    ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
+  }.distinct()
+}
+
