@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors;
 
 import com.android.resources.ResourceFolderType;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.impl.EditorTabTitleProvider;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,7 +36,7 @@ public class AndroidEditorTitleProvider implements EditorTabTitleProvider {
       return null;
     }
 
-    if (file.getFileType() != XmlFileType.INSTANCE) {
+    if (file.getFileType() != StdFileTypes.XML) {
       return null;
     }
 

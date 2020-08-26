@@ -16,9 +16,9 @@
 package com.android.tools.idea.model
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.util.Key
 import com.intellij.util.indexing.FileContent
 import org.intellij.lang.annotations.Language
@@ -188,7 +188,7 @@ private class FakeXmlFileContent(private val content: String) : FileContent {
   override fun getContentAsText() = content
   override fun getContent() = content.toByteArray()
   override fun <T : Any?> getUserData(key: Key<T>): T? = throw UnsupportedOperationException()
-  override fun getFileType(): FileType = XmlFileType.INSTANCE
+  override fun getFileType(): FileType = StdFileTypes.XML
   override fun getFile() = file
   override fun getFileName() = ""
   override fun <T : Any?> putUserData(key: Key<T>, value: T?) = throw UnsupportedOperationException()

@@ -27,8 +27,8 @@ import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.java.JavaLanguage;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -97,7 +97,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
       myClassConfig.myClassName + SdkConstants.DOT_JAVA,
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       "// This class is generated on-the-fly by the IDE.");
     myContainingFile.setPackageName(classConfig.myPackageName);
 

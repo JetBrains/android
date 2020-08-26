@@ -47,15 +47,13 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
@@ -133,7 +131,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       VirtualFile mainFile = lintResult.getMainFile();
       final FileType fileType = mainFile.getFileType();
       String name = mainFile.getName();
-      if (fileType == XmlFileType.INSTANCE) {
+      if (fileType == StdFileTypes.XML) {
         if (name.equals(ANDROID_MANIFEST_XML)) {
           scope = Scope.MANIFEST_SCOPE;
         }
@@ -145,7 +143,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
           return lintResult;
         }
       }
-      else if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
+      else if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
         scope = Scope.JAVA_FILE_SCOPE;
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);
@@ -157,7 +155,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
         scope = Scope.GRADLE_SCOPE;
       }
-      else if (fileType == PropertiesFileType.INSTANCE) {
+      else if (fileType == StdFileTypes.PROPERTIES) {
         scope = Scope.PROPERTY_SCOPE;
       }
       else {

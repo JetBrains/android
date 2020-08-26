@@ -29,6 +29,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -49,7 +50,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
 import com.android.tools.idea.res.findResourceFields
 import com.android.tools.idea.res.getReferredResourceOrManifestField
-import com.intellij.ide.highlighter.XmlFileType
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
@@ -80,12 +80,12 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       is PsiClass -> {
         val gotoList = getItemsForClass(element, facet) ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!, "Related XML file"))
       }
       is KtClass -> {
         val gotoList = element.toLightClass()?.let { getItemsForClass(it, facet) } ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!,
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!,
                                                    "Related XML file"))
       }
       is XmlFile -> {
@@ -317,7 +317,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     override fun getCustomIcon(): Icon? {
-      return XmlFileType.INSTANCE.icon
+      return StdFileTypes.XML.icon
     }
   }
 }

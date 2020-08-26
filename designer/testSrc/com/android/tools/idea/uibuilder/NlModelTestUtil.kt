@@ -22,7 +22,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
-import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.LightVirtualFile
@@ -93,7 +93,7 @@ private class StubTagSnapshotTreeNode(private val component: NlComponent) : NlMo
 }
 
 private class LightLayoutFile(xmlContent: String)
-  : LightVirtualFile("layout.xml", XmlFileType.INSTANCE, xmlContent) {
+  : LightVirtualFile("layout.xml", StdFileTypes.XML, xmlContent) {
   private val parent = LightVirtualFile("layout")
   override fun getParent(): VirtualFile {
     return parent

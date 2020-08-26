@@ -48,13 +48,13 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
@@ -249,7 +249,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
               myFilePreviewEditor.getSettings().setLineNumbersShown(false);
               myFilePreviewEditor.getSettings().setLineMarkerAreaShown(false);
               myFilePreviewEditor.getSettings().setFoldingOutlineShown(false);
-              myFilePreviewEditor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, XmlFileType.INSTANCE));
+              myFilePreviewEditor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, StdFileTypes.XML));
               myXmlPreviewPanel.removeAll();
               myXmlPreviewPanel.add(myFilePreviewEditor.getComponent());
             }

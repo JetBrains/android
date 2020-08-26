@@ -27,11 +27,9 @@ import com.android.tools.lint.detector.api.Platform
 import com.android.utils.SdkUtils.endsWithIgnoreCase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.lang.properties.PropertiesFileType
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileTypes.FileTypes
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
@@ -91,12 +89,12 @@ abstract class LintIdeSupport {
   /** Whether or not the given file should be annotated on the fly in the editor */
   open fun canAnnotate(file: PsiFile, module: Module): Boolean {
     val fileType = file.fileType
-    if (fileType === JavaFileType.INSTANCE
+    if (fileType === StdFileTypes.JAVA
         || fileType === KotlinFileType.INSTANCE
-        || fileType === PropertiesFileType.INSTANCE) {
+        || fileType === StdFileTypes.PROPERTIES) {
       return true
     }
-    if (fileType === XmlFileType.INSTANCE) {
+    if (fileType === StdFileTypes.XML) {
       return true
     }
     else if (fileType === FileTypes.PLAIN_TEXT) {

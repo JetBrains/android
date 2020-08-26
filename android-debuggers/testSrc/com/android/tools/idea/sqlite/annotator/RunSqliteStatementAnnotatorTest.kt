@@ -30,8 +30,8 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.EmptyIcon
@@ -83,7 +83,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -106,7 +106,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testNoIconWhenDatabaseIsNotOpen() {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -127,7 +127,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -148,7 +148,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -169,7 +169,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=kotlin
       """
         package com.example;

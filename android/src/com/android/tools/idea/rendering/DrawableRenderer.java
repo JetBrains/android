@@ -28,10 +28,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -164,7 +164,7 @@ public class DrawableRenderer implements Disposable {
         return null;
       }
 
-      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), XmlFileType.INSTANCE, content);
+      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), StdFileTypes.XML, content);
       return LayoutPsiPullParser.create(xmlFile, myLogger);
     }
 
