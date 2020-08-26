@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -80,4 +81,7 @@ class ComposeGradleProjectRule(projectPath: String,
   fun androidFacet(gradlePath: String) = projectRule.androidFacet(gradlePath)
 
   override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
+
+  fun clean() = GradleProjectBuilder.getInstance(project).clean()
+  fun build() = projectRule.invokeTasks("assembleDebug")
 }
