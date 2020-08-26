@@ -115,20 +115,17 @@ genrule(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.resources-base",
+    name = "intellij.android.resources-base",
     srcs = ["src"],
     iml_files = ["intellij.android.resources-base.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/base/common:unb.studio.android.sdktools.common[module]",
-        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
@@ -137,12 +134,9 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.resources-base.tests",
+    name = "intellij.android.resources-base.tests",
     iml_files = ["intellij.android.resources-base.tests.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_class = "com.android.tools.idea.resources.aar.ResourcesAarTestSuite",
     test_data = [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
@@ -150,7 +144,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
     ],
-    test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
+    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -162,14 +156,14 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module, test]",
-        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core.tests[module, test]",
-        "//tools/adt/idea/resources-base:unb.intellij.android.resources-base[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.aapt-proto[test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",

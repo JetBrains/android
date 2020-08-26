@@ -280,35 +280,40 @@ filegroup(
 )
 
 # managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.dx",
+    jars = ["lib/dx.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.kotlin.output.parser",
+    name = "intellij.android.kotlin.output.parser",
     srcs = ["idea-android/idea-android-output-parser/src"],
     iml_files = ["idea-android/idea-android-output-parser/intellij.android.kotlin.output.parser.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.kotlin.idea",
+    name = "intellij.android.kotlin.idea",
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -316,29 +321,26 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-kotlin:unb.dx",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/lint:unb.intellij.lint[module]",
-        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.kotlin.extensions",
+    name = "intellij.android.kotlin.extensions",
     srcs = ["android-extensions-idea/src"],
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -346,24 +348,23 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea[module]",
-        "//tools/analytics-library/crash:unb.analytics-crash[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
+        "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.kotlin.tests",
+    name = "intellij.android.kotlin.tests",
     iml_files = ["intellij.android.kotlin.tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_test_mac",  # b/156004634
         "no_test_windows",
-        "unb",
     ],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = [
@@ -383,28 +384,17 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.idea[module, test]",
-        "//tools/adt/idea/android-plugin:unb.intellij.android.plugin[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-plugin-test[test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/base/common:unb.studio.android.sdktools.common[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.dx",
-    jars = ["lib/dx.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

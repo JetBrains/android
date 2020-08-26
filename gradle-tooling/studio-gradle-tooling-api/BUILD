@@ -16,14 +16,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.gradle-tooling.api",
+    name = "intellij.android.gradle-tooling.api",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle-tooling.api.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

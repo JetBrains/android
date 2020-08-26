@@ -1,5 +1,6 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
+load("//tools/base/bazel:project.bzl", "PROJECT")
 
 def _zipper(ctx, desc, map, out):
     files = [f for (p, f) in map]
@@ -518,6 +519,10 @@ def android_studio(
         modules = {},
         resources = {},
         **kwargs):
+    if PROJECT != "unb":
+        print("android_studio rule only works if /tools/base/bazel/project.bzl:PROJECT is set to 'unb'")
+        return
+
     jars, modules_list = _dict_to_lists(modules)
     resources_dirs, resources_list = _dict_to_lists(resources)
     searchable_options_dict = {}

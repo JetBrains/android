@@ -74,14 +74,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.jps",
+    name = "intellij.android.jps",
     srcs = ["src"],
     iml_files = ["intellij.android.jps.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
@@ -89,9 +86,9 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//tools/adt/idea/build-common:unb.intellij.android.buildCommon[module]",
-        "//tools/adt/idea/rt:unb.intellij.android.rt[module]",
-        "//tools/base/build-system:unb.studio.android.sdktools.manifest-merger[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
+        "//tools/adt/idea/rt:intellij.android.rt[module]",
+        "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )

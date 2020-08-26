@@ -81,13 +81,12 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.designer-perf-tests",
+    name = "intellij.android.designer-perf-tests",
     iml_files = ["intellij.android.designer-perf-tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_mac",
         "no_test_windows",
-        "unb",
     ],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
     test_data = [
@@ -114,16 +113,16 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//prebuilts/studio/layoutlib/data:unb.layoutlib_native",
     ],
 )

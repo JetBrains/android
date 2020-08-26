@@ -72,12 +72,9 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.testFramework",
+    name = "intellij.android.testFramework",
     iml_files = ["intellij.android.testFramework.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -87,18 +84,18 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/android-lang-databinding:unb.intellij.android.lang-databinding[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
-        "//tools/adt/idea/project-system-gradle-sync:unb.intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
     ],
 )

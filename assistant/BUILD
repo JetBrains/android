@@ -135,35 +135,30 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.assistant",
+    name = "assistant",
     srcs = ["src"],
     iml_files = ["assistant.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/base/wizard/template-plugin:unb.studio.intellij.android.wizardTemplate.plugin[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.assistant-test",
+    name = "assistant-test",
     iml_files = ["assistant-test.iml"],
-    tags = [
-        "manual",
-        "no_test_windows",
-        "unb",
-    ],
+    project = "unb",
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.assistant.view.AssistantTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -175,16 +170,16 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/assistant:unb.assistant[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/assistant[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/observable:unb.intellij.android.observable[module, test]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )

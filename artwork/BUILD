@@ -39,7 +39,7 @@ studio_data(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.artwork",
+    name = "intellij.android.artwork",
     # do not sort: must match IML order
     srcs = [
         "src",
@@ -48,14 +48,11 @@ iml_module(
     bundle_data = [":device-art-resources"],
     iml_files = ["intellij.android.artwork.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
     # do not sort: must match IML order
     resources = [
         "resources",
         "compatibilityResources",
-    ],
-    tags = [
-        "manual",
-        "unb",
     ],
     visibility = ["//visibility:public"],
     deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],

@@ -110,21 +110,18 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.testRetention",
+    name = "intellij.android.testRetention",
     srcs = ["src"],
     iml_files = ["intellij.android.testRetention.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
-        "//tools/adt/idea/emulator:unb.intellij.android.emulator[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/adt/idea/.idea/libraries:unb.emulator-proto",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
@@ -134,22 +131,19 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.testRetention.tests",
+    name = "intellij.android.testRetention.tests",
     iml_files = ["intellij.android.testRetention.tests.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/emulator:unb.intellij.android.emulator[module, test]",
-        "//tools/adt/idea/emulator:unb.intellij.android.emulator.tests[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android-test-retention:unb.intellij.android.testRetention[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator.tests[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
     ],
 )

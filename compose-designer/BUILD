@@ -170,41 +170,50 @@ java_import(
 )
 
 # managed by go/iml_to_build [unb]
-iml_module(
-    name = "unb.intellij.android.compose-designer",
-    srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal"],
-    iml_files = ["intellij.android.compose-designer.iml"],
-    lint_baseline = "lint_baseline.xml",
+java_import(
+    name = "unb.ui-animation-tooling-internal",
+    jars = ["lib/ui-animation-tooling-internal.jar"],
     tags = [
         "manual",
         "unb",
     ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.compose-designer",
+    srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal"],
+    iml_files = ["intellij.android.compose-designer.iml"],
+    lint_baseline = "lint_baseline.xml",
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/designer:unb.intellij.android.designer[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
-        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/designer:intellij.android.designer[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.compose-designer.tests",
+    name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
+    project = "unb",
     resources = ["testSrc/META-INF"],
     split_test_targets = {
         "gradle": {
@@ -214,11 +223,7 @@ iml_module(
         },
         "non-gradle": {},
     },
-    tags = [
-        "manual",
-        "no_test_windows",
-        "unb",
-    ],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
@@ -238,7 +243,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_resources = ["testData"],
-    test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
+    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
@@ -251,33 +256,22 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/compose-designer:unb.intellij.android.compose-designer[module, test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core.tests[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",
-        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/compose-designer:unb.ui-animation-tooling-internal[test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.ui-animation-tooling-internal",
-    jars = ["lib/ui-animation-tooling-internal.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

@@ -135,14 +135,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.projectSystem.gradle.sync",
+    name = "intellij.android.projectSystem.gradle.sync",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.sync.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -151,20 +148,17 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.projectSystem.gradle.sync.tests",
+    name = "intellij.android.projectSystem.gradle.sync.tests",
     iml_files = ["intellij.android.projectSystem.gradle.sync.tests.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_class = "com.android.tools.idea.projectsystem.gradle.sync.GradleProjectSystemSyncTestSuite",
     test_data = [
         "//tools/base/build-system/previous-versions:2.2.0.zip",
@@ -190,14 +184,14 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//tools/adt/idea/project-system-gradle-sync:unb.intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/project-system-gradle:unb.intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )

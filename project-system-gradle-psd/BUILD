@@ -120,14 +120,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.projectSystem.gradle.psd",
+    name = "intellij.android.projectSystem.gradle.psd",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.psd.iml"],
     lint_baseline = "lint_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -136,36 +133,33 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/wizard-model:unb.intellij.android.wizard.model[module]",
-        "//tools/adt/idea/wizard:unb.intellij.android.wizard[module]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/gradle-dsl:unb.intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.projectSystem.gradle.psd.tests",
+    name = "intellij.android.projectSystem.gradle.psd.tests",
     iml_files = ["intellij.android.projectSystem.gradle.psd.tests.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/project-system-gradle-psd:unb.intellij.android.projectSystem.gradle.psd[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
     ],
 )

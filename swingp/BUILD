@@ -57,14 +57,11 @@ java_jarjar(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.adt.swingp",
+    name = "intellij.android.adt.swingp",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.swingp.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

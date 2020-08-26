@@ -136,14 +136,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.room",
+    name = "intellij.android.room",
     srcs = ["src"],
     iml_files = ["intellij.android.room.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -151,21 +148,20 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/android-lang:unb.intellij.android.lang[module]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.room.tests",
+    name = "intellij.android.room.tests",
     iml_files = ["intellij.android.room.tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_test_mac",  # b/160881096
         "no_test_windows",  # b/135665870
-        "unb",
     ],
     test_class = "com.android.tools.idea.room.AndroidRoomTestSuite",
     test_data = [
@@ -175,19 +171,19 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions"],
+    runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/room:unb.intellij.android.room[module]",
+        "//tools/adt/idea/room:intellij.android.room[module]",
         "//tools/adt/idea/.idea/libraries:unb.truth",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/android-lang:unb.intellij.android.lang[module]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )

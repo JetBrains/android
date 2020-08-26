@@ -95,8 +95,9 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.ide-perf-tests",
+    name = "intellij.android.ide-perf-tests",
     iml_files = ["intellij.android.ide-perf-tests.iml"],
+    project = "unb",
     split_test_targets = {
         "SantaTrackerBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
@@ -106,10 +107,6 @@ iml_module(
         },
         "other": {},
     },
-    tags = [
-        "manual",
-        "unb",
-    ],
     test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
     test_data = [
         "//prebuilts/studio/buildbenchmarks:SantaTrackerKotlin_project",
@@ -141,11 +138,11 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
     ],
 )
