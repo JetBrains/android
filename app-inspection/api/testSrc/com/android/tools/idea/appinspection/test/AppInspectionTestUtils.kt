@@ -40,19 +40,6 @@ const val TEST_PROJECT = "test.project"
 object AppInspectionTestUtils {
 
   /**
-   * Creates a successful service response proto.
-   */
-  fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionResponse =
-    AppInspection.AppInspectionResponse.newBuilder()
-      .setCommandId(commandId)
-      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-      .setServiceResponse(
-        AppInspection.ServiceResponse.newBuilder()
-          .build()
-      )
-      .build()
-
-  /**
    * Creates an [AppInspectionEvent] with the provided [data] and inspector [name].
    */
   fun createRawAppInspectionEvent(
