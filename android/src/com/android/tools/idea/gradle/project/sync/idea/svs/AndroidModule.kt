@@ -22,6 +22,7 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
+import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -30,13 +31,14 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
  */
 @UsedInBuildAction
 class AndroidModule(
-  val gradleProject: BasicGradleProject,
+  private val gradleProject: BasicGradleProject,
   val androidProject: AndroidProject,
   /** Old V1 model. It's only set if [NaiveModule] is not set. */
   val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   val nativeModule: NativeModule?
 ) {
+  val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
