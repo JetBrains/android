@@ -46,7 +46,6 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
@@ -64,7 +63,6 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -81,7 +79,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
@@ -202,6 +199,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+
+  private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile)
 
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
@@ -430,8 +429,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(5))
 
-  private val hasSuccessfulBuild = AtomicBoolean(false)
-
   /**
    * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
    * [onInit] must be called.
@@ -466,14 +463,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
-        hasSuccessfulBuild.set(true)
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
-        hasSuccessfulBuild.set(false)
         updateSurfaceVisibilityAndNotifications()
       }
 
@@ -511,10 +506,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
-      launch {
-        // Update the current build status in the background
-        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
-      }
       refresh()
     })
 
@@ -550,22 +541,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
-  private fun isOutOfDate(): Boolean {
-    val isModified = FileDocumentManager.getInstance().isFileModified(psiFilePointer.virtualFile)
-    if (isModified) {
-      return true
-    }
-
-    // The file was saved, check the compilation time
-    val modificationStamp = psiFilePointer.virtualFile.timeStamp
-    val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
-    if (LOG.isDebugEnabled) {
-      LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
-    }
-
-    return lastBuildTimestamp in 1 until modificationStamp
-  }
-
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
@@ -576,7 +551,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     return ComposePreviewManager.Status(
       !isRefreshing && hasErrorsAndNeedsBuild(),
       !isRefreshing && hasSyntaxErrors(),
-      !isRefreshing && isOutOfDate(),
+      !isRefreshing && projectBuildStatusManager.status == OutOfDate,
       isRefreshing,
       interactiveMode)
   }
@@ -612,7 +587,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Calling this method will also update the FileEditor notifications.
    */
   private fun updateSurfaceVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
-      if (workbench.isMessageVisible && !hasSuccessfulBuild.get()) {
+      if (workbench.isMessageVisible && projectBuildStatusManager.status == NeedsBuild) {
         LOG.debug("Needs successful build")
         showModalErrorMessage(message("panel.needs.build"))
       }
