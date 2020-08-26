@@ -410,13 +410,8 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
-      // TODO(b/161911921): we will want to only allow references to resolvable elements.
-      val externalTextValue = if (value.referredElement != null) {
+      val externalTextValue =
         convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
-      }
-      else {
-        convertToExternalTextValue(context, applyContext, value.text, false)
-      }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
