@@ -965,7 +965,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                              "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
                              "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
                              "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
-                             "android.opengl.GLSurfaceView")
+                             "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView")
   }
 
   /*public void testTagNameCompletion4() throws Throwable {
