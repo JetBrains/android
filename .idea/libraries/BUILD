@@ -60,7 +60,7 @@ java_import(
 # managed by go/iml_to_build [unb]
 java_import(
     name = "unb.equalsverifier",
-    jars = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/2.5.1:unb.equalsverifier_files"],
+    jars = ["//prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/3.4.1:unb.equalsverifier_files"],
     tags = [
         "manual",
         "unb",
