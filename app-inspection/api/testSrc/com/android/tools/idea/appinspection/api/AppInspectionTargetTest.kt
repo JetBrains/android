@@ -72,7 +72,7 @@ class AppInspectionTargetTest {
                          .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
                                                      .setCommandId(1324562)
                                                      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-                                                     .setServiceResponse(AppInspection.ServiceResponse.getDefaultInstance())
+                                                     .setCreateInspectorResponse(AppInspection.CreateInspectorResponse.getDefaultInstance())
                                                      .build())
                          .build())
           }
@@ -87,7 +87,7 @@ class AppInspectionTargetTest {
                          .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
                                                      .setCommandId(command.appInspectionCommand.commandId)
                                                      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-                                                     .setServiceResponse(AppInspection.ServiceResponse.getDefaultInstance())
+                                                     .setCreateInspectorResponse(AppInspection.CreateInspectorResponse.getDefaultInstance())
                                                      .build())
                          .build())
           }
