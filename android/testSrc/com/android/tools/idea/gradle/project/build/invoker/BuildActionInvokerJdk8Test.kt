@@ -32,4 +32,9 @@ class BuildActionInvokerJdk8Test: BuildActionInvokerTest() {
       super.tearDown()
     }
   }
+
+  // Disabled due to b/166472930
+  override fun testBuildWithBuildAction() {
+
+  }
 }
