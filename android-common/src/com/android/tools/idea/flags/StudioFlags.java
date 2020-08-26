@@ -395,6 +395,30 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
+    /**
+     * The level of APK change that will be supported by the deployment pipeline's optimistic
+     * "deploy-without-installing" path. Deploying changes that exceed the level of support
+     * configured here will cause the deployment to install via the package manager.
+     */
+    public enum OptimisticInstallSupportLevel {
+        /** Always fall back to a package manager installation. */
+        DISABLED,
+        /** Support deploying changes to dex files only. */
+        DEX,
+        /** Support deploying changes to dex files and native libraries only. */
+        DEX_AND_NATIVE,
+        /** Support deploying changes to dex files, native libraries, and resources. */
+        DEX_AND_NATIVE_AND_RESOURCES,
+    }
+
+    public static final Flag<OptimisticInstallSupportLevel> OPTIMISTIC_INSTALL_SUPPORT_LEVEL =
+            Flag.create(
+                    RUNDEBUG,
+                    "optimisticinstall.supportlevel",
+                    "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
+                    "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
+                    OptimisticInstallSupportLevel.DISABLED);
+
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
     "applychanges.structuralredefinition",

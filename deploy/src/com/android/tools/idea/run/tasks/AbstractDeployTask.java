@@ -21,6 +21,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
+import com.android.tools.deployer.ChangeType;
 import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
@@ -28,6 +29,7 @@ import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -37,6 +39,7 @@ import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -61,6 +64,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +77,19 @@ public abstract class AbstractDeployTask implements LaunchTask {
   public static final int MIN_API_VERSION = 26;
   private static final NotificationGroup NOTIFICATION_GROUP =
     NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN, true, PluginId.getId("org.jetbrains.android"));
+
+    private static final Map<OptimisticInstallSupportLevel, EnumSet<ChangeType>>
+            OPTIMISTIC_INSTALL_SUPPORT =
+                    ImmutableMap.of(
+                            OptimisticInstallSupportLevel.DISABLED, EnumSet.noneOf(ChangeType.class),
+                            OptimisticInstallSupportLevel.DEX, EnumSet.of(ChangeType.DEX),
+                            OptimisticInstallSupportLevel.DEX_AND_NATIVE,
+                                    EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY),
+                            OptimisticInstallSupportLevel.DEX_AND_NATIVE_AND_RESOURCES,
+                                    EnumSet.of(
+                                            ChangeType.DEX,
+                                            ChangeType.NATIVE_LIBRARY,
+                                            ChangeType.RESOURCE));
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
@@ -113,13 +130,22 @@ public abstract class AbstractDeployTask implements LaunchTask {
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
 
-    DeployerOption option = new DeployerOption.Builder()
-      .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
-      .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
-      .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
-      .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
-      .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
-      .build();
+        EnumSet<ChangeType> optimisticInstallSupport =
+                OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(
+                        StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(),
+                        EnumSet.noneOf(ChangeType.class));
+        DeployerOption option =
+                new DeployerOption.Builder()
+                        .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
+                        .setUseOptimisticResourceSwap(
+                                StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
+                        .setOptimisticInstallSupport(optimisticInstallSupport)
+                        .setUseStructuralRedefinition(
+                                StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
+                        .setUseVariableReinitialization(
+                                StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
+                        .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
+                        .build();
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
