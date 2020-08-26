@@ -375,14 +375,8 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
-      // TODO(b/161911921): we will want to only allow references to resolvable elements.
-      if (((ReferenceTo)unsavedValue).getReferredElement() != null) {
-        unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
-        if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
-      }
-      else {
-        unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
-      }
+      unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
+      if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();

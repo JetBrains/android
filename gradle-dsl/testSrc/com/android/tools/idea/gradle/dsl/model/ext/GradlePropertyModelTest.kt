@@ -97,7 +97,25 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val prop1Model = extModel.findProperty("prop1")
     TestCase.assertNotNull(prop1Model)
     val referenceTo = ReferenceTo(prop1Model)
-    assertEquals(referenceTo.referredElement, prop1Model.rawElement)
+    assertEquals(referenceTo.referredElement, prop1Model.rawElement);
+  }
+
+  @Test
+  fun testGetExceptionWhenNoPropertyExist() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    // Create a reference to  a non-existing property.
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop33")
+    // The model is never null.
+    TestCase.assertNotNull(prop1Model)
+    try {
+      // As the model is empty (i.e. Doesn't refer to any existing property), we cannot set a reference to it.
+      val referenceTo = ReferenceTo(prop1Model)
+      fail()
+    } catch (e: IllegalArgumentException) {
+      // Expected.
+    }
   }
 
   @Test
@@ -3287,7 +3305,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val mainBuildModel = gradleBuildModel
     val appBuildModel = subModuleGradleBuildModel
 
-    val kotlinVersionModel = mainBuildModel.ext().findProperty("kotlin_version")
+    val kotlinVersionModel = mainBuildModel.buildscript().ext().findProperty("kotlin_version")
     appBuildModel.dependencies().artifacts().get(0).version().setValue(ReferenceTo(kotlinVersionModel))
     applyChangesAndReparse(appBuildModel)
     verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
