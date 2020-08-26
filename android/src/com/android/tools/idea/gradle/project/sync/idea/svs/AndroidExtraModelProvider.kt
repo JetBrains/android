@@ -43,17 +43,27 @@ import java.util.LinkedList
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportModelProvider {
+  private val modulesById: MutableMap<String, AndroidModule> = HashMap()
+
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
     consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
-    val androidModules = populateAndroidModels(controller, buildModel)
-    // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
-    // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-    populateProjectSyncIssues(controller, androidModules)
+    try {
+      val androidModules = populateAndroidModels(controller, buildModel)
+      // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
+      // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+      populateProjectSyncIssues(controller, androidModules)
 
-    androidModules.forEach { it.deliverModels(consumer) }
+      androidModules.forEach { it.deliverModels(consumer) }
+    }
+    finally {
+      // TODO(b/166240410): We DO ignore cross-included-build dependencies when selecting build variants to sync. This needs to be fixed.
+      //  This `clear` is to ensure we are not somewhere in between two states and should be removed. Removing it now would make just some
+      //  dependencies be processed.
+      modulesById.clear()
+    }
   }
 
   override fun populateProjectModels(controller: BuildController,
@@ -94,7 +104,9 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           if (nativeModule != null) null
           else findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)
 
-        androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule))
+        val module = AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule)
+        modulesById[module.id] = module
+        androidModules.add(module)
       }
     }
 
@@ -187,14 +199,12 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     inputModules: List<AndroidModule>
   ) {
-    val modulesById = HashMap<String, AndroidModule>()
     val allModulesToSetUp = LinkedList<ModuleConfiguration>()
     // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
     // adding this module to the head of allModules so that its dependency modules are resolved first.
     var moduleWithVariantSwitched: ModuleConfiguration? = null
 
     inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
-      modulesById[module.id] = module
       val moduleConfiguration = selectedOrDefaultModuleConfiguration(module) ?: return@forEach
       if (module.id == syncActionOptions.moduleIdWithVariantSwitched) {
         moduleWithVariantSwitched = moduleConfiguration
@@ -220,7 +230,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       val moduleConfiguration = allModulesToSetUp.removeFirst()
       if (!visitedModules.add(moduleConfiguration.id)) continue
 
-      val moduleDependencies = syncVariantAndGetModuleDependencies(controller, modulesById, moduleConfiguration) ?: continue
+      val moduleDependencies = syncVariantAndGetModuleDependencies(controller, moduleConfiguration) ?: continue
       allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
     }
   }
@@ -261,10 +271,9 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   }
   private fun syncVariantAndGetModuleDependencies(
     controller: BuildController,
-    moduleByIds: Map<String, AndroidModule>,
     moduleConfiguration: ModuleConfiguration
   ): List<ModuleConfiguration>? {
-    val module = moduleByIds[moduleConfiguration.id] ?: return null // Composite build modules will not be resolved here.
+    val module = modulesById[moduleConfiguration.id] ?: return null // TODO(b/166240410): Composite build modules are not be resolved here.
     val variant = syncAndAddVariant(controller, module, moduleConfiguration.variant) ?: return null
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
     return variant.mainArtifact.dependencies.libraries.mapNotNull { library ->
