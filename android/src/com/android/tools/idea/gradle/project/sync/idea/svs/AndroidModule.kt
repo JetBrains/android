@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
@@ -39,6 +40,7 @@ class AndroidModule(
   val nativeModule: NativeModule?
 ) {
   val findModelRoot: Model get() = gradleProject
+  val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
   val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null

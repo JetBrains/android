@@ -36,7 +36,7 @@ fun getAdditionalClassifierArtifactsModel(
   downloadAndroidxUISamplesSources: Boolean
 ) {
   inputModules.forEach { module ->
-    if (!is3Dot5OrNewer(module.androidProject)) return@forEach
+    if (module.modelVersion?.isAtLeast(3, 5, 0) != true) return@forEach
 
     // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
     // The first case indicates full-variants sync and the later single-variant sync.
@@ -75,20 +75,6 @@ private fun collectIdentifiers(
   return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
     ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
   }.distinct()
-}
-
-@VisibleForTesting
-@UsedInBuildAction
-fun is3Dot5OrNewer(project: AndroidProject): Boolean {
-  try {
-    GradleVersion.tryParse(project.modelVersion)?.let {
-      return it.isAtLeast(3, 5, 0)
-    }
-  }
-  catch (ignored: Throwable) {
-    // If model version doesn't exist or is mal-formatted, this is very likely an old AGP.
-  }
-  return false
 }
 
 @UsedInBuildAction
