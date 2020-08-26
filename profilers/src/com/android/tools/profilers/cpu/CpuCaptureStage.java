@@ -191,7 +191,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
    * Create a capture stage that loads a given file.
    */
   @VisibleForTesting
-  CpuCaptureStage(@NotNull StudioProfilers profilers,
+  public CpuCaptureStage(@NotNull StudioProfilers profilers,
                   @NotNull ProfilingConfiguration configuration,
                   @NotNull File captureFile,
                   long traceId,

@@ -25,22 +25,24 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.CpuProfilerStageView
+import com.android.tools.profilers.cpu.CpuCaptureStage
+import com.android.tools.profilers.cpu.CpuCaptureStageView
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import org.junit.After
 import org.junit.Rule
 import java.io.File
 import kotlin.system.measureTimeMillis
 
 /**
- * Base class for loading the CpuProfilerStageView and measuring the used memory as well as the high water mark. This class starts the
- * CpuProfilerStage and CpuProfilerStageView then reports the memory used and the max memory after entering the stage. The stage enter
+ * Base class for loading the CpuCaptureStageView and measuring the used memory as well as the high water mark. This class starts the
+ * CpuCaptureStage and CpuCaptureStageView then reports the memory used and the max memory after entering the stage. The stage enter
  * is triggered by setting the stage on the StudioProfilers.
  */
 open class CpuProfilerMemoryLoadTestBase {
@@ -58,6 +60,12 @@ open class CpuProfilerMemoryLoadTestBase {
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
+
   @After
   fun cleanup() {
     Disposer.dispose(myProfilersView!!)
@@ -69,24 +77,24 @@ open class CpuProfilerMemoryLoadTestBase {
    * The name is used as a prefix for the metrics to be recorded. The format is as follows
    *  [name]-Load-Capture-Used
    */
-  protected fun loadCaptureAndReport(name:String, fileName:File?) {
+  protected fun loadCaptureAndReport(name:String, traceFile:File) {
     // Start as clean as we can.
     val before = getMemoryUsed()
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    val stage = CpuProfilerStage(profilers, fileName)
-    var cpuStageView: CpuProfilerStageView? = null
+    val stage = CpuCaptureStage(profilers, ImportedConfiguration(), traceFile, 1, "system_server", 1193)
+    var cpuCaptureView: CpuCaptureStageView? = null
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myTimingBenchmark.log(name, measureTimeMillis {
     myProfilersView = StudioProfilersView(profilers, myComponents)
       // Setting the stage enters the stage and triggers the parsing of the CpuCapture
       stage.studioProfilers.stage = stage
-      cpuStageView = CpuProfilerStageView(myProfilersView!!, stage)
+      cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)
     })
     val after = getMemoryUsed()
     myMemoryBenchmark.log(name + "-Load-Capture" + "-Used", (after - before) / 1024)
     // Test the stage view just to hold a reference in case the compiler attempts to be smart.
-    assertThat(cpuStageView).isNotNull()
+    assertThat(cpuCaptureView).isNotNull()
   }
 }
