@@ -18,9 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.lint.detector.api.Issue
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiBinaryFile
@@ -49,7 +48,7 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
 
   override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
     val type = file.fileType
-    return type === JavaFileType.INSTANCE || type === XmlFileType.INSTANCE || type === GroovyFileType.GROOVY_FILE_TYPE ||
+    return type === StdFileTypes.JAVA || type === StdFileTypes.XML || type === GroovyFileType.GROOVY_FILE_TYPE ||
            type === KotlinFileType.INSTANCE || file is PsiBinaryFile
   }
 

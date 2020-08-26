@@ -1,8 +1,8 @@
 package org.jetbrains.android.sdk;
 
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -38,7 +38,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (file.getFileType() != XmlFileType.INSTANCE) {
+    if (file.getFileType() != StdFileTypes.XML) {
       return null;
     }
     final Module module = ModuleUtilCore.findModuleForFile(file, myProject);

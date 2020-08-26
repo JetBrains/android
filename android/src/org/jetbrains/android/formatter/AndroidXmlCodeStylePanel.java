@@ -1,11 +1,11 @@
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.CodeStyleAbstractPanel;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.ui.IdeBorderFactory;
@@ -78,7 +78,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
   @NotNull
   @Override
   protected FileType getFileType() {
-    return XmlFileType.INSTANCE;
+    return StdFileTypes.XML;
   }
 
   @Nullable

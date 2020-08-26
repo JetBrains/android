@@ -29,6 +29,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.actions.PasteAction
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
@@ -40,8 +41,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.EditorUtil
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -64,8 +63,8 @@ class ResourcePasteProvider : PasteProvider {
     val psiElement = runReadAction { psiFile.findElementAt(caret.offset) }
 
     when (psiFile.fileType) {
-      XmlFileType.INSTANCE -> performForXml(psiElement, dataContext, caret)
-      JavaFileType.INSTANCE -> performForJavaCode(dataContext, caret)
+      StdFileTypes.XML -> performForXml(psiElement, dataContext, caret)
+      StdFileTypes.JAVA -> performForJavaCode(dataContext, caret)
       KotlinFileType.INSTANCE -> performForKotlinCode(psiElement, dataContext, caret)
     }
   }

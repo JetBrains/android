@@ -48,9 +48,9 @@ import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
 import com.google.common.primitives.Shorts
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
@@ -234,7 +234,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
-  object InputFilter : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
+  object InputFilter : DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
     override fun acceptInput(file: VirtualFile) = indexEnabled() && file.name == FN_ANDROID_MANIFEST_XML
   }
 

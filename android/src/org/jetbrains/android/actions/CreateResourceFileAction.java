@@ -21,7 +21,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -29,6 +28,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
@@ -64,7 +64,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
 
   public CreateResourceFileAction() {
     super(AndroidBundle.message("new.resource.action.title"), AndroidBundle.message("new.resource.action.description"),
-          XmlFileType.INSTANCE.getIcon());
+          StdFileTypes.XML.getIcon());
   }
 
   public void add(CreateTypedResourceFileAction action) {

@@ -16,13 +16,14 @@
 package org.jetbrains.android.intentions;
 
 import com.android.resources.ResourceType;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidExtractColorAction extends AndroidAddStringResourceAction {
@@ -39,7 +40,7 @@ public class AndroidExtractColorAction extends AndroidAddStringResourceAction {
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    if (file.getFileType() == XmlFileType.INSTANCE) {
+    if (file.getFileType() == StdFileTypes.XML) {
       AndroidFacet facet = AndroidFacet.getInstance(file);
       if (facet != null) {
         PsiElement element = getPsiElement(file, editor);

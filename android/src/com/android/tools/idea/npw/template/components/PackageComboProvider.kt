@@ -19,7 +19,7 @@ import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.Parameter
 import com.android.tools.idea.wizard.template.StringParameter
-import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaCodeFragment
 import com.intellij.ui.EditorComboBox
@@ -36,7 +36,7 @@ class PackageComboProvider(private val project: Project,
   override fun createComponent(parameter: Parameter<*>): EditorComboBox {
     val doc = JavaReferenceEditorUtil.createDocument(
       initialPackage, project, false, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE)!!
-    val classComboBox = EditorComboBox(doc, project, JavaFileType.INSTANCE)
+    val classComboBox = EditorComboBox(doc, project, StdFileTypes.JAVA)
 
     // Make sure our suggested package is in the recents list and at the top
     RecentsManager.getInstance(project).registerRecentEntry(recentsKey, initialPackage)
