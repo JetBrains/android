@@ -199,6 +199,21 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     inputModules: List<AndroidModule>
   ) {
+    val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations(inputModules)
+
+    // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
+    // requests any other modules that can't be reached.
+    val visitedModules = HashSet<String>()
+    while (allModulesToSetUp.isNotEmpty()) {
+      val moduleConfiguration = allModulesToSetUp.removeFirst()
+      if (!visitedModules.add(moduleConfiguration.id)) continue
+
+      val moduleDependencies = syncVariantAndGetModuleDependencies(controller, moduleConfiguration) ?: continue
+      allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
+    }
+  }
+
+  private fun prepareRequestedOrDefaultModuleConfigurations(inputModules: List<AndroidModule>): LinkedList<ModuleConfiguration> {
     val allModulesToSetUp = LinkedList<ModuleConfiguration>()
     // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
     // adding this module to the head of allModules so that its dependency modules are resolved first.
@@ -222,17 +237,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     }
 
     moduleWithVariantSwitched?.let { allModulesToSetUp.addFirst(it) }
-
-    // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
-    // requests any other modules that can't be reached.
-    val visitedModules = HashSet<String>()
-    while (allModulesToSetUp.isNotEmpty()) {
-      val moduleConfiguration = allModulesToSetUp.removeFirst()
-      if (!visitedModules.add(moduleConfiguration.id)) continue
-
-      val moduleDependencies = syncVariantAndGetModuleDependencies(controller, moduleConfiguration) ?: continue
-      allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
-    }
+    return allModulesToSetUp
   }
 
   private fun selectedOrDefaultModuleConfiguration(module: AndroidModule): ModuleConfiguration? {
