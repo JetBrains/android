@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.profilers.performance
 
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import org.junit.Test
 
 /**
- * No capture test for measuring the memory overhead of loading the CpuProfilerStageView.
+ * No capture test for measuring the memory overhead of loading the CpuCaptureStageView.
  * Note: This test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references
  * impact the memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
  */
 class CpuProfilerEmptyCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
   fun measureMemoryOfImportEmptyTrace() {
-    loadCaptureAndReport("Empty", null)
+    loadCaptureAndReport("Empty", CpuProfilerTestUtils.getTraceFile("empty_trace.trace"))
   }
 }
 
