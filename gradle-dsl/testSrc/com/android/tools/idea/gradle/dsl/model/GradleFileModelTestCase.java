@@ -126,6 +126,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile myPropertiesFile;
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
+  protected VirtualFile myBuildSrcBuildFile;
 
   protected VirtualFile myModuleDirPath;
   protected VirtualFile myProjectBasePath;
@@ -237,6 +238,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       assertTrue(mySubModuleBuildFile.isWritable());
       mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(mySubModulePropertiesFile.isWritable());
+
+      VirtualFile buildSrcDirPath = myProjectBasePath.createChildDirectory(this, "buildSrc");
+      assertTrue(myProjectBasePath.isDirectory());
+      myBuildSrcBuildFile = buildSrcDirPath.createChildData(this, getBuildFileName());
+      assertTrue(myBuildSrcBuildFile.isWritable());
+
       // Setup the project and the module as a Gradle project system so that their build files could be found.
       ExternalSystemModulePropertyManager
         .getInstance(myModule)
@@ -319,6 +326,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildFile);
+  }
+
+  protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {
+    prepareAndInjectInformationForTest(fileName, myBuildSrcBuildFile);
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {

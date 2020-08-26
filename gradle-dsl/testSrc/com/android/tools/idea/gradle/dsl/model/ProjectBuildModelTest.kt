@@ -308,6 +308,25 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     verifyPropertyModel("foo2", gbm2.ext().findProperty("foo"), "baz")
   }
 
+  @Test
+  fun testBuildSrcModel() {
+    writeToBuildFile("")
+    writeToBuildSrcBuildFile(TestFile.BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY)
+    val pbm = projectBuildModel
+    val gbm = pbm.getModuleBuildModel(myBuildSrcBuildFile)
+
+    val dependencies = gbm.dependencies().artifacts()
+    assertSize(1, dependencies)
+    val dependency = dependencies[0]
+    assertEquals("com.android.tools.build", dependency.group().toString())
+    assertEquals("gradle", dependency.name().toString())
+    assertEquals("4.1.0-rc01", dependency.version().toString())
+    dependency.version().setValue("4.1.0")
+
+    applyChanges(pbm)
+    verifyFileContents(myBuildSrcBuildFile, TestFile.BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -338,6 +357,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     RESOLVES_CORRECT_FILE_SUB("applyResolvesCorrectFile_sub"),
     REPARSE_THEN_CHANGE_EXPECTED_ONE("reparseThenChangeExpectedOne"),
     REPARSE_THEN_CHANGE_EXPECTED_TWO("reparseThenChangeExpectedTwo"),
+    BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY("buildSrcAndroidGradlePluginDependency"),
+    BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
