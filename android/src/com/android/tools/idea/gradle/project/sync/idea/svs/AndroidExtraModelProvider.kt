@@ -229,7 +229,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
         // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
         // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
         // `createRequestedModuleConfiguration()` is cheap.
-        when (module.androidProject.projectType) {
+        when (module.projectType) {
           PROJECT_TYPE_APP -> allModulesToSetUp.addFirst(moduleConfiguration)
           else -> allModulesToSetUp.addLast(moduleConfiguration)
         }

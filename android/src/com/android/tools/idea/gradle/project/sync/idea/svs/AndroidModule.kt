@@ -34,13 +34,15 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 class AndroidModule(
   private val gradleProject: BasicGradleProject,
   val androidProject: AndroidProject,
-  /** Old V1 model. It's only set if [NaiveModule] is not set. */
+  /** Old V1 model. It's only set if [nativeModule] is not set. */
   val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   val nativeModule: NativeModule?
 ) {
   val findModelRoot: Model get() = gradleProject
   val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
+  val projectType: Int get() = androidProject.projectType
+
   val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
   val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
