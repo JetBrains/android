@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.AndroidProject
 import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
 
 @UsedInBuildAction
