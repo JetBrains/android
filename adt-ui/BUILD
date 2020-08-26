@@ -109,15 +109,12 @@ java_binary(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.adt.ui",
+    name = "intellij.android.adt.ui",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.iml"],
     lint_baseline = "lint_baseline.xml",
+    project = "unb",
     resources = ["resources"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
         "//tools/adt/idea/artwork:device-art-resources",
@@ -130,17 +127,17 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
-        "//tools/base/common:unb.studio.android.sdktools.common[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/base/layoutlib-api:unb.studio.android.sdktools.layoutlib-api[module]",
-        "//tools/base/sdklib:unb.studio.android.sdktools.sdklib[module]",
-        "//tools/base/ninepatch:unb.studio.android.sdktools.ninepatch[module]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
     ],
 )

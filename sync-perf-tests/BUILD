@@ -159,9 +159,25 @@ maven_repo(
 )
 
 # managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.JUnit4",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:unb.JUnit4_files",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:unb.JUnit4_files",
+    ],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.sync-perf-tests",
+    name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
+    project = "unb",
     split_test_targets = {
         "Base100": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
@@ -174,10 +190,6 @@ iml_module(
         "other": {
         },
     },
-    tags = [
-        "manual",
-        "unb",
-    ],
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
         ":test_deps.zip",
@@ -197,7 +209,7 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:3.5.0.zip",
     ],
-    test_runtime_deps = ["//tools/adt/idea/databinding:unb.intellij.android.databinding"],
+    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -212,30 +224,15 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
-        "//tools/adt/idea/android:unb.intellij.android.core.tests[module, test]",
-        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
-        "//tools/base/perf-logger:unb.studio.perf-logger[module, test]",
+        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.JUnit4",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:unb.JUnit4_files",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:unb.JUnit4_files",
-    ],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

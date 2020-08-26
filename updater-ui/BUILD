@@ -55,27 +55,6 @@ iml_module(
     ],
 )
 
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "unb.intellij.android.updater.ui",
-    srcs = ["src"],
-    iml_files = ["intellij.android.updater.ui.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
-        "//tools/base/repository:unb.studio.android.sdktools.repository[module]",
-        "//tools/base/annotations:unb.studio.android.sdktools.android-annotations[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-    ],
-)
-
 java_binary(
     name = "patcher",
     main_class = "com.intellij.updater.Runner",
@@ -88,7 +67,7 @@ java_binary(
     ],
     visibility = ["//visibility:public"],
     runtime_deps = [
-        ":unb.intellij.android.updater.ui.jar",
+        ":intellij.android.updater.ui.jar",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
     ],
 )
@@ -104,5 +83,23 @@ flat_archive(
         "manual",
         "no_mac",
         "no_windows",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.updater.ui",
+    srcs = ["src"],
+    iml_files = ["intellij.android.updater.ui.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
+        "//tools/base/repository:studio.android.sdktools.repository[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )

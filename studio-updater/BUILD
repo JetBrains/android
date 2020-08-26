@@ -68,14 +68,11 @@ coverage_java_test(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.updater.studio-updater",
+    name = "intellij.android.updater.studio-updater",
     srcs = ["src"],
     iml_files = ["intellij.android.updater.studio-updater.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
@@ -84,12 +81,12 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/adt/idea/.idea/libraries:unb.assertJ[test]",
-        "//tools/base/common:unb.studio.android.sdktools.common[module]",
-        "//tools/analytics-library/shared:unb.analytics-shared[module]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
     ],

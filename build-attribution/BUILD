@@ -142,14 +142,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.build-attribution",
+    name = "intellij.android.build-attribution",
     srcs = ["src"],
     iml_files = ["intellij.android.build-attribution.iml"],
     lint_baseline = "lint_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -158,25 +155,24 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/base/sdk-common:unb.studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.build-attribution.tests",
+    name = "intellij.android.build-attribution.tests",
     iml_files = ["intellij.android.build-attribution.tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_test_mac",  # b/113099009
         "no_test_windows",  # b/135665870
-        "unb",
     ],
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
@@ -204,17 +200,17 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/base/common:unb.studio.android.sdktools.common[module, test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
-        "//tools/adt/idea/build-attribution:unb.intellij.android.build-attribution[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/analytics-library/testing:unb.android.sdktools.analytics-testing[module, test]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module, test]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )
