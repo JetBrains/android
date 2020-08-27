@@ -613,6 +613,27 @@ class AndroidTestSuiteViewTest {
     assertThat(view.myStatusBreakdownText.text).isEqualTo("4 tests, 2 devices, 12 s 345 ms")
   }
 
+  @Test
+  fun deviceSelectorAndTestStatusColumnAreHiddenWhenSingleDevice() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+
+    view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
+
+    assertThat(view.myDetailsView.isDeviceSelectorListVisible).isFalse()
+    assertThat(view.myResultsTableView.showTestStatusColumn).isFalse()
+  }
+
+  @Test
+  fun deviceSelectorAndTestStatusColumnAreVisibleWhenMultiDevices() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+
+    view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
+    view.onTestSuiteScheduled(device("deviceId2", "deviceName2"))
+
+    assertThat(view.myDetailsView.isDeviceSelectorListVisible).isTrue()
+    assertThat(view.myResultsTableView.showTestStatusColumn).isTrue()
+  }
+
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(apiVersion))
   }

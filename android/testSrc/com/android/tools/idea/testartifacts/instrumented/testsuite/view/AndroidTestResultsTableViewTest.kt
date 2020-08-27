@@ -103,6 +103,20 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun hideStatusColumn() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger).apply {
+      showTestStatusColumn = false
+    }
+
+    // Assert columns.
+    assertThat(table.getModelForTesting().columnInfos).hasLength(1)
+    assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
+
+    // Assert rows.
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
+  }
+
+  @Test
   fun addDevice() {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
 

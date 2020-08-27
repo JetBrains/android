@@ -115,6 +115,17 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
   }
 
+  /**
+   * Shows or hides a device selector list.
+   */
+  @get:UiThread
+  @set:UiThread
+  var isDeviceSelectorListVisible: Boolean
+    get() = myComponentsSplitter.firstComponent.isVisible
+    set(value) {
+      myComponentsSplitter.firstComponent.isVisible = value
+    }
+
   @get:VisibleForTesting val contentView: DetailsViewContentView = DetailsViewContentView(parentDisposable, project, logger)
 
   val rawTestLogConsoleView: ConsoleViewImpl = ConsoleViewImpl(project, /*viewer=*/true).apply {
