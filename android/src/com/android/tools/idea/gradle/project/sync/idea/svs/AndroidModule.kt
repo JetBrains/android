@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
@@ -42,6 +43,16 @@ class AndroidModule(
   val findModelRoot: Model get() = gradleProject
   val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
   val projectType: Int get() = androidProject.projectType
+
+  /** All configured variant names if supported by the AGP version. */
+  val allVariantNames: Collection<String>? = safeGet(androidProject::getVariantNames, null)?.toSet()
+
+  /** Names of all currently fetch variants (currently pre single-variant-sync only). */
+  val fetchedVariantNames: Collection<String> = safeGet({ androidProject.variants.map { it.name }.toSet() }, emptySet())
+
+  val defaultVariantName: String?
+    get() = safeGet(androidProject::getDefaultVariant, null)
+            ?: allVariantNames?.getDefaultOrFirstItem("debug")
 
   val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
@@ -70,3 +81,7 @@ class AndroidModule(
 }
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+
+@UsedInBuildAction
+fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
+  if (contains(defaultValue)) defaultValue else minBy { it }
