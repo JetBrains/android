@@ -46,10 +46,12 @@ import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumns
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
@@ -82,6 +84,8 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
+  private lateinit var propertiesService: PropertiesComponent
+
   override fun setUp() {
     super.setUp()
     edtExecutor = EdtExecutorService.getInstance()
@@ -90,6 +94,10 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     viewFactory = FakeDatabaseInspectorViewsFactory()
     sqliteEvaluatorView = viewFactory.sqliteEvaluatorView
+
+    val ideComponents = IdeComponents(project, testRootDisposable)
+    propertiesService = ideComponents.mockProjectService(PropertiesComponent::class.java)
+    `when`(propertiesService.getValues("com.android.tools.idea.sqlite.queryhistory")).thenReturn(listOf("fake query").toTypedArray())
 
     successfulInvocationNotificationInvocations = mutableListOf()
 
@@ -134,6 +142,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).addListener(any(SqliteEvaluatorView.Listener::class.java))
+    verify(sqliteEvaluatorView).setQueryHistory(listOf("fake query"))
   }
 
   fun testEvaluateSqlActionQuerySuccess() {
@@ -148,7 +157,26 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(sqlStatement)
+    verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT", "fake query"))
+    verify(propertiesService).setValues("com.android.tools.idea.sqlite.queryhistory", listOf("SELECT", "fake query").toTypedArray())
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
+  }
+
+  fun testQueryHistoryMaxSize() {
+    // Prepare
+    val sqlStatement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    `when`(mockDatabaseConnection.query(sqlStatement)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+
+    // Assert
+    verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT", "SELECT", "SELECT", "SELECT", "SELECT"))
   }
 
   fun testEvaluateSqlActionQueryFailure() {
