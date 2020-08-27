@@ -131,8 +131,8 @@ open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalP
         nextY += sceneView.margin.top
         val xPosition = max(startX, when (startBorderAlignment) {
           Alignment.START -> startX
-          Alignment.END -> availableWidth - (sceneView.scaledContentSize.width + sceneView.margin.horizontal)
-          Alignment.CENTER -> availableWidth / 2 - (sceneView.scaledContentSize.width + sceneView.margin.horizontal) / 2
+          Alignment.END -> availableWidth - sceneView.scaledContentSize.width
+          Alignment.CENTER -> (availableWidth - sceneView.scaledContentSize.width) / 2
         })
         sceneView.setLocation(xPosition, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
