@@ -74,6 +74,9 @@
     <runLineMarkerContributor
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
+    <annotator
+      language="kotlin"
+      implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">

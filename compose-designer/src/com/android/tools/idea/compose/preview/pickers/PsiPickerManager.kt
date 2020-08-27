@@ -20,8 +20,11 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.property.panel.api.PropertiesPanel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.Disposer
+import java.awt.Component
+import java.awt.Point
 
 object PsiPickerManager {
   /**
@@ -29,10 +32,8 @@ object PsiPickerManager {
    */
   fun showForEvent(e: AnActionEvent, model: PsiPropertyModel) {
     val disposable = Disposer.newDisposable()
-    val popup = LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) }, cancelCallBack = { Disposer.dispose(disposable) })
-    val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also {
-      it.addView(PsiPropertyView(model))
-    }
+    val popup = createPopup(disposable)
+    val propertiesPanel = createPropertiesPanel(disposable, model)
 
     val owner = e.inputEvent.component
     val location = owner.locationOnScreen
@@ -41,4 +42,22 @@ object PsiPickerManager {
 
     popup.show(propertiesPanel.component, null, location)
   }
+
+  /**
+   * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
+   */
+  fun show(location: Point, model: PsiPropertyModel) {
+    val disposable = Disposer.newDisposable()
+    val popup = createPopup(disposable)
+    val propertiesPanel = createPropertiesPanel(disposable, model)
+
+    popup.show(propertiesPanel.component, null, location)
+  }
+}
+
+private fun createPopup(disposable: Disposable) = LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) },
+                                                                    cancelCallBack = { Disposer.dispose(disposable) })
+
+private fun createPropertiesPanel(disposable: Disposable, model: PsiPropertyModel) = PropertiesPanel<PsiPropertyItem>(disposable).also {
+  it.addView(PsiPropertyView(model))
 }
