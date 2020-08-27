@@ -195,8 +195,7 @@ public class AndroidPluginVersionUpdater {
   }
 
   @NotNull
-  // TODO: bad name for the function; bad name for the first argument
-  public static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
+  public static ThreeState isUpdatablePluginDependency(@NotNull GradleVersion toVersion, @NotNull ArtifactDependencyModel model) {
     String artifactId = model.name().forceString();
     String groupId = model.group().toString();
     if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
@@ -204,7 +203,7 @@ public class AndroidPluginVersionUpdater {
     }
 
     String versionValue = model.version().toString();
-    return (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) ? YES : NO;
+    return (isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ? YES : NO;
   }
 
   @NotNull
@@ -216,7 +215,7 @@ public class AndroidPluginVersionUpdater {
     }
 
     String versionValue = model.version().toString();
-    return (isEmpty(versionValue) || toVersion.compareTo(versionValue) > 0) ? YES : NO;
+    return (isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ? YES : NO;
   }
 
   public static class UpdateResult {

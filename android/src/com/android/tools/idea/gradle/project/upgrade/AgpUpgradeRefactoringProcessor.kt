@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginVersion
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
@@ -666,7 +666,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
     // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
-        when (isUpdatablePluginVersion(new, dep)) {
+        when (isUpdatablePluginDependency(new, dep)) {
           YES -> {
             val resultModel = dep.version().resultModel
             val element = resultModel.rawElement
@@ -785,7 +785,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
-        when (isUpdatablePluginVersion(new, dep)) {
+        when (isUpdatablePluginDependency(new, dep)) {
           // consider returning a usage even if the dependency has the current version (in a chained upgrade, the dependency
           // might have been updated before this RefactoringProcessor gets a chance to run).  The applicability of the processor
           // will prevent this from being a problem.
