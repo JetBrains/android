@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
+load("//tools/base/bazel:utils.bzl", "select_project")
 
 # managed by go/iml_to_build
 iml_module(
@@ -98,18 +99,25 @@ kotlin_test(
         "//tools/adt/idea/profilers:intellij.android.profilers",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:studio.android.sdktools.testutils",
-        "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:JUnit4",
-        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
-        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/idea/.idea/libraries:studio-grpc",
-        "//tools/idea/.idea/libraries:studio-proto",
-        "//tools/idea/.idea/libraries:transport-proto",
-        "//tools/idea/.idea/libraries:truth",
-        "//tools/idea/platform/core-api:intellij.platform.core",
-        "//tools/idea/platform/util:intellij.platform.util",
-        "//tools/idea/platform/util-rt:intellij.platform.util.rt",
-    ],
+    ] + select_project({
+        "unb": [
+            "//prebuilts/studio/intellij-sdk:studio-sdk",
+            "//tools/adt/idea/.idea/libraries:unb.truth",
+        ],
+        "": [
+            "//tools/idea/.idea/libraries:Guava",
+            "//tools/idea/.idea/libraries:JUnit4",
+            "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
+            "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+            "//tools/idea/.idea/libraries:studio-grpc",
+            "//tools/idea/.idea/libraries:studio-proto",
+            "//tools/idea/.idea/libraries:transport-proto",
+            "//tools/idea/.idea/libraries:truth",
+            "//tools/idea/platform/core-api:intellij.platform.core",
+            "//tools/idea/platform/util:intellij.platform.util",
+            "//tools/idea/platform/util-rt:intellij.platform.util.rt",
+        ],
+    }),
 )
 
 # managed by go/iml_to_build [unb]
