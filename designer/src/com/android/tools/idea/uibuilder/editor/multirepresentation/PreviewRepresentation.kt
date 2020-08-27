@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import javax.swing.JComponent
 
@@ -71,5 +72,12 @@ interface PreviewRepresentation : Disposable {
    * Called to retrieve any saved state for this [PreviewRepresentation].
    */
   fun getState(): PreviewRepresentationState? = null
+  // endregion
+
+  // region Text editor caret handling
+  /**
+   * Called when the caret position changes. This method must return ASAP and not block.
+   */
+  fun onCaretPositionChanged(event: CaretEvent) {}
   // endregion
 }

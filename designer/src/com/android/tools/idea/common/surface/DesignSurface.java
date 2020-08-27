@@ -92,6 +92,7 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
+import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -134,9 +135,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @SurfaceZoomLevel
   protected static final double SCALING_THRESHOLD = 0.005;
 
-  /** Filter got {@link #getModels()} to avoid returning disposed elements **/
+  /**
+   * Filter got {@link #getModels()} to avoid returning disposed elements
+   **/
   private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
-  /** Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements **/
+  /**
+   * Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements
+   **/
   private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
@@ -442,7 +447,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public final void addSceneView(@NotNull SceneView sceneView) {
     //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
     if (mySceneViewPanel != null) {
-      UIUtil.invokeLaterIfNeeded(() ->  mySceneViewPanel.addSceneView(sceneView));
+      UIUtil.invokeLaterIfNeeded(() -> mySceneViewPanel.addSceneView(sceneView));
     }
   }
 
@@ -530,11 +535,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
    * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
    * when render is completed.
-   *
+   * <p>
    * <br/><br/>
    * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
    * the models in the order they are added.
-   *
+   * <p>
    * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
    *
    * @param model the added {@link NlModel}
@@ -745,11 +750,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
-   *
+   * <p>
    * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
    */
   public void startDragDropInteraction() {
-    for (SceneView sceneView: getSceneViews()) {
+    for (SceneView sceneView : getSceneViews()) {
       sceneView.onDragStart();
     }
     repaint();
@@ -757,11 +762,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
-   *
+   * <p>
    * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
    */
   public void stopDragDropInteraction() {
-    for (SceneView sceneView: getSceneViews()) {
+    for (SceneView sceneView : getSceneViews()) {
       sceneView.onDragEnd();
     }
     repaint();
@@ -970,6 +975,27 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Scroll to the center of a list of given components. Usually the center of the area containing these elements.
    */
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
+
+  /**
+   * Ensures that the given model is visible in the surface by scrolling to it if needed.
+   * If the {@link SceneView} is partially visible, no scroll will happen.
+   */
+  public final void scrollToVisible(@NotNull SceneView sceneView) {
+    Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
+    if (rectangle != null && !myScrollPane.getViewport().getViewRect().intersects(rectangle)) {
+      Dimension defaultOffset = getDefaultOffset();
+      setScrollPosition(rectangle.x - defaultOffset.width, rectangle.y - defaultOffset.height);
+    }
+  }
+
+  /**
+   * Ensures that the given model is visible in the surface by scrolling to it if needed.
+   * If the {@link NlModel} is partially visible, no scroll will happen.
+   */
+  public final void scrollToVisible(@NotNull NlModel model) {
+    getSceneViews().stream().filter(sceneView -> sceneView.getSceneManager().getModel() == model).findFirst()
+      .ifPresent(this::scrollToVisible);
+  }
 
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
@@ -1253,7 +1279,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @see #getSceneManager()
    * @see #getSceneManager(NlModel)
    * @see SceneManager#getScene()
-   *
    * @deprecated Use {@link #getSceneManager()}{@code .getScene()} or {@link SceneView}{@code .getScene()} instead. Using this method will
    * cause the code not to correctly support multiple previews.
    */
@@ -1266,7 +1291,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * @see #getSceneManager(NlModel)
-   *
    * @deprecated Use {@link #getSceneManager(NlModel)} or {@link #getSceneManagers} instead.
    * Using this method will cause the code not to correctly support multiple previews.
    */

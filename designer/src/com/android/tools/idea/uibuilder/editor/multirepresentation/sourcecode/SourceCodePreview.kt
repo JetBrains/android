@@ -19,14 +19,19 @@ import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
 
 /**
  * A [MultiRepresentationPreview] tailored to the source code files.
+ *
+ * @param psiFile the file being edited by this editor.
+ * @param editor the [Editor] for the file.
+ * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
-internal class SourceCodePreview(psiFile: PsiFile, providers: Collection<PreviewRepresentationProvider>) :
-  MultiRepresentationPreview(psiFile, providers) {
+internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
+  MultiRepresentationPreview(psiFile, textEditor, providers) {
 
   val project = psiFile.project
 

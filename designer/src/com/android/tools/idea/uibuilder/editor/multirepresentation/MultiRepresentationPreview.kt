@@ -28,6 +28,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
@@ -79,8 +82,13 @@ data class MultiRepresentationPreviewFileEditorState(
 
 /**
  * A generic preview [com.intellij.openapi.fileEditor.FileEditor] that allows you to switch between different [PreviewRepresentation]s.
+ *
+ * @param psiFile the file being edited by this editor.
+ * @param editor the text [Editor] for the file.
+ * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
 open class MultiRepresentationPreview(psiFile: PsiFile,
+                                      private val editor: Editor,
                                       private val providers: Collection<PreviewRepresentationProvider>) :
   PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!) {
   private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
@@ -147,6 +155,12 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * Callback called the first time the representations are loaded. This allows restoring the initial editor status.
    */
   private var onRepresenationsLoaded: (() -> Unit)? = null
+
+  private val caretListener = object : CaretListener {
+    override fun caretPositionChanged(event: CaretEvent) {
+      currentRepresentation?.onCaretPositionChanged(event)
+    }
+  }
 
   private fun onRepresentationChanged() = UIUtil.invokeLaterIfNeeded {
     component.removeAll()
@@ -335,6 +349,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       LOG.debug { "[$instanceId] Activating '$currentRepresentationName'" }
       currentRepresentation?.onActivate()
     }
+
+    editor.caretModel.addCaretListener(caretListener, this)
   }
 
   /**
@@ -343,6 +359,11 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   fun onDeactivate() {
     if (!isActive.getAndSet(false)) return
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'"}
+    editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()
+  }
+
+  override fun dispose() {
+    onDeactivate()
   }
 }
