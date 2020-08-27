@@ -20,19 +20,16 @@ import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.google.common.truth.Truth
+import com.google.common.truth.Expect
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.treeStructure.Tree
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Dimension
-import java.awt.Graphics2D
 import javax.swing.tree.DefaultTreeModel
 
 @RunsInEdt
@@ -42,34 +39,73 @@ class TimeDistributionTreeChartTest {
   val applicationRule: ApplicationRule = ApplicationRule()
 
   @get:Rule
+  val expect = Expect.createAndEnableStackTrace()!!
+
+  @get:Rule
   val edtRule = EdtRule()
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
+  private val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
+  private val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
+  private val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
-  val data = MockUiData(tasksList = listOf(task1, task2, task3))
+  private val data = MockUiData(tasksList = listOf(task1, task2, task3))
+
+  private val tree = Tree(DefaultTreeModel(TasksDataPageModelImpl(data).treeRoot)).apply {
+    isRootVisible = false
+  }
+
+  private val treeWithChart = TimeDistributionTreeChart.wrap(tree)
+  private val fakeUi = FakeUi(ScrollPaneFactory.createScrollPane(treeWithChart, SideBorder.NONE))
 
   @Test
-  @Ignore("b/163480652")
-  fun testTasksChartIsRendered() {
-    val model = TasksDataPageModelImpl(data)
-    val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
-      isRootVisible = false
-    }
-    val treeWithChart = TimeDistributionTreeChart.wrap(tree)
-    val scrollPane = ScrollPaneFactory.createScrollPane(treeWithChart, SideBorder.NONE)
-    scrollPane.size = Dimension(600, 300)
-    val fakeUi = FakeUi(scrollPane)
+  fun testClicksHandledOnStack() {
+    fakeUi.root.size = Dimension(600, 400)
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.render()
 
+    fakeUi.mouse.click(550, 100)
+    expect.that(tree.leadSelectionRow).isEqualTo(0)
+
+    fakeUi.mouse.click(550, 350)
+    expect.that(tree.leadSelectionRow).isEqualTo(2)
+  }
+
+  @Test
+  fun testClicksHandledOnRows() {
+    fakeUi.root.size = Dimension(600, 400)
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.render()
+
+    fakeUi.mouse.click(405, rowMidY(0))
+    expect.that(tree.leadSelectionRow).isEqualTo(0)
+
+    fakeUi.mouse.click(405, rowMidY(2))
+    expect.that(tree.leadSelectionRow).isEqualTo(2)
+  }
+
+  @Test
+  fun testMouseHoverIsDetected() {
+    fakeUi.root.size = Dimension(600, 400)
+    fakeUi.layoutAndDispatchEvents()
+    fakeUi.render()
     val chart = TreeWalker(treeWithChart).descendants().filterIsInstance(TimeDistributionTreeChart::class.java).single()
 
-    val fakeGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
-    chart.paint(fakeGraphics)
+    fakeUi.mouse.moveTo(550, 100)
 
-    Truth.assertThat(chart.model.chartItems).hasSize(3)
+    expect.that(chart.model.hoveredItem).isEqualTo(chart.model.chartItems[0])
 
-    // TODO(b/163480652): Add rendering tests for new Visualization (using ImageDiffUtil)
+    fakeUi.mouse.moveTo(550, 350)
+    expect.that(chart.model.hoveredItem).isEqualTo(chart.model.chartItems[2])
+
+    fakeUi.mouse.moveTo(400, 350)
+    expect.that(chart.model.hoveredItem).isEqualTo(null)
+
+    fakeUi.mouse.moveTo(405, rowMidY(1))
+    expect.that(chart.model.hoveredItem).isEqualTo(chart.model.chartItems[1])
+
+    fakeUi.mouse.moveTo(305, rowMidY(1))
+    expect.that(chart.model.hoveredItem).isEqualTo(null)
   }
+
+  private fun rowMidY(row: Int) = with(tree.getRowBounds(row)) { y + height / 2 }
 }
