@@ -84,9 +84,7 @@ class AndroidTestSuiteViewTest {
 
     // These persisted properties need to be reset before and after tests.
     view.myPassedToggleButton.isSelected = true
-    view.myFailedToggleButton.isSelected = true
     view.mySkippedToggleButton.isSelected = true
-    view.myInProgressToggleButton.isSelected = true
     view.mySortByNameToggleButton.isSelected = false
     view.mySortByDurationToggleButton.isSelected = false
   }
@@ -237,38 +235,32 @@ class AndroidTestSuiteViewTest {
     assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
     assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
 
-    // Remove "Passed", "Failed" and "In progress". Then select "Skipped".
+    // Remove "Passed" and select "Skipped".
     view.myPassedToggleButton.isSelected = false
-    view.myFailedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = true
-    view.myInProgressToggleButton.isSelected = false
 
-    assertThat(tableView.rowCount).isEqualTo(5)
+    assertThat(tableView.rowCount).isEqualTo(8)
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
 
-    // Remove "Skipped" and select "In Progress".
+    // Remove "Passed" and "Skipped". (Nothing is selected).
+    view.myPassedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = false
-    view.myInProgressToggleButton.isSelected = true
-    view.myResultsTableView.createExpandAllAction().actionPerformed(mock())
 
-    assertThat(tableView.rowCount).isEqualTo(5)
+    assertThat(tableView.rowCount).isEqualTo(7)
     assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
-
-    // Remove "In Progress". (Nothing is selected).
-    view.myInProgressToggleButton.isSelected = false
-
-    assertThat(tableView.rowCount).isEqualTo(3)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation should always be visible.
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
   }
 
   @Test
@@ -276,24 +268,18 @@ class AndroidTestSuiteViewTest {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     // All buttons are selected initially.
-    assertThat(view.myFailedToggleButton.isSelected).isTrue()
     assertThat(view.myPassedToggleButton.isSelected).isTrue()
     assertThat(view.mySkippedToggleButton.isSelected).isTrue()
-    assertThat(view.myInProgressToggleButton.isSelected).isTrue()
 
     // Update state to false.
-    view.myFailedToggleButton.isSelected = false
     view.myPassedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = false
-    view.myInProgressToggleButton.isSelected = false
 
     val view2 = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     // The new state should persist even after recreation of the view.
-    assertThat(view2.myFailedToggleButton.isSelected).isFalse()
     assertThat(view2.myPassedToggleButton.isSelected).isFalse()
     assertThat(view2.mySkippedToggleButton.isSelected).isFalse()
-    assertThat(view2.myInProgressToggleButton.isSelected).isFalse()
   }
 
   @Test

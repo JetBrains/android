@@ -110,18 +110,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
 
   @VisibleForTesting val myDeviceAndApiLevelFilterComboBoxAction = DeviceAndApiLevelFilterComboBoxAction()
 
-  @VisibleForTesting val myFailedToggleButton = MyToggleAction(
-    "Show failed tests", getIconFor(AndroidTestCaseResult.FAILED, false),
-    FAILED_TOGGLE_BUTTON_STATE_KEY, true)
   @VisibleForTesting val myPassedToggleButton = MyToggleAction(
     "Show passed tests", getIconFor(AndroidTestCaseResult.PASSED, false),
     PASSED_TOGGLE_BUTTON_STATE_KEY, true)
   @VisibleForTesting val mySkippedToggleButton = MyToggleAction(
     "Show skipped tests", getIconFor(AndroidTestCaseResult.SKIPPED, false),
     SKIPPED_TOGGLE_BUTTON_STATE_KEY, true)
-  @VisibleForTesting val myInProgressToggleButton = MyToggleAction(
-    "Show running tests", getIconFor(AndroidTestCaseResult.IN_PROGRESS, false),
-    IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY, true)
 
   @VisibleForTesting val mySortByNameToggleButton = MyToggleAction(
     PlatformEditorBundle.message("action.sort.alphabetically"),
@@ -169,11 +163,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
         return@setRowFilter true
       }
       when (testResults.getTestResultSummary()) {
-        AndroidTestCaseResult.FAILED -> myFailedToggleButton.isSelected
         AndroidTestCaseResult.PASSED -> myPassedToggleButton.isSelected
         AndroidTestCaseResult.SKIPPED -> mySkippedToggleButton.isSelected
-        AndroidTestCaseResult.IN_PROGRESS -> myInProgressToggleButton.isSelected
-        AndroidTestCaseResult.SCHEDULED, AndroidTestCaseResult.CANCELLED -> true
+        else -> true
       }
     }
     myResultsTableView.setColumnFilter(myDeviceAndApiLevelFilterComboBoxAction.filter)
@@ -201,10 +193,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
 
     val testFilterAndSorterActionGroup = DefaultActionGroup()
     testFilterAndSorterActionGroup.addAll(
-      myFailedToggleButton,
       myPassedToggleButton,
       mySkippedToggleButton,
-      myInProgressToggleButton,
       Separator.getInstance(),
       myDeviceAndApiLevelFilterComboBoxAction,
       Separator.getInstance(),
