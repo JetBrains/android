@@ -104,6 +104,29 @@ class LegacyProcessManagerTest {
     waiter.assertNoDevices()
   }
 
+  @Test
+  fun testDeviceNotAdded() {
+    val scheduler = VirtualTimeScheduler()
+    val manager = LegacyProcessManager(disposableRule.disposable, scheduler)
+    assertThat(manager.getStreams().toList()).isEmpty()
+
+    val device1 = adbServer!!.connectDevice(DEVICE1, MANUFACTURER, "My Model", "3.0", "27", DeviceState.HostConnectionType.USB)?.get()!!
+    device1.deviceStatus = DeviceState.DeviceStatus.OFFLINE
+    // Device is offline, so we won't be able to add it. Exhaust the retries.
+    repeat(200) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
+    val waiter = ProcessManagerAsserts(manager)
+    waiter.assertNoDevices()
+    // Now it comes online
+    device1.deviceStatus = DeviceState.DeviceStatus.ONLINE
+    // Advance time, but we should have already given up
+    scheduler.advanceBy(50, TimeUnit.MILLISECONDS)
+    waiter.assertNoDevices()
+
+    device1.startClient(PROCESS1, 123, "com.example.myapplication", true)
+    // Now we should be able to see the device
+    waiter.assertDeviceWithProcesses(DEVICE1, PROCESS1) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
+  }
+
   /**
    * Starts one [DEVICE1] with 5 processes: [PROCESS1], [PROCESS2], [PROCESS3], [PROCESS4], [PROCESS5]
    *
