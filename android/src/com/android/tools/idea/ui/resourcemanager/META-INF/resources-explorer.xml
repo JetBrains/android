@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin url="https://www.jetbrains.com/idea">
+<idea-plugin>
 
   <extensionPoints>
     <extensionPoint
@@ -42,7 +42,9 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.importer.ImportConfigurationManager"/>
-    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" id="Resources Explorer" doNotActivateOnStart="true"
+    <facet.toolWindow id="Resources Explorer"
+                      facetIdList="android"
+                      anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" doNotActivateOnStart="true"
                 factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
   </extensions>
 
