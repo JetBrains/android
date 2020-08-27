@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.util.Segment
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
@@ -108,3 +109,7 @@ internal fun matchElementsToModels(models: List<NlModel>, elements: List<Preview
   }
   return matches
 }
+
+fun Segment?.containsOffset(offset: Int) = this?.let {
+  it.startOffset <= offset && offset <= it.endOffset
+} ?: false

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -26,6 +27,8 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   internal var state: PreviewRepresentationState? = null
   var nActivations = 0
   private var restoreCount = 0
+  var nCaretNotifications = 0
+  var lastCaretEvent: CaretEvent? = null
 
   override val component = JPanel()
   override fun updateNotifications(parentEditor: FileEditor) {}
@@ -46,6 +49,11 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 
   override fun getState(): PreviewRepresentationState? = mapOf()
+
+  override fun onCaretPositionChanged(event: CaretEvent) {
+    nCaretNotifications++
+    lastCaretEvent = event
+  }
 }
 
 open class TestPreviewRepresentationProvider(override val displayName: String,
