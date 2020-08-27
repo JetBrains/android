@@ -95,10 +95,10 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  @NotNull private ResourceFolderRegistry myRegistry;
-  @NotNull private Project myProject;
-  @NotNull private ResourceNotificationManager myResourceNotificationManager;
-  @NotNull private EditorNotifications myEditorNotifications;
+  private ResourceFolderRegistry myRegistry;
+  private Project myProject;
+  private ResourceNotificationManager myResourceNotificationManager;
+  private EditorNotifications myEditorNotifications;
 
   @Nullable private SampleDataListener mySampleDataListener;
 
@@ -110,12 +110,12 @@ public class AndroidFileChangeListener implements Disposable {
   public static class MyStartupActivity implements StartupActivity {
     @Override
     public void runActivity(@NotNull Project project) {
-      final AndroidFileChangeListener serviceInstance = getInstance(project);
-      serviceInstance.onProjectOpened(project);
+      AndroidFileChangeListener listener = getInstance(project);
+      listener.onProjectOpened(project);
     }
   }
 
-  public void onProjectOpened(@NotNull Project project) {
+  private void onProjectOpened(@NotNull Project project) {
     myProject = project;
     myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
     myRegistry = ResourceFolderRegistry.getInstance(myProject);
