@@ -30,6 +30,7 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.model.Model
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -41,9 +42,9 @@ class AndroidModule(
   private val gradleProject: BasicGradleProject,
   private val androidProject: AndroidProject,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
-  val nativeAndroidProject: NativeAndroidProject?,
+  private val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  val nativeModule: NativeModule?
+  private val nativeModule: NativeModule?
 ) {
   val findModelRoot: Model get() = gradleProject
   val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
@@ -59,9 +60,22 @@ class AndroidModule(
     get() = safeGet(androidProject::getDefaultVariant, null)
             ?: allVariantNames?.getDefaultOrFirstItem("debug")
 
+  fun getVariantAbiNames(variantName: String): Collection<String>? {
+    fun unsafeGet() = nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
+                      ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
+    return safeGet(::unsafeGet, null)
+  }
+
   val id = createUniqueModuleId(gradleProject)
   val variantGroup: VariantGroup = VariantGroup()
-  val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
+
+  enum class NativeVersion { None, V1, V2 }
+
+  val hasNative: NativeVersion = when {
+    nativeModule != null -> NativeVersion.V2
+    nativeAndroidProject != null -> NativeVersion.V1
+    else -> NativeVersion.None
+  }
 
   var projectSyncIssues: ProjectSyncIssues? = null
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null

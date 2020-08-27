@@ -30,10 +30,10 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeVersion
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
@@ -314,25 +314,16 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     selectedAbi: String?
   ): String? {
     // This module is not a native one, nothing to do
-    if (!module.hasNative) return null
+    if (module.hasNative == NativeVersion.None) return null
 
     // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
     // Otherwise return from this method with a null result as abis are not supported.
-    val abiNames: List<String>? =
-      try {
-        val abiNamesFromV2Model: List<String>? = module.nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
-        abiNamesFromV2Model ?: module.nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
-      }
-      catch (e: UnsupportedMethodException) {
-        null
-      }
-
-    if (abiNames == null) return null
+    val abiNames = module.getVariantAbiNames(variantName) ?: return null
 
     val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
                        ?: throw IllegalStateException("No valid Native abi found to request!")
 
-    if (module.nativeModule != null) {
+    if (module.hasNative == NativeVersion.V2) {
       // V2 model is available, trigger the sync with V2 API
       controller.findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
         it.variantsToGenerateBuildInformation = listOf(variantName)
