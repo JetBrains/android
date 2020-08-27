@@ -65,6 +65,10 @@ coverage_java_test(
         "": ["//tools/idea/updater:updater_deploy.jar"],
         "unb": ["//tools/adt/idea/studio:updater_deploy.jar"],
     }),
+    jvm_flags = select_project({
+        "": ["-Dupdater.jar.path=tools/idea/updater/updater_deploy.jar"],
+        "unb": [],
+    }),
     tags = ["no_test_windows"],  # b/77288863
     test_class = "com.android.studio.updater.StudioPatchUpdaterIntegrationTest",
     runtime_deps = [":intellij.android.updater.studio-updater_testlib"],

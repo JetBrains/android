@@ -215,7 +215,8 @@ class StudioPatchUpdaterIntegrationTest {
   private val updaterFullJar: Path
     get() {
       val root = TestUtils.getWorkspaceRoot().toPath()
-      val bazelDeployJar = root.resolve("tools/idea/updater/updater_deploy.jar")
+      val path = System.getProperty("updater.jar.path", "tools/adt/idea/studio/updater_deploy.jar")
+      val bazelDeployJar = root.resolve(path)
       if (Files.isRegularFile(bazelDeployJar)) {
         return bazelDeployJar
       }
