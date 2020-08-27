@@ -38,7 +38,6 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
-import java.util.Collections
 import java.util.LinkedList
 
 @UsedInBuildAction
@@ -219,7 +218,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     // adding this module to the head of allModules so that its dependency modules are resolved first.
     var moduleWithVariantSwitched: ModuleConfiguration? = null
 
-    inputModules.filter { it.androidProject.variants.isEmpty() }.forEach { module ->
+    inputModules.filter { it.fetchedVariantNames.isEmpty() }.forEach { module ->
       val moduleConfiguration = selectedOrDefaultModuleConfiguration(module) ?: return@forEach
       if (module.id == syncActionOptions.moduleIdWithVariantSwitched) {
         moduleWithVariantSwitched = moduleConfiguration
@@ -251,29 +250,14 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     androidModule: AndroidModule,
     selectedVariants: SelectedVariants
   ): String? {
-    var variant = selectedVariants.getSelectedVariant(androidModule.id)
-    val variantNames =
-      try {
-        androidModule.androidProject.variantNames
-      }
-      catch (e: UnsupportedMethodException) {
-        null
-      } ?: return null
-
-    // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
-    if (variant == null || !variantNames.contains(variant)) {
-      variant = try {
-        // Ask Gradle for the defaultVariant
-        androidModule.androidProject.defaultVariant
-      }
-      catch (e: UnsupportedMethodException) {
-        // If this is not supported then fallback to picking a default.
-        getDefaultOrFirstItem(variantNames, "debug")
-      }
-    }
-
-    return variant
+    val variantNames = androidModule.allVariantNames ?: return null
+    return selectedVariants
+      .getSelectedVariant(androidModule.id)
+      // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
+      ?.takeIf { variantNames.contains(it) }
+    ?: androidModule.defaultVariantName
   }
+
   private fun syncVariantAndGetModuleDependencies(
     controller: BuildController,
     moduleConfiguration: ModuleConfiguration
@@ -345,7 +329,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
     if (abiNames == null) return null
 
-    val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else getDefaultOrFirstItem(abiNames, "x86"))
+    val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
                        ?: throw IllegalStateException("No valid Native abi found to request!")
 
     if (module.nativeModule != null) {
@@ -366,11 +350,5 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     }
     return abiToRequest
   }
-}
-
-@UsedInBuildAction
-private fun getDefaultOrFirstItem(names: Collection<String>, defaultValue: String): String? {
-  if (names.isEmpty()) return null
-  return if (names.contains(defaultValue)) defaultValue else Collections.min(names, String::compareTo)
 }
 
