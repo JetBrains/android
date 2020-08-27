@@ -851,23 +851,9 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
                                              row: Int,
                                              column: Int): Component {
     val results = value as? AndroidTestResults ?: return this
-
-    if (results is AggregationRow) {
-      super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
-      icon = null
-      horizontalTextPosition = CENTER
-    } else {
-      val stats = results.getResultStats()
-      val text = if (stats.failed > 1) {
-        "(${stats.failed})"
-      } else {
-        ""
-      }
-      super.getTableCellRendererComponent(table, text, isSelected, hasFocus, row, column)
-      icon = getIconFor(results.getTestResultSummary())
-      horizontalTextPosition = TRAILING
-    }
-
+    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
+    icon = null
+    horizontalTextPosition = CENTER
     horizontalAlignment = CENTER
     foreground = getColorFor(results.getTestResultSummary())
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
