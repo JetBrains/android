@@ -80,7 +80,6 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    ------------------------------------------------------\n" +
       "    Automotive\n" +
       "    8.4, 1024 \u00d7 768, mdpi (Automotive 1024p landscape)\n" +
-      "    Polestar 2 (1152 \u00d7 1536, mdpi)\n" +
       "    ------------------------------------------------------\n" +
       "    Custom\n" +
       "    ------------------------------------------------------\n" +
