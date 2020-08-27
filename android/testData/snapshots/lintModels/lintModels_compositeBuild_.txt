@@ -6,9 +6,9 @@ MODULE              : TestCompositeLib1.app
     MavenName           : com.test.composite1:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/app/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -267,7 +267,7 @@ MODULE              : TestCompositeLib1.app
         - ClassOutputs      : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs      : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/TestCompositeLib1/app/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/TestCompositeLib1/app/src/main/java
@@ -704,9 +704,9 @@ MODULE              : TestCompositeLib1.lib
     MavenName           : com.test.composite1:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib1/lib/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -986,7 +986,7 @@ MODULE              : TestCompositeLib1.lib
         - ClassOutputs      : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs      : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/TestCompositeLib1/lib/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/TestCompositeLib1/lib/src/main/java
@@ -1404,9 +1404,9 @@ MODULE              : TestCompositeLib3.app
     MavenName           : TestCompositeLib3:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/app/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -1654,7 +1654,7 @@ MODULE              : TestCompositeLib3.app
         - ClassOutputs      : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs      : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/TestCompositeLib3/app/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/TestCompositeLib3/app/src/main/java
@@ -2091,9 +2091,9 @@ MODULE              : TestCompositeLib3.lib
     MavenName           : com.test.composite3:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/TestCompositeLib3/lib/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -2328,7 +2328,7 @@ MODULE              : TestCompositeLib3.lib
         - ClassOutputs      : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/TestCompositeLib3/lib/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/TestCompositeLib3/lib/src/main/java
@@ -2728,9 +2728,9 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -2994,7 +2994,7 @@ MODULE              : project.app
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs      : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/app/src/main/java
@@ -3431,9 +3431,9 @@ MODULE              : project.lib
     MavenName           : com.test.composite:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -3695,7 +3695,7 @@ MODULE              : project.lib
         - ClassOutputs      : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs      : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/lib/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/lib/src/main/java
