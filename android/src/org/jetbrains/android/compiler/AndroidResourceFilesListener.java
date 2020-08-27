@@ -76,7 +76,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
 
-      if (file != null && AndroidFileChangeListener.isRelevantFile(file)) {
+      if (file != null && AndroidFileChangeListener.isPossiblyRelevantFile(file)) {
         result.add(file);
       }
     }
