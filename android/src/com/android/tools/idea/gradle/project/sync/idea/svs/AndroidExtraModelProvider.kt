@@ -289,7 +289,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   ): Variant? = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
     parameter.setVariantName(variantName)
   }?.also {
-    module.variantGroup.variants.add(it)
+    module.addVariant(it)
   }
 
   /**
@@ -336,7 +336,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
         parameter.setVariantName(variantName)
         parameter.setAbiName(abiToRequest)
       }?.also {
-        module.variantGroup.nativeVariants.add(it)
+        module.addNativeVariant(it)
       }
     }
     return abiToRequest

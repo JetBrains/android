@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -30,7 +31,6 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.model.Model
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -67,7 +67,6 @@ class AndroidModule(
   }
 
   val id = createUniqueModuleId(gradleProject)
-  val variantGroup: VariantGroup = VariantGroup()
 
   enum class NativeVersion { None, V1, V2 }
 
@@ -76,6 +75,11 @@ class AndroidModule(
     nativeAndroidProject != null -> NativeVersion.V1
     else -> NativeVersion.None
   }
+
+  private val variantGroup: VariantGroup = VariantGroup()
+
+  fun addVariant(variant: Variant) = variantGroup.variants.add(variant)
+  fun addNativeVariant(variant: NativeVariantAbi) = variantGroup.nativeVariants.add(variant)
 
   var projectSyncIssues: ProjectSyncIssues? = null
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
