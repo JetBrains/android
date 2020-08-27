@@ -934,4 +934,23 @@ class LightBindingClassTest {
       assertThat(binding.findMethodsByName("executePendingBindings", false)).isEmpty()
     }
   }
+
+  @Test
+  fun accentedCharactersAreStripped() {
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+         <LinearLayout android:id="@+id/tést_íd" />
+      </layout>
+      """.trimIndent()
+    )
+
+    val context = fixture.addClass("public class ActivityMain {}")
+    val mainLayout = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    // It's ugly, but this is what the variable looks like after stripping é and í before capitalizing parts
+    assertThat(mainLayout.fields.first().name).isEqualTo("tStD")
+  }
 }

@@ -188,10 +188,15 @@ public final class DataBindingUtil {
    */
   @NotNull
   public static String convertVariableNameToJavaFieldName(@NotNull String name) {
-    String[] split = name.split("[_-]");
+    // Split on any character that's not US alphanumeric, e.g. underscores and accented characters.
+    // This matches the behavior of the data binding compiler, which strips aggressively because non-US
+    // locales can have extremely complex rules about capitalization that are much easier to sidestep.
+    // See also: https://issuetracker.google.com/37077964
+    String[] split = name.split("[^a-zA-Z0-9]");
     StringBuilder out = new StringBuilder();
     boolean first = true;
     for (String section : split) {
+      if (section.isEmpty()) continue;
       if (first) {
         first = false;
         out.append(section);
