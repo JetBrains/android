@@ -147,8 +147,4 @@
     <orientation name="land" size="1461,1481" screenPos="218,124" screenSize="1024,768" back="back.png" lights="fore.png"/>
   </device>
 
-  <device id="polestar_2" name="Automotive">
-    <orientation name="port" size="1698,2116" screenPos="267,194" screenSize="1152,1536" back="back.png" lights="fore.png"/>
-  </device>
-
 </devices>
