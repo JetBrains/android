@@ -130,6 +130,37 @@ import org.jetbrains.annotations.TestOnly;
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
   /**
+   * Alignment for the {@link SceneView} when its size is less than the minimum size.
+   * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
+   * the rectangle formed by the minimum size.
+   */
+  public enum SceneViewAlignment {
+    /**
+     * Align content to the left within the minimum size bounds.
+     */
+    LEFT(LEFT_ALIGNMENT),
+    /**
+     * Align content to the right within the minimum size bounds.
+     */
+    RIGHT(RIGHT_ALIGNMENT),
+    /**
+     * Center contents within the minimum size bounds.
+     */
+    CENTER(CENTER_ALIGNMENT);
+
+    /**
+     * The Swing alignment value equivalent to this alignment setting. See
+     * {@link java.awt.Component#LEFT_ALIGNMENT}, {@link java.awt.Component#RIGHT_ALIGNMENT}
+     * and {@link java.awt.Component#CENTER_ALIGNMENT}.
+     */
+    private final float mySwingAlignmentXValue;
+
+    SceneViewAlignment(float swingValue) {
+      mySwingAlignmentXValue = swingValue;
+    }
+  }
+
+  /**
    * If the difference between old and new scaling values is less than threshold, the scaling will be ignored.
    */
   @SurfaceZoomLevel
@@ -1033,13 +1064,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   @SwingCoordinate
   public Dimension getExtentSize() {
-    Dimension extentSize = myScrollPane.getViewport().getExtentSize();
-    extentSize.setSize(
-      extentSize.width - UIUtil.getScrollBarWidth(),
-      extentSize.height - UIUtil.getScrollBarWidth()
-    );
-
-    return extentSize;
+    return myScrollPane.getViewport().getExtentSize();
   }
 
   /**
@@ -1794,5 +1819,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public final PositionableContentLayoutManager getSceneViewLayoutManager() {
     return (PositionableContentLayoutManager)mySceneViewPanel.getLayout();
+  }
+
+  /**
+   * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the
+   * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
+   */
+  public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
+    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.mySwingAlignmentXValue);
   }
 }
