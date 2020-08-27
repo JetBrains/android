@@ -15,24 +15,66 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency.SUPPORTED_SCOPES;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Collection of an IDEA module's dependencies.
  */
 public class DependencySet {
-  @NotNull public static final DependencySet EMPTY = new DependencySet();
+  @NotNull public static final DependencySet EMPTY = new DependencySet() {
+    @Override
+    void add(@NotNull LibraryDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addAll(DependencySet other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void add(@NotNull ModuleDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+  };
+
+  @NotNull public static final DependencySet THROWING = new DependencySet() {
+    @Override
+    void add(@NotNull LibraryDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addAll(DependencySet other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void add(@NotNull ModuleDependency dependency) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull ImmutableCollection<LibraryDependency> onLibraries() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull ImmutableCollection<ModuleDependency> onModules() {
+      throw new UnsupportedOperationException();
+    }
+  };
 
   // Use linked list to maintain insertion order.
-  private final Multimap<String, LibraryDependency> myLibrariesByName = LinkedListMultimap.create();
+  private final Set<LibraryDependency> myDependencies = new LinkedHashSet<>();
   private final Map<Module, ModuleDependency> myModuleDependenciesByModule = Maps.newLinkedHashMap();
 
   DependencySet() {
@@ -49,39 +91,7 @@ public class DependencySet {
    * @param dependency the dependency to add.
    */
   void add(@NotNull LibraryDependency dependency) {
-    String originalName = dependency.getName();
-    Collection<LibraryDependency> allStored = myLibrariesByName.get(originalName);
-    allStored = allStored == null ? null : ImmutableSet.copyOf(allStored);
-    if (allStored == null || allStored.isEmpty()) {
-      myLibrariesByName.put(originalName, dependency);
-      return;
-    }
-
-    LibraryDependency toAdd = dependency;
-    LibraryDependency replaced = null;
-
-    for (LibraryDependency stored : allStored) {
-      if (areSameArtifact(dependency, stored)) {
-        toAdd = null;
-        if (hasHigherScope(dependency, stored)) {
-          // replace the existing one if the new one has higher scope. (e.g. "compile" scope is higher than "test" scope.)
-          replaced = stored;
-          dependency.setName(stored.getName());
-          myLibrariesByName.put(originalName, dependency);
-        }
-        break;
-      }
-    }
-
-    if (replaced != null) {
-      myLibrariesByName.remove(originalName, replaced);
-    }
-
-    if (toAdd != null) {
-      String newName = dependency.getName() + "_" + allStored.size();
-      dependency.setName(newName);
-      myLibrariesByName.put(originalName, dependency);
-    }
+    myDependencies.add(dependency);
   }
 
   /**
@@ -115,18 +125,14 @@ public class DependencySet {
   void add(@NotNull ModuleDependency dependency) {
     Module module = dependency.getModule();
     Dependency storedDependency = myModuleDependenciesByModule.get(module);
-    if (storedDependency == null || hasHigherScope(dependency, storedDependency)) {
+    if (storedDependency == null) {
       myModuleDependenciesByModule.put(module, dependency);
     }
   }
 
-  private static <T extends Dependency> boolean hasHigherScope(T d1, T d2) {
-    return SUPPORTED_SCOPES.indexOf(d1.getScope()) < SUPPORTED_SCOPES.indexOf(d2.getScope());
-  }
-
   @NotNull
   public ImmutableCollection<LibraryDependency> onLibraries() {
-    return ImmutableList.copyOf(myLibrariesByName.values());
+    return ImmutableList.copyOf(myDependencies);
   }
 
   @NotNull

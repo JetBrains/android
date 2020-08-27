@@ -28,14 +28,11 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.adt.ui.model",
+    name = "intellij.android.adt.ui.model",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.model.iml"],
     lint_baseline = "lint_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

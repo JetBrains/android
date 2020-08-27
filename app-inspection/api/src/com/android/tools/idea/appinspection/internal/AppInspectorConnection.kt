@@ -20,7 +20,8 @@ import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
@@ -120,19 +121,15 @@ private fun <T> Flow<T>.scopeCollection(job: Job): Flow<T> = callbackFlow {
 }
 
 /**
- * Two-way connection for the [AppInspectorClient] which implements [AppInspectorClient.CommandMessenger] and dispatches events for the
- * [AppInspectorClient.RawEventListener].
+ * Two-way connection for the [AppInspectorMessenger] which implements [AppInspectorMessenger] and dispatches events for it.
  */
 internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
   private val connectionStartTimeNs: Long,
   parentScope: CoroutineScope
-) : AppInspectorClient {
+) : AppInspectorMessenger {
   override val scope = parentScope.createChildScope(false)
-  private var _crashMessage: String? = null
-  override val crashMessage: String?
-    get() = _crashMessage
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
@@ -260,14 +257,11 @@ internal class AppInspectorConnection(
    */
   private fun cleanup(exceptionMessage: String, crashed: Boolean = false) {
     if (isDisposed.compareAndSet(false, true)) {
-      val cause = AppInspectionConnectionException(exceptionMessage)
+      val cause = if (crashed) AppInspectionCrashException(exceptionMessage) else AppInspectionConnectionException(exceptionMessage)
       commandChannel.close(cause)
       transport.unregisterEventListener(inspectorEventListener)
       transport.unregisterEventListener(processEndListener)
-      if (crashed) {
-        _crashMessage = exceptionMessage
-      }
-      scope.cancel(exceptionMessage)
+      scope.cancel(exceptionMessage, cause)
     }
   }
 }

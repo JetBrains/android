@@ -42,7 +42,6 @@ import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -64,7 +63,7 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
-private const val DIFF_THRESHOLD = 0.5
+private const val DIFF_THRESHOLD = 0.2
 
 @RunsInEdt
 class ResolutionElementEditorTest {
@@ -90,10 +89,6 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaint() {
-    if (SystemInfoRt.isWindows) {
-      return // b/161619293
-    }
-
     setLookAndFeel(IntelliJLaf(), ImageDiffUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")

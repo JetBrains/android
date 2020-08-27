@@ -42,17 +42,20 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
@@ -649,36 +652,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
     }
 
-    fun testNonTransitive_withoutRestart() {
-      myFixture.loadNewFile(
-        "/src/p1/p2/MainActivity.java",
-        // language=java
-        """
-      package p1.p2;
-
-      import android.app.Activity;
-      import android.os.Bundle;
-
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(R.string.${caret});
-          }
-      }
-      """.trimIndent()
-      )
-
-      myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "libString", "anotherLibString", "class")
-
-      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST)
-
-      myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
-    }
-
     fun testUseScope() {
       val activity = myFixture.loadNewFile(
         "/src/p1/p2/MainActivity.java",
@@ -736,8 +709,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       val libModule = getAdditionalModuleByName("unrelatedLib")!!
 
       runWriteCommandAction(project) {
-        Manifest.getMainManifest(libModule
-                       .let(AndroidFacet::getInstance)!!
+        Manifest.getMainManifest(libModule.let(AndroidFacet::getInstance)!!
         )!!
           .`package`!!
           .value = "p1.p2.unrelatedLib"
@@ -1307,8 +1279,6 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     super.setUp()
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
-    modifyGradleFiles(projectRoot)
-    requestSyncAndWait()
 
     createFile(
       project.guessProjectDir()!!,
@@ -1346,6 +1316,11 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
         </resources>
       """.trimIndent()
     )
+
+    modifyGradleFiles(projectRoot)
+    importProject(null)
+    prepareProjectForTest(project, null)
+    myFixture.allowTreeAccessForAllFiles()
   }
 
   open fun modifyGradleFiles(projectRoot: File) {
@@ -1363,12 +1338,51 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
       """)
   }
 }
+
+/**
+ * Tests to verify that the AndroidResolveScopeEnlarger cache is invalidated when gradle sync is triggered to use using
+ * android.nonTransitiveRClass=true gradle property.
+ *
+ * @see AndroidResolveScopeEnlarger
+ */
+class EnableNonTransitiveRClassTest: TestRClassesTest() {
+  fun testNonTransitive_withoutRestart() {
+    val normalClass = createFile(
+      project.guessProjectDir()!!,
+      "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class NormalClass {
+          void useResources() {
+             int layout = R.layout.${caret};
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(normalClass)
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
+                                                               "fragment_navigation_drawer", "support_simple_spinner_dropdown_item",
+                                                               "class")
+
+    val projectRoot = File(FileUtil.toSystemDependentName(project.basePath!!))
+    File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
+    requestSyncAndWait()
+
+    // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is not present.
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
+                                                               "fragment_navigation_drawer", "class")
+  }
+}
+
 class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val androidTest = createFile(
       project.guessProjectDir()!!,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
@@ -1397,7 +1411,6 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
-/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -1409,13 +1422,9 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-b/165051180 */
   }
 
   fun testLibTestResources() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val androidTest = createFile(
       project.guessProjectDir()!!,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
@@ -1440,7 +1449,6 @@ b/165051180 */
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
-/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
@@ -1452,13 +1460,9 @@ b/165051180 */
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-b/165051180 */
   }
 
   fun testResolveScope() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val unitTest = createFile(
       project.guessProjectDir()!!,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
@@ -1478,9 +1482,7 @@ b/165051180 */
     )
 
     myFixture.configureFromExistingVirtualFile(unitTest)
-/* b/165051180
     myFixture.checkHighlighting()
-b/165051180 */
 
     val normalClass = createFile(
       project.guessProjectDir()!!,
@@ -1523,9 +1525,6 @@ b/165051180 */
   }
 
   fun testUseScope() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val appTest = myFixture.loadNewFile(
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
@@ -1573,8 +1572,8 @@ b/165051180 */
       }
       """.trimIndent()
     )
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-/* b/165051180
     val appTestScope = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)!!.useScope as GlobalSearchScope
     assertFalse(appTestScope.isSearchInLibraries)
     assertEquals(appTestScope, myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").useScope)
@@ -1582,7 +1581,6 @@ b/165051180 */
     val libTestScope = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)!!.useScope as GlobalSearchScope
     assertFalse(libTestScope.isSearchInLibraries)
     assertEquals(libTestScope, myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").useScope)
-b/165051180 */
   }
 }
 
@@ -1593,9 +1591,6 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
   }
 
   fun testAppTestResources() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     // Sanity check.
     assertThat(project.findAppModule().getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
 
@@ -1629,18 +1624,13 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
-/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
-b/165051180 */
   }
 
   fun testLibTestResources() {
-    if (SystemInfoRt.isWindows) {
-      return  // TODO(b/162761346) failing on windows
-    }
     val androidTest = createFile(
       project.guessProjectDir()!!,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
@@ -1665,14 +1655,11 @@ b/165051180 */
       }
       """.trimIndent()
     )
-
     myFixture.configureFromExistingVirtualFile(androidTest)
-/* b/165051180
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
-b/165051180 */
   }
 }
 

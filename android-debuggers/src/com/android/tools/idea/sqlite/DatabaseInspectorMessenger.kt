@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
@@ -28,7 +28,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
 class DatabaseInspectorMessenger(
-  private val client: AppInspectorClient,
+  private val messenger: AppInspectorMessenger,
   private val scope: CoroutineScope,
   taskExecutor: Executor,
   private val errorsSideChannel: ErrorsSideChannel = { _, _ -> }
@@ -36,7 +36,7 @@ class DatabaseInspectorMessenger(
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
 
   suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response = withContext(workerDispatcher) {
-    val rawResponse = client.sendRawCommand(command.toByteArray())
+    val rawResponse = messenger.sendRawCommand(command.toByteArray())
     val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
     if (parsedResponse.hasErrorOccurred()) {
       val errorResponse = parsedResponse.errorOccurred

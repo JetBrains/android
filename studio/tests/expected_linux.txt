@@ -1520,7 +1520,7 @@ android-studio/plugins/android/lib/auto-common-0.10.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/commons-compress-1.8.1.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
-android-studio/plugins/android/lib/core-proto-0.0.1-dev.jar
+android-studio/plugins/android/lib/core-proto-0.0.2-dev.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/device-art-resources/automotive_1024/back.png
@@ -2080,6 +2080,8 @@ android-studio/plugins/android/lib/layoutlib/data/framework_res.jar
 android-studio/plugins/android/lib/layoutlib/data/icu/icudt66l.dat
 android-studio/plugins/android/lib/layoutlib/data/layoutlib-extensions.jar
 android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libandroid_runtime.so
+android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libbinder.so
+android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libhidlbase.so
 android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar

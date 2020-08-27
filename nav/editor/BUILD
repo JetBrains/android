@@ -157,50 +157,64 @@ iml_module(
 )
 
 # managed by go/iml_to_build [unb]
-iml_module(
-    name = "unb.intellij.android.nav.editor",
-    srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/nav/editor:unb.eclipse-layout-kernel"],
-    iml_files = ["intellij.android.nav.editor.iml"],
-    lint_baseline = "lint_baseline.xml",
-    resources = ["resources"],
+java_import(
+    name = "unb.eclipse-layout-kernel",
+    # do not sort: must match IML order
+    jars = [
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:unb.eclipse-layout-kernel_files",
+        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:unb.eclipse-layout-kernel_files",
+    ],
     tags = [
         "manual",
         "unb",
     ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.nav.editor",
+    srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/nav/editor:unb.eclipse-layout-kernel"],
+    iml_files = ["intellij.android.nav.editor.iml"],
+    lint_baseline = "lint_baseline.xml",
+    project = "unb",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/assistant:unb.assistant[module]",
-        "//tools/adt/idea/designer:unb.intellij.android.designer[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
-        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module]",
+        "//tools/adt/idea/assistant[module]",
+        "//tools/adt/idea/designer:intellij.android.designer[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/nav/editor:unb.eclipse-layout-kernel",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/observable:unb.intellij.android.observable[module]",
-        "//tools/adt/idea/observable-ui:unb.intellij.android.observable.ui[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.nav.editor.tests",
+    name = "intellij.android.nav.editor.tests",
     iml_files = ["intellij.android.nav.editor.tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_test_mac",  # b/156004626
         "no_test_windows",
-        "unb",
     ],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
     test_data = [
@@ -222,42 +236,24 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/designer:unb.intellij.android.designer.tests[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/analytics-library/shared:unb.analytics-shared[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/adt/idea/nav/editor:unb.intellij.android.nav.editor[module, test]",
-        "//tools/adt/idea/designer:unb.intellij.android.designer[module, test]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module, test]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/layout-ui:unb.intellij.android.layout-ui[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.eclipse-layout-kernel",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:unb.eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:unb.eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:unb.eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:unb.eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:unb.eclipse-layout-kernel_files",
-    ],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

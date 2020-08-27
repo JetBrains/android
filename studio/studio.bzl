@@ -1,10 +1,11 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
+load("//tools/base/bazel:project.bzl", "PROJECT")
 
 def _zipper(ctx, desc, map, out):
     files = [f for (p, f) in map]
     zipper_files = [r + "=" + f.path + "\n" for r, f in map]
-    zipper_args = ["c", out.path]
+    zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
     zipper_args += ["@" + zipper_list.path]
     ctx.actions.run(
@@ -134,6 +135,7 @@ _studio_plugin = rule(
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),
         "directory": attr.string(),
+        "compress": attr.bool(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -152,6 +154,12 @@ _studio_plugin = rule(
     },
     implementation = _studio_plugin_impl,
 )
+
+def _is_release():
+    return select({
+        "//tools/base/bazel:release": True,
+        "//conditions:default": False,
+    })
 
 # Build an Android Studio plugin.
 # This plugin is a zip file with the final layout inside Android Studio plugin's directory.
@@ -182,6 +190,7 @@ def studio_plugin(
         jars = jars,
         resources = resources_list,
         resources_dirs = resources_dirs,
+        compress = _is_release(),
         **kwargs
     )
 
@@ -262,9 +271,10 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_win = 
 def _stamp_plugin(ctx, build_txt, in_xml, stamped_xml):
     args = ["--build_file", build_txt.path]
     args += ["--info_file", ctx.info_file.path]
+    args += ["--version_file", ctx.version_file.path]
     args += ["--stamp_plugin", in_xml.path, stamped_xml.path]
     ctx.actions.run(
-        inputs = [in_xml, build_txt, ctx.info_file],
+        inputs = [in_xml, build_txt, ctx.info_file, ctx.version_file],
         outputs = [stamped_xml],
         executable = ctx.executable._stamper,
         arguments = args,
@@ -284,10 +294,11 @@ def _extract(ctx, zip, file, target):
 
 def _stamp_build(ctx, build_txt, src, dst):
     args = ["--build_file", build_txt.path]
+    args += ["--version_file", ctx.version_file.path]
     args += ["--info_file", ctx.info_file.path]
     args += ["--stamp_build", src.path, dst.path]
     ctx.actions.run(
-        inputs = [src, build_txt, ctx.info_file],
+        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
         outputs = [dst],
         executable = ctx.executable._stamper,
         arguments = args,
@@ -295,13 +306,34 @@ def _stamp_build(ctx, build_txt, src, dst):
         mnemonic = "stamper",
     )
 
-def _stamp_app_info(ctx, platform, platform_files):
+def _stamp_app_info(ctx, build_txt, src, dst):
+    args = ["--build_file", build_txt.path]
+    args += ["--version_file", ctx.version_file.path]
+    args += ["--info_file", ctx.info_file.path]
+    args += ["--version", ctx.attr.version]
+    args += ["--version_full", ctx.attr.version_full]
+    args += ["--eap", "true" if ctx.attr.version_eap else "false"]
+    args += ["--stamp_app_info", src.path, dst.path]
+    ctx.actions.run(
+        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
+        outputs = [dst],
+        executable = ctx.executable._stamper,
+        arguments = args,
+        progress_message = "Stamping %s file..." % src.basename,
+        mnemonic = "stamper",
+    )
+
+def _process_app_info(ctx, platform, platform_files):
     build_txt = None
     app_info_xml = None
     for rel_path, file in platform_files:
         if rel_path == platform.resource_path + "build.txt":
+            if build_txt:
+                fail("Unexpected duplicate build file in %s and %s", build_txt, file)
             build_txt = file
         if rel_path == platform.base_path + "lib/resources.jar":
+            if app_info_xml:
+                fail("Unexpected duplicate of lib/resources.jar")
             app_info_xml = ctx.actions.declare_file(ctx.attr.name + ".%s.app_info.xml" % platform.name)
             _extract(ctx, file, "idea/AndroidStudioApplicationInfo.xml", app_info_xml)
 
@@ -311,7 +343,7 @@ def _stamp_app_info(ctx, platform, platform_files):
         fail("lib/resources.jar!idea/AndroidStudioApplicationInfo.xml not found")
 
     stamped_app_info_xml = ctx.actions.declare_file(ctx.attr.name + "stamped.%s.app_info.xml" % platform.name)
-    _stamp_build(ctx, build_txt, app_info_xml, stamped_app_info_xml)
+    _stamp_app_info(ctx, build_txt, app_info_xml, stamped_app_info_xml)
     return stamped_app_info_xml, build_txt
 
 def _make_arg_file(ctx, zips, files, overrides, out):
@@ -323,7 +355,7 @@ def _make_arg_file(ctx, zips, files, overrides, out):
     return arg_file, data
 
 def _zip_merger(ctx, arg_files, out):
-    zipper_args = ["c", out.path]
+    zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     all_files = []
     for arg_file, files in arg_files:
         all_files += files + [arg_file]
@@ -366,7 +398,7 @@ def _android_studio_os(ctx, platform, out):
     platform_zip = ctx.actions.declare_file(ctx.attr.name + ".platform.%s.zip" % platform.name)
     platform_files = [(ctx.attr.platform.mappings[f], f) for f in platform.get(ctx.attr.platform)]
 
-    stamped_app_info_xml, build_txt = _stamp_app_info(ctx, platform, platform_files)
+    stamped_app_info_xml, build_txt = _process_app_info(ctx, platform, platform_files)
     overrides = [("#%slib/resources.jar!idea/AndroidStudioApplicationInfo.xml" % platform.base_path, stamped_app_info_xml)]
 
     platform_overrides = []
@@ -429,9 +461,11 @@ _android_studio = rule(
         "resources": attr.label_list(),
         "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
-        "searchable_options": attr.label_keyed_string_dict(
-            allow_files = True,
-        ),
+        "searchable_options": attr.label_keyed_string_dict(allow_files = True),
+        "version": attr.string(),
+        "version_eap": attr.bool(),
+        "version_full": attr.string(),
+        "compress": attr.bool(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -485,6 +519,10 @@ def android_studio(
         modules = {},
         resources = {},
         **kwargs):
+    if PROJECT != "unb":
+        print("android_studio rule only works if /tools/base/bazel/project.bzl:PROJECT is set to 'unb'")
+        return
+
     jars, modules_list = _dict_to_lists(modules)
     resources_dirs, resources_list = _dict_to_lists(resources)
     searchable_options_dict = {}
@@ -500,6 +538,7 @@ def android_studio(
         resources = resources_list,
         resources_dirs = resources_dirs,
         searchable_options = searchable_options_dict,
+        compress = _is_release(),
         **kwargs
     )
 
@@ -524,9 +563,6 @@ def _process_plugins(ctx, platform, data):
 
     ret = []
     for plugin, jars in plugins.items():
-        if plugin == "Compose":
-            # TODO: Compose is not a plugin, it should not be here
-            continue
         xml = ctx.actions.declare_file("%s.plugin.%s.%s.xml" % (ctx.label.name, plugin, platform.name))
         txt = ctx.actions.declare_file("%s.jar.%s.%s.txt" % (ctx.label.name, plugin, platform.name))
         args = ["--jar=%s" % jar.path for jar in jars]

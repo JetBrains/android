@@ -9,10 +9,10 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -211,7 +211,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
     for (VirtualFile subdir : subdirs) {
       for (VirtualFile child : subdir.getChildren()) {
-        if (child.getFileType() == StdFileTypes.XML &&
+        if (child.getFileType() == XmlFileType.INSTANCE &&
             (myFileToScan == null || myFileToScan.equals(child))) {
           filesToProcess.add(child);
         }
@@ -230,7 +230,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         psiFilesToProcess.add(psiFile);
       }
     }
-    final CacheManager cacheManager = CacheManager.SERVICE.getInstance(project);
+    final CacheManager cacheManager = CacheManager.getInstance(project);
     final GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
 
     for (Map.Entry<AndroidAttributeInfo, String> entry : myAttrMap.entrySet()) {

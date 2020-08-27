@@ -49,7 +49,6 @@ public class PackageValueTest {
 
   @Test
   public void testEqualsHash() {
-    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(PackageValue.class);
-    equalsVerifier.verify();
+    EqualsVerifier.forClass(PackageValue.class).verify();
   }
 }

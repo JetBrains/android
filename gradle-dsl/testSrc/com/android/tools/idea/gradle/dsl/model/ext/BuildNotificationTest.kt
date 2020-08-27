@@ -94,7 +94,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     val extModel = buildModel.ext()
 
     val propertyModel = extModel.findProperty("greeting")
-    propertyModel.setValue(ReferenceTo("prop"))
+    ReferenceTo.createReferenceFromText("prop", propertyModel)?.let { propertyModel.setValue(it) }
 
     val notifications = buildModel.notifications[myBuildFile.path]!!
     assertSize(1, notifications)
@@ -109,7 +109,7 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     val extModel = buildModel.ext()
 
     val propertyModel = extModel.findProperty("greeting")
-    propertyModel.setValue(ReferenceTo("hello"))
+    ReferenceTo.createReferenceFromText("hello", propertyModel)?.let { propertyModel.setValue(it) }
 
     assertNull(buildModel.notifications[myBuildFile.path])
 

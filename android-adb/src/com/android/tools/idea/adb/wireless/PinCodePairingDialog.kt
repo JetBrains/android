@@ -16,8 +16,8 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.ui.AbstractDialogWrapper
-import com.android.tools.idea.ui.DialogWrapperOptions
+import com.android.tools.idea.ui.SimpleDialog
+import com.android.tools.idea.ui.SimpleDialogOptions
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -27,23 +27,23 @@ import javax.swing.JComponent
 
 @UiThread
 class PinCodePairingDialog(project: Project) {
-  private val dialogWrapper: AbstractDialogWrapper
+  private val dialog: SimpleDialog
   private val pairingPanel by lazy { PinCodeInputPanel() }
 
   init {
-    val options = DialogWrapperOptions(project,
-                                       true,
-                                       DialogWrapper.IdeModalityType.PROJECT,
-                                       title = "Enter PIN code",
-                                       isModal = true,
-                                       okButtonText = "Pair",
-                                       centerPanelProvider = { createCenterPanel() },
-                                       okActionHandler = { okButtonHandler() },
-                                       preferredFocusProvider = { pairingPanel.pinCodeComponent },
-                                       validationHandler = { validationHandler() }
+    val options = SimpleDialogOptions(project,
+                                      true,
+                                      DialogWrapper.IdeModalityType.PROJECT,
+                                      title = "Enter PIN code",
+                                      isModal = true,
+                                      okButtonText = "Pair",
+                                      centerPanelProvider = { createCenterPanel() },
+                                      okActionHandler = { okButtonHandler() },
+                                      preferredFocusProvider = { pairingPanel.pinCodeComponent },
+                                      validationHandler = { validationHandler() }
     )
-    dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(options)
-    dialogWrapper.init()
+    dialog = SimpleDialog(options)
+    dialog.init()
   }
 
   var validationHandler: () -> ValidationInfo? = { null }
@@ -51,7 +51,7 @@ class PinCodePairingDialog(project: Project) {
   var okButtonHandler: () -> Boolean = { false }
 
   val disposable: Disposable
-    get() = dialogWrapper.disposable
+    get() = dialog.disposable
 
   val pinCodeComponent: JComponent
     get() = pairingPanel.pinCodeComponent
@@ -69,7 +69,7 @@ class PinCodePairingDialog(project: Project) {
   }
 
   fun show() {
-    dialogWrapper.show()
+    dialog.show()
   }
 
   fun setDevice(service: MdnsService) {
@@ -78,22 +78,22 @@ class PinCodePairingDialog(project: Project) {
 
   fun showPairingInProgress(text: String) {
     pairingPanel.showProgress(text)
-    dialogWrapper.okButtonEnabled = false
-    dialogWrapper.cancelButtonEnabled = false
+    dialog.okButtonEnabled = false
+    dialog.cancelButtonEnabled = false
   }
 
   fun showPairingSuccess(device: AdbOnlineDevice) {
     pairingPanel.showSuccess(device)
-    dialogWrapper.okButtonEnabled = true
-    dialogWrapper.cancelButtonEnabled = true
-    dialogWrapper.okButtonText = "Done"
-    dialogWrapper.cancelButtonVisible = false
+    dialog.okButtonEnabled = true
+    dialog.cancelButtonEnabled = true
+    dialog.okButtonText = "Done"
+    dialog.cancelButtonVisible = false
   }
 
   fun showPairingError() {
     pairingPanel.showPairingError()
-    dialogWrapper.okButtonEnabled = true
-    dialogWrapper.cancelButtonEnabled = true
+    dialog.okButtonEnabled = true
+    dialog.cancelButtonEnabled = true
   }
 
   private val panelPreferredSize: JBDimension

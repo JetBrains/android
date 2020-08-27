@@ -80,6 +80,14 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   }
 
   @Test
+  fun testSimpleApplicationWithVersion() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplicationWithVersion"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationWithVersionExpected"))
+  }
+
+  @Test
   fun testApplicationWithDynamicFeatures() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWithDynamicFeatures"))
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
@@ -125,6 +133,22 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleJavaLibraryExpected"))
+  }
+
+  @Test
+  fun testSimpleOrgGradleJavaApplication() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplication"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplicationExpected"))
+  }
+
+  @Test
+  fun testSimpleOrgGradleJavaLibrary() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibrary"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibraryExpected"))
   }
 
   @Test

@@ -17,11 +17,13 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
@@ -44,12 +46,15 @@ object ComposePreviewAnimationManager {
 
   private var newInspectorOpenedCallback: (() -> Unit)? = null
 
+  @Slow
   fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
     newInspectorOpenedCallback = onNewInspectorOpen
-    val animationInspectorPanel = AnimationInspectorPanel(surface)
-    Disposer.register(parent, animationInspectorPanel)
-    currentInspector = animationInspectorPanel
-    return animationInspectorPanel
+    return invokeAndWaitIfNeeded {
+      val animationInspectorPanel = AnimationInspectorPanel(surface)
+      Disposer.register(parent, animationInspectorPanel)
+      currentInspector = animationInspectorPanel
+      animationInspectorPanel
+    }
   }
 
   fun closeCurrentInspector() {

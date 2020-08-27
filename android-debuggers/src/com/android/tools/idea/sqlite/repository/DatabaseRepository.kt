@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.repository
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -32,7 +31,6 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CompletableDeferred
@@ -44,7 +42,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
-import java.sql.ResultSet
 import java.util.concurrent.Executor
 
 /**
@@ -64,7 +61,7 @@ interface DatabaseRepository {
     newValue: SqliteValue
   ): ListenableFuture<Unit>
   fun selectOrdered(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement, orderBy: OrderBy): ListenableFuture<SqliteResultSet>
-  suspend fun release()
+  suspend fun clear()
 }
 
 class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executor = PooledThreadExecutor.INSTANCE) : DatabaseRepository {
@@ -87,12 +84,17 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
           databaseConnections[action.databaseId] = action.databaseConnection
         }
         is RepositoryActions.CloseConnection -> {
-          val connection = databaseConnections.remove(action.databaseId)
-          connection?.close()
+          databaseConnections.remove(action.databaseId)?.let { connection ->
+            connection.close()
+            Disposer.dispose(connection)
+          }
           action.deferredDatabaseClosed.complete(Unit)
         }
         is RepositoryActions.CloseAllConnections -> {
-          databaseConnections.values.forEach { it.close() }
+          databaseConnections.values.forEach { connection ->
+            connection.close()
+            Disposer.dispose(connection)
+          }
           databaseConnections.clear()
           action.deferredAllClosed.complete(Unit)
         }
@@ -170,7 +172,7 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
     databaseConnection.query(selectOrderByStatement).await()
   }
 
-  override suspend fun release() = withContext(workerDispatcher) {
+  override suspend fun clear() = withContext(workerDispatcher) {
     val completableDeferred = CompletableDeferred<Unit>()
     repositoryChannel.send(RepositoryActions.CloseAllConnections(completableDeferred))
     completableDeferred.await()

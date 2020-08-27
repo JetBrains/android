@@ -95,17 +95,25 @@ iml_module(
 )
 
 # managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.traceprocessor-proto",
+    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.profilersAndroid",
+    name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     bundled_deps = ["//tools/adt/idea/profilers-android:unb.traceprocessor-proto"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "no_test_windows",
-        "unb",
-    ],
+    project = "unb",
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
         "//tools/adt/idea/profilers:test_data",
@@ -118,42 +126,31 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
-        "//tools/adt/idea/profilers-ui:unb.intellij.android.profilers.ui[module]",
-        "//tools/adt/idea/profilers:unb.intellij.android.profilers[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
-        "//tools/adt/idea/adt-ui-model:unb.intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/transport-database:unb.intellij.android.transportDatabase[module]",
+        "//tools/adt/idea/profilers-ui:intellij.android.profilers.ui[module]",
+        "//tools/adt/idea/profilers:intellij.android.profilers[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/base/ddmlib:unb.studio.android.sdktools.ddmlib[module]",
-        "//tools/analytics-library/shared:unb.analytics-shared[module]",
-        "//tools/analytics-library/tracker:unb.analytics-tracker[module]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/native-symbolizer:unb.native-symbolizer[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/native-symbolizer[module]",
         "//tools/adt/idea/.idea/libraries:unb.protobuf",
         "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-        "//tools/adt/idea/deploy:unb.intellij.android.deploy[module]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android-transport:unb.intellij.android.transport[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/profilers-android:unb.traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
     ],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.traceprocessor-proto",
-    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
 )

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view.chart
 
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
@@ -46,7 +47,7 @@ private const val STACK_WIDTH_PX = 100
 private const val STACK_LEFT_BORDER_PX = 100
 private const val RIGHT_SELECTION_MARGIN_PX = 3
 private const val FULL_WIDTH_PX = STACK_WIDTH_PX + STACK_LEFT_BORDER_PX + RIGHT_SELECTION_MARGIN_PX
-private val MERGED_ITEMS_COLOR: JBColor = JBColor.GRAY
+private val MERGED_ITEMS_COLOR = Color(0xBDBDBD)
 
 class TimeDistributionTreeChart(
   val model: TimeDistributionTreeChartCalculationModel,

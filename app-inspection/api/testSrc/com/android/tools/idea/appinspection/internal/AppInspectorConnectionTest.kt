@@ -342,12 +342,11 @@ class AppInspectorConnectionTest {
   }
 
   @Test
-  fun verifyCrashMessage() = runBlocking<Unit> {
+  fun verifyAwaitForDisposalReturnsExpectedValues() = runBlocking<Unit> {
     // Scope cancellation
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     client.scope.cancel()
-    client.awaitForDisposal()
-    assertThat(client.crashMessage).isNull()
+    assertThat(client.awaitForDisposal()).isTrue()
 
     // Process ended
     val client2 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -357,8 +356,7 @@ class AppInspectorConnectionTest {
         .setIsEnded(true)
         .build()
     )
-    client2.awaitForDisposal()
-    assertThat(client2.crashMessage).isNull()
+    assertThat(client2.awaitForDisposal()).isTrue()
 
     // Crash
     val client3 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -372,7 +370,6 @@ class AppInspectorConnectionTest {
         )
         .build()
     )
-    client3.awaitForDisposal()
-    assertThat(client3.crashMessage).isNotNull()
+    assertThat(client3.awaitForDisposal()).isFalse()
   }
 }

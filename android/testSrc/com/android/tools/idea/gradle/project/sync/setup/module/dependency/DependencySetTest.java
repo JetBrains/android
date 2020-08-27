@@ -48,10 +48,10 @@ public class DependencySetTest {
 
   @Test
   public void addModuleWithExistingDependencyWithNarrowerScope() {
-    ModuleDependency compileDependency = new ModuleDependency(DependencyScope.COMPILE, myModule);
+    ModuleDependency compileDependency = new ModuleDependency(myModule);
     myDependencies.add(compileDependency);
 
-    ModuleDependency testDependency = new ModuleDependency(DependencyScope.TEST, myModule);
+    ModuleDependency testDependency = new ModuleDependency(myModule);
     myDependencies.add(testDependency);
 
     Collection<ModuleDependency> all = myDependencies.onModules();
@@ -61,10 +61,10 @@ public class DependencySetTest {
 
   @Test
   public void addModuleWithExistingDependencyWithWiderScope() {
-    ModuleDependency testDependency = new ModuleDependency(DependencyScope.TEST, myModule);
+    ModuleDependency testDependency = new ModuleDependency(myModule);
     myDependencies.add(testDependency);
 
-    ModuleDependency compileDependency = new ModuleDependency(DependencyScope.COMPILE, myModule);
+    ModuleDependency compileDependency = new ModuleDependency(myModule);
     myDependencies.add(compileDependency);
 
     Collection<ModuleDependency> moduleDependencies = myDependencies.onModules();
@@ -76,34 +76,28 @@ public class DependencySetTest {
   public void addLibrary() {
     File dependency1Path = new File("file1.jar");
     LibraryDependency dependency1 =
-      new LibraryDependency(dependency1Path, "library-1.0.1.jar", DependencyScope.COMPILE, ImmutableList.of(dependency1Path));
+      new LibraryDependency(dependency1Path, ImmutableList.of(dependency1Path));
     myDependencies.add(dependency1);
 
     File dependency2Path = new File("file2.jar");
-    LibraryDependency dependency2 =
-      new LibraryDependency(dependency2Path, "library-1.0.1.jar", DependencyScope.TEST, ImmutableList.of(dependency2Path));
+    LibraryDependency dependency2 = new LibraryDependency(dependency2Path, ImmutableList.of(dependency2Path));
     myDependencies.add(dependency2);
 
-    LibraryDependency dependency3 =
-      new LibraryDependency(dependency2Path, "library-1.0.1.jar", DependencyScope.COMPILE, ImmutableList.of(dependency2Path));
+    LibraryDependency dependency3 = new LibraryDependency(dependency2Path, ImmutableList.of(dependency2Path));
     myDependencies.add(dependency3);
 
     Collection<LibraryDependency> libraryDependencies = myDependencies.onLibraries();
     assertThat(libraryDependencies).hasSize(2);
     assertThat(libraryDependencies).containsAllOf(dependency1, dependency3);
-
-    assertNotEquals(dependency1.getName(), dependency3.getName());
   }
 
   @Test
   public void addLibraryWithExistingDependencyWithNarrowerScope() {
     File dependencyPath = new File("asm-4.0.jar");
-    LibraryDependency compileDependency =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.COMPILE, ImmutableList.of(dependencyPath));
+    LibraryDependency compileDependency = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(compileDependency);
 
-    LibraryDependency testDependency =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.TEST, ImmutableList.of(dependencyPath));
+    LibraryDependency testDependency = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(testDependency);
 
     Collection<LibraryDependency> libraryDependencies = myDependencies.onLibraries();
@@ -114,12 +108,10 @@ public class DependencySetTest {
   @Test
   public void addLibraryWithExistingDependencyWithWiderScope() {
     File dependencyPath = new File("asm-4.0.jar");
-    LibraryDependency testDependency =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.TEST, ImmutableList.of(dependencyPath));
+    LibraryDependency testDependency = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(testDependency);
 
-    LibraryDependency compileDependency =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.COMPILE, ImmutableList.of(dependencyPath));
+    LibraryDependency compileDependency = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(compileDependency);
 
     Collection<LibraryDependency> libraryDependencies = myDependencies.onLibraries();
@@ -130,12 +122,10 @@ public class DependencySetTest {
   @Test
   public void addLibraryWithExistingDependency() {
     File dependencyPath = new File("asm-4.0.jar");
-    LibraryDependency dependency1 =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.COMPILE, ImmutableList.of(dependencyPath));
+    LibraryDependency dependency1 = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(dependency1);
 
-    LibraryDependency dependency2 =
-      new LibraryDependency(dependencyPath, "asm-4.0.jar", DependencyScope.COMPILE, ImmutableList.of(dependencyPath));
+    LibraryDependency dependency2 = new LibraryDependency(dependencyPath, ImmutableList.of(dependencyPath));
     myDependencies.add(dependency2);
 
     Collection<LibraryDependency> libraryDependencies = myDependencies.onLibraries();
@@ -146,13 +136,11 @@ public class DependencySetTest {
   @Test
   public void addLibrariesWithSameNameButDifferentArtifacts() {
     File dependency1Path = new File("file1.jar");
-    LibraryDependency dependency1 =
-      new LibraryDependency(dependency1Path, "library-1.0.1.jar", DependencyScope.COMPILE, ImmutableList.of(dependency1Path));
+    LibraryDependency dependency1 = new LibraryDependency(dependency1Path, ImmutableList.of(dependency1Path));
     myDependencies.add(dependency1);
 
     File dependency2Path = new File("file2.jar");
-    LibraryDependency dependency2 =
-      new LibraryDependency(dependency2Path, "library-1.0.1.jar", DependencyScope.COMPILE, ImmutableList.of(dependency2Path));
+    LibraryDependency dependency2 = new LibraryDependency(dependency2Path, ImmutableList.of(dependency2Path));
     myDependencies.add(dependency2);
 
     Collection<LibraryDependency> all = myDependencies.onLibraries();
@@ -163,33 +151,33 @@ public class DependencySetTest {
 
   @Test
   public void onLibrariesMaintainInsertionOrder_1() {
-    addDependency("file1.jar", "library1");
-    addDependency("file4.jar", "library4");
-    addDependency("file2.jar", "library2");
-    addDependency("file3.jar", "library3");
+    addDependency("file1.jar");
+    addDependency("file4.jar");
+    addDependency("file2.jar");
+    addDependency("file3.jar");
 
-    List<String> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getName);
+    List<File> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getArtifactPath);
     assertThat(dependencyNames).hasSize(4);
     assertThat(dependencyNames)
-      .containsExactly("Gradle: library1", "Gradle: library4", "Gradle: library2", "Gradle: library3").inOrder();
+      .containsExactly(new File("file1.jar"), new File("file4.jar"), new File("file2.jar"), new File("file3.jar")).inOrder();
   }
 
   @Test
   public void onLibrariesMaintainInsertionOrder_2() {
-    addDependency("file_c.jar", "library_c");
-    addDependency("file_d.jar", "library_d");
-    addDependency("file_a.jar", "library_a");
-    addDependency("file_b.jar", "library_b");
+    addDependency("file_c.jar");
+    addDependency("file_d.jar");
+    addDependency("file_a.jar");
+    addDependency("file_b.jar");
 
-    List<String> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getName);
+    List<File> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getArtifactPath);
     assertThat(dependencyNames).hasSize(4);
     assertThat(dependencyNames)
-      .containsExactly("Gradle: library_c", "Gradle: library_d", "Gradle: library_a", "Gradle: library_b").inOrder();
+      .containsExactly(new File("file_c.jar"), new File("file_d.jar"), new File("file_a.jar"), new File("file_b.jar")).inOrder();
   }
 
-  private void addDependency(@NotNull String binaryPath, @NotNull String libraryName) {
+  private void addDependency(@NotNull String binaryPath) {
     File binaryFile = new File(binaryPath);
-    LibraryDependency dependency = new LibraryDependency(binaryFile, libraryName, DependencyScope.COMPILE, ImmutableList.of(binaryFile));
+    LibraryDependency dependency = new LibraryDependency(binaryFile, ImmutableList.of(binaryFile));
     myDependencies.add(dependency);
   }
 }

@@ -13,7 +13,6 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
-import com.android.projectmodel.Library;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -402,9 +401,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (Library library : moduleSystem.getResolvedLibraryDependencies()) {
-      if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
-        registerLibraryResources((ExternalLibrary)library, repositoryManager, classRegistry, idManager);
+    for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
+      if (library.getHasResources()) {
+        registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
   }

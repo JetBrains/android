@@ -22,7 +22,13 @@ abstract class AppInspectionException(message: String): Exception(message)
  *
  * Example: inspector connection is disposed.
  */
-class AppInspectionConnectionException(message: String): AppInspectionException(message)
+open class AppInspectionConnectionException(message: String): AppInspectionException(message)
+
+/**
+ * Signals that the inspector crashed on device, a case particularly interesting to users that also
+ * will happen to interrupt the current exception.
+ */
+class AppInspectionCrashException(message: String): AppInspectionConnectionException(message)
 
 class AppInspectionLaunchException(message: String): AppInspectionException(message)
 

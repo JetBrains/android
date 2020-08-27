@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -42,9 +42,10 @@ private const val MAX_RETRY_COUNT = 60
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
-class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable: Disposable) : InspectorClient {
-
+class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : InspectorClient {
   var selectedClient: Client? = null
+  private val resourceLookup = model.resourceLookup
+  private val stats = model.stats
 
   override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
     private set(value) {
@@ -82,9 +83,13 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
   }
 
   private fun logEvent(type: DynamicLayoutInspectorEventType, stream: Common.Stream) {
+    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(type)
+    if (type == DynamicLayoutInspectorEventType.SESSION_DATA) {
+      stats.save(inspectorEvent.sessionBuilder)
+    }
     val builder = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder().setType(type))
+      .setDynamicLayoutInspectorEvent(inspectorEvent)
     processManager.findIDeviceFor(stream)?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
     UsageTracker.log(builder)
   }
@@ -198,6 +203,7 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
 
   override fun disconnect(): Future<Nothing> {
     if (selectedClient != null) {
+      logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
       selectedClient = null
       selectedProcess = Common.Process.getDefaultInstance()
       selectedStream = Common.Stream.getDefaultInstance()

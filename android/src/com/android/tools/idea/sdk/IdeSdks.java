@@ -285,7 +285,7 @@ public class IdeSdks {
     }
   }
 
-  private void initializeJdkEnvVariable() {
+  public void initializeJdkEnvVariable() {
     synchronized (myEnvVariableLock) {
       if (myIsJdkEnvVariableDefined != null) {
         return;
@@ -294,15 +294,13 @@ public class IdeSdks {
     }
   }
 
-  @VisibleForTesting
-  void cleanJdkEnvVariableInitialization() {
+  public void cleanJdkEnvVariableInitialization() {
     synchronized (myEnvVariableLock) {
       myIsJdkEnvVariableDefined = null;
     }
   }
 
-  @VisibleForTesting
-  void initializeJdkEnvVariable(@Nullable String envVariableValue) {
+  public void initializeJdkEnvVariable(@Nullable String envVariableValue) {
     // Read env variable only once and initialize the rest of variables accordingly. myIsJdkEnvVariableDefined null means that this function
     // has not been called yet.
     synchronized (myEnvVariableLock) {
@@ -873,7 +871,7 @@ public class IdeSdks {
       }
 
       if (checkForJdk(jdkPath)) {
-        Sdk jdk = createJdk(jdkPath); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
+        Sdk jdk = createJdk(jdkPath); // TODO-ank: this adds JDK to the project even if the JDK is not compatible and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
         }

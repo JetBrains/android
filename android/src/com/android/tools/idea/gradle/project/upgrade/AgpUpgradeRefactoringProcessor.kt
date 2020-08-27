@@ -931,7 +931,9 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
       //  PsModuleType.kt)
       val pluginNames = model.plugins().map { it.name().forceString() }
-      pluginNames.firstOrNull { it.startsWith("java") || it == "application" }?.let { _ ->
+      pluginNames
+        .firstOrNull { it.startsWith("java") || it.startsWith("org.gradle.java") || it == "application" || it == "org.gradle.application" }
+        ?.let { _ ->
         model.java().sourceCompatibility().let {
           val psiElement = listOf(it, model.java(), model).firstNotNullResult { model -> model.psiElement }!!
           val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
@@ -1155,10 +1157,10 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       // TODO(xof): as with the Java8Default refactoring above, we should define and use some kind of API
       //  to determine what kind of a module we have.
       val applicationSet = setOf(
-        "application",
+        "application", "org.gradle.application", // see Gradle documentation for PluginDependenciesSpec for `org.gradle.` prefix
         "com.android.application", "com.android.test", "com.android.instant-app")
       val librarySet = setOf(
-        "java", "java-library",
+        "java", "java-library", "org.gradle.java", "org.gradle.java-library",
         "com.android.library", "com.android.dynamic-feature", "com.android.feature")
       val compileReplacement = when {
         !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
@@ -1265,7 +1267,8 @@ class WrappedPsiElement(
   val usageType: UsageType?,
   val presentableText: String = ""
 ) : PsiElement by realElement, PsiElementNavigationItem {
-  // We override this PsiElement method in order to have it stored in the PsiElementUsage.
+  // We override this PsiElement method in order to have it stored in the PsiElementUsage (UsageInfo stores the navigation element, not
+  // necessarily the element we pass to the UsageInfo constructor).
   override fun getNavigationElement(): PsiElement = this
   // We need to make sure that we wrap copies of us.
   override fun copy(): PsiElement = WrappedPsiElement(realElement.copy(), processor, usageType)

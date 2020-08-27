@@ -21,7 +21,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCommand
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -30,10 +30,10 @@ import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 
 /**
- * Class used to send commands to and handle events from the on-device work manager inspector through its [client].
+ * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(private val client: AppInspectorClient, private val clientScope: CoroutineScope) {
+class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, private val clientScope: CoroutineScope) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -43,49 +43,76 @@ class WorkManagerInspectorClient(private val client: AppInspectorClient, private
   @GuardedBy("lock")
   private val works = mutableListOf<WorkInfo>()
 
+  private var filteredWorks: List<WorkInfo> = works
+
+  var filterTag: String? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        updateFilteredWork()
+        _worksChangedListeners.forEach { listener -> listener() }
+      }
+    }
+
   private val _worksChangedListeners = mutableListOf<() -> Unit>()
   fun addWorksChangedListener(listener: () -> Unit) = _worksChangedListeners.add(listener)
 
   init {
     val command = Command.newBuilder().setTrackWorkManager(TrackWorkManagerCommand.getDefaultInstance()).build()
     clientScope.launch {
-      client.sendRawCommand(command.toByteArray())
+      messenger.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      client.rawEventFlow.collect { eventData ->
+      messenger.rawEventFlow.collect { eventData ->
         handleEvent(eventData)
       }
     }
   }
 
   fun getWorkInfoCount() = synchronized(lock) {
-    works.size
+    filteredWorks.size
   }
 
   /**
    * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
    */
   fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
-    works.getOrNull(index)
+    filteredWorks.getOrNull(index)
   }
 
   /**
    * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
    */
   fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
-    works.indexOfFirst(predicate)
+    filteredWorks.indexOfFirst(predicate)
   }
 
-  fun getWorkIdsWithUniqueName(uniqueName: String): List<String> = synchronized(lock) {
-    works.filter { it.namesList.contains(uniqueName) }.map { it.id }.toList()
+  // TODO(b/165789713): Return work chain ids with topological order.
+  fun getWorkChain(id: String): List<String> = synchronized(lock) {
+    val work = works.first { it.id == id }
+    if (work.namesCount > 0) {
+      val name = work.getNames(0)!!
+      return works.filter { it.namesList.contains(name) }.map { it.id }.toList()
+    }
+    return listOf(id)
   }
 
   fun cancelWorkById(id: String) {
     val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
     val command = Command.newBuilder().setCancelWork(cancelCommand).build()
     clientScope.launch {
-      client.sendRawCommand(command.toByteArray())
+      messenger.sendRawCommand(command.toByteArray())
     }
+  }
+
+  fun getAllTags() = synchronized(lock) {
+    works.flatMap { it.tagsList }.toSortedSet().toList()
+  }
+
+  private fun updateFilteredWork() {
+    filteredWorks = filterTag?.let { tag ->
+      works.filter { workInfo -> workInfo.tagsList.contains(tag) }
+    } ?: works
   }
 
   private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
@@ -93,11 +120,13 @@ class WorkManagerInspectorClient(private val client: AppInspectorClient, private
     when (event.oneOfCase!!) {
       Event.OneOfCase.WORK_ADDED -> {
         works.add(event.workAdded.work)
+        updateFilteredWork()
       }
       Event.OneOfCase.WORK_REMOVED -> {
         works.removeAll {
           it.id == event.workRemoved.id
         }
+        updateFilteredWork()
       }
       Event.OneOfCase.WORK_UPDATED -> {
         val updateWorkEvent = event.workUpdated

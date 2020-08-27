@@ -48,6 +48,26 @@ data class PreviewGroup private constructor(
  */
 interface ComposePreviewManager {
   /**
+   * Enum that determines the current status of the interactive preview.
+   *
+   * The transitions are are like:
+   * DISABLED -> STARTED -> READY -> STOPPING
+   *    ^                               +
+   *    |                               |
+   *    +-------------------------------+
+   */
+  enum class InteractiveMode {
+    DISABLED,
+    /** Status when interactive has been started but the first render has not happened yet. */
+    STARTING,
+    /** Interactive is ready and running. */
+    READY,
+    /** The interactive preview is stopping but it has not been fully disposed yet. */
+    STOPPING;
+
+    fun isStartingOrReady() = this == STARTING || this == READY
+  }
+  /**
    * Status of the preview.
    *
    * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview being up to date.
@@ -55,13 +75,13 @@ interface ComposePreviewManager {
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
    * @param isRefreshing true if the view is currently refreshing.
-   * @param isInteractive true if the preview is in interactive mode and processing events.
+   * @param interactiveMode represents current state of preview interactivity.
    */
   data class Status(val hasRuntimeErrors: Boolean,
                     val hasSyntaxErrors: Boolean,
                     val isOutOfDate: Boolean,
                     val isRefreshing: Boolean,
-                    val isInteractive: Boolean) {
+                    val interactiveMode: InteractiveMode) {
     /**
      * True if the preview has errors that will need a refresh
      */
@@ -73,7 +93,7 @@ interface ComposePreviewManager {
   /**
    * When true, a build will automatically be triggered when the user makes a source code change.
    */
-  var isAutoBuildEnabled: Boolean
+  var isBuildOnSaveEnabled: Boolean
 
   /**
    * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
@@ -86,9 +106,9 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * [PreviewElementInstance] to run in the interactive mode or null if not in interactive mode.
+   * If [elementInstance] is not null sets [PreviewElementInstance] to run in the interactive mode or exits interactive mode if null.
    */
-  var interactivePreviewElementInstance: PreviewElementInstance?
+  fun setInteractivePreviewElementInstance(elementInstance: PreviewElementInstance?)
 
   /**
    * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
@@ -96,8 +116,8 @@ interface ComposePreviewManager {
   var animationInspectionPreviewElementInstance: PreviewElementInstance?
 }
 
-val ComposePreviewManager.isInInteractiveOrAnimationMode: Boolean
-  get() = animationInspectionPreviewElementInstance != null || interactivePreviewElementInstance != null
+val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
+  get() = animationInspectionPreviewElementInstance == null && status().interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED
 
 /**
  * Interface that provides access to the Compose Preview logic that is not stable or meant for public

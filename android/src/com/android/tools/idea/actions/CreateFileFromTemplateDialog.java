@@ -24,10 +24,10 @@ import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.JavaCreateFromTemplateHandler;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.java.JavaBundle;
 import com.intellij.lang.LangBundle;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -151,7 +151,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     JavaCodeFragment fragment = myFragmentFactory.createReferenceCodeFragment(defaultText, myDefaultPsiPackage, true, true);
     fragment.setVisibilityChecker(JavaCodeFragment.VisibilityChecker.EVERYTHING_VISIBLE);
     Document doc = myPsiDocumentManager.getDocument(fragment);
-    EditorTextField editorTextField = new EditorTextField(doc, myProject, StdFileTypes.JAVA);
+    EditorTextField editorTextField = new EditorTextField(doc, myProject, JavaFileType.INSTANCE);
     editorTextField.setToolTipText(tooltip);
     return editorTextField;
   }
@@ -338,7 +338,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   }
 
   private void addKind(@NotNull FileTemplate template) {
-    myKindCombo.addItem(template.getName(), StdFileTypes.JAVA.getIcon(), template.getName());
+    myKindCombo.addItem(template.getName(), JavaFileType.INSTANCE.getIcon(), template.getName());
   }
 
   PsiClass show(@NotNull final FileCreator creator) throws FailedToCreateFileException {

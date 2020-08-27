@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.instantapp
 
+import com.android.SdkConstants
+import com.android.prefs.AndroidLocation
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -58,7 +60,7 @@ class CreateAndRunInstantAppTest {
     .around(guiTest)
 
   private val projectApplicationId = "com.android.devtools.simple"
-  private var oldAndroidHomeEnv: String? = null
+  private var oldAndroidSdkRootEnv: String? = null
   private var oldPathEnv: String? = null
 
   @Before
@@ -70,13 +72,13 @@ class CreateAndRunInstantAppTest {
       }
     }
 
-    // Set ANDROID_HOME and PATH environment variables because the instant apps
+    // Set ANDROID_SDK_ROOT_ENV and PATH environment variables because the instant apps
     // SDK searches for ADB on its own. We don't want the SDK to use a different
     // ADB than the one we already have in the Android SDK:
-    oldAndroidHomeEnv = System.getenv("ANDROID_HOME")
+    oldAndroidSdkRootEnv = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV)
     oldPathEnv = System.getenv("PATH")
 
-    Environment.libC.setenv("ANDROID_HOME", newSdk.absolutePath, 1)
+    Environment.libC.setenv(SdkConstants.ANDROID_SDK_ROOT_ENV, newSdk.absolutePath, 1)
 
     val currentPath = System.getenv("PATH") ?: ""
     val newPath = if (currentPath.isNotEmpty()) {
@@ -149,11 +151,11 @@ class CreateAndRunInstantAppTest {
 
   @After
   fun restoreEnvironment() {
-    val oldAndroidHome = oldAndroidHomeEnv
-    if (oldAndroidHome != null) {
-      Environment.libC.setenv("ANDROID_HOME", oldAndroidHome, 1)
+    val oldAndroidSdk = oldAndroidSdkRootEnv
+    if (oldAndroidSdk != null) {
+      Environment.libC.setenv(SdkConstants.ANDROID_SDK_ROOT_ENV, oldAndroidSdk, 1)
     } else {
-      Environment.libC.unsetenv("ANDROID_HOME")
+      Environment.libC.unsetenv(SdkConstants.ANDROID_SDK_ROOT_ENV)
     }
 
     val oldPath = oldPathEnv

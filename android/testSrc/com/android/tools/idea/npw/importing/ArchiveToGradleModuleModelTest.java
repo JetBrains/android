@@ -222,7 +222,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
     GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
     assertNotNull(settingsModel);
-    List<String> modules = settingsModel.modulePaths();
+    Iterable<String> modules = settingsModel.modulePaths();
     assertThat(modules).contains(newModuleGradlePath);
   }
 

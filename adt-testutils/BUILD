@@ -48,12 +48,9 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.adt.testutils",
+    name = "intellij.android.adt.testutils",
     iml_files = ["intellij.android.adt.testutils.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_srcs = ["src/main/java"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
@@ -61,7 +58,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/base/repository:unb.studio.android.sdktools.repository[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/repository:studio.android.sdktools.repository[module, test]",
     ],
 )

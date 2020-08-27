@@ -4,7 +4,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath <warning>'com.android.tools.build:gradle:3.6.0'</warning>
+    <warning>classpath 'com.android.tools.build:gradle:3.6.0'</warning>
   }
 }
 

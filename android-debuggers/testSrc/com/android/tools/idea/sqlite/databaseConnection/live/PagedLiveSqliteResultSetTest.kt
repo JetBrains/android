@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
@@ -42,7 +42,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val edtExecutor = EdtExecutorService.getInstance()
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
-  class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorClient {
+  class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)
       assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
@@ -52,9 +52,6 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     override val rawEventFlow: Flow<ByteArray> = emptyFlow()
 
     override val scope: CoroutineScope
-      get() = throw NotImplementedError()
-
-    override val crashMessage: String?
       get() = throw NotImplementedError()
   }
 
@@ -295,11 +292,11 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   private fun createPagedLiveSqliteResultSet(
     statement: SqliteStatement,
-    client: AppInspectorClient
+    messenger: AppInspectorMessenger
   ): LiveSqliteResultSet {
     val liveSqliteResultSet = PagedLiveSqliteResultSet(
       statement,
-      DatabaseInspectorMessenger(client, scope, taskExecutor),
+      DatabaseInspectorMessenger(messenger, scope, taskExecutor),
       0,
       taskExecutor
     )

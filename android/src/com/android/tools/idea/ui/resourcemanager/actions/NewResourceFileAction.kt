@@ -17,9 +17,9 @@ package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.fileTypes.StdFileTypes
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
@@ -36,7 +36,7 @@ class NewResourceFileAction(
   private val facet: AndroidFacet
 ) : AnAction(AndroidBundle.message("new.typed.resource.action.title", type.displayName),
              AndroidBundle.message("new.typed.resource.action.description", type.displayName),
-             StdFileTypes.XML.icon) {
+             XmlFileType.INSTANCE.icon) {
   override fun actionPerformed(e: AnActionEvent) {
     CreateResourceFileAction.createFileResource(
       facet,

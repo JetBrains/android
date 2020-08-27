@@ -23,16 +23,13 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.gradle-tooling.impl",
+    name = "intellij.android.gradle-tooling.impl",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle-tooling.impl.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
     resources = ["resources"],
-    tags = [
-        "manual",
-        "no_test_windows",
-        "unb",
-    ],
+    tags = ["no_test_windows"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -40,7 +37,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.javax-inject",
-        "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:unb.intellij.android.gradle-tooling.api[module]",
+        "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.equalsverifier[test]",
     ],

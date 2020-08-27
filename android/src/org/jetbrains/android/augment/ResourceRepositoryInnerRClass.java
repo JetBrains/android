@@ -1,6 +1,7 @@
 package org.jetbrains.android.augment;
 
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResourceRepositoryRClass;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
@@ -69,7 +70,8 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
                                   this,
                                   PsiType.INT,
                                   AndroidLightField.FieldModifier.NON_FINAL,
-                                  null);
+                                  null,
+                                  ResourceVisibility.PUBLIC);
   }
 
   @NotNull

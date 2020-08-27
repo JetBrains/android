@@ -70,16 +70,9 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val nav = analysisContext.navigator
 
       nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-
       analysisContext.diposerTreeObjectId = nav.id.toInt()
 
-      verifyClassIsObjectTree(nav.getClass())
-
-      if (nav.isNull()) {
-        throw ObjectNavigator.NavigationException("Disposer.ourTree == null")
-      }
-      nav.goToInstanceField(null, "myObject2NodeMap")
-      nav.goToInstanceField("gnu.trove.THashMap", "_values")
+      goToArrayOfDisposableObjectNodes(nav)
       nav.getReferencesCopy().forEach {
         if (it == 0L) return@forEach true
 
@@ -115,6 +108,25 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
   }
 
+  private fun goToArrayOfDisposableObjectNodes(nav: ObjectNavigator) {
+    nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
+
+    analysisContext.diposerTreeObjectId = nav.id.toInt()
+
+    verifyClassIsObjectTree(nav.getClass())
+
+    if (nav.isNull()) {
+      throw ObjectNavigator.NavigationException("Disposer.ourTree == null")
+    }
+    nav.goToInstanceField(null, "myObject2NodeMap")
+    if (nav.getClass().name == "gnu.trove.THashMap") {
+      nav.goToInstanceField("gnu.trove.THashMap", "_values")
+    }
+    else {
+      nav.goToInstanceField("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", "values")
+    }
+  }
+
   private fun verifyClassIsObjectNode(clazzObjectTree: ClassDefinition) {
     if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectNode" &&
         clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectNode") {
@@ -142,13 +154,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     val nav = analysisContext.navigator
 
     try {
-      nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-      if (nav.isNull()) {
-        throw ObjectNavigator.NavigationException("ourTree is null")
-      }
-      verifyClassIsObjectTree(nav.getClass())
-      nav.goToInstanceField(null, "myObject2NodeMap")
-      nav.goToInstanceField("gnu.trove.THashMap", "_values")
+      goToArrayOfDisposableObjectNodes(nav)
 
       val groupingToObjectStats = HashMap<Grouping, InstanceStats>()
       val maxTreeDepth = 200
@@ -286,7 +292,6 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
 
     try {
-
       val nav = analysisContext.navigator
       val parentList = analysisContext.parentList
 

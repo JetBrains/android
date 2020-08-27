@@ -33,7 +33,8 @@ abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableMod
     require(pageSize > 0) { "Page size must be positive, was $pageSize" }
   }
 
-  private var pageIndex = 0
+  var pageIndex = 0
+    private set
 
   val pageCount get() = max(1, ceil(getDataSize().toDouble() / pageSize).toInt())
   val isOnFirstPage get() = pageIndex == 0
@@ -44,7 +45,7 @@ abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableMod
    *
    * This is used for page calculation.
    */
-  protected abstract fun getDataSize(): Int
+  abstract fun getDataSize(): Int
 
   /**
    * Returns the value for the cell at [dataIndex] and [columnIndex].

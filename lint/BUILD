@@ -67,7 +67,9 @@ iml_module(
         "//tools/idea:intellij.java.analysis.impl[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
+        "//tools/idea/plugins/properties/properties-psi-api:intellij.properties.psi[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module]",
     ],
 )
@@ -143,15 +145,12 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.lint",
+    name = "intellij.lint",
     srcs = ["src"],
     iml_files = ["intellij.lint.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
     resources = ["resources"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -159,18 +158,16 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.lint.tests",
+    name = "intellij.lint.tests",
     iml_files = ["tests/intellij.lint.tests.iml"],
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     test_class = "com.android.tools.idea.lint.common.LintIdeTestSuite",
     test_data = [
         "//tools/adt/idea/android/testData",
@@ -186,12 +183,12 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/lint:unb.intellij.lint[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/base/lint:unb.studio.android.sdktools.lint-checks[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )

@@ -32,6 +32,7 @@ import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.common.util.setupOnSaveListener
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
@@ -45,7 +46,6 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
@@ -61,9 +61,8 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -80,7 +79,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
@@ -176,9 +174,14 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
   }
 
 /**
- * Key for the persistent state for the Compose Preview.
+ * Key for the persistent group state for the Compose Preview.
  */
 private const val SELECTED_GROUP_KEY = "selectedGroup"
+
+/**
+ * Key for the persistent build on save state for the Compose Preview.
+ */
+private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
@@ -196,6 +199,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+
+  private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile)
 
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
@@ -226,45 +231,23 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   @Volatile
   override var availableGroups: Set<PreviewGroup> = emptySet()
 
-  /**
-   * Enum that determines the current status of the interactive preview.
-   *
-   * The transitions are are like:
-   * DISABLED -> STARTED -> READY -> STOPPING
-   *    ^                               +
-   *    |                               |
-   *    +-------------------------------+
-   */
-  private enum class InteractiveMode {
-    DISABLED,
-    /** Status when interactive has been started but the first render has not happened yet. */
-    STARTING,
-    /** Interactive is ready and running. */
-    READY,
-    /** The interactive preview is stopping but it has not been fully disposed yet. */
-    STOPPING;
-
-    fun isStartingOrReady() = this == STARTING || this == READY
-  }
-
   @Volatile
-  private var interactiveMode = InteractiveMode.DISABLED
+  private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
   private val navigationHandler = PreviewNavigationHandler()
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
-  override var interactivePreviewElementInstance:
-    PreviewElementInstance? by Delegates.observable(null as PreviewElementInstance?) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      LOG.debug("New single preview element focus: $newValue")
-      val isInteractive = newValue != null
+  override fun setInteractivePreviewElementInstance(previewElement: PreviewElementInstance?) {
+    if (previewElementProvider.instanceFilter != previewElement) {
+      LOG.debug("New single preview element focus: $previewElement")
+      val isInteractive = previewElement != null
       // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
       // but we want to stop the loop first and then change the composable when disabled
       if (isInteractive) { // Enable interactive
-        interactiveMode = InteractiveMode.STARTING
+        interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
         val quickRefresh = shouldQuickRefresh() // We should call this before assigning newValue to instanceIdFilter
         val peerPreviews = previewElementProvider.previewElements.count()
-        previewElementProvider.instanceFilter = newValue
+        previewElementProvider.instanceFilter = previewElement
         sceneComponentProvider.enabled = false
         val startUpStart = System.currentTimeMillis()
         forceRefresh(quickRefresh).invokeOnCompletion {
@@ -280,11 +263,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             surface.enableMouseClickDisplay()
           }
           surface.background = INTERACTIVE_BACKGROUND_COLOR
-          interactiveMode = InteractiveMode.READY
+          interactiveMode = ComposePreviewManager.InteractiveMode.READY
         }
       }
       else { // Disable interactive
-        interactiveMode = InteractiveMode.STOPPING
+        interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
         surface.background = defaultSurfaceBackground
         surface.disableMouseClickDisplay()
         delegateInteractionHandler.delegate = staticPreviewInteractionHandler
@@ -293,7 +276,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewElementProvider.clearInstanceIdFilter()
         logInteractiveSessionMetrics()
         forceRefresh().invokeOnCompletion {
-          interactiveMode = InteractiveMode.DISABLED
+          interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
         }
       }
     }
@@ -446,8 +429,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(5))
 
-  private val hasSuccessfulBuild = AtomicBoolean(false)
-
   /**
    * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
    * [onInit] must be called.
@@ -482,14 +463,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
-        hasSuccessfulBuild.set(true)
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
-        hasSuccessfulBuild.set(false)
         updateSurfaceVisibilityAndNotifications()
       }
 
@@ -505,12 +484,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     }, this)
 
+    if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
+      setupOnSaveListener(project, psiFile,
+                          {
+                            if (isBuildOnSaveEnabled) requestBuildForSurface(surface)
+                          }, this)
+    }
+
     setupChangeListener(
       project,
       psiFile,
       {
-        if (isAutoBuildEnabled && !hasSyntaxErrors()) requestBuildForSurface(surface)
-        else ApplicationManager.getApplication().invokeLater {
+        ApplicationManager.getApplication().invokeLater {
           // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
           // the new ones after a successful build.
           ComposePreviewAnimationManager.invalidate()
@@ -521,10 +506,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
-      launch {
-        // Update the current build status in the background
-        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
-      }
       refresh()
     })
 
@@ -546,35 +527,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun dispose() {
-    if (interactiveMode == InteractiveMode.READY) {
+    if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) {
       logInteractiveSessionMetrics()
     }
     animationInspectionPreviewElementInstance = null
   }
 
-  override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
-    get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
+  override var isBuildOnSaveEnabled: Boolean = COMPOSE_PREVIEW_BUILD_ON_SAVE.get()
+    get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
     .any { it.renderResult.isComposeErrorResult() }
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
-
-  private fun isOutOfDate(): Boolean {
-    val isModified = FileDocumentManager.getInstance().isFileModified(psiFilePointer.virtualFile)
-    if (isModified) {
-      return true
-    }
-
-    // The file was saved, check the compilation time
-    val modificationStamp = psiFilePointer.virtualFile.timeStamp
-    val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
-    if (LOG.isDebugEnabled) {
-      LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
-    }
-
-    return lastBuildTimestamp in 1 until modificationStamp
-  }
 
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
@@ -586,9 +551,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     return ComposePreviewManager.Status(
       !isRefreshing && hasErrorsAndNeedsBuild(),
       !isRefreshing && hasSyntaxErrors(),
-      !isRefreshing && isOutOfDate(),
+      !isRefreshing && projectBuildStatusManager.status == OutOfDate,
       isRefreshing,
-      interactiveMode == InteractiveMode.READY)
+      interactiveMode)
   }
 
   /**
@@ -622,7 +587,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Calling this method will also update the FileEditor notifications.
    */
   private fun updateSurfaceVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
-      if (workbench.isMessageVisible && !hasSuccessfulBuild.get()) {
+      if (workbench.isMessageVisible && projectBuildStatusManager.status == NeedsBuild) {
         LOG.debug("Needs successful build")
         showModalErrorMessage(message("panel.needs.build"))
       }
@@ -823,7 +788,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  fun refresh(quickRefresh: Boolean = false): Job {
+  private fun refresh(quickRefresh: Boolean = false): Job {
     var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       LOG.debug("Refresh triggered", refreshTrigger)
@@ -884,15 +849,22 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override fun getState(): PreviewRepresentationState? {
     val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
-    return mapOf(SELECTED_GROUP_KEY to selectedGroupName)
+    return mapOf(
+      SELECTED_GROUP_KEY to selectedGroupName,
+      BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString())
   }
 
   override fun setState(state: PreviewRepresentationState) {
-    val selectedGroupName = state[SELECTED_GROUP_KEY] ?: return
+    val selectedGroupName = state[SELECTED_GROUP_KEY]
+    val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
     onRestoreState = {
-      availableGroups.find { it.name == selectedGroupName }?.let {
-        groupFilter = it
+      if (selectedGroupName != null) {
+        availableGroups.find { it.name == selectedGroupName }?.let {
+          groupFilter = it
+        }
       }
+
+      buildOnSave?.let { isBuildOnSaveEnabled = it }
     }
   }
 

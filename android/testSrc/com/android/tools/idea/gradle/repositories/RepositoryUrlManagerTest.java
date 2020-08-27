@@ -46,7 +46,7 @@ import java.util.function.Predicate;
  */
 public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   private static final File SDK_DIR = new File("/sdk");
-  private static final File ANDROID_HOME = new File("/android-home");
+  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
 
   private RepositoryUrlManager myRepositoryUrlManager;
   private MockFileOp myFileOp;
@@ -104,7 +104,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                       new StubGoogleMavenRepository(OFFLINE_CACHE),
                                                       true /* force repository checks */,
                                                       true /* ues embedded studio repo */);
-    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp);
+    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_PREFS_ROOT, myFileOp);
     mySdk = Mockito.mock(AndroidSdkData.class);
     Mockito.when(mySdk.getLocation()).thenReturn(SDK_DIR);
   }
@@ -211,7 +211,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     RemotePackage pkg = new FakePackage.FakeRemotePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
-    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp, mgr);
+    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_PREFS_ROOT, myFileOp, mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNotNull(coordinate);
     assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));

@@ -80,7 +80,6 @@ public class ReflectionUtil implements DoNotTrace {
           size += objectSizes.get(superclass);
         }
         cached = fields.isEmpty() ? EMPTY_FIELD_ARRAY : fields.toArray(new Field[0]);
-        objectSizes.put(aClass, size);
       }
       catch (IncompatibleClassChangeError | NoClassDefFoundError | SecurityException e) {
         //this exception may be thrown because there are two different versions of org.objectweb.asm.tree.ClassNode from different plugins
@@ -96,7 +95,7 @@ public class ReflectionUtil implements DoNotTrace {
           throw e;
         }
       }
-
+      objectSizes.put(aClass, size);
       allFields.put(aClass, cached);
     }
     return cached;

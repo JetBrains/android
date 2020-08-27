@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelConverter;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -53,7 +53,7 @@ public class VariantSelectionTest {
     when(myAndroidProject.getVariants()).thenReturn(Collections.emptyList());
     VariantGroup group = new VariantGroup(ImmutableList.of(debugVariant, releaseVariant), ImmutableList.of());
 
-    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, group);
+    Variant variant = ModelConverter.findVariantToSelect(myAndroidProject, group);
     assertSame(debugVariant, variant);
   }
 
@@ -66,7 +66,7 @@ public class VariantSelectionTest {
     when(debugVariant.getName()).thenReturn("debug");
     when(releaseVariant.getName()).thenReturn("release");
 
-    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
+    Variant variant = ModelConverter.findVariantToSelect(myAndroidProject, null);
     assertSame(debugVariant, variant);
   }
 
@@ -79,7 +79,7 @@ public class VariantSelectionTest {
     when(aVariant.getName()).thenReturn("a");
     when(bVariant.getName()).thenReturn("b");
 
-    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
+    Variant variant = ModelConverter.findVariantToSelect(myAndroidProject, null);
     assertSame(aVariant, variant);
   }
 
@@ -88,7 +88,7 @@ public class VariantSelectionTest {
     when(myAndroidProject.getVariants()).thenReturn(Collections.emptyList());
     when(myAndroidProject.getName()).thenReturn("project");
     try {
-      AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
+      ModelConverter.findVariantToSelect(myAndroidProject, null);
       fail();
     } catch (AndroidSyncException err) {
       // Expected

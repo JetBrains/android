@@ -23,7 +23,7 @@ import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
@@ -80,18 +80,18 @@ internal class DefaultAppInspectionTarget(
 ) : AppInspectionTarget {
   private val scope = parentScope.createChildScope(true)
 
-  private val clients = ConcurrentHashMap<String, Deferred<AppInspectorClient>>()
+  private val messengers = ConcurrentHashMap<String, Deferred<AppInspectorMessenger>>()
 
   /**
    * Used exclusively in tests. Allows tests to wait until after inspector client is removed from internal cache.
    */
   @VisibleForTesting
-  internal val clientDisposalJobs = ConcurrentHashMap<String, Job>()
+  internal val inspectorDisposableJobs = ConcurrentHashMap<String, Job>()
 
   override suspend fun launchInspector(
     params: AppInspectorLauncher.LaunchParameters
-  ): AppInspectorClient {
-    val clientDeferred = clients.computeIfAbsent(params.inspectorId) {
+  ): AppInspectorMessenger {
+    val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
@@ -110,13 +110,13 @@ internal class DefaultAppInspectionTarget(
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
         if (event.appInspectionResponse.status == SUCCESS) {
-          val client = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-          clientDisposalJobs[params.inspectorId] = scope.launch {
-            client.awaitForDisposal()
-            clients.remove(params.inspectorId)
-            clientDisposalJobs.remove(params.inspectorId)
+          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+          inspectorDisposableJobs[params.inspectorId] = scope.launch {
+            connection.awaitForDisposal()
+            messengers.remove(params.inspectorId)
+            inspectorDisposableJobs.remove(params.inspectorId)
           }
-          client
+          connection
         }
         else {
           throw AppInspectionLaunchException(
@@ -125,23 +125,23 @@ internal class DefaultAppInspectionTarget(
       }
     }
     try {
-      return clientDeferred.await()
+      return messengerDeferred.await()
     }
     catch (e: CancellationException) {
       throw e
     }
     catch (t: Throwable) {
-      clients.remove(params.inspectorId)
+      messengers.remove(params.inspectorId)
       throw t
     }
   }
 
   /**
-   * Disposes all clients that were launched on this target.
+   * Disposes all inspectors that were launched on this target.
    */
   override suspend fun dispose() {
     scope.cancel()
-    clients.clear()
+    messengers.clear()
   }
 }
 
@@ -151,6 +151,6 @@ fun launchInspectorForTest(
   transport: AppInspectionTransport,
   connectionStartTimeNs: Long,
   scope: CoroutineScope
-): AppInspectorClient {
+): AppInspectorMessenger {
   return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
 }

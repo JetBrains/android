@@ -32,7 +32,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -41,7 +40,6 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
-import com.google.common.collect.ImmutableList;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -55,14 +53,11 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractModule
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
-import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
@@ -208,97 +203,6 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     taskData = myProjectResolver.populateModuleTasks(myJavaModuleModel, moduleDataNode, projectNode);
     Collection<String> taskDataNames = ContainerUtil.map(taskData, TaskData::getName);
     assertThat(taskDataNames).containsExactly("compileJava", "jar", "classes");
-  }
-
-  public void testKaptSourcesAreAddedToAndroidModuleModel() {
-    DataNode<ProjectData> projectNode = createProjectNode();
-
-    File debugGeneratedSourceFile = new File("/gen/debug");
-    File releaseGeneratedSourceFile = new File("/gen/release");
-
-    KaptGradleModel mockKaptModel = new KaptGradleModel() {
-      @Override
-      public boolean isEnabled() {
-        return true;
-      }
-
-      @NotNull
-      @Override
-      public File getBuildDirectory() {
-        return null;
-      }
-
-      @NotNull
-      @Override
-      public List<KaptSourceSetModel> getSourceSets() {
-        KaptSourceSetModel debugSetModel = mock(KaptSourceSetModel.class);
-        when(debugSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(debugGeneratedSourceFile);
-        when(debugSetModel.getSourceSetName()).thenReturn("debug");
-        KaptSourceSetModel releaseSetModel = mock(KaptSourceSetModel.class);
-        when(releaseSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(releaseGeneratedSourceFile);
-        when(releaseSetModel.getSourceSetName()).thenReturn("debug");
-        return ImmutableList.of(debugSetModel, releaseSetModel);
-      }
-    };
-
-    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
-    myResolverCtx.setModels(allModels);
-
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
-
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).hasSize(1);
-    AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
-    IdeVariant variant = androidModuleModel.findVariantByName("debug");
-    assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
-  }
-
-  public void testKaptTestSourcesAreAddedToAndroidModuleModel() {
-    DataNode<ProjectData> projectNode = createProjectNode();
-    File androidTestGeneratedSourceFile = new File("/gen/debugAndroidTest");
-    File unitTestGeneratedSourceFile = new File("/gen/debugUnitTest");
-
-    KaptGradleModel mockKaptModel = new KaptGradleModel() {
-      @Override
-      public boolean isEnabled() {
-        return true;
-      }
-
-      @NotNull
-      @Override
-      public File getBuildDirectory() {
-        return null;
-      }
-
-      @NotNull
-      @Override
-      public List<KaptSourceSetModel> getSourceSets() {
-        KaptSourceSetModel androidTestSetModel = mock(KaptSourceSetModel.class);
-        when(androidTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(androidTestGeneratedSourceFile);
-        when(androidTestSetModel.getSourceSetName()).thenReturn("debugAndroidTest");
-        when(androidTestSetModel.isTest()).thenReturn(true);
-        KaptSourceSetModel unitTestSetModel = mock(KaptSourceSetModel.class);
-        when(unitTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(unitTestGeneratedSourceFile);
-        when(unitTestSetModel.getSourceSetName()).thenReturn("debugUnitTest");
-        when(unitTestSetModel.isTest()).thenReturn(true);
-        return ImmutableList.of(androidTestSetModel, unitTestSetModel);
-      }
-    };
-
-    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
-    myResolverCtx.setModels(allModels);
-
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).hasSize(1);
-    AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
-    IdeVariant variant = androidModuleModel.findVariantByName("debug");
-    assertThat(variant.getAndroidTestArtifact().getGeneratedSourceFolders()).contains(androidTestGeneratedSourceFile);
-    assertThat(variant.getUnitTestArtifact().getGeneratedSourceFolders()).contains(unitTestGeneratedSourceFile);
   }
 
   public void testCorrectGroupName() {

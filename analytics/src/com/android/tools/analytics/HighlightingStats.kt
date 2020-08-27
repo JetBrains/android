@@ -30,10 +30,9 @@ import com.google.wireless.android.sdk.stats.EditorHighlightingStats
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.BaseComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.HdrHistogram.Recorder
 import java.util.concurrent.ConcurrentHashMap
@@ -43,13 +42,25 @@ import java.util.concurrent.TimeUnit
  * Tracks highlighting latency across file types.
  * To log an [AndroidStudioEvent] with the collected data, call [reportHighlightingStats].
  */
-object HighlightingStats : BaseComponent {
-  private const val MAX_LATENCY_MS = 10 * 60 * 1000 // Limit latencies to 10 minutes to ensure reasonable histogram size.
+@Service
+class HighlightingStats : Disposable {
+  companion object {
+    private const val MAX_LATENCY_MS = 10 * 60 * 1000 // Limit latencies to 10 minutes to ensure reasonable histogram size.
 
-  override fun initComponent() {
-    // Send reports hourly and on application close.
+    @JvmStatic
+    fun getInstance(): HighlightingStats {
+      return ApplicationManager.getApplication().getService(HighlightingStats::class.java)
+    }
+  }
+
+  init {
+    // Send reports hourly.
     JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportHighlightingStats, 1, 1, TimeUnit.HOURS)
-    Disposer.register(ApplicationManager.getApplication(), Disposable(this::reportHighlightingStats))
+  }
+
+  override fun dispose() {
+    // Send reports on application close.
+    reportHighlightingStats()
   }
 
   /**

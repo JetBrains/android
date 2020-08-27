@@ -338,7 +338,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
-    false);
+    true);
   //endregion
 
   //region Resource Manager
@@ -818,9 +818,9 @@ public final class StudioFlags {
     "\"generateDebugSources\" or \"compileJava\".",
     true);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_AUTO_BUILD = Flag.create(
-    COMPOSE, "preview.auto.build.enabled", "Enable the compose auto-build",
-    "If enabled, the preview will automatically trigger a build after the user finishes typing.",
+  public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
+    COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
+    "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
     false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
@@ -921,7 +921,7 @@ public final class StudioFlags {
     COMPOSE, "preview.animation.inspector",
     "Enable compose preview animation inspection",
     "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(

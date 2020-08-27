@@ -26,10 +26,11 @@ import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -645,10 +646,10 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
       // If the list grows much, consider using a static map.
       if (type.equals("JAVA")) {
-        return StdFileTypes.JAVA;
+        return JavaFileType.INSTANCE;
       }
       if (type.equals("XML")) {
-        return StdFileTypes.XML;
+        return XmlFileType.INSTANCE;
       }
       if (type.equals("GROOVY")) {
         return GroovyFileType.GROOVY_FILE_TYPE;

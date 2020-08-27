@@ -20,7 +20,7 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.profilers.atrace",
+    name = "intellij.android.profilers.atrace",
     # do not sort: must match IML order
     srcs = [
         "src/core/common/src/main/kotlin",
@@ -28,10 +28,7 @@ iml_module(
     ],
     iml_files = ["intellij.android.profilers.atrace.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

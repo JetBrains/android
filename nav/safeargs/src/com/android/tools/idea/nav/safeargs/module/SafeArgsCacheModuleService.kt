@@ -94,7 +94,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     val modulePackage = getPackageName(facet) ?: return
 
     if (DumbService.getInstance(module.project).isDumb) {
-      LOG.warn("Safe Arg classes may by temporarily stale due to indices not being ready right now.")
+      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
       return
     }
 

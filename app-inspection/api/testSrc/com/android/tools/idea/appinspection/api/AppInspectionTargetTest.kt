@@ -136,7 +136,7 @@ class AppInspectionTargetTest {
     // Launch an inspector client.
     val client = target.launchInspector(createFakeLaunchParameters())
 
-    assertThat(target.clientDisposalJobs.size).isEqualTo(1)
+    assertThat(target.inspectorDisposableJobs.size).isEqualTo(1)
 
     // Fake target termination to dispose of client.
     transportService.addEventToStream(
@@ -150,7 +150,7 @@ class AppInspectionTargetTest {
         .build()
     )
 
-    target.clientDisposalJobs[INSPECTOR_ID]!!.join()
+    target.inspectorDisposableJobs[INSPECTOR_ID]!!.join()
 
     // Launch the same inspector client again.
     val client2 = target.launchInspector(createFakeLaunchParameters())

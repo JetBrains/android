@@ -228,7 +228,7 @@ class DatabaseInspectorControllerImpl(
   override fun dispose() = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
     model.removeListener(modelListener)
-    projectScope.launch { databaseRepository.release() }
+    projectScope.launch { databaseRepository.clear() }
 
     resultSetControllers.values
       .asSequence()
@@ -318,7 +318,7 @@ class DatabaseInspectorControllerImpl(
     // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
     val newSchema = readDatabaseSchema(databaseId)
     if (newSchema == null) {
-      model.removeDatabaseSchema(databaseId)
+      closeDatabase(databaseId)
       return
     }
 

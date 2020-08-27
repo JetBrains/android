@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.JarCopierCreator
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 
 internal class DefaultAppInspectorLauncher(private val targetManager: AppInspectionTargetManager,
@@ -26,7 +26,7 @@ internal class DefaultAppInspectorLauncher(private val targetManager: AppInspect
                                            private val createJarCopier: JarCopierCreator) : AppInspectorLauncher {
   override suspend fun launchInspector(
     params: AppInspectorLauncher.LaunchParameters
-  ): AppInspectorClient {
+  ): AppInspectorMessenger {
     val processDescriptor = params.processDescriptor.toTransportImpl()
     val jarCopierCreator = createJarCopier(processDescriptor.stream.device) ?: throw RuntimeException("Cannot find ADB device.")
     val streamChannel = discovery.getStreamChannel(processDescriptor.stream.streamId)

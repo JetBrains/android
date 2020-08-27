@@ -18,14 +18,20 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 
 /**
  * List of available layouts for the Compose Preview Surface.
  */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS = listOf(
-  SurfaceLayoutManagerOption(message("vertical.layout"), VerticalOnlyLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y, NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA)),
-  SurfaceLayoutManagerOption(message("grid.layout"), GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y, NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA))
+  SurfaceLayoutManagerOption(message("vertical.layout"),
+                             VerticalOnlyLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                                                       NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA,
+                                                       SingleDirectionLayoutManager.Alignment.START)),
+  SurfaceLayoutManagerOption(message("grid.layout"),
+                             GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                                                      NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA))
 )
 
 /**

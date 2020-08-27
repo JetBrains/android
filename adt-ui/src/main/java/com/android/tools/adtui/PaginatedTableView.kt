@@ -21,11 +21,13 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.colorpicker.CommonButton
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.RowSorterEvent
 import javax.swing.table.TableRowSorter
@@ -53,6 +55,9 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
   @VisibleForTesting
   val nextPageButton = CommonButton(NEXT_PAGE_ICON)
 
+  @VisibleForTesting
+  val pageInfoLabel = JLabel()
+
   init {
     table = JBTable(tableModel).apply {
       rowSorter = TableRowSorter(tableModel).apply {
@@ -66,27 +71,33 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
         }
       }
     }
+    tableModel.addTableModelListener { updateToolbar() }
     component = JPanel(BorderLayout()).apply {
-      add(buildPageControlPanel(), BorderLayout.NORTH)
+      add(buildToolbar(), BorderLayout.NORTH)
       add(JBScrollPane(table), BorderLayout.CENTER)
     }
   }
 
-  private fun updateButtonStates() {
+  private fun updateToolbar() {
+    // Labels
+    val firstRowIndex = tableModel.pageIndex * tableModel.pageSize + 1
+    val lastRowIndex = firstRowIndex + tableModel.rowCount - 1
+    pageInfoLabel.text = "${firstRowIndex} - ${lastRowIndex} of ${tableModel.getDataSize()}"
+
+    // Buttons
     firstPageButton.isEnabled = !tableModel.isOnFirstPage
     lastPageButton.isEnabled = !tableModel.isOnLastPage
     prevPageButton.isEnabled = !tableModel.isOnFirstPage
     nextPageButton.isEnabled = !tableModel.isOnLastPage
   }
 
-  private fun buildPageControlPanel(): JComponent {
+  private fun buildToolbar(): JComponent {
     // Page navigation controls
     firstPageButton.apply {
       disabledIcon = IconLoader.getDisabledIcon(FIRST_PAGE_ICON)
       toolTipText = "Go to first page"
       addActionListener {
         tableModel.goToFirstPage()
-        updateButtonStates()
       }
     }
     lastPageButton.apply {
@@ -94,7 +105,6 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
       toolTipText = "Go to last page"
       addActionListener {
         tableModel.goToLastPage()
-        updateButtonStates()
       }
     }
     prevPageButton.apply {
@@ -102,7 +112,6 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
       toolTipText = "Go to previous page"
       addActionListener {
         tableModel.goToPrevPage()
-        updateButtonStates()
       }
     }
     nextPageButton.apply {
@@ -110,18 +119,21 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
       toolTipText = "Go to next page"
       addActionListener {
         tableModel.goToNextPage()
-        updateButtonStates()
       }
     }
-    val pagingControl = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-      add(firstPageButton)
-      add(prevPageButton)
-      add(nextPageButton)
-      add(lastPageButton)
+    val toolbar = JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.emptyLeft(8)
+      add(pageInfoLabel, BorderLayout.LINE_START)
+      add(JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+        add(firstPageButton)
+        add(prevPageButton)
+        add(nextPageButton)
+        add(lastPageButton)
+      }, BorderLayout.LINE_END)
     }
-    updateButtonStates()
+    updateToolbar()
 
-    return pagingControl
+    return toolbar
   }
 
   private companion object {

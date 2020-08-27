@@ -57,13 +57,10 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.ProjectSyncIssues;
-import com.android.builder.model.SyncIssue;
-import com.android.builder.model.Variant;
 import com.android.builder.model.v2.models.ndk.NativeModule;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.impl.BuildFolderPaths;
 import com.android.ide.common.gradle.model.impl.ModelCache;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
@@ -83,7 +80,6 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V1NdkModel;
-import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
@@ -91,11 +87,11 @@ import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelConverter;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
@@ -140,7 +136,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +174,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
-  @NotNull private final ModelCache modelCache = ModelCache.create();
+  @Nullable private ModelCache modelCache;
   private boolean myShouldExportDependencies;
 
   public AndroidGradleProjectResolver() {
@@ -320,7 +315,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<SyncIssueData> issueData = null;
 
     if (androidProject != null) {
-      IdeAndroidModels ideModels = convertToIdeModels(androidProject, variantGroup, nativeModule, nativeAndroidProject, projectSyncIssues);
+      IdeAndroidModels ideModels = ModelConverter
+        .convertToIdeModels(modelCache, androidProject, variantGroup, nativeModule, nativeAndroidProject, projectSyncIssues);
 
       androidModel = createAndroidModuleModel(moduleName, rootModulePath, ideModels, cachedVariants);
       issueData = ideModels.getSyncIssues();
@@ -367,61 +363,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   @NotNull
-  private IdeAndroidModels convertToIdeModels(@NotNull AndroidProject androidProject,
-                                              @Nullable VariantGroup variantGroup,
-                                              @Nullable NativeModule nativeModule,
-                                              @Nullable NativeAndroidProject nativeAndroidProject,
-                                              @Nullable ProjectSyncIssues projectSyncIssues) {
-    IdeAndroidProject ideAndroidProject = modelCache.androidProjectFrom(androidProject);
-    Collection<Variant> fetchedVariants = (variantGroup == null) ? androidProject.getVariants() : variantGroup.getVariants();
-    List<IdeVariant> fetchedIdeVariants =
-      map(fetchedVariants, it -> modelCache.variantFrom(it, GradleVersion.tryParse(androidProject.getModelVersion())));
-    String selectedVariantName = findVariantToSelect(androidProject, variantGroup).getName();
-    List<SyncIssueData> syncIssues = createSyncIssueData(androidProject, projectSyncIssues);
-
-    @Nullable V2NdkModel ndkModel =
-      nativeModule != null
-      ? new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule))
-      : null;
-
-    @Nullable IdeNativeAndroidProject nativeProjectCopy =
-      nativeAndroidProject != null
-      ? modelCache.nativeAndroidProjectFrom(nativeAndroidProject)
-      : null;
-
-    @Nullable List<IdeNativeVariantAbi> ideNativeVariantAbis =
-      variantGroup != null
-      ? map(ModelCache.safeGet(variantGroup::getNativeVariants, emptyList()), modelCache::nativeVariantAbiFrom)
-      : null;
-
-    return new IdeAndroidModels(ideAndroidProject,
-                                fetchedIdeVariants,
-                                selectedVariantName,
-                                syncIssues,
-                                ndkModel,
-                                nativeProjectCopy,
-                                ideNativeVariantAbis);
-  }
-
-  @NotNull
   private JavaModuleModel createJavaModuleModel(@NotNull IdeaModule gradleModule,
                                                 ExternalProject externalProject,
                                                 Collection<String> gradlePluginList,
                                                 boolean hasArtifactsOrNoRootSettingsFile) {
-    JavaModuleModel javaModuleModel;
     boolean isBuildable = hasArtifactsOrNoRootSettingsFile && gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin");
     // TODO: This model should eventually be removed.
-    javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
-    return javaModuleModel;
+    return myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, isBuildable);
   }
 
   @NotNull
-  private GradleModuleModel createGradleModuleModel(String moduleName,
-                                                    @NotNull IdeaModule gradleModule,
-                                                    @Nullable AndroidProject androidProject,
-                                                    KaptGradleModel kaptGradleModel,
-                                                    BuildScriptClasspathModel buildScriptClasspathModel,
-                                                    Collection<String> gradlePluginList) {
+  private static GradleModuleModel createGradleModuleModel(String moduleName,
+                                                           @NotNull IdeaModule gradleModule,
+                                                           @Nullable AndroidProject androidProject,
+                                                           KaptGradleModel kaptGradleModel,
+                                                           BuildScriptClasspathModel buildScriptClasspathModel,
+                                                           Collection<String> gradlePluginList) {
     File buildScriptPath;
     try {
       buildScriptPath = gradleModule.getGradleProject().getBuildScript().getSourceFile();
@@ -466,24 +423,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         return null;
       }
     }
-  }
-
-  @NotNull
-  private static List<SyncIssueData> createSyncIssueData(@NotNull AndroidProject androidProject, ProjectSyncIssues projectSyncIssues) {
-    List<SyncIssueData> issueData;
-    Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
-    // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
-    // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
-    issueData = map(syncIssues, syncIssue -> {
-      List<String> multiLineMessage = ModelCache.safeGet(syncIssue::getMultiLineMessage, null);
-      multiLineMessage = multiLineMessage != null ? ImmutableList.copyOf(multiLineMessage) : null;
-      return new SyncIssueData(syncIssue.getMessage(),
-                               syncIssue.getData(),
-                               multiLineMessage,
-                               syncIssue.getSeverity(),
-                               syncIssue.getType());
-    });
-    return issueData;
   }
 
   @NotNull
@@ -535,67 +474,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       }
     }
     return CachedVariants.EMPTY;
-  }
-
-  /**
-   * Obtains a list of [SyncIssue]s from either the [AndroidProject] (legacy pre Android Gradle plugin 3.6)
-   * or from the [ProjectSyncIssues] model (post Android Gradle plugin 3.6).
-   */
-  @NotNull
-  private static Collection<SyncIssue> findSyncIssues(@NotNull AndroidProject androidProject,
-                                                      @Nullable ProjectSyncIssues projectSyncIssues) {
-    if (projectSyncIssues != null) {
-      return projectSyncIssues.getSyncIssues();
-    }
-    else {
-      //noinspection deprecation
-      return androidProject.getSyncIssues();
-    }
-  }
-
-  /**
-   * Obtain the selected variant using either the legacy method or from the [VariantGroup]. If no variants are
-   * found then this method throws an [AndroidSyncException].
-   */
-  @VisibleForTesting
-  @NotNull
-  public static Variant findVariantToSelect(@NotNull AndroidProject androidProject, @Nullable VariantGroup variantGroup) {
-    if (variantGroup != null) {
-      List<Variant> variants = variantGroup.getVariants();
-      if (!variants.isEmpty()) {
-        return variants.get(0);
-      }
-    }
-
-    Variant legacyVariant = findLegacyVariantToSelect(androidProject);
-    if (legacyVariant != null) {
-      return legacyVariant;
-    }
-
-    throw new AndroidSyncException(
-      "No variants found for '" + androidProject.getName() + "'. Check build files to ensure at least one variant exists.");
-  }
-
-  /**
-   * Attempts to find a variant from the [AndroidProject], this is here to support legacy versions of the
-   * Android Gradle plugin that don't have the [VariantGroup] model populated. First it tries to find a
-   * [Variant] by the name "debug", otherwise returns the first variant found.
-   */
-  @Nullable
-  private static Variant findLegacyVariantToSelect(@NotNull AndroidProject androidProject) {
-    Collection<Variant> variants = androidProject.getVariants();
-    if (variants.isEmpty()) {
-      return null;
-    }
-
-    // First attempt to select the "debug" variant if it exists.
-    Variant debugVariant = variants.stream().filter(variant -> variant.getName().equals("debug")).findFirst().orElse(null);
-    if (debugVariant != null) {
-      return debugVariant;
-    }
-
-    // Otherwise return the first variant.
-    return variants.stream().min(Comparator.comparing(Variant::getName)).orElse(null);
   }
 
   /**
@@ -787,7 +665,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    populateModuleBuildDirs(gradleProject);
+    BuildFolderPaths buildFolderPaths = populateModuleBuildDirs(gradleProject);
+    modelCache = ModelCache.create(buildFolderPaths);
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -798,13 +677,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * Set map from project path to build directory for all modules.
    * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
    */
-  private void populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+  private BuildFolderPaths populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+    BuildFolderPaths buildFolderPaths = new BuildFolderPaths();
     // Set root build id.
     for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
         String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-        modelCache.setRootBuildId(rootBuildId);
+        buildFolderPaths.setRootBuildId(rootBuildId);
         break;
       }
     }
@@ -825,7 +705,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         if (gradleProject != null) {
           try {
             String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-            modelCache.addBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+            buildFolderPaths.addBuildFolderMapping(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {
             // getBuildDirectory is not available for Gradle older than 2.0.
@@ -834,6 +714,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         }
       }
     }
+    return buildFolderPaths;
   }
 
   /**

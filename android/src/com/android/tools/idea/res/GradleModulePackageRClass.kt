@@ -97,7 +97,7 @@ class ModuleRClass(
     }
 
     override fun isPublic(resourceType: ResourceType, resourceName: String): Boolean {
-      return ModuleResourceManagers.getInstance(facet).localResourceManager.isResourcePublic(resourceType.name, resourceName)
+      return !ResourceRepositoryManager.getInstance(facet).resourceVisibility.isPrivate(resourceType, resourceName)
     }
   }
 }

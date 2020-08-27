@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
-import com.android.projectmodel.Library
+import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.run.ApkProvisionException
@@ -107,7 +107,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return Triple(found, missing, "")
       }
 
-      override fun getResolvedLibraryDependencies(): Collection<Library> {
+      override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
         return emptySet()
       }
 

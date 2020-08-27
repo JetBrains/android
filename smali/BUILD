@@ -85,7 +85,7 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.smali",
+    name = "intellij.android.smali",
     # do not sort: must match IML order
     srcs = [
         "src",
@@ -93,11 +93,8 @@ iml_module(
     ],
     iml_files = ["intellij.android.smali.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
     resources = ["resources"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
     test_data = [
     ],
@@ -107,9 +104,9 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

@@ -231,12 +231,11 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     val headless = isHeadlessEnv
     this.wrapper = wrapper
     val windowManager = windowManager
-    var window: Window? = null
     if (windowManager != null) {
       if (project == null) {
         project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().dataContext)
       }
-      window = windowManager.suggestParentWindow(project)
+      var window = windowManager.suggestParentWindow(project)
       if (window == null) {
         val focusedWindow = windowManager.mostRecentFocusedWindow
         if (focusedWindow is IdeFrameImpl) {

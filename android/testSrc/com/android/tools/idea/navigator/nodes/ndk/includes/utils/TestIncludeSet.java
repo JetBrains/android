@@ -29,8 +29,7 @@ public class TestIncludeSet {
 
   @Test
   public void testEqualsHash() {
-    EqualsVerifier equalsVerifier = EqualsVerifier.forClass(IncludeSet.class);
-    equalsVerifier.verify();
+    EqualsVerifier.forClass(IncludeSet.class).verify();
   }
 
   @Test

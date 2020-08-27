@@ -13,20 +13,22 @@ import zipfile
 SEARCHABLE_OPTIONS_SUFFIX = ".searchableOptions.xml"
 
 
+def extract_file(zip_file, info, extract_dir):
+    """ Extracts a file preserving file attributes. """
+    out_path = zip_file.extract(info.filename, path=extract_dir)
+    attr = info.external_attr >> 16
+    if attr:
+      os.chmod(out_path, attr)
+
+
 def generate_searchable_options(work_dir, out_dir):
   """Generates the xmls in out_dir, using work_dir as a scratch pad."""
 
   # Linux only
   zip_path = os.path.join("tools/adt/idea/studio/android-studio.linux.zip")
-  with zipfile.ZipFile(zip_path) as file:
-    file.extractall(os.path.join(work_dir))
-
-
-  studio_sh = "%s/android-studio/bin/studio.sh" % work_dir
-
-  # Python does not preserve the right attributes
-  st = os.stat(studio_sh)
-  os.chmod(studio_sh, st.st_mode | stat.S_IEXEC)
+  with zipfile.ZipFile(zip_path) as zip_file:
+    for info in zip_file.infolist():
+      extract_file(zip_file, info, work_dir)
 
   properties_file = "%s/studio.properties" % work_dir
   with open(properties_file, "w") as props:
@@ -40,6 +42,7 @@ def generate_searchable_options(work_dir, out_dir):
       "XDG_DATA_HOME": "%s/data" % work_dir,
   }
   options_dir = os.path.join(work_dir, "options")
+  studio_sh = "%s/android-studio/bin/studio.sh" % work_dir
   subprocess.call([studio_sh, "traverseUI", options_dir, "true"], env=env)
 
   plugin_list = []

@@ -17,6 +17,7 @@
 
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
+  <depends>intellij.webp</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
@@ -35,22 +36,6 @@
   <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.analytics.HighlightingStats</implementation-class>
-    </component>
-  </application-components>
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
-    </component>
-    <component>
-      <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
-    </component>
-  </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
     <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
@@ -289,7 +274,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
+    <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
+    <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectService" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
@@ -305,7 +291,8 @@
                        order="first, before gradle"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
-    <postStartupActivity implementation="org.jetbrains.android.AndroidStartupManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService"/>
+    <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectDumbStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first, before OpenFilesActivity"/>
@@ -372,6 +359,8 @@
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
     <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
                         serviceImplementation="org.jetbrains.android.util.AndroidUtils"/>
+    <projectService serviceImplementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation" />
+    <postStartupActivity implementation="org.jetbrains.android.compose.AndroidComposeAutoDocumentation$MyStartupActivity"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
@@ -1001,6 +990,8 @@
               topic="com.intellij.execution.ExecutionListener"/>
     <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>
+    <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->

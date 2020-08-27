@@ -22,7 +22,7 @@ import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -135,13 +135,13 @@ class AppInspectionServiceRule(
   /**
    * Launches a new inspector connection.
    *
-   * [commandHandler], and [eventListener] can be provided to customize behavior of how commands and events are received.
+   * [commandHandler] can be provided to customize behavior of how commands and events are received.
    */
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
     parentScope: CoroutineScope = scope
-  ): AppInspectorClient {
+  ): AppInspectorMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope.createChildScope(false))
       .also { timer.currentTimeNs += 1 }

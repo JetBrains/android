@@ -96,6 +96,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
         inspectorModel.selection = nodeAtPoint(e)
+        inspectorModel.stats.selectionMadeFromImage()
       }
 
       override fun mouseMoved(e: MouseEvent) {

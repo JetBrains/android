@@ -16,63 +16,20 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ValidationInfo
 
 @UiThread
-class PinCodePairingView(project: Project, private val model: PinCodePairingModel) {
-  private val dlg = PinCodePairingDialog(project)
-  private val listeners = ArrayList<Listener>()
-  private var allowPairAction = true
+interface PinCodePairingView {
+  val model: PinCodePairingModel
 
-  fun show() {
-    dlg.setDevice(model.service)
-    dlg.validationHandler = {
-      if (dlg.isPinCodeValid) {
-        null
-      }
-      else {
-        ValidationInfo("PIN code must be exactly 6 digits", dlg.pinCodeComponent)
-      }
-    }
-    dlg.okButtonHandler = {
-      if (allowPairAction) {
-        model.pinCode = dlg.currentPinCode
-        listeners.forEach { it.onPairInvoked() }
-         true
-      } else {
-        false
-      }
-    }
-    dlg.show()
-  }
+  fun showDialog()
 
-  fun addListener(listener: Listener) {
-    listeners.add(listener)
-  }
-  fun removeListener(listener: Listener) {
-    listeners.remove(listener)
-  }
+  fun showPairingInProgress()
+  fun showWaitingForDeviceProgress(pairingResult: PairingResult)
+  fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice)
+  fun showPairingError(service: MdnsService, error: Throwable)
 
-  fun showPairingInProgress() {
-    dlg.showPairingInProgress("Pairing with device...")
-    allowPairAction = false
-  }
-
-  fun showWaitingForDeviceProgress(pairingResult: PairingResult) {
-    dlg.showPairingInProgress("Gathering device information...")
-    allowPairAction = false
-  }
-
-  fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice) {
-    dlg.showPairingSuccess(device)
-    allowPairAction = false
-  }
-
-  fun showPairingError(service: MdnsService, error: Throwable) {
-    dlg.showPairingError()
-    allowPairAction = true
-  }
+  fun addListener(listener: Listener)
+  fun removeListener(listener: Listener)
 
   @UiThread
   interface Listener {

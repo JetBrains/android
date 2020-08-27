@@ -26,8 +26,9 @@ import icons.StudioIcons
  */
 object RefreshAction : AnAction(StudioIcons.LayoutEditor.Toolbar.REFRESH) {
   override fun actionPerformed(event: AnActionEvent) {
-    val currentClient = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient ?: return
-    ApplicationManager.getApplication().executeOnPooledThread { currentClient.refresh() }
+    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }
+    inspector.layoutInspectorModel.stats.live.refreshButtonClicked()
   }
 
   override fun update(event: AnActionEvent) {

@@ -913,6 +913,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     verify(databaseInspectorModel).addDatabaseSchema(databaseId1, sqliteSchema)
     verify(databaseInspectorModel).removeDatabaseSchema(databaseId1)
+    runDispatching { verify(databaseRepository).closeDatabase(databaseId1) }
 
     verify(databaseInspectorView).updateDatabases(
       listOf(

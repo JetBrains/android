@@ -6,11 +6,9 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
-        "//tools/idea/images:intellij.platform.images",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
@@ -37,21 +35,13 @@ iml_module(
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/platform/inspect:intellij.platform.inspect",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
-        "//tools/idea/spellchecker:intellij.spellchecker",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/platform/testRunner:intellij.platform.testRunner",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/workspaceModel/ide:intellij.platform.workspaceModel.ide",
-        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
-        "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/.idea/libraries:javax.activation",
         "//tools/idea/.idea/libraries:javax.annotation-api",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
@@ -76,32 +66,7 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
-    ],
-)
-
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "unb.intellij.android.app-inspection.inspectors.workmanager.view",
-    srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto"],
-    iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/app-inspection/inspectors/workmanager/model:unb.intellij.android.app-inspection.inspectors.workmanager.model[module]",
-        "//tools/adt/idea/app-inspection/inspector/api:unb.intellij.android.app-inspection.inspector.api[module]",
-        "//tools/adt/idea/adt-ui:unb.intellij.android.adt.ui[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
-        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
-        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
@@ -114,4 +79,29 @@ java_import(
         "unb",
     ],
     visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.app-inspection.inspectors.workmanager.view",
+    srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto"],
+    iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
+    resources = ["resources"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model[module]",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+    ],
 )

@@ -3299,7 +3299,7 @@ public class GradleImportTest extends AndroidTestCase {
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
-    summary = summary.replace(getSdk().getPath(), "$ANDROID_HOME");
+    summary = summary.replace(getSdk().getPath(), "$ANDROID_SDK_ROOT");
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
@@ -3374,7 +3374,7 @@ public class GradleImportTest extends AndroidTestCase {
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
-    cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
+    cmdLine.withEnvironment(AndroidLocation.ANDROID_PREFS_ROOT, AndroidLocation.getFolder());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;

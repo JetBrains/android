@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -108,7 +111,17 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
     GradleDslLiteral literal = new GradleDslLiteral(myParent, GradleNameElement.copy(myName));
     Object v = getRawValue();
     if (v != null) {
-      literal.setValue(isReference() ? new ReferenceTo((String)v) : v);
+      if (isReference()) {
+        GradlePropertyModel literalModel = GradlePropertyModelBuilder.create(this).build();
+        ReferenceTo valueReference = ReferenceTo.createReferenceFromText((String)v, literalModel);
+        if (valueReference != null)
+          literal.setValue(valueReference);
+        else
+          literal.setValue(new RawText((String)v, (String)v));
+      }
+      else {
+        literal.setValue(v);
+      }
     }
     return literal;
   }

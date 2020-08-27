@@ -150,7 +150,7 @@ iml_module(
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.lang",
+    name = "intellij.android.lang",
     # do not sort: must match IML order
     srcs = [
         "src",
@@ -159,10 +159,7 @@ iml_module(
     ],
     iml_files = ["intellij.android.lang.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = [
-        "manual",
-        "unb",
-    ],
+    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -170,24 +167,23 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
-        "//tools/base/common:unb.studio.android.sdktools.common[module]",
-        "//tools/adt/idea/artwork:unb.intellij.android.artwork[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
 # managed by go/iml_to_build [unb]
 iml_module(
-    name = "unb.intellij.android.lang.tests",
+    name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
+    project = "unb",
     tags = [
-        "manual",
         "no_test_windows",  # b/135665870
-        "unb",
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
@@ -198,21 +194,21 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/android-kotlin:unb.intellij.android.kotlin.extensions"],
+    runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/android-lang:unb.intellij.android.lang[module, test]",
-        "//tools/base/testutils:unb.studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/adt-testutils:unb.intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/android-test-framework:unb.intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android-common:unb.intellij.android.common[module, test]",
-        "//tools/base/flags:unb.studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/project-system:unb.intellij.android.projectSystem[module]",
-        "//tools/adt/idea/android:unb.intellij.android.core[module]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )

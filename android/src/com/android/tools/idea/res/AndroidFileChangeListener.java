@@ -26,6 +26,8 @@ import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.intellij.AppTopics;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -34,9 +36,9 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -93,25 +95,33 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  @NotNull private final ResourceFolderRegistry myRegistry;
-  @NotNull private final Project myProject;
-  @NotNull private final ResourceNotificationManager myResourceNotificationManager;
-  @NotNull private final EditorNotifications myEditorNotifications;
+  @NotNull private ResourceFolderRegistry myRegistry;
+  @NotNull private Project myProject;
+  @NotNull private ResourceNotificationManager myResourceNotificationManager;
+  @NotNull private EditorNotifications myEditorNotifications;
 
   @Nullable private SampleDataListener mySampleDataListener;
 
   @NotNull
   public static AndroidFileChangeListener getInstance(@NotNull Project project) {
-    return project.getComponent(AndroidFileChangeListener.class);
+    return project.getService(AndroidFileChangeListener.class);
   }
 
-  public AndroidFileChangeListener(@NotNull Project project) {
+  public static class MyStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      final AndroidFileChangeListener serviceInstance = getInstance(project);
+      serviceInstance.onProjectOpened(project);
+    }
+  }
+
+  public void onProjectOpened(@NotNull Project project) {
     myProject = project;
-    myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
-    myRegistry = ResourceFolderRegistry.getInstance(project);
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
+    myRegistry = ResourceFolderRegistry.getInstance(myProject);
     myEditorNotifications = EditorNotifications.getInstance(myProject);
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(new MyPsiListener(), this);
+    PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
 
     MessageBusConnection connection = myProject.getMessageBus().connect(this);
@@ -139,10 +149,10 @@ public class AndroidFileChangeListener implements Disposable {
   }
 
   static boolean isRelevantFileType(@NotNull FileType fileType) {
-    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) { // fail fast for vital file type
+    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) { // fail fast for vital file type
       return false;
     }
-    if (fileType == StdFileTypes.XML) {
+    if (fileType == XmlFileType.INSTANCE) {
       return true;
     }
 
@@ -164,11 +174,11 @@ public class AndroidFileChangeListener implements Disposable {
       return false;
     }
 
-    if (StdFileTypes.JAVA.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
+    if (JavaFileType.INSTANCE.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
       return false;
     }
 
-    if (StdFileTypes.XML.getDefaultExtension().equals(extension)) {
+    if (XmlFileType.INSTANCE.getDefaultExtension().equals(extension)) {
       return true;
     }
 
@@ -183,7 +193,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     // Unable to determine based on filename, use old slow method
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
+    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 
@@ -205,7 +215,7 @@ public class AndroidFileChangeListener implements Disposable {
 
   static boolean isRelevantFile(@NotNull PsiFile file) {
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
+    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 

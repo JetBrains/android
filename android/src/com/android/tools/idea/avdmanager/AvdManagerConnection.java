@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.ANDROID_HOME_ENV;
+import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
@@ -705,7 +705,7 @@ public class AvdManagerConnection {
     }
   }
 
-  /** Create a directory under $ANDROID_HOME where we can write
+  /** Create a directory under $ANDROID_SDK_ROOT where we can write
    * temporary files.
    *
    * @return The directory file. This will be null if we
@@ -713,13 +713,13 @@ public class AvdManagerConnection {
    */
   @Nullable
   public static File tempFileDirectory() {
-    // Create a temporary file in /temp under $ANDROID_HOME.
-    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
-    if (androidHomeValue == null) {
+    // Create a temporary file in /temp under $ANDROID_SDK_ROOT.
+    String androidSdkRootValue = System.getenv(ANDROID_SDK_ROOT_ENV);
+    if (androidSdkRootValue == null) {
       // Fall back to the user's home directory
-      androidHomeValue = System.getProperty("user.home");
+      androidSdkRootValue = System.getProperty("user.home");
     }
-    File tempDir = new File(androidHomeValue, "temp");
+    File tempDir = new File(androidSdkRootValue, "temp");
     //noinspection ResultOfMethodCallIgnored
     tempDir.mkdirs(); // Create if necessary
     if (!tempDir.exists()) {
@@ -937,7 +937,7 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
       hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
       hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "768-0-1-2152");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
       hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
       hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
     }

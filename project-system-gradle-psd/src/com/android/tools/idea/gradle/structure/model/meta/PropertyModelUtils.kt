@@ -114,7 +114,7 @@ fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslT
 fun ResolvedPropertyModel.setDslText(value: DslText) =
   unresolvedModel.setValue(
     when (value) {
-      is DslText.Reference -> ReferenceTo(value.text)  // null text is invalid here.
+      is DslText.Reference -> ReferenceTo.createReferenceFromText(value.text, unresolvedModel) ?: RawText(value.text, value.text)  // null text is invalid here.
       is DslText.InterpolatedString -> GradlePropertyModel.iStr(value.text)  // null text is invalid here.
       is DslText.OtherUnparsedDslText -> RawText(value.text, value.text)  // null text is invalid here.
       DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")

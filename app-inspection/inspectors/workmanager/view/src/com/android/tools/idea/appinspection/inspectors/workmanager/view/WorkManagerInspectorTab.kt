@@ -18,21 +18,28 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.HoverRowTable
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.JBTable
-import com.intellij.util.containers.ComparatorUtil.min
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
@@ -41,9 +48,6 @@ import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -73,29 +77,60 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       when (table?.convertColumnIndexToModel(column)) {
         // TODO(163343710): Add icons on the left of state text
         WorksTableModel.Column.STATE.ordinal -> {
-          val text = WorkInfo.State.forNumber(value as Int).name
-          val capitalizedText = text[0] + text.substring(1).toLowerCase(Locale.getDefault())
-          super.getTableCellRendererComponent(table, capitalizedText, isSelected, hasFocus, row, column)
+          val state = WorkInfo.State.forNumber(value as Int)
+          super.getTableCellRendererComponent(table, state.capitalizedName(), isSelected, hasFocus, row, column)
         }
         WorksTableModel.Column.TIME_STARTED.ordinal -> {
-          val formatter = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
-          val time = value as Long
-          val timeText = if (time == -1L) "-" else formatter.format(Date(value))
-          super.getTableCellRendererComponent(table, timeText, isSelected, hasFocus, row, column)
+          super.getTableCellRendererComponent(table, (value as Long).toFormattedTimeString(), isSelected, hasFocus, row, column)
         }
         else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
       }
   }
 
-  private inner class CancelButton(actionListener: ActionListener?) : InplaceButton(
-    IconButton("Cancel Selected Work", AllIcons.Actions.Suspend,
-               AllIcons.Ide.Notification.CloseHover), actionListener) {
-    init {
-      preferredSize = BUTTON_DIMENS
-      minimumSize = preferredSize // Prevent layout phase from squishing this button
+  private inner class CancelAction :
+    AnAction(WorkManagerInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val id = client.getWorkInfoOrNull(selectedModelRow)?.id
+      if (id != null) {
+        client.cancelWorkById(id)
+      }
+    }
+  }
+
+  private inner class SelectTagAction :
+    DropDownAction(WorkManagerInspectorBundle.message("action.tag.all"),
+                   WorkManagerInspectorBundle.message("action.tag.tooltip"),
+                   null) {
+    private var lastTag: String? = null
+
+    override fun update(event: AnActionEvent) {
+      if (lastTag != client.filterTag) {
+        event.presentation.text = client.filterTag
+      }
     }
 
-    override fun isEnabled() = selectedModelRow != -1
+    override fun updateActions(context: DataContext): Boolean {
+      removeAll()
+      add(TagFilterAction(null))
+      client.getAllTags().forEach { tag ->
+        add(TagFilterAction(tag))
+      }
+      return true
+    }
+
+    override fun displayTextInToolbar() = true
+  }
+
+  private inner class TagFilterAction(private val tag: String?)
+    : ToggleAction(tag ?: "All tags") {
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return tag == client.filterTag
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      client.filterTag = tag
+    }
   }
 
   private val classNameProvider = ClassNameProvider(ideServices, scope)
@@ -117,20 +152,21 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   private var selectedModelRow = -1
 
   private fun buildTablePanel(): JComponent {
-    val headingPanel = JPanel(BorderLayout())
-    val cancelButton = CancelButton(ActionListener {
-      val id = client.getWorkInfoOrNull(selectedModelRow)?.id
-      if (id != null) {
-        client.cancelWorkById(id)
-      }
-    })
-    headingPanel.add(cancelButton, BorderLayout.WEST)
-
     val panel = JPanel(TabularLayout("*", "Fit,*"))
-    panel.add(headingPanel, TabularLayout.Constraint(0, 0))
+    panel.add(buildActionBar(), TabularLayout.Constraint(0, 0))
     panel.add(JScrollPane(buildWorksTable()), TabularLayout.Constraint(1, 0))
 
     return panel
+  }
+
+  private fun buildActionBar(): Component {
+    val group = DefaultActionGroup().apply {
+      add(CancelAction())
+      addSeparator()
+      add(SelectTagAction())
+    }
+    val toolbar = ActionManager.getInstance().createActionToolbar("WorkManagerInspector", group, true)
+    return toolbar.component
   }
 
   private fun buildWorksTable(): JBTable {
@@ -187,39 +223,57 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     })
     headingPanel.add(closeButton, BorderLayout.EAST)
 
-
     val panel = JPanel(TabularLayout("*", "Fit,Fit,*"))
     panel.add(headingPanel, TabularLayout.Constraint(0, 0))
     panel.add(JSeparator(), TabularLayout.Constraint(1, 0))
-    val detailPanel = object : ScrollablePanel(VerticalLayout(2)) {
-      override fun getScrollableTracksViewportWidth() = false
-      override fun getPreferredScrollableViewportSize(): Dimension {
-        val result = super.getPreferredScrollableViewportSize()
-        return Dimension(min(700, result.width), result.height)
-      }
-    }
+    val detailPanel = ScrollablePanel(VerticalLayout(18))
+    detailPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
     val idListProvider = IdListProvider(client, table, work)
     detailPanel.preferredScrollableViewportSize
     val scrollPane = JBScrollPane(detailPanel)
     scrollPane.border = BorderFactory.createEmptyBorder()
-    detailPanel.add(buildKeyValuePair("Class", work.workerClassName, classNameProvider))
-    detailPanel.add(buildKeyValuePair("Periodicity", if (work.isPeriodic) "Periodic" else "One Time"))
-    if (work.namesCount > 0) {
-      val uniqueName = work.namesList[0]
-      detailPanel.add(buildKeyValuePair("Unique Work Name", uniqueName))
-      detailPanel.add(buildKeyValuePair("", client.getWorkIdsWithUniqueName(uniqueName), idListProvider))
-    }
-    detailPanel.add(buildKeyValuePair("Tags", work.tagsList, stringListProvider))
-    detailPanel.add(buildKeyValuePair("Enqueued At", work.callStack, enqueuedAtProvider))
-    detailPanel.add(buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider))
-    detailPanel.add(buildKeyValuePair("Retry Count", work.runAttemptCount))
-    detailPanel.add(buildKeyValuePair("Prerequisites", work.prerequisitesList.toList(), idListProvider))
-    detailPanel.add(buildKeyValuePair("Dependencies", work.dependentsList.toList(), idListProvider))
-    detailPanel.add(buildKeyValuePair("Constraints", work.constraints, constraintProvider))
-    detailPanel.add(buildKeyValuePair("State", work.state.name))
-    detailPanel.add(buildKeyValuePair("Output Data", work.data, outputDataProvider))
+    detailPanel.add(buildCategoryPanel("Description", listOf(
+      buildKeyValuePair("Class", work.workerClassName, classNameProvider),
+      buildKeyValuePair("Tags", work.tagsList, stringListProvider),
+      buildKeyValuePair("UUID", work.id)
+    )))
+
+    detailPanel.add(buildCategoryPanel("Execution", listOf(
+      buildKeyValuePair("Enqueued by", work.callStack, enqueuedAtProvider),
+      buildKeyValuePair("Constraints", work.constraints, constraintProvider),
+      buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
+      buildKeyValuePair("State", work.state.capitalizedName())
+    )))
+
+    detailPanel.add(buildCategoryPanel("WorkContinuation", listOf(
+      buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
+      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
+      buildKeyValuePair("Unique work chain", client.getWorkChain(work.id), idListProvider)
+    )))
+
+    detailPanel.add(buildCategoryPanel("Results", listOf(
+      buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider),
+      buildKeyValuePair("Retries", work.runAttemptCount),
+      buildKeyValuePair("Output Data", work.data, outputDataProvider)
+    )))
+
     panel.add(scrollPane, TabularLayout.Constraint(2, 0))
+    return panel
+  }
+
+  private fun buildCategoryPanel(name: String, subPanels: List<Component>): JPanel {
+    val panel = JPanel(VerticalLayout(0))
+
+    val headingPanel = TitledSeparator(name)
+    panel.add(headingPanel)
+
+    for (subPanel in subPanels) {
+      val borderedPanel = JPanel(BorderLayout())
+      borderedPanel.add(subPanel, BorderLayout.WEST)
+      borderedPanel.border = BorderFactory.createEmptyBorder(0, 20, 0, 0)
+      panel.add(borderedPanel)
+    }
     return panel
   }
 

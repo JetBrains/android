@@ -87,7 +87,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
     if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
 
     if (DumbService.isDumb(module.project)) {
-      LOG.warn("Safe Args classes may by temporarily stale due to indices not being ready right now.")
+      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
       return descriptorsCache
     }
 
@@ -100,7 +100,6 @@ class KtDescriptorCacheModuleService(val module: Module) {
       val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
 
       if (lastModificationCount != now) {
-        lastModificationCount = now
         val moduleNavResources = getNavResourceFromIndex()
 
         val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
@@ -119,6 +118,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
           .groupBy({ it.fqName }, { it.descriptor })
 
         descriptorsCache = packageDescriptors
+        lastModificationCount = now
       }
 
       // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService

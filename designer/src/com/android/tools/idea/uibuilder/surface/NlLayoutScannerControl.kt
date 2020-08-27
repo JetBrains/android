@@ -19,19 +19,42 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AtfAuditResult
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
-class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScannerControl {
+class NlLayoutScannerControl: LayoutScannerControl {
 
-  private val metricTracker = NlLayoutScannerMetricTracker(surface)
-  override val scanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
+  constructor(designSurface: NlDesignSurface) {
+    surface = designSurface
+    metricTracker = NlLayoutScannerMetricTracker(surface)
+    myScanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
+    init()
+  }
+
+  /** For testing purposes. Mocked values cannot be disposed in junit it seems. */
+  @TestOnly
+  constructor(designSurface: NlDesignSurface, disposable: Disposable) {
+    surface = designSurface
+    metricTracker = NlLayoutScannerMetricTracker(surface)
+    myScanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
+    init()
+  }
+
+  override val scanner get() = myScanner
+
+  private lateinit var myScanner: NlLayoutScanner
+  private lateinit var surface: NlDesignSurface
+  private lateinit var metricTracker: NlLayoutScannerMetricTracker
+
+  private var scannerResult: CompletableFuture<Boolean>? = null
 
   /** Listener for issue panel open/close */
-  private val issuePanelListener = IssuePanel.MinimizeListener {
+  @VisibleForTesting
+  val issuePanelListener = IssuePanel.MinimizeListener {
     val check = surface.sceneManager?.layoutScannerConfig ?: return@MinimizeListener
 
     if (it) {
@@ -42,9 +65,8 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
       }
     }
     else if (!check.isLayoutScannerEnabled) {
-      check.isLayoutScannerEnabled = true
       metricTracker.trackTrigger(AtfAuditResult.Trigger.ISSUE_PANEL)
-      surface.forceUserRequestedRefresh()
+      tryRefreshWithScanner()
     }
   }
 
@@ -75,25 +97,35 @@ class NlLayoutScannerControl(private val surface: NlDesignSurface): LayoutScanne
     }
   }
 
-  private var scannerResult: CompletableFuture<Boolean>? = null
-
-  init {
+  private fun init() {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
     surface.issuePanel.expandListener = issueExpandListener
   }
 
   override fun runLayoutScanner(): CompletableFuture<Boolean> {
     scanner.addListener(scannerListener)
-    val manager = surface.sceneManager ?: return CompletableFuture.completedFuture(false)
+    if (!tryRefreshWithScanner()) {
+      return CompletableFuture.completedFuture(false)
+    }
     // TODO: b/162528405 Fix this at some point. For now calling this function multiple times sequentially would cause
     //  some events to be ignored. I need to invest in direct path from requestRender to scanner listener.
     //  render complete does not guarentee error panel updated.
     scannerResult = CompletableFuture()
-    manager.layoutScannerConfig?.isLayoutScannerEnabled = true
-    manager.forceReinflate()
-    surface.requestRender()
     metricTracker.trackTrigger(AtfAuditResult.Trigger.USER)
     return scannerResult!!
+  }
+
+  /**
+   * Attempt to run refresh on surface with scanner on.
+   * Returns true if the request was sent successfully false otherwise.
+   */
+  @VisibleForTesting
+  fun tryRefreshWithScanner(): Boolean {
+    val manager = surface.sceneManager ?: return false
+    manager.layoutScannerConfig.isLayoutScannerEnabled = true
+    manager.forceReinflate()
+    surface.requestRender()
+    return true
   }
 }
 

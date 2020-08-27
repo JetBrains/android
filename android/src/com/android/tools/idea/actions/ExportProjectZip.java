@@ -16,13 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,13 +43,12 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.io.Compressor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Exports an entire project into a zip file containing everything that is needed to run the project.
@@ -124,15 +120,6 @@ public class ExportProjectZip extends AnAction implements DumbAware {
       VirtualFile[] exclude = roots.getExcludeRoots();
       for (VirtualFile root : exclude) {
         excludes.add(VfsUtilCore.virtualToIoFile(root));
-      }
-
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        excludes.add(androidModel.getAndroidProject().getBuildFolder());
-      }
-      JavaModuleModel model = JavaModuleModel.get(module);
-      if (model != null) {
-        excludes.add(model.getBuildFolderPath());
       }
     }
 

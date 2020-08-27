@@ -20,7 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.CommonBundle;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -158,7 +158,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
         continue;
       }
 
-      if (resFile.getFileType() != StdFileTypes.XML) {
+      if (resFile.getFileType() != XmlFileType.INSTANCE) {
         return new ValidationInfo("File " + FileUtil.toSystemDependentName(resFile.getPath()) + " is not XML file");
       }
 

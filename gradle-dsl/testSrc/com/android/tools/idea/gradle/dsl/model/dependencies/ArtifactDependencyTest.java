@@ -30,7 +30,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo.createReferenceFromText;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -1331,7 +1330,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradlePropertyModel name = extModel.findProperty("name");
 
     ArtifactDependencyModel firstModel = artifacts.get(0);
-    firstModel.version().setValue(createReferenceFromText("version", firstModel.version()));
+    firstModel.version().setValue(ReferenceTo.createReferenceFromText("version", firstModel.version()));
     ArtifactDependencyModel secondModel = artifacts.get(1);
     secondModel.name().setValue(new ReferenceTo(name));
 
@@ -1450,7 +1449,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(2, artifacts);
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    model.setValue(new ReferenceTo("service"));
+    model.setValue(ReferenceTo.createReferenceFromText("service", model));
     model = artifacts.get(1).completeModel();
     model.setValue(iStr("com.${guavaPart}"));
 
@@ -1485,7 +1484,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(1, artifacts);
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    model.setValue(new ReferenceTo("service"));
+    model.setValue(ReferenceTo.createReferenceFromText("service", model));
 
     applyChangesAndReparse(buildModel);
 
@@ -1556,15 +1555,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(4, artifacts);
 
     ArtifactDependencyModel model = artifacts.get(0);
-    model.completeModel().setValue(new ReferenceTo("dependency"));
+    model.completeModel().setValue(ReferenceTo.createReferenceFromText("dependency", model.completeModel()));
     model = artifacts.get(1);
-    model.group().setValue(new ReferenceTo("guavaGroup"));
-    model.name().setValue(new ReferenceTo("guavaName"));
+    model.group().setValue(ReferenceTo.createReferenceFromText("guavaGroup", model.group()));
+    model.name().setValue(ReferenceTo.createReferenceFromText("guavaName", model.name()));
     model = artifacts.get(2);
-    model.completeModel().setValue(new ReferenceTo("otherDependency"));
+    model.completeModel().setValue(ReferenceTo.createReferenceFromText("otherDependency", model.completeModel()));
     model = artifacts.get(3);
-    model.group().setValue(new ReferenceTo("guavaName"));
-    model.name().setValue(new ReferenceTo("guavaGroup"));
+    model.group().setValue(ReferenceTo.createReferenceFromText("guavaName", model.group()));
+    model.name().setValue(ReferenceTo.createReferenceFromText("guavaGroup", model.name()));
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_FULL_REFERENCE_MAP_EXPECTED);
