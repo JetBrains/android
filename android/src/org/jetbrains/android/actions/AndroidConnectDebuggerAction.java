@@ -34,7 +34,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
         return;
       }
 
-      AppExecutorUtil.getAppExecutorService().submit(() -> closeOldSessionAndRun(project, dialog.getAndroidDebugger(), client));
+      AppExecutorUtil.getAppExecutorService().execute(() -> closeOldSessionAndRun(project, dialog.getAndroidDebugger(), client));
     }
   }
 

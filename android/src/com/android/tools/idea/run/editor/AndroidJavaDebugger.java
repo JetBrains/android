@@ -163,21 +163,23 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       }
     };
 
-    try {
-      ProgramRunnerUtil.executeConfigurationAsync(
-        // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
-        ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
-          .contentToReuse(null)
-          .dataContext(null)
-          .activeTarget()
-          .build(),
-        /*showSettings=*/true,
-        /*assignNewId=*/true,
-        callback);
-    }
-    catch (ExecutionException e) {
-      Logger.getInstance(AndroidJavaDebugger.class).error(e);
-    }
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        ProgramRunnerUtil.executeConfigurationAsync(
+          // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
+          ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
+            .contentToReuse(null)
+            .dataContext(null)
+            .activeTarget()
+            .build(),
+          /*showSettings=*/true,
+          /*assignNewId=*/true,
+          callback);
+      }
+      catch (ExecutionException e) {
+        Logger.getInstance(AndroidJavaDebugger.class).error(e);
+      }
+    });
   }
 
   public DebuggerSession getDebuggerSession(@NotNull Client client) {
@@ -209,7 +211,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       targetProject = openProject;
 
       // First check the titles of the run configurations.
-      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
+      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<>() {
         @NotNull
         @Override
         public Boolean fun(String title) {
