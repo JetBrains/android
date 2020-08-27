@@ -75,10 +75,6 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
     )
     project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
-
-  override fun shouldBeAvailable(project: Project) = AndroidUtils.hasAndroidFacets(project)
-
-  override fun isApplicable(project: Project) = shouldBeAvailable(project)
 }
 
 private fun connectListeners(
