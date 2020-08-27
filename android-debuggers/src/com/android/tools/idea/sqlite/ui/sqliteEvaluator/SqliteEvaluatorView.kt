@@ -53,6 +53,9 @@ interface SqliteEvaluatorView {
 
   fun reportError(message: String, t: Throwable?)
 
+  /** Sets a list of queries to show in the query history popup */
+  fun setQueryHistory(queries: List<String>)
+
   interface Listener {
     /**
      * Invoked when a database is selected in the combobox
