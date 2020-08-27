@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -51,6 +52,7 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
   /**
    * @return true if upon return no processes related to an app are running.
    */
+  @Trace
   public boolean killApp(@NotNull LaunchStatus launchStatus) {
     myIDevice.forceStop(myApplicationId);
     myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
