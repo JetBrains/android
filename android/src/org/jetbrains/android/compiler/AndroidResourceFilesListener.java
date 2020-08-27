@@ -22,10 +22,10 @@ import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -101,9 +101,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return;
       }
 
-      MultiMap<Module, AndroidAutogeneratorMode> map =
-          ApplicationManager.getApplication().runReadAction(
-              (Computable<MultiMap<Module, AndroidAutogeneratorMode>>)() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
+      MultiMap<Module, AndroidAutogeneratorMode> map = ReadAction.compute(() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
 
       if (map.isEmpty()) {
         return;
