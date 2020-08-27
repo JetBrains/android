@@ -249,6 +249,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
 
     myComponentsSplitter.firstComponent = contentPanel
     myDetailsView = AndroidTestSuiteDetailsView(parentDisposable, this, this, myProject, myLogger).apply {
+      isDeviceSelectorListVisible = false
       rootPanel.isVisible = false
       rootPanel.minimumSize = Dimension()
     }
@@ -334,9 +335,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
       myScheduledDevices++
       if (myScheduledDevices == 1) {
         myResultsTableView.showTestDuration(device)
+        myResultsTableView.showTestStatusColumn = false
       }
       else {
         myResultsTableView.showTestDuration(null)
+        myDetailsView.isDeviceSelectorListVisible = true
+        myResultsTableView.showTestStatusColumn = true
       }
       myResultsTableView.addDevice(device)
       myDetailsView.addDevice(device)
