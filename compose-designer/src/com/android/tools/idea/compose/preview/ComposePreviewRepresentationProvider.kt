@@ -84,7 +84,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
                          StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
             addAction(SceneModeAction(SceneMode.COMPOSE, surface))
             addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
-          }
+          }.visibleOnlyInComposeStaticPreview()
         }
         else null
       }
