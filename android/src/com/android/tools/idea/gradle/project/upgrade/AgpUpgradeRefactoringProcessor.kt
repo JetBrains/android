@@ -20,6 +20,7 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
@@ -41,6 +43,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.util.toVirtualFile
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.annotations.VisibleForTesting
@@ -265,7 +268,7 @@ class AgpUpgradeRefactoringProcessor(
     val usages = ArrayList<UsageInfo>()
 
     usages.addAll(classpathRefactoringProcessor.findUsages())
-    targets.ifEmpty { targets.apply { addAll(usages.mapNotNull { it.element }) } }
+    targets.ifEmpty { targets.apply { usages.firstNotNullResult { it.element }?.let { add(it) } } }
 
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
@@ -659,10 +662,11 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
+    val buildSrcDir = File(getBaseDirPath(project), "buildSrc").toVirtualFile()
     // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
-        when (val shouldUpdate = isUpdatablePluginVersion(new, dep)) {
+        when (isUpdatablePluginVersion(new, dep)) {
           YES -> {
             val resultModel = dep.version().resultModel
             val element = resultModel.rawElement
@@ -680,8 +684,31 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
           }
-          NO -> return@model
           else -> Unit
+        }
+      }
+      if (model.moduleRootDirectory.toVirtualFile() == buildSrcDir) {
+        model.dependencies().artifacts().forEach dep@{ dep ->
+          when (isUpdatablePluginRelatedDependency(new, dep)) {
+            YES -> {
+              val resultModel = dep.version().resultModel
+              val element = resultModel.rawElement
+              val psiElement = when (element) {
+                null -> return@dep
+                // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+                is FakeArtifactElement -> element.realExpression.psiElement
+                else -> element.psiElement
+              }
+              val presentableText = when (element) {
+                is FakeArtifactElement -> "AGP buildSrc dependency"
+                else -> "AGP version specification"
+              }
+              psiElement?.let {
+                usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
+              }
+            }
+            else -> Unit
+          }
         }
       }
     }

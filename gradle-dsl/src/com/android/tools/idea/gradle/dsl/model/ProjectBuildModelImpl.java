@@ -143,9 +143,8 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     //  all themselves configured and built by the top-level Gradle build file in the buildSrc directory.
     File buildSrc = new File(getBaseDirPath(myBuildModelContext.getProject()), "buildSrc");
     VirtualFile buildSrcVirtualFile = myBuildModelContext.getGradleBuildFile(buildSrc);
-    GradleBuildFile buildSrcBuildFile = myBuildModelContext.parseProjectBuildFile(myBuildModelContext.getProject(), buildSrcVirtualFile);
-    if (buildSrcBuildFile != null) {
-      allModels.add(new GradleBuildModelImpl(buildSrcBuildFile));
+    if (buildSrcVirtualFile != null) {
+      allModels.add(getModuleBuildModel(buildSrcVirtualFile));
     }
 
     GradleSettingsModel settingsModel = getProjectSettingsModel();
