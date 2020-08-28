@@ -27,12 +27,9 @@ class AndroidWindow(
   val root: ViewNode,
   val id: Any,
   var imageType: LayoutInspectorProto.ComponentTreeEvent.PayloadType = LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP,
-  private var refreshImagesCallback: (() -> Unit)? = null
+  var payloadId: Int = 0,
+  private var refreshImagesCallback: ((Double, AndroidWindow) -> Unit)? = null
 ) {
-
-  init {
-    refreshImages()
-  }
 
   val isDimBehind: Boolean
     get() = root.isDimBehind
@@ -43,11 +40,15 @@ class AndroidWindow(
   val height: Int
     get() = root.height
 
-  var hasSubImages = false
+  // TODO: find a way to achieve the behavior allowed by this in a cleaner fashion
+  var hasSubImages = calculateHasSubimages()
     private set
 
-  fun refreshImages() {
-    refreshImagesCallback?.invoke()
-    hasSubImages = root.flatten().minus(root).any { it.drawChildren.firstIsInstanceOrNull<DrawViewImage>() != null } == true
+  fun refreshImages(scale: Double) {
+    refreshImagesCallback?.invoke(scale, this)
+    hasSubImages = calculateHasSubimages()
   }
+
+  private fun calculateHasSubimages() =
+    root.flatten().minus(root).any { it.drawChildren.firstIsInstanceOrNull<DrawViewImage>() != null }
 }

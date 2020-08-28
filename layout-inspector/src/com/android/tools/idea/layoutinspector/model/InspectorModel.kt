@@ -121,6 +121,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
+   * This removes drawChildren from all existing [ViewNode]s. [AndroidWindow.refreshImages] must be called on newWindow after to regenerate
+   * them.
    */
   fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int) {
     updating = true
@@ -137,6 +139,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         structuralChange = true
       }
       else {
+        oldWindow.imageType = newWindow.imageType
+        oldWindow.payloadId = newWindow.payloadId
         val updater = Updater(oldWindow.root, newWindow.root)
         structuralChange = updater.update() || structuralChange
       }
@@ -179,26 +183,15 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
       oldNode.children.clear()
       oldNode.drawChildren.clear()
-      for (newChild in newNode.drawChildren) {
-        val newChildView = newChild.owner
-        if (newChildView != newNode) {
-          val oldChild = oldNodes[newChildView.drawId]
-          if (oldChild != null && oldChild.javaClass == newChildView.javaClass) {
-            modified = update(oldChild, oldNode, newChildView) || modified
-            oldNode.children.add(oldChild)
-            oldNode.drawChildren.add(newChild)
-            newChild.owner = oldChild
-          }
-          else {
-            modified = true
-            oldNode.children.add(newChildView)
-            oldNode.drawChildren.add(newChild)
-            newChildView.parent = oldNode
-          }
-        }
-        else {
-          oldNode.drawChildren.add(newChild)
-          newChild.owner = oldNode
+      for (newChild in newNode.children) {
+        val oldChild = oldNodes[newChild.drawId]
+        if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
+          modified = update(oldChild, oldNode, newChild) || modified
+          oldNode.children.add(oldChild)
+        } else {
+          modified = true
+          oldNode.children.add(newChild)
+          newChild.parent = oldNode
         }
       }
       return modified

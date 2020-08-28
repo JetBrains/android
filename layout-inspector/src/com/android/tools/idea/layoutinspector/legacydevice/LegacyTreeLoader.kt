@@ -81,7 +81,7 @@ object LegacyTreeLoader : TreeLoader {
     try {
       val imageData = imageHandler.getData()
       if (imageData != null) {
-        rootNode.drawChildren.add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode.x, rootNode.y, rootNode))
+        rootNode.drawChildren.add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode))
       }
     }
     catch (e: IOException) {
@@ -95,7 +95,7 @@ object LegacyTreeLoader : TreeLoader {
     else {
       client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
     }
-    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED, null)
+    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED)
   }
 
   private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {

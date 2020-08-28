@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.image.BufferedImage
+import kotlin.math.min
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
 fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
@@ -49,7 +50,13 @@ fun window(windowId: Any,
            body: InspectorViewDescriptor.() -> Unit = {}) =
   AndroidWindow(
     InspectorViewDescriptor(rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null)
-      .also(body).build(), windowId, imageType)
+      .also(body).build(), windowId, imageType, 0) { _, window ->
+    window.root.flatten().forEach {
+      it.drawChildren.clear()
+      it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
+    }
+  }
+
 
 fun view(drawId: Long,
          x: Int = 0,
@@ -81,9 +88,7 @@ fun compose(drawId: Long,
                           composeFilename, composePackageHash, composeOffset, composeLineNumber).also(body)
 
 interface InspectorNodeDescriptor
-class InspectorImageDescriptor(
-  internal val image: BufferedImage, internal val x: Int? = null, internal val y: Int? = null
-): InspectorNodeDescriptor
+class InspectorImageDescriptor(internal val image: BufferedImage): InspectorNodeDescriptor
 
 class InspectorViewDescriptor(private val drawId: Long,
                               private val qualifiedName: String,
@@ -103,7 +108,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
   fun image(image: BufferedImage = mock()) {
-    children.add(InspectorImageDescriptor(image, x, y))
+    children.add(InspectorImageDescriptor(image))
   }
 
   fun view(drawId: Long,
@@ -157,8 +162,8 @@ class InspectorViewDescriptor(private val drawId: Long,
           result.drawChildren.add(DrawViewChild(viewNode))
         }
         is InspectorImageDescriptor -> {
-          val image = it.image.getSubimage(0, 0, result.width, result.height) ?: it.image
-          result.drawChildren.add(DrawViewImage(image, it.x ?: result.x, it.y ?: result.y, result))
+          val image = it.image.getSubimage(0, 0, min(result.width, it.image.width), min(result.height, it.image.height)) ?: it.image
+          result.drawChildren.add(DrawViewImage(image, result))
         }
       }
     }
@@ -197,12 +202,23 @@ class InspectorModelDescriptor(val project: Project) {
   fun build(): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
-    model.update(AndroidWindow(windowRoot, windowRoot.drawId), listOf(windowRoot.drawId), 0)
+    val newWindow = AndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
+      window.root.flatten().forEach {
+        it.drawChildren.clear()
+        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
+      }
+    }
+    model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationBuilder(strings)
       model.resourceLookup.updateConfiguration(config.makeSampleConfiguration(project), strings)
     }
+    // This is usually added by DeviceViewPanel
+    model.modificationListeners.add { _, new, _ ->
+      new?.refreshImages(1.0)
+    }
+
     return model
   }
 }
