@@ -49,6 +49,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 
 @NonNls
@@ -89,16 +90,15 @@ class WarningsPageView(
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
+    selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
     TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
       comparator = SpeedSearchComparator(false)
     }
     TreeUtil.installActions(this)
     addTreeSelectionListener { e ->
-      if (fireActionHandlerEvents && e.path != null && e.isAddedPath) {
-        (e.path.lastPathComponent as? WarningsTreeNode)?.let {
-          actionHandlers.warningsTreeNodeSelected(it)
-        }
+      if (fireActionHandlerEvents) {
+        actionHandlers.warningsTreeNodeSelected(e?.newLeadSelectionPath?.lastPathComponent as? WarningsTreeNode)
       }
     }
   }

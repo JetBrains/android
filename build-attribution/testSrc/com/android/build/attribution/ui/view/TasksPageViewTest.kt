@@ -123,9 +123,24 @@ class TasksPageViewTest {
     Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
+  @Test
+  @RunsInEdt
+  fun testTreeNodeDeselectionTriggersActionHandlerCallWithNull() {
+    // Arrange
+    val nodeToSelect = model.treeRoot.lastLeaf as TasksTreeNode
+    view.tree.selectionPath = TreePathUtil.toTreePath(nodeToSelect)
+
+    // Act
+    view.tree.clearSelection()
+
+    // Assert
+    Mockito.verify(mockHandlers).tasksTreeNodeSelected(Mockito.isNull())
+  }
 
   @Test
   @RunsInEdt
+  // Empty state tested here is when there are no tasks to be shown thus tree would be completely empty.
+  // It is replaced with special message instead.
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList())
     val model = TasksDataPageModelImpl(data)

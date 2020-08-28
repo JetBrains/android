@@ -115,6 +115,20 @@ class WarningsPageViewTest {
 
   @Test
   @RunsInEdt
+  fun testTreeNodeDeselectionTriggersActionHandlerCallWithNull() {
+    // Arrange
+    val nodeToSelect = model.treeRoot.lastLeaf as WarningsTreeNode
+    view.tree.selectionPath = TreePathUtil.toTreePath(nodeToSelect)
+
+    // Act
+    view.tree.clearSelection()
+
+    // Assert
+    Mockito.verify(mockHandlers).warningsTreeNodeSelected(Mockito.isNull())
+  }
+
+  @Test
+  @RunsInEdt
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList()).apply {
       annotationProcessors = object : AnnotationProcessorsReport {

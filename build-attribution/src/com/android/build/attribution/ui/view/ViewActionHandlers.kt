@@ -50,14 +50,14 @@ interface ViewActionHandlers {
   /** Called when selection in tasks grouping control is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 
-  /** Called on tasks page tree node selection. */
-  fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode)
+  /** Called on tasks page tree node selection. Passing null means clearing selection to empty. */
+  fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode?)
 
   /** Called on a link to another task details page click. */
   fun tasksDetailsLinkClicked(taskPageId: TasksPageId)
 
-  /** Called on warnings page tree node selection. */
-  fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode)
+  /** Called on warnings page tree node selection. Passing null means clearing selection to empty. */
+  fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode?)
 
   /** Called on help link click. */
   fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks)
