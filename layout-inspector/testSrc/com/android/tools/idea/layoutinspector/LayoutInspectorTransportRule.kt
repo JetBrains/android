@@ -46,6 +46,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
@@ -367,6 +369,7 @@ class LayoutInspectorTransportRule(
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
+    (DataManager.getInstance() as? HeadlessDataManager)?.setTestDataProvider(dataProviderForLayoutInspector(inspector), testRootDisposable)
   }
 
   private fun after() {
