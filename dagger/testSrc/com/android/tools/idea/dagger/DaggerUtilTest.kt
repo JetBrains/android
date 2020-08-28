@@ -1151,6 +1151,29 @@ class DaggerUtilTest : DaggerTestCase() {
     val consumers = getDaggerConsumersFor(providers.first()).first()
     assertThat(consumers.type.canonicalText).isEqualTo("dagger.Lazy<java.lang.String>")
   }
+
+  fun testJavaxInjectProvider() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+        import dagger.Provides;
+
+        @Module
+        class MyModule {
+          @Provides String providesString();
+        }
+      """.trimIndent()
+    )
+
+    val providers = getProvidersForInjectedField_kotlin("javax.inject.Provider<String>")
+    assertThat(providers).isNotEmpty()
+    assertThat(providers.map { it.name }).containsExactly("providesString")
+
+    val consumers = getDaggerConsumersFor(providers.first()).first()
+    assertThat(consumers.type.canonicalText).isEqualTo("javax.inject.Provider<java.lang.String>")
+  }
 }
 
 class DaggerCrossModuleTest : UsefulTestCase() {
