@@ -23,10 +23,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.google.common.annotations.VisibleForTesting
@@ -300,7 +302,7 @@ class DeviceViewPanel(
     leftGroup.add(ToggleOverlayAction)
     leftGroup.add(AlphaSliderAction)
     leftGroup.add(Separator.getInstance())
-    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
+    leftGroup.add(PauseLayoutInspectorAction)
     leftGroup.add(RefreshAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(LayerSpacingSliderAction)
@@ -321,10 +323,10 @@ class DeviceViewPanel(
     return panel
   }
 
-  private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
+  object PauseLayoutInspectorAction : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
-      val currentClient = client()
+      val currentClient = client(event)
       val isLiveInspector = currentClient.isConnected && currentClient is DefaultInspectorClient
       val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
       event.presentation.isEnabled = isLiveInspector
@@ -338,16 +340,21 @@ class DeviceViewPanel(
 
     // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return !client().isConnected || client().isCapturing
+      val currentClient = client(event)
+      return !currentClient.isConnected || currentClient.isCapturing
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (!client().isConnected) {
+      val currentClient = client(event)
+      if (!currentClient.isConnected) {
         return
       }
-      val command = if (client().isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
-      client().execute(command)
+      val command = if (currentClient.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
+      currentClient.execute(command)
     }
+
+    private fun client(event: AnActionEvent): InspectorClient =
+      event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient ?: DisconnectedClient
   }
 }
 
