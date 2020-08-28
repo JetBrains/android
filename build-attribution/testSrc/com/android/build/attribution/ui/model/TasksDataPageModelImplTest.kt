@@ -132,6 +132,28 @@ class TasksDataPageModelImplTest {
   }
 
   @Test
+  fun testDeselectNode() {
+    // Arrange
+    val lastChild = model.treeRoot.lastChild as TasksTreeNode
+    model.selectNode(lastChild)
+
+    // Act
+    model.selectNode(null)
+
+    // Assert
+    assertThat(model.selectedNode).isNull()
+    assertThat(model.print()).isEqualTo("""
+      |Tasks determining build duration - Total: 4.0s, Filtered: 4.0s
+      |ROOT
+      |  :app:compile
+      |  :app:resources
+      |  :lib:compile
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
+    assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
+  }
+
+  @Test
   fun testTreeKeepsSelectionWhenChangeToPlugins() {
     // Arrange
     model.selectNode(model.treeRoot.firstChild as TasksTreeNode)

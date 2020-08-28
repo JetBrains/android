@@ -89,6 +89,33 @@ class WarningsDataPageModelImplTest {
   }
 
   @Test
+  fun testDeselectNode() {
+    // Arrange
+    val lastChild = model.treeRoot.lastLeaf as WarningsTreeNode
+    model.selectNode(lastChild)
+
+    // Act
+    model.selectNode(null)
+
+    // Assert
+    assertThat(model.selectedNode).isNull()
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  ALWAYS_RUN_TASKS
+      |    ALWAYS_RUN_TASKS-:app:compile
+      |    ALWAYS_RUN_TASKS-:app:resources
+      |  TASK_SETUP_ISSUE
+      |    TASK_SETUP_ISSUE-:app:compile
+      |    TASK_SETUP_ISSUE-:lib:compile
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
+  }
+
+  @Test
   fun testSelectByPageId() {
     // Act
     val pageId = WarningsPageId.warning(task2.issues.first())

@@ -62,9 +62,10 @@ interface TasksDataPageModel {
 
   /**
    * Takes [TasksPageId] from the provided node and selects it as described in [selectPageById].
+   * Null means changing to empty selection.
    * Notifies listener if model state changes.
    */
-  fun selectNode(tasksTreeNode: TasksTreeNode)
+  fun selectNode(tasksTreeNode: TasksTreeNode?)
 
   /**
    * Selects node in a tree to the one with provided id.
@@ -175,8 +176,9 @@ class TasksDataPageModelImpl(
     notifyModelChanges()
   }
 
-  override fun selectNode(tasksTreeNode: TasksTreeNode) {
-    selectedPageId = tasksTreeNode.descriptor.pageId
+  override fun selectNode(tasksTreeNode: TasksTreeNode?) {
+    val currentGrouping = selectedGrouping
+    selectedPageId = tasksTreeNode?.descriptor?.pageId ?: TasksPageId.emptySelection(currentGrouping)
     notifyModelChanges()
   }
 
