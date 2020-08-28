@@ -20,7 +20,6 @@ import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.annotations.concurrency.Slow
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.PreviewElementProvider
@@ -33,12 +32,9 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
@@ -52,15 +48,11 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.uast.UFile
-import org.jetbrains.uast.toUElement
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.reflect.KCallable
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.functions
-import kotlin.reflect.full.memberProperties
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -536,23 +528,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  @Slow
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement> {
-    assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
-
-    val psiFile = ReadAction.compute<PsiFile?, Throwable> { PsiManager.getInstance(project).findFile(vFile) } ?: return emptySequence()
-    val uFile: UFile = psiFile.toUElement() as? UFile ?: return emptySequence()
-
-    return findPreviewMethods(uFile)
-  }
-
-  /**
-   * Returns all the [PreviewElement]s present in the passed [UFile].
-   *
-   * This method always runs on smart mode.
-   */
-  @Slow
-  fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement>
 }
 
 /**
