@@ -201,7 +201,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
       GradleVersion modelVersion = getModelVersion(androidProject.getModelVersion());
-      validateModelVersion(androidProject, modelVersion);
+      validateModelVersion(modelVersion, androidProject.getModelVersion());
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
@@ -246,14 +246,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
   }
 
-  private void validateModelVersion(AndroidProject androidProject, GradleVersion modelVersion) {
+  private void validateModelVersion(@Nullable GradleVersion modelVersion, @NotNull String modelVersionString) {
     if (!isSupportedVersion(modelVersion)) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       // @formatter:off
       event.setCategory(GRADLE_SYNC)
            .setKind(GRADLE_SYNC_FAILURE_DETAILS)
            .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
-           .setGradleVersion(androidProject.getModelVersion());
+           .setGradleVersion(modelVersionString);
       // @formatter:on
       UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
       UsageTracker.log(event);
@@ -264,7 +264,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Project project = myProjectFinder.findProject(resolverCtx);
 
     // Before anything, check to see if what we have is compatible with this version of studio.
-    GradleVersion currentAgpVersion = GradleVersion.tryParse(androidProject.getModelVersion());
+    GradleVersion currentAgpVersion = GradleVersion.tryParse(modelVersionString);
     GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
     if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
       throw new AgpUpgradeRequiredException(project, currentAgpVersion);
@@ -333,7 +333,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
       gradleModel =
-        createGradleModuleModel(moduleName, gradleModule, androidProject, kaptGradleModel, buildScriptClasspathModel, gradlePluginList);
+        createGradleModuleModel(moduleName,
+                                gradleModule,
+                                androidProject == null ? null : androidProject.getModelVersion(),
+                                kaptGradleModel,
+                                buildScriptClasspathModel,
+                                gradlePluginList);
     }
     if (androidModel == null) {
       javaModuleModel = createJavaModuleModel(gradleModule, externalProject, gradlePluginList, hasArtifactsOrNoRootSettingsFile);
@@ -375,7 +380,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull
   private static GradleModuleModel createGradleModuleModel(String moduleName,
                                                            @NotNull IdeaModule gradleModule,
-                                                           @Nullable AndroidProject androidProject,
+                                                           @Nullable String modelVersionString,
                                                            KaptGradleModel kaptGradleModel,
                                                            BuildScriptClasspathModel buildScriptClasspathModel,
                                                            Collection<String> gradlePluginList) {
@@ -393,7 +398,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       gradlePluginList,
       buildScriptPath,
       (buildScriptClasspathModel == null) ? null : buildScriptClasspathModel.getGradleVersion(),
-      (androidProject == null) ? null : androidProject.getModelVersion(),
+      modelVersionString,
       kaptGradleModel
     );
   }

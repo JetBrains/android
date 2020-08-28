@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeVersion
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
@@ -116,7 +116,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       chooseSelectedVariants(controller, androidModules)
     }
 
-    // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
+    // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
     getAdditionalClassifierArtifactsModel(
       controller,
       androidModules,
@@ -314,7 +314,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     selectedAbi: String?
   ): String? {
     // This module is not a native one, nothing to do
-    if (module.hasNative == NativeVersion.None) return null
+    if (module.nativeModelVersion == NativeModelVersion.None) return null
 
     // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
     // Otherwise return from this method with a null result as abis are not supported.
@@ -323,7 +323,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
                        ?: throw IllegalStateException("No valid Native abi found to request!")
 
-    if (module.hasNative == NativeVersion.V2) {
+    if (module.nativeModelVersion == NativeModelVersion.V2) {
       // V2 model is available, trigger the sync with V2 API
       controller.findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
         it.variantsToGenerateBuildInformation = listOf(variantName)

@@ -68,12 +68,12 @@ class AndroidModule(
 
   val id = createUniqueModuleId(gradleProject)
 
-  enum class NativeVersion { None, V1, V2 }
+  enum class NativeModelVersion { None, V1, V2 }
 
-  val hasNative: NativeVersion = when {
-    nativeModule != null -> NativeVersion.V2
-    nativeAndroidProject != null -> NativeVersion.V1
-    else -> NativeVersion.None
+  val nativeModelVersion: NativeModelVersion = when {
+    nativeModule != null -> NativeModelVersion.V2
+    nativeAndroidProject != null -> NativeModelVersion.V1
+    else -> NativeModelVersion.None
   }
 
   private val variantGroup: VariantGroup = VariantGroup()
