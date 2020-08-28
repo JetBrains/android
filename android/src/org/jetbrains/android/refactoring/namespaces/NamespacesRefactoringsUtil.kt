@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
+const val NON_TRANSITIVE_APP_R_CLASSES_PROPERTY = "android.experimental.nonTransitiveAppRClass"
 
 /**
  * Information about an Android resource reference.
