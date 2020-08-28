@@ -211,7 +211,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       targetProject = openProject;
 
       // First check the titles of the run configurations.
-      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<>() {
+      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
         @NotNull
         @Override
         public Boolean fun(String title) {
