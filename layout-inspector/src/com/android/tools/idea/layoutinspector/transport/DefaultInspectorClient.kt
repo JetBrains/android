@@ -53,6 +53,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA
 import com.intellij.concurrency.JobScheduler
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -82,6 +83,11 @@ import javax.swing.AbstractAction
 import javax.swing.JLabel
 
 private const val MAX_RETRY_COUNT = 60
+private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
+
+var isCapturingModeOn: Boolean
+  get() = PropertiesComponent.getInstance().getBoolean(IS_CAPTURING_KEY, true)
+  set(value) = PropertiesComponent.getInstance().setValue(IS_CAPTURING_KEY, value, true)
 
 class DefaultInspectorClient(
   model: InspectorModel,
@@ -131,8 +137,18 @@ class DefaultInspectorClient(
   override var isConnected = false
     private set
 
-  override var isCapturing = false
-    private set
+  override var isCapturing: Boolean
+    get() = isCapturingModeOn
+    set(value) {
+      isCapturingModeOn = value
+      if (value) {
+        execute(LayoutInspectorCommand.Type.START)
+        stats.live.toggledToLive()
+      } else {
+        execute(LayoutInspectorCommand.Type.STOP)
+        stats.live.toggledToRefresh()
+      }
+    }
 
   override val treeLoader = ComponentTreeLoader
 
@@ -232,15 +248,13 @@ class DefaultInspectorClient(
   }
 
   override fun execute(commandType: LayoutInspectorCommand.Type) {
-    if (commandType == LayoutInspectorCommand.Type.START) {
-      execute(LayoutInspectorCommand.newBuilder().apply {
-        type = commandType
-        composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-      }.build())
+    val command = LayoutInspectorCommand.newBuilder().setType(commandType)
+    when (commandType) {
+      LayoutInspectorCommand.Type.START,
+      LayoutInspectorCommand.Type.REFRESH -> command.composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      else -> {}
     }
-    else {
-      super.execute(commandType)
-    }
+    execute(command.build())
   }
 
   @Slow
@@ -258,18 +272,6 @@ class DefaultInspectorClient(
       .build()
     // TODO(b/150503095)
     val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
-
-    when (command.type) {
-      LayoutInspectorCommand.Type.STOP -> {
-        isCapturing = false
-        stats.live.toggledToRefresh()
-      }
-      LayoutInspectorCommand.Type.START -> {
-        isCapturing = true
-        stats.live.toggledToLive()
-      }
-      else -> {}
-    }
   }
 
   @Slow
@@ -325,7 +327,12 @@ class DefaultInspectorClient(
         processChangedListeners.forEach { it(this) }
         setDebugViewAttributes(selectedStream, true)
         listeners.forEach { transportPoller.registerListener(it) }
-        execute(LayoutInspectorCommand.Type.START)
+        if (isCapturing) {
+          execute(LayoutInspectorCommand.Type.START)
+        }
+        else {
+          execute(LayoutInspectorCommand.Type.REFRESH)
+        }
       }
       // TODO: verify that capture started successfully
       attachListener = null
@@ -453,7 +460,6 @@ class DefaultInspectorClient(
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
-        isCapturing = false
         listeners.forEach { transportPoller.unregisterListener(it) }
         lastResponseTimePerGroup.clear()
       }

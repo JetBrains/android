@@ -26,12 +26,14 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.TestStringTable
@@ -48,6 +50,7 @@ import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
@@ -121,6 +124,7 @@ class LayoutInspectorTransportRule(
   lateinit var inspectorModel: InspectorModel
   val project: Project get() = projectRule.project
   val testRootDisposable: Disposable get() = projectRule.fixture.testRootDisposable
+  val propertiesComponent = PropertiesComponentMock()
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
@@ -162,11 +166,13 @@ class LayoutInspectorTransportRule(
 
   private val startedLatch = CountDownLatch(1)
   private val startHandler : CommandHandler = object : CommandHandler(timer) {
-    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      if (command.layoutInspector.type == LayoutInspectorProto.LayoutInspectorCommand.Type.START) {
-        startedLatch.countDown()
+    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) =
+      when (command.layoutInspector.type) {
+        LayoutInspectorProto.LayoutInspectorCommand.Type.START,
+        LayoutInspectorProto.LayoutInspectorCommand.Type.REFRESH -> startedLatch.countDown()
+        else -> {
+        }
       }
-    }
   }
 
   private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
@@ -291,10 +297,24 @@ class LayoutInspectorTransportRule(
   }
 
   /**
+   * Make the next session in Snapshot mode (i.e. not in live mode)
+   */
+  fun inSnapshotMode() = apply {
+    isCapturingModeOn = false
+  }
+
+  /**
    * Advance the virtual time of the test. This will cause the [transportService] poller to fire, and will also advance [timer].
    */
   fun advanceTime(interval: Long, unit: TimeUnit) {
     scheduler.advanceBy(interval, unit)
+  }
+
+  /**
+   * @return the current virtual time of the scheduler.
+   */
+  fun getCurrentTimeNanos(): Long {
+    return scheduler.currentTimeNanos
   }
 
   /**
@@ -339,8 +359,8 @@ class LayoutInspectorTransportRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return grpcServer.apply(projectRule.apply(adbRule.apply(//disposableRule.apply(
-      object: Statement() {
+    return grpcServer.apply(projectRule.apply(adbRule.apply( //disposableRule.apply(
+      object : Statement() {
         override fun evaluate() {
           before()
           try {
@@ -357,6 +377,7 @@ class LayoutInspectorTransportRule(
   }
 
   private fun before() {
+    projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     initialActions.forEach { it() }
     inspectorModel = InspectorModel(project)
     originalClientFactory = InspectorClient.clientFactory
@@ -396,11 +417,13 @@ class LayoutInspectorTransportRule(
     val config = ConfigurationBuilder(strings)
     return Common.Event.newBuilder().apply {
       kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      timestamp = scheduler.currentTimeNanos
       pid = DEFAULT_PROCESS.pid
       groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
       layoutInspectorEventBuilder.treeBuilder.apply {
         root = tree.makeViewTree(rootView)
         resources = config.makeSampleConfiguration(project)
+        generation = inspectorModel.lastGeneration + 1
         addAllString(strings.asEntryList())
         addAllWindowIds(rootView.drawId)
       }

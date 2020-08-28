@@ -57,8 +57,8 @@ object DemoExample {
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(namespace, ResourceType.ID, "title")
     this.also {
-      view(0, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
-        view(1, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
+      view(1, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
+        view(2, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
              body = body)
       }
     }
