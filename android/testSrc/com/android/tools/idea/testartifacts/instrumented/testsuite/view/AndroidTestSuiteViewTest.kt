@@ -561,7 +561,7 @@ class AndroidTestSuiteViewTest {
     runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
-    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><font color='#d67b76'>2 failed</font></nobr></html>")
+    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
     assertThat(view.myStatusBreakdownText.text).isEqualTo("2 tests, 2 h 0 m 1 s")
   }
 
@@ -595,7 +595,8 @@ class AndroidTestSuiteViewTest {
     runTestCase(device2, testsuiteOnDevice2, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
-    assertThat(view.myStatusText.text).isEqualTo("<html><nobr><font color='#d67b76'>1 failed</font>, 2 passed, 1 skipped</nobr></html>")
+    assertThat(view.myStatusText.text)
+      .isEqualTo("<html><nobr><b><font color='#d67b76'>1 failed</font></b>, 2 passed, 1 skipped</nobr></html>")
     assertThat(view.myStatusBreakdownText.text).isEqualTo("4 tests, 2 devices, 12 s 345 ms")
   }
 

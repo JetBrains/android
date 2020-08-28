@@ -278,7 +278,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
   private fun updateStatusText() {
     val statusText = StringBuilder()
     if (failedTestCases > 0) {
-      statusText.append("<font color='#${ColorUtil.toHex(ColorProgressBar.RED)}'>${failedTestCases} failed</font>")
+      statusText.append(
+        "<b><font color='#${ColorUtil.toHex(ColorProgressBar.RED)}'>${failedTestCases} failed</font></b>")
     }
     if (passedTestCases > 0) {
       if (statusText.isNotEmpty()) {
