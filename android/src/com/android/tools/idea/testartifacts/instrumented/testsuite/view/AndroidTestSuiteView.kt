@@ -77,6 +77,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JProgressBar
+import kotlin.math.min
 
 private const val FAILED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myFailedToggleButton"
 private const val PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton"
@@ -335,6 +336,11 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
       myResultsTableView.addDevice(device)
       myDetailsView.addDevice(device)
       updateProgress()
+
+      if (myComponentsSplitter.width > 0) {
+        myComponentsSplitter.proportion =
+          min(0.6f, myResultsTableView.preferredTableWidth.toFloat() / myComponentsSplitter.width)
+      }
     }
   }
 

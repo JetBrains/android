@@ -112,6 +112,10 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   private val myTableViewContainer = JBScrollPane(myTableView)
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
+  @get:UiThread
+  val preferredTableWidth: Int
+    get() = myTableView.preferredSize.width
+
   /**
    * Adds a device to the table.
    *
