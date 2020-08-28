@@ -194,7 +194,8 @@ class TasksDataPageModelImpl(
     modelUpdatedListener = listener
   }
 
-  override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? = treeStructure.pageIdToNode[pageId]?.descriptor
+  override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? =
+    treeStructure.pageIdToNode[pageId]?.descriptor
 
   private fun notifyModelChanges() {
     if (modelChanged) {
@@ -211,7 +212,7 @@ private class TasksTreeStructure(
 
   val pageIdToNode: MutableMap<TasksPageId, TasksTreeNode> = mutableMapOf()
 
-  var treeRoot = DefaultMutableTreeNode()
+  val treeRoot = DefaultMutableTreeNode()
 
   var treeStats: TreeStats = TreeStats()
 
