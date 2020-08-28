@@ -28,11 +28,12 @@ import java.awt.BasicStroke.JOIN_MITER
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Image
+import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.Rectangle2D
-import java.lang.Float.min
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 private const val NORMAL_BORDER_THICKNESS = 1f
 private const val EMPHASIZED_BORDER_THICKNESS = 5f
@@ -195,10 +196,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 /**
  * A draw view that paints an image. The [owner] should be the view that does the painting, and is also the "draw parent" of this node.
  */
-class DrawViewImage(@VisibleForTesting val image: Image,
-                    private val x: Int,
-                    private val y: Int,
-                    owner: ViewNode) : DrawViewNode(owner) {
+class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : DrawViewNode(owner) {
   override val canCollapse = true
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
@@ -207,7 +205,14 @@ class DrawViewImage(@VisibleForTesting val image: Image,
     if (model.selection != null && owner != model.selection && model.hasSubImages) {
       g2.composite = AlphaComposite.SrcOver.derive(0.6f)
     }
-    UIUtil.drawImage(g2, image, max(x, 0), max(y, 0), null)
+    val bounds = owner.transformedBounds.bounds
+    val rootBounds = owner.parentSequence.last().transformedBounds.bounds
+    UIUtil.drawImage(
+      g2, image,
+      Rectangle(max(bounds.x, 0), max(bounds.y, 0),
+                min(bounds.width, rootBounds.width - bounds.x),
+                min(bounds.height, rootBounds.height - bounds.y)),
+      Rectangle(0, 0, image.getWidth(null), image.getHeight(null)), null)
     g2.composite = composite
   }
 

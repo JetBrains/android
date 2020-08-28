@@ -204,6 +204,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     modificationListeners.forEach { it() }
   }
 
+  // TODO: move this off the UI thread
   private fun buildLevelLists(root: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int) {

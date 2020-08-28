@@ -24,7 +24,10 @@ import com.intellij.openapi.project.Project
  */
 interface TreeLoader {
   /**
-   * Load the component tree corresponding to the given [data] (implementation specific). Returns:
+   * Load the component tree corresponding to the given [data] (implementation specific).
+   * [scale] is the factor by which generated images should be scaled. For example, if we expect to draw the view at half the resolution of
+   * the connected device, [scale] should be 0.5.
+   * Returns:
    *  - The loaded [AndroidWindow], or null if all windows are gone.
    *  - a generation id, that can be used to ensure other responses (e.g. properties) are up to date
    */

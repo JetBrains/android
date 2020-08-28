@@ -485,28 +485,28 @@ class DeviceViewContentPanelTest {
   @Test
   @Suppress("UndesirableClassUsage")
   fun testPaintTransformed() {
-    val image1 = BufferedImage(150, 150, TYPE_INT_ARGB)
+    val image1 = BufferedImage(220, 220, TYPE_INT_ARGB)
     (image1.graphics as Graphics2D).run {
-      paint = GradientPaint(20f, 40f, Color.RED, 130f, 110f, Color.BLUE)
-      fill(Polygon(intArrayOf(20, 110, 130, 40), intArrayOf(40, 20, 110, 130), 4))
+      paint = GradientPaint(0f, 40f, Color.RED, 220f, 180f, Color.BLUE)
+      fill(Polygon(intArrayOf(0, 180, 220, 40), intArrayOf(40, 0, 180, 220), 4))
     }
 
     val model = model {
-      view(ROOT, 0, 0, 200, 300) {
-        view(VIEW1, 25, 50, 150, 150, bounds = Polygon(intArrayOf(45, 135, 155, 65), intArrayOf(90, 70, 160, 180), 4)) {
+      view(ROOT, 0, 0, 400, 600) {
+        view(VIEW1, 50, 100, 300, 300, bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)) {
           image(image1)
         }
       }
     }
 
-    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(400, 600, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffUtil.getDefaultFont()
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    panel.setSize(200, 300)
+    panel.setSize(400, 600)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed.png"), generatedImage,

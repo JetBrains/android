@@ -218,9 +218,15 @@ class DeviceViewPanel(
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     // Zoom to fit on initial connect
-    layoutInspector.layoutInspectorModel.modificationListeners.add { old, _, _ ->
+    layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
       if (old == null) {
         zoom(ZoomType.FIT)
+      }
+      else {
+        // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
+        // images upon first connecting.
+        new?.refreshImages(viewSettings.scaleFraction)
+        contentPanel.model.refresh()
       }
     }
     var prevZoom = viewSettings.scalePercent
@@ -228,6 +234,10 @@ class DeviceViewPanel(
       if (prevZoom != viewSettings.scalePercent) {
         deviceViewPanelActionsToolbar.zoomChanged()
         prevZoom = viewSettings.scalePercent
+        layoutInspector.layoutInspectorModel.windows.values.forEach {
+          it.refreshImages(viewSettings.scaleFraction)
+        }
+        contentPanel.model.refresh()
       }
     }
   }
@@ -256,6 +266,7 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
+    viewSettings.scalePercent = viewSettings.scalePercent.coerceIn(MIN_ZOOM, MAX_ZOOM)
     contentPanel.revalidate()
 
     return true
