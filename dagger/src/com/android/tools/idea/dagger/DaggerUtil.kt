@@ -66,6 +66,7 @@ const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
 const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
 const val DAGGER_VIEW_MODEL_INJECT_ANNOTATION = "androidx.hilt.lifecycle.ViewModelInject"
 const val DAGGER_WORKER_INJECT_ANNOTATION = "androidx.hilt.work.WorkerInject"
+const val JAVAX_INJECT_PROVIDER = "javax.inject.Provider"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -155,12 +156,19 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
   val scope = GlobalSearchScope.moduleWithDependentsScope(module)
     .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
+
   var consumers = getDaggerConsumers(type, qualifierInfo, scope)
 
   val lazyClass = JavaPsiFacade.getInstance(element.project).findClass(DAGGER_LAZY, scope)
   if (lazyClass != null) {
     val lazyType = PsiElementFactory.getInstance(element.project).createType(lazyClass, type)
     consumers += getDaggerConsumers(lazyType, qualifierInfo, scope)
+  }
+
+  val javaxInjectProviderClass = JavaPsiFacade.getInstance(element.project).findClass(JAVAX_INJECT_PROVIDER, scope)
+  if (javaxInjectProviderClass != null) {
+    val javaxInjectProviderType = PsiElementFactory.getInstance(element.project).createType(javaxInjectProviderClass, type)
+    consumers += getDaggerConsumers(javaxInjectProviderType, qualifierInfo, scope)
   }
 
   return consumers
@@ -317,8 +325,9 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
       else -> null
     } ?: return null
 
-  if (type is PsiClassType && type.resolve()?.qualifiedName == DAGGER_LAZY) {
-    // For dagger.Lazy<String> assigns String.
+  if (type is PsiClassType &&
+      type.resolve()?.let { it.qualifiedName == DAGGER_LAZY || it.qualifiedName == JAVAX_INJECT_PROVIDER } == true) {
+    // For dagger.Lazy<Type> or javax.inject.Provider<Type> assigns Type.
     type = type.parameters.firstOrNull() ?: return null
   }
 
