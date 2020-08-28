@@ -122,7 +122,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     })
 
   private val myComponentsSplitter: JBSplitter = object: JBSplitter(){
-    private val MAX_FIRST_COMPONENT_WIDTH: Int = 192
+    private val MAX_FIRST_COMPONENT_WIDTH: Int = 200
     init {
       setHonorComponentsMinimumSize(false)
       dividerWidth = 1
@@ -130,7 +130,6 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       firstComponent = myDeviceSelectorListView.rootPanel
       secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
       proportion = 0.3f
-      dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
     }
 
     override fun doLayout() {
