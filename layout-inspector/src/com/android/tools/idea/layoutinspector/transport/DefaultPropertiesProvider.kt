@@ -67,7 +67,7 @@ class DefaultPropertiesProvider(
   private val model: InspectorModel
 ): PropertiesProvider {
 
-  private var lastRequestedView: ViewNode? = null
+  private var lastRequestedViewId = -1L
   private var lastGeneration = 0
   private val cache = mutableMapOf<Long, PropertiesData>()
 
@@ -83,24 +83,32 @@ class DefaultPropertiesProvider(
 
   override fun requestProperties(view: ViewNode): Future<*> {
     if (!client.isConnected) {
-      lastRequestedView = null
+      lastRequestedViewId = -1
       firePropertiesProvided(view, EMPTY_PROPERTIES_DATA)
       return Futures.immediateFuture(null)
     }
-    lastRequestedView = view
-    if (lastGeneration != model.lastGeneration) {
-      cache.clear()
+    lastRequestedViewId = view.drawId
+    if (lastGeneration == model.lastGeneration) {
+      val properties = cache[view.drawId]
+      if (properties != null) {
+        firePropertiesProvided(view, properties)
+        return Futures.immediateFuture(null)
+      }
     }
-    val properties = cache[view.drawId]
-    if (properties != null) {
-      firePropertiesProvided(view, properties)
+    if (!client.isCapturing) {
+      // When the last properties are out of date in snapshot mode, a new snapshot is expected in the near future:
+      // Do nothing.
       return Futures.immediateFuture(null)
     }
-    val inspectorCommand = LayoutInspectorCommand.newBuilder()
-      .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
-      .setViewId(view.drawId)
-      .build()
-    return ApplicationManager.getApplication().executeOnPooledThread { client.execute(inspectorCommand) }
+    else {
+      // When the last properties are out of date in live mode:
+      // Send a request for the wanted properties.
+      val inspectorCommand = LayoutInspectorCommand.newBuilder()
+        .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
+        .setViewId(view.drawId)
+        .build()
+      return ApplicationManager.getApplication().executeOnPooledThread { client.execute(inspectorCommand) }
+    }
   }
 
   private fun loadProperties(event: Any) {
@@ -108,9 +116,9 @@ class DefaultPropertiesProvider(
     if (!transportEvent.hasProperties()) {
       return
     }
-    val view = model[transportEvent.properties.viewId] ?: return
+    val viewId = transportEvent.properties.viewId
     val generation = transportEvent.properties.generation
-    if (generation < lastGeneration) {
+    if (generation < lastGeneration || generation < model.lastGeneration) {
       return
     }
     val generator = Generator(transportEvent.properties, model)
@@ -119,8 +127,9 @@ class DefaultPropertiesProvider(
       cache.clear()
       lastGeneration = generation
     }
-    cache[view.drawId] = propertiesData
-    if (lastRequestedView === view) {
+    cache[viewId] = propertiesData
+    if (lastRequestedViewId == viewId && generation == model.lastGeneration) {
+      val view = model[viewId] ?: return
       firePropertiesProvided(view, propertiesData)
     }
   }

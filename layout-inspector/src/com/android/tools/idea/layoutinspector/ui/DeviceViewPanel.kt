@@ -30,7 +30,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
+import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -329,28 +329,29 @@ class DeviceViewPanel(
       val currentClient = client(event)
       val isLiveInspector = currentClient.isConnected && currentClient is DefaultInspectorClient
       val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
-      event.presentation.isEnabled = isLiveInspector
+      event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {
+        !currentClient.isConnected -> null
         isLowerThenApi29 -> "Live updates not available for devices below API 29"
         !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
         else -> null
       }
     }
 
-    // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
+    // When disconnected: display the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      val currentClient = client(event)
-      return !currentClient.isConnected || currentClient.isCapturing
+      return isCapturingModeOn
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       val currentClient = client(event)
       if (!currentClient.isConnected) {
-        return
+        isCapturingModeOn = state
       }
-      val command = if (currentClient.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
-      currentClient.execute(command)
+      else {
+        (currentClient as? DefaultInspectorClient)?.isCapturing = state
+      }
     }
 
     private fun client(event: AnActionEvent): InspectorClient =
