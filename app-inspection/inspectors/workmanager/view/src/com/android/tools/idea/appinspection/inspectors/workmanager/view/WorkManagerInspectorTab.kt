@@ -77,8 +77,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       when (table?.convertColumnIndexToModel(column)) {
         // TODO(163343710): Add icons on the left of state text
         WorksTableModel.Column.STATE.ordinal -> {
-          val state = WorkInfo.State.forNumber(value as Int)
-          super.getTableCellRendererComponent(table, state.capitalizedName(), isSelected, hasFocus, row, column)
+          StateProvider.convert(WorkInfo.State.forNumber(value as Int))
         }
         WorksTableModel.Column.TIME_STARTED.ordinal -> {
           super.getTableCellRendererComponent(table, (value as Long).toFormattedTimeString(), isSelected, hasFocus, row, column)
@@ -134,11 +133,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
   }
 
   private val classNameProvider = ClassNameProvider(ideServices, scope)
-  private val timeProvider = TimeProvider()
   private val enqueuedAtProvider = EnqueuedAtProvider(ideServices, scope)
-  private val stringListProvider = StringListProvider()
-  private val constraintProvider = ConstraintProvider()
-  private val outputDataProvider = OutputDataProvider()
 
   private val splitter = JBSplitter(false).apply {
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
@@ -243,15 +238,15 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     scrollPane.border = BorderFactory.createEmptyBorder()
     detailPanel.add(buildCategoryPanel("Description", listOf(
       buildKeyValuePair("Class", work.workerClassName, classNameProvider),
-      buildKeyValuePair("Tags", work.tagsList, stringListProvider),
+      buildKeyValuePair("Tags", work.tagsList, StringListProvider),
       buildKeyValuePair("UUID", work.id)
     )))
 
     detailPanel.add(buildCategoryPanel("Execution", listOf(
       buildKeyValuePair("Enqueued by", work.callStack, enqueuedAtProvider),
-      buildKeyValuePair("Constraints", work.constraints, constraintProvider),
+      buildKeyValuePair("Constraints", work.constraints, ConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
-      buildKeyValuePair("State", work.state.capitalizedName())
+      buildKeyValuePair("State", work.state, StateProvider)
     )))
 
     detailPanel.add(buildCategoryPanel("WorkContinuation", listOf(
@@ -261,9 +256,9 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     )))
 
     detailPanel.add(buildCategoryPanel("Results", listOf(
-      buildKeyValuePair("Time Started", work.scheduleRequestedAt, timeProvider),
+      buildKeyValuePair("Time Started", work.scheduleRequestedAt, TimeProvider),
       buildKeyValuePair("Retries", work.runAttemptCount),
-      buildKeyValuePair("Output Data", work.data, outputDataProvider)
+      buildKeyValuePair("Output Data", work.data, OutputDataProvider)
     )))
 
     panel.add(scrollPane, TabularLayout.Constraint(2, 0))

@@ -18,6 +18,7 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
@@ -71,8 +72,19 @@ class ClassNameProvider(private val ideServices: AppInspectionIdeServices, priva
 /**
  * Provides a component that represents a timestamp in a human readable format.
  */
-class TimeProvider : ComponentProvider<Long> {
+object TimeProvider : ComponentProvider<Long> {
   override fun convert(timestamp: Long) = JBLabel(timestamp.toFormattedTimeString())
+}
+
+/**
+ * Provides a component that represents a state text with icon.
+ */
+object StateProvider : ComponentProvider<State> {
+  override fun convert(state: State): JComponent {
+    return JBLabel(state.capitalizedName()).apply {
+      icon = state.icon()
+    }
+  }
 }
 
 /**
@@ -109,7 +121,7 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
 /**
  * Provides a component that displays a list of string values.
  */
-class StringListProvider : ComponentProvider<ProtocolStringList> {
+object StringListProvider : ComponentProvider<ProtocolStringList> {
   override fun convert(strings: ProtocolStringList): JComponent {
     return if (strings.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
@@ -145,6 +157,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
                 table.selectionModel.setSelectionInterval(index, index)
               }
               client.getWorkInfoOrNull(index)?.run {
+                setIcon(state.icon())
                 if (tagsCount > 0) {
                   toolTipText = "<html><b>Tags</b><br>${tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
                 }
@@ -166,7 +179,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
 /**
  * Provides a component that displays a list of constraint descriptions for some target worker.
  */
-class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constraints> {
+object ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constraints> {
   override fun convert(constraint: WorkManagerInspectorProtocol.Constraints): JComponent {
     val constraintDescs = mutableListOf<String>()
     when (constraint.requiredNetworkType) {
@@ -208,7 +221,7 @@ class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constr
 /**
  * Provides a component which displays all the key/value pairs in a worker's output data.
  */
-class OutputDataProvider : ComponentProvider<WorkManagerInspectorProtocol.Data> {
+object OutputDataProvider : ComponentProvider<WorkManagerInspectorProtocol.Data> {
   override fun convert(data: WorkManagerInspectorProtocol.Data): JComponent {
     return if (data.entriesList.isNotEmpty()) {
       val panel = JPanel(VerticalFlowLayout(0, 0)).apply {
