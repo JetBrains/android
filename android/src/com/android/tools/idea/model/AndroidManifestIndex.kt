@@ -206,21 +206,21 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     /**
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
      * if the file isn't recognized by the index (e.g. because it's malformed).
-     *
-     * Note: It's guaranteed that there's at most one entry: <package name, android manifest raw text>
      */
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
       val index = FileBasedIndex.getInstance()
       val scope = GlobalSearchScope.fileScope(project, manifestFile)
       val values = mutableListOf<AndroidManifestRawText>()
-      index.processAllKeys(NAME, { key ->
+
+      // TODO (b/166625311) use FileBasedIndex#getFileData
+      for (key in index.getAllKeys(NAME, project)) {
         index.processValues(NAME, key, manifestFile, { _, value ->
           values.add(value)
           true
         }, scope)
-      }, scope, null)
-
+      }
+      // It's guaranteed that there's at most one entry: <package name, android manifest raw text>.
       check(values.size <= 1)
       return values.firstOrNull()
     }
@@ -228,7 +228,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 9
+  override fun getVersion() = 10
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
