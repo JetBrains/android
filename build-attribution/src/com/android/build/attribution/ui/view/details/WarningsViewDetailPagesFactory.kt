@@ -59,6 +59,7 @@ class WarningsViewDetailPagesFactory(
   fun createDetailsPage(pageId: WarningsPageId): JComponent = if (pageId == WarningsPageId.emptySelection) {
     JPanel().apply {
       layout = BorderLayout()
+      name = "empty-details"
       val messageLabel = JLabel("Select page for details").apply {
         verticalAlignment = SwingConstants.CENTER
         horizontalAlignment = SwingConstants.CENTER
