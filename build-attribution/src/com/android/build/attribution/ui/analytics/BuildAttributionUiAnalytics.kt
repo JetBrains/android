@@ -203,16 +203,16 @@ class BuildAttributionUiAnalytics(private val project: Project) {
           model.tasksPageModel.selectedNode.let {
             if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
             else AnalyticsPageId(
-              when (model.tasksPageModel.selectedGrouping) {
+              pageType = when (model.tasksPageModel.selectedGrouping) {
                 TasksDataPageModel.Grouping.UNGROUPED -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
                 TasksDataPageModel.Grouping.BY_PLUGIN -> BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
               },
-              ""
+              pageId = ""
             )
           }
         BuildAnalyzerViewModel.DataSet.WARNINGS -> model.warningsPageModel.selectedNode.let {
           if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
-          else AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, "")
+          else AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, pageId = "")
         }
       }
     )
