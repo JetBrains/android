@@ -116,6 +116,10 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   val preferredTableWidth: Int
     get() = myTableView.preferredSize.width
 
+  @get:UiThread
+  val aggregatedTestResults: AndroidTestResults
+    get() = myModel.myRootAggregationRow
+
   /**
    * Adds a device to the table.
    *

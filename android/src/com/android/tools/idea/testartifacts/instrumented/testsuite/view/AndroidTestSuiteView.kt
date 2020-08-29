@@ -41,6 +41,8 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -54,10 +56,12 @@ import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.SystemNotifications
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
 import com.intellij.ui.scale.JBUIScale
@@ -79,10 +83,8 @@ import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.min
 
-private const val FAILED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myFailedToggleButton"
 private const val PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton"
 private const val SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton"
-private const val IN_PROGRESS_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myInProgressToggleButton"
 private const val SORT_BY_NAME_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByNameToggleButton"
 private const val SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByDurationToggleButton"
 
@@ -93,15 +95,19 @@ private const val SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteVi
  * @param project a project which this test suite view belongs to.
  * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup
  * will be disabled in this view.
+ * @param toolWindowId a tool window ID of which this view is to be displayed in.
  */
-class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable: Disposable,
-                                                               private val myProject: Project,
-                                                               module: Module?,
-                                                               private val myClock: Clock = Clock.systemDefaultZone()) : ConsoleView,
-                AndroidTestResultListener,
-                AndroidTestResultsTableListener,
-                AndroidTestSuiteDetailsViewListener,
-                AndroidTestSuiteViewController {
+class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
+  parentDisposable: Disposable,
+  private val myProject: Project,
+  module: Module?,
+  private val toolWindowId: String? = null,
+  private val myClock: Clock = Clock.systemDefaultZone()
+) : ConsoleView,
+    AndroidTestResultListener,
+    AndroidTestResultsTableListener,
+    AndroidTestSuiteDetailsViewListener,
+    AndroidTestSuiteViewController {
   @VisibleForTesting val myProgressBar: JProgressBar = JProgressBar().apply {
     preferredSize = Dimension(170, preferredSize.height)
     maximumSize = preferredSize
@@ -397,12 +403,79 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(parentDisposable:
       myFinishedDevices++
       if (myFinishedDevices == myScheduledDevices) {
         myTestFinishedTimeMillis = myClock.millis()
+        showSystemNotification()
+        showNotificationBalloonIfToolWindowIsNotActive()
       }
       updateProgress()
       myResultsTableView.refreshTable()
       myDetailsView.reloadAndroidTestResults()
     }
   }
+
+  @UiThread
+  private fun showSystemNotification() {
+    SystemNotifications.getInstance().notify("TestRunner", notificationTitle, notificationContent)
+  }
+
+  @UiThread
+  private fun showNotificationBalloonIfToolWindowIsNotActive() {
+    if (toolWindowId.isNullOrBlank()) {
+      return
+    }
+    val toolWindowManager = ToolWindowManager.getInstance(myProject)
+    if (toolWindowId == toolWindowManager.activeToolWindowId) {
+      return
+    }
+    val displayId = "Test Results: ${toolWindowId}"
+    val group = NotificationGroup.findRegisteredGroup(displayId) ?: NotificationGroup.toolWindowGroup(displayId, toolWindowId)
+    group.createNotification(notificationTitle, notificationContent, notificationType).notify(myProject)
+  }
+
+  @get:UiThread
+  private val notificationTitle: String
+    get() {
+      val stats = myResultsTableView.aggregatedTestResults.getResultStats()
+      return when {
+        stats.failed > 0 -> "Tests Failed"
+        stats.cancelled > 0 -> "Tests Cancelled"
+        else -> "Tests Passed"
+      }
+    }
+
+  @get:UiThread
+  private val notificationContent: String
+    get() {
+      val content = StringBuilder()
+      if (failedTestCases > 0) {
+        content.append("${failedTestCases} failed")
+      }
+      if (passedTestCases > 0) {
+        if (content.isNotEmpty()) {
+          content.append(", ")
+        }
+        content.append("${passedTestCases} passed")
+      }
+      if (skippedTestCases > 0) {
+        if (content.isNotEmpty()) {
+          content.append(", ")
+        }
+        content.append("${skippedTestCases} skipped")
+      }
+      if (content.isEmpty()) {
+        content.append("0 passed")
+      }
+      return content.toString()
+    }
+
+  @get:UiThread
+  private val notificationType: NotificationType
+    get() {
+      val stats = myResultsTableView.aggregatedTestResults.getResultStats()
+      return when {
+        stats.failed > 0 -> NotificationType.ERROR
+        else -> NotificationType.INFORMATION
+      }
+    }
 
   @UiThread
   override fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,

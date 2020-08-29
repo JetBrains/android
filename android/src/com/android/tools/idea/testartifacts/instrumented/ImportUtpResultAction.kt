@@ -88,7 +88,7 @@ class ImportUtpResultAction : AnAction() {
                                               + "import the test results from a different project?", NotificationType.WARNING)
           .notify(project)
       }
-      val testSuiteView = AndroidTestSuiteView(disposable, project, module)
+      val testSuiteView = AndroidTestSuiteView(disposable, project, module, IMPORTED_TEST_WINDOW_ID)
       val toolWindow = getToolWindow(project)
       val contentManager = toolWindow.contentManager
       val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
