@@ -53,7 +53,7 @@ fun KotlinBuiltIns.getKotlinType(
       }
     }
     catch (e: AssertionError) {
-      this.getArrayType(Variance.INVARIANT, getKotlinTypeFromDescriptor(FqName(type), moduleDescriptor))
+      this.getArrayType(Variance.INVARIANT, getKotlinClassType(FqName(type), moduleDescriptor))
     }
   }
 
@@ -63,22 +63,20 @@ fun KotlinBuiltIns.getKotlinType(
     }
   }
   catch (e: AssertionError) {
-    val rawType = getKotlinTypeFromDescriptor(FqName(resolvedTypeStr), moduleDescriptor)
+    val rawType = getKotlinClassType(FqName(resolvedTypeStr), moduleDescriptor)
 
     if (isNonNull) return rawType
     else return rawType.makeNullable()
   }
 }
 
-private fun getKotlinTypeFromDescriptor(
+private fun KotlinBuiltIns.getKotlinClassType(
   fqName: FqName,
   moduleDescriptor: ModuleDescriptor
 ): KotlinType {
-  return JavaToKotlinClassMap.mapJavaToKotlin(fqName)?.let {
-    moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
-  } ?: ClassId.topLevel(fqName).let {
-    moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
-  } ?: fqName.getUnresolvedType()
+  return JavaToKotlinClassMap.mapJavaToKotlin(fqName, this)?.defaultType
+         ?: ClassId.topLevel(fqName).let { moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType }
+         ?: fqName.getUnresolvedType()
 }
 
 private fun FqName.getUnresolvedType(): KotlinType {
