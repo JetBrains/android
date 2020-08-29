@@ -179,6 +179,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:jar",
         "//tools/idea/.idea/libraries:xml-apis",
         "//tools/idea/plugins/webp:intellij.webp[module]",
+        "//tools/idea/.idea/libraries:ini4j",
     ],
 )
 

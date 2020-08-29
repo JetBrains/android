@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.SdkConstants
+import com.android.annotations.concurrency.AnyThread
+import com.android.emulator.snapshot.SnapshotOuterClass
+import com.android.repository.api.ProgressIndicator
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidExecutors.Companion.getInstance
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -38,14 +45,18 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
+import org.ini4j.Config
+import org.ini4j.Ini
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.image.ImageObserver
 import java.io.File
 import java.io.FileInputStream
+import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.charset.Charset
 import java.util.Locale
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -59,13 +70,15 @@ import javax.swing.JTextPane
 /**
  * Shows the Android Test Retention artifacts
  */
-class RetentionView {
+class RetentionView(private val androidSdkHandler: AndroidSdkHandler
+                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath)) {
   private inner class RetentionPanel : JPanel(), DataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+).tar(.gz)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
     private var snapshotFile: File? = null
     private var snapshotId = ""
     var androidDevice: AndroidDevice? = null
+    var snapshotProto: SnapshotOuterClass.Snapshot? = null
 
     fun setSnapshotFile(snapshotFile: File?) {
       this.snapshotFile = snapshotFile
@@ -109,7 +122,7 @@ class RetentionView {
   }
 
   private var packageName = ""
-  private val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot").apply {
+  val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot").apply {
     addActionListener {
       isEnabled = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
@@ -167,6 +180,7 @@ class RetentionView {
     this.packageName = packageName
   }
 
+  @AnyThread
   private fun updateSnapshotImage(image: Image, imageWidth: Int, imageHeight: Int) {
     val rootWidth = rootPanel.width
     if (rootWidth == 0 || imageHeight <= 0 || imageWidth <= 0) {
@@ -181,6 +195,7 @@ class RetentionView {
   fun setSnapshotFile(snapshotFile: File?) {
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
+    myRetentionDebugButton.isEnabled = false
     updateInfoText()
     myImageLabel.icon = null
     image = null
@@ -198,22 +213,49 @@ class RetentionView {
           val tarInputStream = TarArchiveInputStream(
             inputStream)
           var entry: TarArchiveEntry?
+          var snapshotProto: SnapshotOuterClass.Snapshot? = null
+          var hardwareIni: Ini? = null
           while (tarInputStream.nextTarEntry.also { entry = it } != null) {
             if (entry!!.name == "screenshot.png") {
-              break
+              val imageStream = ImageIO.read(
+                tarInputStream)
+              image = ImageIcon(imageStream).image
+              updateSnapshotImage(image!!, image!!.getWidth(observer),
+                                  image!!.getHeight(observer))
+            } else if (entry!!.name == "snapshot.pb") {
+              snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
+            } else if (entry!!.name == "hardware.ini") {
+              hardwareIni = Ini().apply {
+                config = Config.getGlobal().apply {
+                  isGlobalSection = true
+                  fileEncoding = Charset.defaultCharset()
+                }
+                load(object : FilterInputStream(tarInputStream) {
+                  override fun close() {
+                    // Ini4J will close the stream, which breaks our tar stream reader.
+                    // So we override the stream with a no-op close.
+                  }
+                })
+              }
             }
           }
-          if (entry != null) {
-            val imageStream = ImageIO.read(
-              tarInputStream)
-            image = ImageIcon(imageStream).image
-            updateSnapshotImage(image!!, image!!.getWidth(observer),
-                                image!!.getHeight(observer))
+          myRetentionPanel.snapshotProto = snapshotProto
+          if (snapshotProto == null) {
+            return@execute
           }
+          val log: ProgressIndicator = StudioLoggerProgressIndicator(RetentionView::class.java)
+          val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log)
+          if (emulatorPackage == null) {
+            return@execute
+          } else {
+            // TODO(b/166826352): validate snapshot version
+          }
+
+          myRetentionDebugButton.isEnabled = true
         }
         catch (e: IOException) {
           LOG.warn(
-            "Failed to load snapshot screenshot", e)
+            "Failed to parse retention snapshot", e)
         }
       }
     }
