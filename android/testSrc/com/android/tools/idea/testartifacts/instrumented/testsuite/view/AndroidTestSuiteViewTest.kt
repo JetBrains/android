@@ -541,7 +541,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun singleDeviceStatusText() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
       view.onTestCaseStarted(device, suite, testcase)
@@ -567,7 +567,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun multipleDevicesStatusText() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
       view.onTestCaseStarted(device, suite, testcase)
@@ -602,7 +602,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun deviceSelectorAndTestStatusColumnAreHiddenWhenSingleDevice() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
 
@@ -612,7 +612,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun deviceSelectorAndTestStatusColumnAreVisibleWhenMultiDevices() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
     view.onTestSuiteScheduled(device("deviceId2", "deviceName2"))
