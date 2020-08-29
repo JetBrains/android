@@ -46,6 +46,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.AppScheduledExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,7 +168,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   public static String getModulePath(String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    Path adtPath = Paths.get(PathManager.getHomePath(), "../adt/idea", moduleFolder).normalize();
+    File adtIdea = TestUtils.getWorkspaceFile("tools/adt/idea");
+    Path adtPath = Paths.get(adtIdea.getAbsolutePath(), moduleFolder).normalize();
     if (Files.exists(adtPath)) {
       return adtPath.toString();
     }
