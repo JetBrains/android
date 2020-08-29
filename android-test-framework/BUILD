@@ -3,6 +3,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.testFramework",
+    data = ["//prebuilts/studio/jdk:mock-jdk17"],
     iml_files = ["intellij.android.testFramework.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -73,6 +74,7 @@ iml_module(
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "intellij.android.testFramework",
+    data = ["//prebuilts/studio/jdk:mock-jdk17"],
     iml_files = ["intellij.android.testFramework.iml"],
     project = "unb",
     test_srcs = ["testSrc"],

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
 import com.android.tools.idea.lang.androidSql.room.Dao
 import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
@@ -38,9 +39,9 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.InjectionTestFixture
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
+class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
   override fun setUp() {
     super.setUp()
