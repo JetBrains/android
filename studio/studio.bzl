@@ -612,6 +612,7 @@ def intellij_platform(
         name = name,
         jars = [src + "/linux/android-studio/lib/" + jar for jar in spec.jar_order],
         visibility = ["//visibility:public"],
+        data = native.glob([src + "/linux/android-studio/**"]),
     )
 
     studio_data(
