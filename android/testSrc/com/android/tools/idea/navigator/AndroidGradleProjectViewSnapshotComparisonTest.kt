@@ -125,9 +125,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     invokeGradle(project, GradleBuildInvoker::rebuild)
     AndroidTestBase.refreshProjectFiles()
     val text = project.dumpAndroidProjectView(ProjectViewSettings(), Unit, { _, _ -> Unit })
-/* b/165094104
     assertIsEqualToSnapshot(text)
-b/165094104 */
   }
 
   fun testWithBuildSrc() {
