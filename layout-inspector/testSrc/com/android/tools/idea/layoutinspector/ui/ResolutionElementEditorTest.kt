@@ -138,9 +138,9 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val item2 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node, model.resourceLookup)
+      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
 
     // The "textColor" attribute is defined in the layout file and we should have a link to the layout definition
     assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
@@ -218,12 +218,12 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
-    val map = listOf(textStyleMaterial).associateWith { item.resourceLookup.findAttributeValue(item, it) }
-    val value = item.resourceLookup.findAttributeValue(item, item.source!!)
+    val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
+    val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, item.view, item.resourceLookup, map)
+      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, node.drawId, model, map)
     val editors = mutableListOf<ResolutionElementEditor>()
     val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))

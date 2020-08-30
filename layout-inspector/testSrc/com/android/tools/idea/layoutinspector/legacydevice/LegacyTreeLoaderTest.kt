@@ -29,6 +29,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
@@ -92,10 +93,12 @@ DONE.
 
   @Test
   fun testParseNodes() {
+    val lookup = mock(ViewNodeAndResourceLookup::class.java)
     val resourceLookup = mock(ResourceLookup::class.java)
+    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
     `when`(resourceLookup.dpi).thenReturn(-1)
     val provider = LegacyPropertiesProvider()
-    val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
+    val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
     val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
@@ -159,10 +162,12 @@ DONE.
   @Test
   fun testLoadComponentTree() {
     val imageFile = File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png")
+    val lookup = mock(ViewNodeAndResourceLookup::class.java)
     val resourceLookup = mock(ResourceLookup::class.java)
     val legacyClient = mock(LegacyClient::class.java)
     val device = mock(IDevice::class.java)
     val client = mock(ClientImpl::class.java)
+    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
     `when`(legacyClient.selectedClient).thenReturn(client)
     `when`(device.density).thenReturn(560)
     `when`(client.device).thenReturn(device)
@@ -182,8 +187,8 @@ DONE.
          .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
     }
     val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
-      LegacyEvent("window1", LegacyPropertiesProvider.Updater(resourceLookup), listOf("window1")),
-      mock(ResourceLookup::class.java), legacyClient, mock(Project::class.java))!!
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
+      resourceLookup, legacyClient, mock(Project::class.java))!!
     assertThat(windowId).isEqualTo("window1")
 
     val expected = view(0x41673e3, width = 585, height = 804) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
@@ -29,11 +30,11 @@ import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
-class InspectorModel(val project: Project) {
+class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
+  override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  val resourceLookup = ResourceLookup(project)
   val stats = SessionStatistics()
   var lastGeneration = 0
   var updating = false
@@ -71,7 +72,7 @@ class InspectorModel(val project: Project) {
   /**
    * Get a ViewNode by drawId
    */
-  operator fun get(id: Long) = root.flatten().find { it.drawId == id }
+  override operator fun get(id: Long) = root.flatten().find { it.drawId == id }
 
   /**
    * Get a ViewNode by viewId name

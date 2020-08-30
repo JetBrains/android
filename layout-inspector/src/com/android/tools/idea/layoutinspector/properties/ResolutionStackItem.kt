@@ -36,5 +36,5 @@ class ResolutionStackItem(
   value,
   property.group,
   reference,
-  property.view,
-  property.resourceLookup)
+  property.viewId,
+  property.lookup)

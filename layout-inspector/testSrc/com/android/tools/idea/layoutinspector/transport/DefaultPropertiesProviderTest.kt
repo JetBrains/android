@@ -209,8 +209,8 @@ class DefaultPropertiesProviderTest {
     assertThat(property.value).isEqualTo(value)
     assertThat(property.group).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
-    assertThat(property.view).isSameAs(view)
-    assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
+    assertThat(property.viewId).isEqualTo(view.drawId)
+    assertThat(property.lookup).isSameAs(inspectorRule.inspectorModel)
     if (!expandable) {
       assertThat(property).isNotInstanceOf(InspectorGroupPropertyItem::class.java)
     }

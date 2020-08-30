@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.property.ptable2.PTableGroupItem
@@ -33,10 +31,10 @@ class InspectorGroupPropertyItem(
   val classLocation: SourceLocation?,
   group: PropertySection,
   source: ResourceReference?,
-  view: ViewNode,
-  resourceLookup: ResourceLookup,
+  viewId: Long,
+  lookup: ViewNodeAndResourceLookup,
   override val children: List<InspectorPropertyItem>
-) : InspectorPropertyItem(namespace, name, name, type, value, group, source, view, resourceLookup), PTableGroupItem {
+) : InspectorPropertyItem(namespace, name, name, type, value, group, source, viewId, lookup), PTableGroupItem {
 
   /**
    * PropertyItem instance that holds a value with resolution stack.
@@ -54,10 +52,10 @@ class InspectorGroupPropertyItem(
               classLocation: SourceLocation?,
               group: PropertySection,
               source: ResourceReference?,
-              view: ViewNode,
-              resourceLookup: ResourceLookup,
+              viewId: Long,
+              lookup: ViewNodeAndResourceLookup,
               stack: Map<ResourceReference, String?>) :
-    this(namespace, name, type, value, classLocation, group, source, view, resourceLookup, mutableListOf<InspectorPropertyItem>()) {
+    this(namespace, name, type, value, classLocation, group, source, viewId, lookup, mutableListOf<InspectorPropertyItem>()) {
     stack.mapTo(children as MutableList) { (reference, value) -> ResolutionStackItem(this, reference, value) }
   }
 }
