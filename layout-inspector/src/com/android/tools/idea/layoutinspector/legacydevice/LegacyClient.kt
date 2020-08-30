@@ -20,6 +20,7 @@ import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -44,7 +45,7 @@ private const val MAX_RETRY_COUNT = 60
  */
 class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : InspectorClient {
   var selectedClient: Client? = null
-  private val resourceLookup = model.resourceLookup
+  private val lookup: ViewNodeAndResourceLookup = model
   private val stats = model.stats
 
   override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
@@ -193,7 +194,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
     if (windowIds.isEmpty()) {
       return false
     }
-    val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
+    val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
     for (windowId in windowIds) {
       eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
     }

@@ -75,38 +75,34 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   }
 
   protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, node, model!!.resourceLookup)
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
-    val node = fakeComposeNode
-    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId,
+                                 model!!)
   }
 
   protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   private val fakeComposeNode: ComposeViewNode =
@@ -118,7 +114,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
                              source: ResourceReference?): OpenFileDescriptor {
     val node = model!!["title"]!!
     val property = InspectorPropertyItem(
-      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node, model!!.resourceLookup)
+      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node.drawId, model!!)
     val fileManager = FileEditorManager.getInstance(projectRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
