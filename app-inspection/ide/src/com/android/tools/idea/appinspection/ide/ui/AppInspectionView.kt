@@ -219,7 +219,7 @@ class AppInspectionView(
               provider.createTab(project, ideServices, currentProcess, client)
                 // Use insertTab here, not addTab, to make sure that working inspectors always appear before inactive inspectors
                 // e.g. inspectors disabled due to incompatible versions
-                .also { tab -> inspectorTabs.insertTab(provider.displayName, null, tab.component, null, 0) }
+                .also { tab -> inspectorTabs.insertTab(provider.displayName, provider.icon, tab.component, null, 0) }
                 .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline()) }
             }
             scope.launch {
@@ -273,7 +273,7 @@ class AppInspectionView(
 
   private fun addMinVersionMessage(provider: AppInspectorTabProvider) {
     val reason = AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate)
-    inspectorTabs.addTab(provider.displayName, EmptyStatePanel(reason))
+    inspectorTabs.addTab(provider.displayName, provider.icon, EmptyStatePanel(reason))
   }
 
   private fun fireTabsChangedListener() {
