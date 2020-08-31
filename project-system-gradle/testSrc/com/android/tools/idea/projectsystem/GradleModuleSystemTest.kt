@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuild
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.ProjectBuildModelHandlerImpl
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
@@ -80,7 +81,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
-    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
+    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandlerImpl(project), moduleHierarchyProviderStub, repoUrlManager)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
@@ -171,7 +172,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
     // Check that the version is picked up from the parent module:
     val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
+    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandlerImpl(project), moduleHierarchyProviderStub, repoUrlManager)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))

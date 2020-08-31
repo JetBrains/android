@@ -49,7 +49,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
   fun testReuseExistingModel() {
     setupGradleSyncState(3L)
     setupGradleFiles(false)
-    val handler = ProjectBuildModelHandler(project, projectBuildModel, 3L)
+    val handler = ProjectBuildModelHandlerImpl(project, projectBuildModel, 3L)
     val buildModel = projectBuildModel
     handler.read {
       assertTrue(buildModel === this)
@@ -63,7 +63,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
   fun testRecreateModelOnFilesModified() {
     setupGradleSyncState(4L)
     setupGradleFiles(true)
-    val handler = ProjectBuildModelHandler(project, projectBuildModel, 4L)
+    val handler = ProjectBuildModelHandlerImpl(project, projectBuildModel, 4L)
     var buildModel = projectBuildModel
     handler.modify {
       assertFalse(buildModel === this)
@@ -78,7 +78,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
   fun testRecreateModelOnNewSync() {
     setupGradleSyncState(5L)
     setupGradleFiles(false)
-    val handler = ProjectBuildModelHandler(project, projectBuildModel, 4L)
+    val handler = ProjectBuildModelHandlerImpl(project, projectBuildModel, 4L)
     var buildModel = projectBuildModel
     handler.read {
       assertFalse(buildModel === this)
@@ -94,7 +94,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
   fun testForWriteAppliesModel() {
     setupGradleSyncState(6L)
     setupGradleFiles(false)
-    val handler = ProjectBuildModelHandler(project, projectBuildModel, 6L)
+    val handler = ProjectBuildModelHandlerImpl(project, projectBuildModel, 6L)
     `when`(projectBuildModel.applyChanges()).then {
       ApplicationManager.getApplication().assertWriteAccessAllowed()
     }

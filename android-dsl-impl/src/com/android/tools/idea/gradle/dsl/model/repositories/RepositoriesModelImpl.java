@@ -210,4 +210,9 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     }
      */
   }
+
+  @Override
+  public void addGoogleMavenRepository(@NotNull String version) {
+
+  }
 }
