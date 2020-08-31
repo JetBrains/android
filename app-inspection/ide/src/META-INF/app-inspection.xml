@@ -16,8 +16,7 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <!-- TODO(b/152556591): Rename back to "App Inspection" -->
-    <facet.toolWindow id="Database Inspector"
+    <facet.toolWindow id="App Inspection"
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"

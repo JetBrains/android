@@ -987,7 +987,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
     WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
-    false
+    true
   );
   // endregion
 
