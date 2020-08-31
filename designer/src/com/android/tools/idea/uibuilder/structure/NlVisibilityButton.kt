@@ -24,6 +24,7 @@ import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -56,6 +57,7 @@ class NlVisibilityButton: JButton() {
   var normalIcon: Icon = EmptyIcon.ICON_16
   var hoveredIcon: Icon = EmptyIcon.ICON_16
   var clickedIcon: Icon = EmptyIcon.ICON_16
+  var updateBgWhenHovered = false
 
   init {
     background = secondaryPanelBackground
@@ -74,15 +76,19 @@ class NlVisibilityButton: JButton() {
     this.normalIcon = presentation.icon
     this.hoveredIcon = presentation.hoverIcon
     this.clickedIcon = presentation.clickIcon
+    this.updateBgWhenHovered = presentation.updateBgWhenHovered
     toolTipText = presentation.hint
   }
 
   override fun paintComponent(g: Graphics?) {
     val g = g as Graphics2D
     if (isClicked) {
-      paintClickedBackground(g)
+      paintBackground(g, JBUI.CurrentTheme.ActionButton.pressedBackground())
       paintIconOnCenter(g, clickedIcon)
     } else if (isHovered) {
+      if (updateBgWhenHovered) {
+        paintBackground(g, JBUI.CurrentTheme.ActionButton.hoverBackground())
+      }
       paintIconOnCenter(g, hoveredIcon)
     } else {
       paintIconOnCenter(g, normalIcon)
@@ -95,17 +101,16 @@ class NlVisibilityButton: JButton() {
     icon.paintIcon(this, g, x, y)
   }
 
-  private fun paintClickedBackground(g: Graphics2D) {
+  private fun paintBackground(g: Graphics2D, bgColor: Color) {
     val rect = Rectangle(size)
     JBInsets.removeFrom(rect, insets)
 
-    val color = JBUI.CurrentTheme.ActionButton.hoverBackground()
     val g2 = g.create() as Graphics2D
 
     try {
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
       g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE)
-      g2.color = color
+      g2.color = bgColor
       val arc = DarculaUIUtil.BUTTON_ARC.float
       g2.fill(RoundRectangle2D.Float(rect.x.toFloat(), rect.y.toFloat(), rect.width.toFloat(), rect.height.toFloat(), arc, arc))
     }
@@ -138,6 +143,7 @@ class ButtonPresentation {
   var isClicked = false
   var isHovered = false
   var hint = ""
+  var updateBgWhenHovered = false
 
   constructor()
 
