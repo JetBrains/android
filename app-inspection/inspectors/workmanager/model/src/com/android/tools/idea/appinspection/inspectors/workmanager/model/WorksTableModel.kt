@@ -51,7 +51,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
 
     DATA(0.4, String::class.java, "Output Data") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
-        return data.data.toString()
+        return data.state to data.data
       }
     };
 

@@ -31,6 +31,8 @@ fun Long.toFormattedTimeString(): String {
 
 fun State.capitalizedName() = name[0] + name.substring(1).toLowerCase(Locale.getDefault())
 
+fun State.isFinished() = this == State.SUCCEEDED || this == State.FAILED || this == State.CANCELLED
+
 fun State.icon(): Icon = when (this) {
   // TODO (b/160901866) need custom ENQUEUED icon
   State.ENQUEUED -> StudioIcons.LayoutEditor.Palette.CHRONOMETER

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
-import com.android.tools.adtui.HoverRowTable
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtUiUtils
@@ -67,23 +67,58 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
                               ideServices: AppInspectionIdeServices,
                               scope: CoroutineScope) {
 
-  private class WorksTableCellRenderer : DefaultTableCellRenderer() {
+  private class WorksTableStateCellRenderer : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(table: JTable?,
+                                               value: Any?,
+                                               isSelected: Boolean,
+                                               hasFocus: Boolean,
+                                               row: Int,
+                                               column: Int): Component {
+
+      val state = WorkInfo.State.forNumber(value as Int)
+      super.getTableCellRendererComponent(table, state.capitalizedName(), isSelected, hasFocus, row, column)
+      icon = state.icon()
+      return this
+    }
+  }
+
+  private class WorksTableTimeCellRenderer : DefaultTableCellRenderer() {
     override fun getTableCellRendererComponent(table: JTable?,
                                                value: Any?,
                                                isSelected: Boolean,
                                                hasFocus: Boolean,
                                                row: Int,
                                                column: Int): Component =
-      when (table?.convertColumnIndexToModel(column)) {
-        // TODO(163343710): Add icons on the left of state text
-        WorksTableModel.Column.STATE.ordinal -> {
-          StateProvider.convert(WorkInfo.State.forNumber(value as Int))
+      super.getTableCellRendererComponent(table, (value as Long).toFormattedTimeString(), isSelected, hasFocus, row, column)
+  }
+
+  private class WorksTableDataCellRenderer : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(table: JTable?,
+                                               value: Any?,
+                                               isSelected: Boolean,
+                                               hasFocus: Boolean,
+                                               row: Int,
+                                               column: Int): Component {
+      val pair = value as Pair<*, *>
+      val data = pair.second as WorkManagerInspectorProtocol.Data
+      val text = if (data.entriesList.isEmpty()) {
+        if ((pair.first as WorkInfo.State).isFinished()) {
+          foreground = WorkManagerInspectorColors.DATA_TEXT_NULL_COLOR
+          WorkManagerInspectorBundle.message("table.data.null")
+
         }
-        WorksTableModel.Column.TIME_STARTED.ordinal -> {
-          super.getTableCellRendererComponent(table, (value as Long).toFormattedTimeString(), isSelected, hasFocus, row, column)
+        else {
+          foreground = WorkManagerInspectorColors.DATA_TEXT_AWAITING_COLOR
+          WorkManagerInspectorBundle.message("table.data.awaiting")
         }
-        else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
       }
+      else {
+        foreground = null
+        data.entriesList.joinToString(prefix = "{ ", postfix = " }") { "${it.key}: ${it.value}" }
+      }
+      super.getTableCellRendererComponent(table, text, isSelected, hasFocus, row, column)
+      return this
+    }
   }
 
   private inner class CancelAction :
@@ -166,10 +201,16 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
 
   private fun buildWorksTable(): JBTable {
     val model = WorksTableModel(client)
-    val table: JBTable = HoverRowTable(model)
+    // TODO (b/167190682) highlight the hovered row
+    val table = JBTable(model)
 
     table.autoCreateRowSorter = true
-    table.setDefaultRenderer(Object::class.java, WorksTableCellRenderer())
+
+    table.columnModel.getColumn(WorksTableModel.Column.ORDER.ordinal).cellRenderer = DefaultTableCellRenderer()
+    table.columnModel.getColumn(WorksTableModel.Column.CLASS_NAME.ordinal).cellRenderer = DefaultTableCellRenderer()
+    table.columnModel.getColumn(WorksTableModel.Column.STATE.ordinal).cellRenderer = WorksTableStateCellRenderer()
+    table.columnModel.getColumn(WorksTableModel.Column.TIME_STARTED.ordinal).cellRenderer = WorksTableTimeCellRenderer()
+    table.columnModel.getColumn(WorksTableModel.Column.DATA.ordinal).cellRenderer = WorksTableDataCellRenderer()
 
     // Adjusts width for each column.
     table.addComponentListener(object : ComponentAdapter() {
@@ -258,7 +299,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     detailPanel.add(buildCategoryPanel("Results", listOf(
       buildKeyValuePair("Time Started", work.scheduleRequestedAt, TimeProvider),
       buildKeyValuePair("Retries", work.runAttemptCount),
-      buildKeyValuePair("Output Data", work.data, OutputDataProvider)
+      buildKeyValuePair("Output Data", work, OutputDataProvider)
     )))
 
     panel.add(scrollPane, TabularLayout.Constraint(2, 0))
