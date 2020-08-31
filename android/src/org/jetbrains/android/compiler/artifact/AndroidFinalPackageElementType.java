@@ -26,7 +26,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
   @NonNls public static final String TYPE_ID = "android-final-package";
 
   protected AndroidFinalPackageElementType() {
-    super(TYPE_ID, AndroidBundle.message("android.final.package.element.type.name"));
+    super(TYPE_ID, AndroidBundle.messagePointer("android.final.package.element.type.name"));
   }
 
   public static AndroidFinalPackageElementType getInstance() {
