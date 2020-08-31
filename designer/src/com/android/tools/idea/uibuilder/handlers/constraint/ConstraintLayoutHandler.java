@@ -64,6 +64,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -911,7 +912,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
-
+            removeAbsolutePositioning(selectedChildren);
             String referencedIds = getSelectedIds(selectedChildren);
             if (referencedIds != null) {
               layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
@@ -924,7 +925,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
-
+            removeAbsolutePositioning(selectedChildren);
             String referencedIds = getSelectedIds(selectedChildren);
             if (referencedIds != null) {
               layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
@@ -1070,6 +1071,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             }
           }
         }
+      }
+    }
+
+    private void removeAbsolutePositioning(List<NlComponent> selectedChildren) {
+      for (NlComponent component : selectedChildren) {
+        component.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X);
+        component.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y);
       }
     }
 
