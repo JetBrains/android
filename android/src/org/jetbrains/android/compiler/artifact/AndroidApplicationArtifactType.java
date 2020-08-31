@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
-    super("apk", AndroidBundle.message("android.application.title"));
+    super("apk", AndroidBundle.messagePointer("android.application.title"));
   }
 
   @NotNull
