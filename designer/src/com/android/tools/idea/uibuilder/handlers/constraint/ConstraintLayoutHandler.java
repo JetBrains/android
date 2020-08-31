@@ -190,13 +190,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public static final String SHOW_MARGINS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowMargins";
   public static final String FADE_UNSELECTED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeUnselected";
 
-  private final static String ADD_VERTICAL_BARRIER = "Add Vertical Barrier";
-  private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
-  private final static String ADD_TO_BARRIER = "Add to Barrier";
-  private final static String ADD_LAYER = "Add Layer";
-  private final static String ADD_GROUP = "Add Group";
-  private final static String ADD_CONSTRAINTS_SET = "Add Set of Constraints";
-  private final static String ADD_FLOW = "Add Flow";
+  private final static String ADD_VERTICAL_BARRIER = "Vertical Barrier";
+  private final static String ADD_HORIZONTAL_BARRIER = "Horizontal Barrier";
+  private final static String ADD_TO_BARRIER = "Barrier";
+  private final static String ADD_LAYER = "Layer";
+  private final static String ADD_GROUP = "Group";
+  private final static String ADD_CONSTRAINTS_SET = "Set of Constraints";
+  private final static String ADD_FLOW = "Flow";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
@@ -388,7 +388,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
     actions.add(new DisappearingActionMenu("Chains", CREATE_HORIZ_CHAIN, ConstraintViewActions.CHAIN_ACTIONS));
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
-    actions.add(new DisappearingActionMenu("Helpers", GUIDELINE_VERTICAL, ConstraintViewActions.HELPER_ACTIONS));
+    actions.add(new DisappearingActionMenu("Add helpers", GUIDELINE_VERTICAL, ConstraintViewActions.HELPER_ACTIONS));
 
     if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
       actions.add(new ConvertToMotionLayoutComponentsAction());
@@ -1975,10 +1975,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
       new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
                            GUIDELINE_VERTICAL,
-                           "Add Vertical Guideline"),
+                           "Vertical Guideline"),
       new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
                            StudioIcons.LayoutEditor.Toolbar.GUIDELINE_HORIZONTAL,
-                           "Add Horizontal Guideline"),
+                           "Horizontal Guideline"),
       new AddElementAction(AddElementAction.VERTICAL_BARRIER,
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL,
                            ADD_VERTICAL_BARRIER),
