@@ -47,6 +47,7 @@ import java.util.List;
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -196,6 +197,13 @@ public class ChooseSystemImagePanel extends JPanel
         deviceId.equals("8in Foldable") ||
         deviceId.equals("6.7in Foldable")) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
+        return false;
+      }
+    }
+
+    // pixel 4a requires API30 and above
+    if (deviceId.equals(("pixel_4a"))) {
+      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_PIXEL_4A_DEVICE_API) {
         return false;
       }
     }
