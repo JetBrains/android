@@ -164,7 +164,7 @@ class AppInspectionView(
         // If a process was just killed, we'll get notified about that by being sent a dead
         // process. In that case, remove all inspectors except for those that opted-in to stay up
         // in offline mode.
-        inspectorTabs.removeAllTabs { tab -> tab.getClientProperty(KEY_SUPPORTS_OFFLINE) == false }
+        inspectorTabs.removeAllTabs { tab -> tab.getClientProperty(KEY_SUPPORTS_OFFLINE) != true }
       }
       else {
         // If here, either we have no selected process (e.g. we just opened this view) or we got
@@ -217,7 +217,9 @@ class AppInspectionView(
             )
             withContext(uiDispatcher) {
               provider.createTab(project, ideServices, currentProcess, client)
-                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+                // Use insertTab here, not addTab, to make sure that working inspectors always appear before inactive inspectors
+                // e.g. inspectors disabled due to incompatible versions
+                .also { tab -> inspectorTabs.insertTab(provider.displayName, null, tab.component, null, 0) }
                 .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline()) }
             }
             scope.launch {
@@ -251,10 +253,10 @@ class AppInspectionView(
             }
           }
           catch (e: AppInspectionVersionIncompatibleException) {
-            Logger.getInstance(AppInspectionView::class.java).info(e)
+            withContext(uiDispatcher) { addMinVersionMessage(provider) }
           }
           catch (e: AppInspectionLibraryMissingException) {
-            Logger.getInstance(AppInspectionView::class.java).info(e)
+            withContext(uiDispatcher) { addMinVersionMessage(provider) }
           }
           catch (e: Exception) {
             Logger.getInstance(AppInspectionView::class.java).error(e)
@@ -269,6 +271,11 @@ class AppInspectionView(
     }
   }
 
+  private fun addMinVersionMessage(provider: AppInspectorTabProvider) {
+    val reason = AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate)
+    inspectorTabs.addTab(provider.displayName, EmptyStatePanel(reason))
+  }
+
   private fun fireTabsChangedListener() {
     tabsChangedOneShotListener?.let { listener ->
       // Clear the one-shot before firing the listener, in case the listener itself registers a new
@@ -281,7 +288,10 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
-    val inspectorComponent: JComponent = if (inspectorTabs.tabCount == 0) noInspectorsMessage else inspectorTabs
+    // Active inspectors are sorted to the front, so make sure one of them gets default focus
+    inspectorTabs.selectedIndex = if (inspectorTabs.tabCount > 0) 0 else -1
+
+    val inspectorComponent: JComponent = if (inspectorTabs.tabCount > 0) inspectorTabs else noInspectorsMessage
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }

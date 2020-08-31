@@ -59,6 +59,11 @@ interface AppInspectorLauncher {
      * The name of the version file located in an app's APK's META-INF folder.
      */
     val versionFileName = "${artifact.groupId}_${artifact.artifactId}.version"
+
+    /**
+     * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
+     */
+    val coordinate = "${artifact.groupId}:${artifact.artifactId}:$minVersion"
   }
 
   /**

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -368,19 +371,26 @@ class AppInspectionViewTest {
   }
 
   @Test
-  fun launchInspectorFailsDueToIncompatibleVersion_noTabsAdded() = runBlocking<Unit> {
+  fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()
+    val provider = TestAppInspectorTabProvider1()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
-                                             { listOf(TestAppInspectorTabProvider1()) },
+                                             { listOf(provider) },
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedOneShotListener = {
-        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(1)
+        val emptyPanel =
+          TreeWalker(inspectionView.inspectorTabs.getComponentAt(0)).descendants().filterIsInstance<EmptyStatePanel>().first()
+
+        assertThat(emptyPanel.reasonText)
+          .isEqualTo(AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate))
+
         tabsAdded.complete(Unit)
       }
     }
@@ -426,19 +436,26 @@ class AppInspectionViewTest {
   }
 
   @Test
-  fun launchInspectorFailsDueToMissingLibrary_noTabsAdded() = runBlocking<Unit> {
+  fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()
+    val provider = TestAppInspectorTabProvider1()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
-                                             { listOf(TestAppInspectorTabProvider1()) },
+                                             { listOf(provider) },
                                              appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedOneShotListener = {
-        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(0)
+        assertThat(inspectionView.inspectorTabs.tabCount).isEqualTo(1)
+        val emptyPanel =
+          TreeWalker(inspectionView.inspectorTabs.getComponentAt(0)).descendants().filterIsInstance<EmptyStatePanel>().first()
+
+        assertThat(emptyPanel.reasonText)
+          .isEqualTo(AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate))
+
         tabsAdded.complete(Unit)
       }
     }
