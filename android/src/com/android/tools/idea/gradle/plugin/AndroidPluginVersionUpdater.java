@@ -165,7 +165,7 @@ public class AndroidPluginVersionUpdater {
           // Add Google Maven repository to buildscript (b/69977310)
           if (oldPluginVersion == null || !oldPluginVersion.isAtLeast(3, 0, 0)) {
             if (gradleVersion != null) {
-              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion.toString());
             }
             else {
               // Gradle version will *not* change, use project version

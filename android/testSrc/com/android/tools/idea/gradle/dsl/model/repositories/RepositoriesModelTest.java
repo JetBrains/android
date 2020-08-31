@@ -658,7 +658,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
 
-    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    repositoriesModel.addGoogleMavenRepository("4.10.1");
     applyChangesAndReparse(buildModel);
 
     verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
