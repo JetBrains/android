@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import javax.swing.Icon
 
 interface AppInspectorTabProvider {
   companion object {
@@ -33,14 +34,16 @@ interface AppInspectorTabProvider {
 
   val inspectorId: String
   val displayName: String
+  val icon: Icon? get() = null
+
   val inspectorAgentJar: AppInspectorJar
-  fun isApplicable(): Boolean = true
 
   /**
    * Information about the library this inspector is targeting, including the minimum version this inspector is compatible with.
    */
   val targetLibrary: AppInspectorLauncher.TargetLibrary
 
+  fun isApplicable(): Boolean = true
 
   /**
    * Whether this tab's UI can handle working with disposed inspectors or not.

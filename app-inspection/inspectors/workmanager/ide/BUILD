@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 

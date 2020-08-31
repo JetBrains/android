@@ -30,14 +30,18 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
+import javax.swing.Icon
 import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.sqlite.inspection"
   override val displayName = "Database Inspector"
+  override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
+
   override val inspectorAgentJar = AppInspectorJar(
     name = "sqlite-inspection.jar",
     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",

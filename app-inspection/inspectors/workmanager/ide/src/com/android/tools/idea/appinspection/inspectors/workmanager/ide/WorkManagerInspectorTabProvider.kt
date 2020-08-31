@@ -27,13 +27,16 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkMana
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.project.Project
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import javax.swing.Icon
 import javax.swing.JComponent
 
 class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.work.inspection"
   override val displayName = "WorkManager Inspector"
+  override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
   override val inspectorAgentJar = AppInspectorJar("workmanager-inspection.jar",
                                                    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
                                                    releaseDirectory = "plugins/android/resources/app-inspection/")
