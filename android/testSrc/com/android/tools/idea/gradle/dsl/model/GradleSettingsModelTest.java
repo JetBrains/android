@@ -16,33 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_RESET_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_BUILD_FILE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_DIRECTORY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_WITH_DIRECTORY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_PARENT_MODULE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR_SETTINGS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_ALL_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_ALL_MODULE_PATHS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_MODULE_PATHS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_RESET_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_RESET_MODULE_PATHS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -51,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import java.io.File;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -326,9 +301,16 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
     File appLocation = settingsModel.moduleDirectory(":app");
-    assertEquals(new File("/cool/app"), appLocation);
+    if(SystemInfo.isWindows) {
+      //drive letter comparison issue
+      assertEquals(new File("/cool/app").getCanonicalFile(), appLocation.getCanonicalFile());
+      verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED_WINDOWS);
+    } else {
+      assertEquals(new File("/cool/app"), appLocation);
+      verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
+    }
 
-    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
+
   }
 
   @Test
