@@ -43,15 +43,6 @@ public class JpsAndroidApplicationArtifactPropertiesSerializer
     return XmlSerializer.deserialize(options, JpsAndroidApplicationArtifactPropertiesImpl.class);
   }
 
-  @Override
-  public void saveProperties(JpsAndroidApplicationArtifactProperties properties, List<ArtifactPropertiesState> stateList) {
-    final ArtifactPropertiesState state = findAndroidApplicationProperties(stateList);
-    if (state == null) {
-      return;
-    }
-    state.setOptions(XmlSerializer.serialize(properties));
-  }
-
   private static ArtifactPropertiesState findAndroidApplicationProperties(List<ArtifactPropertiesState> stateList) {
     for (ArtifactPropertiesState state : stateList) {
       if ("android-properties".equals(state.getId())) {
