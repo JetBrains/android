@@ -402,21 +402,22 @@ class DefaultInspectorClient(
 
   @Slow
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    if (isConnected) {
-      return
-    }
-    for (stream in getStreams()) {
-      if (preferredProcess.isDeviceMatch(stream.device)) {
-        for (process in getProcesses(stream)) {
-          if (process.name == preferredProcess.packageName) {
-            try {
-              attach(stream, process)
-              return
-            }
-            catch (ex: StatusRuntimeException) {
-              // If the process is not found it may still be loading. Retry!
-              if (ex.status.code != Status.Code.NOT_FOUND) {
-                throw ex
+    // If the user is re-running the application, this attach attempt may arrive before the previous
+    // connection was closed. Try again later...
+    if (!isConnected) {
+      for (stream in getStreams()) {
+        if (preferredProcess.isDeviceMatch(stream.device)) {
+          for (process in getProcesses(stream)) {
+            if (process.name == preferredProcess.packageName) {
+              try {
+                attach(stream, process)
+                return
+              }
+              catch (ex: StatusRuntimeException) {
+                // If the process is not found it may still be loading. Retry!
+                if (ex.status.code != Status.Code.NOT_FOUND) {
+                  throw ex
+                }
               }
             }
           }

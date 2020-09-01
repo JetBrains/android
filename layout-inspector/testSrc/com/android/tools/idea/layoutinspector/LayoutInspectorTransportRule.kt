@@ -149,6 +149,7 @@ class LayoutInspectorTransportRule(
         events.add(
           Common.Event.newBuilder().apply {
             pid = command.pid
+            timestamp = scheduler.currentTimeNanos
             kind = Common.Event.Kind.AGENT
             agentData = Common.AgentData.newBuilder().setStatus(if (shouldConnectSuccessfully) ATTACHED else UNATTACHABLE).build()
           }.build()
@@ -168,8 +169,9 @@ class LayoutInspectorTransportRule(
 
   private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+      startHandler.handleCommand(command, events)
       val handler = commandHandlers[command.layoutInspector.type]
-      handler?.invoke(command, events) ?: startHandler.handleCommand(command, events)
+      handler?.invoke(command, events)
     }
   }
 
