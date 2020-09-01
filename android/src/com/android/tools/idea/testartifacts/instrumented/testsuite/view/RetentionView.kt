@@ -66,12 +66,17 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
 
+private const val INI_GLOBAL_SECTION_NAME = "global"
+private const val BUILD_PROP_FILE_NAME = "build.prop"
+
 // TODO(yahan@) rework this view when we have the UI mock
 /**
  * Shows the Android Test Retention artifacts
  */
 class RetentionView(private val androidSdkHandler: AndroidSdkHandler
-                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath)) {
+                    = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath),
+                    private val progressIndicator: ProgressIndicator
+                    = StudioLoggerProgressIndicator(RetentionView::class.java)) {
   private inner class RetentionPanel : JPanel(), DataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+).tar(.gz)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
@@ -192,6 +197,40 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     myImageLabel.icon = ImageIcon(newImage)
   }
 
+  fun isSystemImageCompatible(snapshotHardwareIni: Ini,
+                              snapshotSystemImageBuildId: String): Boolean {
+    val snapshotSystemImagePath = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("disk.systemPartition.initPath")
+    if (snapshotSystemImagePath.isNullOrEmpty()) {
+      return false
+    }
+    val snapshotSdkRoot = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("android.sdk.root")
+    val newSystemImagePath = if (snapshotSdkRoot == null || androidSdkHandler.location?.path.isNullOrEmpty()) {
+      snapshotSystemImagePath
+    } else {
+      snapshotSystemImagePath.replace(snapshotSdkRoot,
+                                      androidSdkHandler.location?.path ?: "")
+    }
+    val systemImageBuildPropertyPath = File(File(newSystemImagePath).parent).resolve(BUILD_PROP_FILE_NAME)
+    if (!systemImageBuildPropertyPath.isFile) {
+      return false
+    }
+    if (!snapshotSystemImageBuildId.isNullOrEmpty()) {
+      Ini().also {
+        it.config = Config.getGlobal().apply {
+          isGlobalSection = true
+          globalSectionName = INI_GLOBAL_SECTION_NAME
+          fileEncoding = Charset.defaultCharset()
+        }
+        it.load(systemImageBuildPropertyPath)
+        if (snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.id")
+            && snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.display.id")) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
   fun setSnapshotFile(snapshotFile: File?) {
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
@@ -228,6 +267,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
               hardwareIni = Ini().apply {
                 config = Config.getGlobal().apply {
                   isGlobalSection = true
+                  globalSectionName = INI_GLOBAL_SECTION_NAME
                   fileEncoding = Charset.defaultCharset()
                 }
                 load(object : FilterInputStream(tarInputStream) {
@@ -243,14 +283,17 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           if (snapshotProto == null) {
             return@execute
           }
-          val log: ProgressIndicator = StudioLoggerProgressIndicator(RetentionView::class.java)
-          val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log)
+          val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
           if (emulatorPackage == null) {
             return@execute
-          } else {
-            // TODO(b/166826352): validate snapshot version
           }
-
+          // TODO(b/166826352): validate snapshot version
+          if (hardwareIni == null) {
+            return@execute
+          }
+          if (!isSystemImageCompatible(hardwareIni, snapshotProto.systemImageBuildId)) {
+            return@execute
+          }
           myRetentionDebugButton.isEnabled = true
         }
         catch (e: IOException) {
