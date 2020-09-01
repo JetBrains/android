@@ -986,6 +986,13 @@ public final class StudioFlags {
     "If enabled, a transition between static and animated compose preview is almost instant",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
+    COMPOSE, "preview.colorblind",
+    "Enable the colorblind mode for Compose previews",
+    "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
+    false
+  );
   //endregion
 
   //region Manifests

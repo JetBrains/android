@@ -216,6 +216,25 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
     .disableBorder()
     .build()
 
+/**
+ * Provider for an specific [ColorBlindMode].
+ */
+internal fun colorBlindProviderSelector(surface: NlDesignSurface,
+                                        manager: LayoutlibSceneManager,
+                                        @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
+                                        mode: ColorBlindMode): ScreenView =
+  ScreenView.newBuilder(surface, manager)
+    .withLayersProvider {
+      ImmutableList.builder<Layer>().apply {
+        // Always has border in visualization tool.
+        add(BorderLayer(it))
+        add(ColorBlindModeScreenViewLayer(it, mode))
+      }.build()
+    }
+    .disableBorder()
+    .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+    .build()
+
 internal fun composeProvider(surface: NlDesignSurface,
                              manager: LayoutlibSceneManager,
                              @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =
