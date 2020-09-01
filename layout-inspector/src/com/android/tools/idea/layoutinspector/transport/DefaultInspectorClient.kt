@@ -119,7 +119,7 @@ class DefaultInspectorClient(
 
   private var loggedInitialRender = false
 
-  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
 
   // Map of message group id to map of root view drawId to timestamp
   private val lastResponseTimePerGroup = mutableMapOf<Long, MutableMap<Long?, Long>>()
@@ -199,7 +199,7 @@ class DefaultInspectorClient(
     })
   }
 
-  override fun registerProcessChanged(callback: () -> Unit) {
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {
     processChangedListeners.add(callback)
   }
 
@@ -322,7 +322,7 @@ class DefaultInspectorClient(
         isConnected = true
         selectedStream = stream
         selectedProcess = process
-        processChangedListeners.forEach { it() }
+        processChangedListeners.forEach { it(this) }
         setDebugViewAttributes(selectedStream, true)
         listeners.forEach { transportPoller.registerListener(it) }
         execute(LayoutInspectorCommand.Type.START)
@@ -460,7 +460,7 @@ class DefaultInspectorClient(
     }
     if (didDisconnect) {
       logEvent(SESSION_DATA, oldStream)
-      processChangedListeners.forEach { it() }
+      processChangedListeners.forEach { it(this) }
       SkiaParser.shutdownAll()
     }
   }

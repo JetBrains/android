@@ -43,9 +43,9 @@ interface InspectorClient {
   fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
 
   /**
-   * Register a handler for when the current process ends.
+   * Register a handler for when the current process starts and ends.
    */
-  fun registerProcessChanged(callback: () -> Unit)
+  fun registerProcessChanged(callback: (InspectorClient) -> Unit)
 
   /**
    * Returns a sequence of the known devices seen from this client.
@@ -145,7 +145,7 @@ object DisconnectedClient : InspectorClient {
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
-  override fun registerProcessChanged(callback: () -> Unit) {}
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {}
   override fun getStreams(): Sequence<Common.Stream> = emptySequence()
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
