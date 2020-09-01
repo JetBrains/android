@@ -19,7 +19,7 @@
     <facet.toolWindow id="App Inspection"
                       facetIdList="android,apk"
                       anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
+                      icon="StudioIcons.Shell.ToolWindows.INSPECTION"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       doNotActivateOnStart="true"/>
   </extensions>
