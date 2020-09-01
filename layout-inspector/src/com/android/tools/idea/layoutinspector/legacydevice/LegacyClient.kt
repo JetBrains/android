@@ -69,7 +69,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
 
   private val processManager = LegacyProcessManager(parentDisposable)
 
@@ -115,7 +115,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
     }
   }
 
-  override fun registerProcessChanged(callback: () -> Unit) {
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {
     processChangedListeners.add(callback)
   }
 
@@ -171,6 +171,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
     selectedClient = processManager.findClientFor(stream, process) ?: return false
     selectedProcess = process
     selectedStream = stream
+    processChangedListeners.forEach { it(this) }
 
     if (!reloadAllWindows()) {
       return false
@@ -208,7 +209,7 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
       selectedClient = null
       selectedProcess = Common.Process.getDefaultInstance()
       selectedStream = Common.Stream.getDefaultInstance()
-      processChangedListeners.forEach { it() }
+      processChangedListeners.forEach { it(this) }
     }
     return CompletableFuture.completedFuture(null)
   }

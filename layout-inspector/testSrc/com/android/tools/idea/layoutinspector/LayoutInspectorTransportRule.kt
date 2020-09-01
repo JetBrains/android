@@ -363,7 +363,7 @@ class LayoutInspectorTransportRule(
       InspectorClient.clientFactory = { _, _ -> listOf(inspectorClient) }
     }
     inspector = LayoutInspector(inspectorModel, project)
-    inspector.currentClient = inspectorClient
+    inspector.setCurrentTestClient(inspectorClient)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
