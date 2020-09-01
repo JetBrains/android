@@ -37,11 +37,6 @@ public class JpsAndroidModelSerializerExtension extends JpsModelSerializerExtens
                                                      JpsElement parent, JpsModule module) {
         return new JpsAndroidModuleExtensionImpl(XmlSerializer.deserialize(facetConfigurationElement, AndroidFacetProperties.class));
       }
-
-      @Override
-      protected void saveExtension(JpsAndroidModuleExtension extension, Element facetConfigurationTag, JpsModule module) {
-        XmlSerializer.serializeInto(((JpsAndroidModuleExtensionImpl)extension).getProperties(), facetConfigurationTag);
-      }
     });
   private static final JpsSdkPropertiesSerializer<JpsSimpleElement<JpsAndroidSdkProperties>> SDK_PROPERTIES_LOADER =
     new JpsSdkPropertiesSerializer<JpsSimpleElement<JpsAndroidSdkProperties>>("Android SDK", JpsAndroidSdkType.INSTANCE) {
@@ -59,18 +54,6 @@ public class JpsAndroidModelSerializerExtension extends JpsModelSerializerExtens
           jdkName = null;
         }
         return JpsElementFactory.getInstance().createSimpleElement(new JpsAndroidSdkProperties(buildTarget, jdkName));
-      }
-
-      @Override
-      public void saveProperties(@NotNull JpsSimpleElement<JpsAndroidSdkProperties> properties, @NotNull Element element) {
-        String jdkName = properties.getData().getJdkName();
-        if (jdkName != null) {
-          element.setAttribute("jdk", jdkName);
-        }
-        String buildTarget = properties.getData().getBuildTargetHashString();
-        if (buildTarget != null) {
-          element.setAttribute("sdk", buildTarget);
-        }
       }
     };
 
