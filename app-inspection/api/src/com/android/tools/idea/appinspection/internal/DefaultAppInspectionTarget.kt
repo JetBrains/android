@@ -96,19 +96,20 @@ internal class DefaultAppInspectionTarget(
     val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
+        val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
+          .setLaunchedByName(params.projectName)
+          .setForce(params.force)
+        if (params.targetLibrary != null) {
+          launchMetadata.setVersionParams(
+            AppInspection.VersionParams.newBuilder()
+              .setVersionFileName(params.targetLibrary!!.versionFileName)
+              .setMinVersion(params.targetLibrary!!.minVersion)
+              .build()
+          ).build()
+        }
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
           .setDexPath(fileDevicePath)
-          .setLaunchMetadata(
-            AppInspection.LaunchMetadata.newBuilder()
-              .setLaunchedByName(params.projectName)
-              .setForce(params.force)
-              .setVersionParams(
-                AppInspection.VersionParams.newBuilder()
-                  .setVersionFileName(params.targetLibrary.versionFileName)
-                  .setMinVersion(params.targetLibrary.minVersion)
-                  .build()
-              )
-              .build())
+          .setLaunchMetadata(launchMetadata)
           .build()
         val commandId = AppInspectionTransport.generateNextCommandId()
         val appInspectionCommand = AppInspectionCommand.newBuilder()
