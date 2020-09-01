@@ -24,12 +24,4 @@ public class JpsAndroidFinalPackageElementSerializer extends JpsPackagingElement
       element.getAttributeValue(PACKAGING_FACET_ATTRIBUTE));
     return new JpsAndroidFinalPackageElement(moduleReference);
   }
-
-  @Override
-  public void save(JpsAndroidFinalPackageElement element, Element tag) {
-    final String id = JpsFacetSerializer.getFacetId(element.getModuleReference(),
-                                                    AndroidJpsUtil.ANDROID_FACET_TYPE_ID,
-                                                    AndroidJpsUtil.ANDROID_FACET_NAME);
-    tag.setAttribute(PACKAGING_FACET_ATTRIBUTE, id);
-  }
 }
