@@ -72,6 +72,14 @@ iml_module(
 iml_module(
     name = "intellij.android.databinding.tests",
     iml_files = ["intellij.android.databinding.tests.iml"],
+    split_test_targets = {
+        "gradle": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": ".gradle",
+        },
+        "non-gradle": {},
+    },
     tags = [
         "no_test_mac",
         "no_test_windows",

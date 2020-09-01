@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding.integration
+package com.android.tools.idea.databinding.integration.gradle
 
 import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT

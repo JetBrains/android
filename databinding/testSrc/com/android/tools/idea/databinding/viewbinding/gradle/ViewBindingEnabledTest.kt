@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding.viewbinding
+package com.android.tools.idea.databinding.viewbinding.gradle
 
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture

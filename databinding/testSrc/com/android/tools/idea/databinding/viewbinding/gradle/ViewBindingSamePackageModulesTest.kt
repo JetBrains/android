@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding.viewbinding
+package com.android.tools.idea.databinding.viewbinding.gradle
 
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_SAME_PACKAGE_MODULES
