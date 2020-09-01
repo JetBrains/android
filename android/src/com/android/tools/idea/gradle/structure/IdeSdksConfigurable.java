@@ -236,7 +236,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
     List<ProjectConfigurationError> errors = validateState();
     if (!errors.isEmpty()) {
-      throw new ConfigurationException(errors.get(0).getDescription());
+      throw new ConfigurationException(errors.get(0).getDescription().toString());
     }
     ApplicationManager.getApplication().runWriteAction(() -> {
       // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
