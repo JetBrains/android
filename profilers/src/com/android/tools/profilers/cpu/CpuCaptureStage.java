@@ -49,6 +49,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
@@ -527,7 +528,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
         if (systemTraceData.getMemoryCounters().containsKey(counterName)) {
           RssMemoryTrackModel trackModel =
             new RssMemoryTrackModel(systemTraceData.getMemoryCounters().get(counterName), timeline.getViewRange());
-          memory.addTrackModel(TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.RSS_MEMORY, displayName));
+          RssMemoryTooltip tooltip = new RssMemoryTooltip(timeline, counterName, trackModel.getMemoryCounterSeries());
+          memory.addTrackModel(
+            TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.RSS_MEMORY, displayName).setDefaultTooltipModel(tooltip));
         }
       }
     );
