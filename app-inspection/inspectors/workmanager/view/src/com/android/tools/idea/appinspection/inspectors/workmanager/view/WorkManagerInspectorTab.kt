@@ -178,10 +178,18 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
 
     // Adjusts width for each column.
     table.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
+      fun refreshColumnSizes() {
         for (column in WorksTableModel.Column.values()) {
           table.columnModel.getColumn(column.ordinal).preferredWidth = (table.width * column.widthPercentage).toInt()
         }
+      }
+
+      override fun componentShown(e: ComponentEvent?) {
+        refreshColumnSizes()
+      }
+
+      override fun componentResized(e: ComponentEvent) {
+        refreshColumnSizes()
       }
     })
 
