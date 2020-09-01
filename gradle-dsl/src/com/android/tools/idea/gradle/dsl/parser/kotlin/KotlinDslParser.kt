@@ -77,8 +77,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
-import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
-import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
 import java.math.BigDecimal
 
 /**
