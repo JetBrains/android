@@ -116,39 +116,6 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InnerClassSeparatorInspection"
                      displayName="Invalid separator between class and inner class"/>
 
-    <localInspection groupPath="Android"
-                     groupName="ContentAccess"
-                     language="JAVA"
-                     enabledByDefault="true"
-                     level="ERROR"
-                     shortName="ContentEntityInspection"
-                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentEntityInspection"
-                     displayName="Invalid ContentEntity"/>
-    <localInspection groupPath="Android"
-                     groupName="ContentAccess"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     level="ERROR"
-                     shortName="ContentEntityInspectionKotlin"
-                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentEntityInspectionKotlin"
-                     displayName="Invalid ContentEntity in kotlin files"/>
-    <localInspection groupPath="Android"
-                     groupName="ContentAccess"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     level="ERROR"
-                     shortName="ContentAccessObjectInspectionKotlin"
-                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentAccessObjectInspectionKotlin"
-                     displayName="Invalid ContentAccessObject in kotlin files"/>
-    <localInspection groupPath="Android"
-                     groupName="ContentAccess"
-                     language="JAVA"
-                     enabledByDefault="true"
-                     level="ERROR"
-                     shortName="ContentAccessObjectInspection"
-                     implementationClass="com.android.tools.idea.lang.contentAccess.ContentAccessObjectInspection"
-                     displayName="Invalid ContentAccessObject"/>
-
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
@@ -164,17 +131,6 @@
     <lang.syntaxHighlighter language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
-    <!-- region ContentAccess support -->
-    <fileType name="ContentAccess"
-              implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessFileType"
-              fieldName="INSTANCE"
-              language="ContentAccess"/>
-    <lang.parserDefinition language="ContentAccess"
-                           implementationClass="com.android.tools.idea.lang.contentAccess.parser.ContentAccessParserDefinition"/>
-    <!-- Delete when  https://youtrack.jetbrains.com/issue/KT-40924 is fixed  -->
-    <multiHostInjector id ="CommentLanguageInjector" implementation="com.android.tools.idea.lang.contentAccess.ContentAccessInjectorImpl"/>
-    <moduleService serviceImplementation="com.android.tools.idea.lang.contentAccess.ContentAccessSchemaManager"/>
-    <!-- endregion ContentAccess support -->
 
 
     <!-- SQL support -->
@@ -241,7 +197,4 @@
     <injectionConfig config="injections/roomSqlInjections.xml"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.intellij.intelliLang">
-    <injectionConfig config="injections/contentAccessInjections.xml"/>
-  </extensions>
 </idea-plugin>
