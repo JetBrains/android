@@ -16,8 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -35,14 +33,7 @@ interface AppInspectorTabProvider {
   val inspectorId: String
   val displayName: String
   val icon: Icon? get() = null
-
-  val inspectorAgentJar: AppInspectorJar
-
-  /**
-   * Information about the library this inspector is targeting, including the minimum version this inspector is compatible with.
-   */
-  val targetLibrary: AppInspectorLauncher.TargetLibrary
-
+  val inspectorLaunchParams: AppInspectorLaunchParams
   fun isApplicable(): Boolean = true
 
   /**

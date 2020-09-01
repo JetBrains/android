@@ -24,11 +24,14 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
+import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -48,7 +51,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
-class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2)
+class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
+  INSPECTOR_ID_2,
+  LibraryInspectorLaunchParams(TEST_JAR,
+                               AppInspectorLauncher.TargetLibrary(AppInspectorLauncher.LibraryArtifact("groupId", "artifactId"), "0.0.0")))
 
 class AppInspectionViewTest {
   private val timer = FakeTimer()
@@ -374,7 +380,7 @@ class AppInspectionViewTest {
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()
-    val provider = TestAppInspectorTabProvider1()
+    val provider = TestAppInspectorTabProvider2()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
@@ -389,7 +395,9 @@ class AppInspectionViewTest {
           TreeWalker(inspectionView.inspectorTabs.getComponentAt(0)).descendants().filterIsInstance<EmptyStatePanel>().first()
 
         assertThat(emptyPanel.reasonText)
-          .isEqualTo(AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate))
+          .isEqualTo(
+            AppInspectionBundle.message("incompatible.version",
+                                        (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate))
 
         tabsAdded.complete(Unit)
       }
@@ -439,7 +447,7 @@ class AppInspectionViewTest {
   fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()
-    val provider = TestAppInspectorTabProvider1()
+    val provider = TestAppInspectorTabProvider2()
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices,
                                              ideServices,
@@ -454,7 +462,8 @@ class AppInspectionViewTest {
           TreeWalker(inspectionView.inspectorTabs.getComponentAt(0)).descendants().filterIsInstance<EmptyStatePanel>().first()
 
         assertThat(emptyPanel.reasonText)
-          .isEqualTo(AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate))
+          .isEqualTo(AppInspectionBundle.message("incompatible.version",
+                                                 (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate))
 
         tabsAdded.complete(Unit)
       }

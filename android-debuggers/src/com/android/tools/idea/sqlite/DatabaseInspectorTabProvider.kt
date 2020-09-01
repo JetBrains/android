@@ -17,12 +17,12 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
@@ -42,14 +42,13 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   override val displayName = "Database Inspector"
   override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
 
-  override val inspectorAgentJar = AppInspectorJar(
-    name = "sqlite-inspection.jar",
-    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
-    releaseDirectory = "plugins/android/resources/app-inspection/"
+  override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
+    AppInspectorJar(
+      name = "sqlite-inspection.jar",
+      developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
+      releaseDirectory = "plugins/android/resources/app-inspection/"
+    )
   )
-  override val targetLibrary = AppInspectorLauncher.TargetLibrary(
-    AppInspectorLauncher.LibraryArtifact("androidx.sqlite", "sqlite"), // TODO(b/166676552): to be filled in once we find out the actual minVersion
-    "0.0.0")
 
   override fun isApplicable(): Boolean {
     return DatabaseInspectorFlagController.isFeatureEnabled

@@ -39,9 +39,9 @@ interface AppInspectorLauncher {
      */
     val projectName: String,
     /**
-     * Information about the library this inspector is targeting.
+     * Information about the library this inspector is targeting. Null if inspector doesn't target a library (ex: framework inspector).
      */
-    val targetLibrary: TargetLibrary,
+    val targetLibrary: TargetLibrary? = null,
     /**
      * If true, launch the inspector even if one is already running.
      */

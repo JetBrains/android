@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -37,12 +38,14 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.work.inspection"
   override val displayName = "WorkManager Inspector"
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
-  override val inspectorAgentJar = AppInspectorJar("workmanager-inspection.jar",
-                                                   developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
-                                                   releaseDirectory = "plugins/android/resources/app-inspection/")
-  override val targetLibrary = AppInspectorLauncher.TargetLibrary(
-    AppInspectorLauncher.LibraryArtifact("androidx.work", "work-runtime"),
-    "2.5.0-alpha01")
+  override val inspectorLaunchParams = LibraryInspectorLaunchParams(
+    AppInspectorJar("workmanager-inspection.jar",
+                    developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
+                    releaseDirectory = "plugins/android/resources/app-inspection/"),
+    AppInspectorLauncher.TargetLibrary(
+      AppInspectorLauncher.LibraryArtifact("androidx.work", "work-runtime"),
+      "2.5.0-alpha01")
+  )
 
   override fun isApplicable(): Boolean {
     return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()

@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -197,9 +198,9 @@ class AppInspectionView(
               AppInspectorLauncher.LaunchParameters(
                 currentProcess,
                 provider.inspectorId,
-                provider.inspectorAgentJar,
+                provider.inspectorLaunchParams.inspectorAgentJar,
                 project.name,
-                provider.targetLibrary,
+                (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.targetLibrary,
                 force
               )
             )
@@ -260,7 +261,8 @@ class AppInspectionView(
   }
 
   private fun addMinVersionMessage(provider: AppInspectorTabProvider) {
-    val reason = AppInspectionBundle.message("incompatible.version", provider.targetLibrary.coordinate)
+    val reason = AppInspectionBundle.message("incompatible.version",
+                                             (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate)
     inspectorTabs.addTab(provider.displayName, provider.icon, EmptyStatePanel(reason))
   }
 

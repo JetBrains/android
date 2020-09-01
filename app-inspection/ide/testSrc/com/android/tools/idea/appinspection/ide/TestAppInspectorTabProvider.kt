@@ -16,12 +16,13 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
 import javax.swing.JPanel
@@ -29,10 +30,11 @@ import javax.swing.JPanel
 /**
  * A dummy provider, of which we plan to create multiple instances of, to test that an app inspection view can own multiple tabs.
  */
-class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppInspectorTabProvider {
+class StubTestAppInspectorTabProvider(
+  override val inspectorId: String,
+  override val inspectorLaunchParams: AppInspectorLaunchParams = FrameworkInspectorLaunchParams(TEST_JAR)
+) : AppInspectorTabProvider {
   override val displayName = inspectorId
-  override val inspectorAgentJar = TEST_JAR
-  override val targetLibrary = AppInspectorLauncher.TargetLibrary(AppInspectorLauncher.LibraryArtifact("groupId", "artifactId"), "0.0.0")
 
   override fun createTab(project: Project,
                          ideServices: AppInspectionIdeServices,
