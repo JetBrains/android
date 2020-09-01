@@ -16,16 +16,13 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.profiler.proto.Common
-import com.intellij.openapi.module.Module
 
-
-fun isDeviceMatch(device: Common.Device, idevice: IDevice): Boolean {
-  return device.manufacturer == TransportServiceProxy.getDeviceManufacturer(idevice) &&
-         device.model == TransportServiceProxy.getDeviceModel(idevice) &&
-         device.serial == idevice.serialNumber
+fun isDeviceMatch(device: Common.Device, iDevice: IDevice): Boolean {
+  return device.manufacturer == TransportServiceProxy.getDeviceManufacturer(iDevice) &&
+         device.model == TransportServiceProxy.getDeviceModel(iDevice) &&
+         device.serial == iDevice.serialNumber
 }
 
 /**
@@ -43,11 +40,11 @@ data class LayoutInspectorPreferredProcess (
   val packageName: String?,
   val api: Int
 ) {
-  constructor(device: IDevice, module: Module) : this(
+  constructor(device: IDevice, packageName: String?) : this(
     TransportServiceProxy.getDeviceManufacturer(device),
     TransportServiceProxy.getDeviceModel(device),
     device.serialNumber,
-    AndroidModuleInfo.getInstance(module)?.`package`,
+    packageName,
     device.version.featureLevel)
 
   /**
