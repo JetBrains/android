@@ -351,9 +351,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       public void componentResized(ComponentEvent componentEvent) {
         if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
           if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
-            // Zoom-to-fit as default size of content when DesignSurface becomes visible at first time.
-            zoomToFit();
+            // Set previous scale when DesignSurface becomes visible at first time.
+            NlModel model = Iterables.getFirst(getModels(), null);
+            if (model == null) {
+              // No model is attached, ignore the setup of initial zoom level.
+              return;
+            }
 
+            if (!restorePreviousScale(model)) {
+              zoomToFit();
+            }
             // The default size is defined, enable the flag.
             myIsInitialZoomLevelDetermined = true;
           }
@@ -657,12 +664,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     addModel(model);
-    zoomToFit();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        zoomToFit();
+        if (!restorePreviousScale(model)) {
+          zoomToFit();
+        }
         revalidateScrollArea();
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
@@ -1106,7 +1114,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    @SurfaceScale double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    @SurfaceScale final double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
       return false;
     }
@@ -1128,6 +1136,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     myScale = newScale;
+    NlModel model = Iterables.getFirst(getModels(), null);
+    if (model != null) {
+      storeCurrentScale(model);
+    }
 
     if (view != null) {
       @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
@@ -1138,6 +1150,40 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     revalidateScrollArea();
     notifyScaleChanged();
     return true;
+  }
+
+  protected boolean isKeepingScaleWhenReopen() {
+    return true;
+  }
+
+  /**
+   * Save the current zoom level from the file of the given {@link NlModel}.
+   */
+  private void storeCurrentScale(@NotNull NlModel model) {
+    if (!isKeepingScaleWhenReopen()) {
+      return;
+    }
+    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    state.saveFileScale(model.getFile(), myScale);
+  }
+
+  /**
+   * Load the saved zoom level from the file of the given {@link NlModel}.
+   * Return true if the previous zoom level is restored, false otherwise.
+   */
+  private boolean restorePreviousScale(@NotNull NlModel model) {
+    if (!isKeepingScaleWhenReopen()) {
+      return false;
+    }
+    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    Double previousScale = state.loadFileScale(model.getFile());
+    if (previousScale != null) {
+      setScale(previousScale);
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   /**
