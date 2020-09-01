@@ -1,0 +1,52 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "com.android.tools.idea";
+
+// A specific version of Android Studio.
+message StudioVersion {
+  optional int32 major = 1;
+  optional int32 minor = 2;
+  optional int32 micro = 3;
+  optional int32 build = 4;
+}
+
+// ServerFlag is a property used to configure a specific feature
+// at the client
+// name: a unique name for the feature
+// percentEnabled: A number from 1-100 indicating what percent of users
+//   will have this feature enabled.
+// values: The specific value used by this feature. Can be one of the standard
+//   primitive types or a custom value.
+message ServerFlag {
+  optional string name = 1;
+  optional int32 percent_enabled = 2;
+  oneof values {
+    int32 int_value = 3;
+    float float_value = 4;
+    string string_value = 5;
+    bool boolean_value = 6;
+    bytes proto_value = 7;
+  }
+}
+
+// ServerFlagList is a collection of ServerFlag objects.
+// configuration_version indicates the CL used for the configuration files
+// that generated this list.
+message ServerFlagList {
+  optional int64 configuration_version = 1;
+  repeated ServerFlag server_flags = 2;
+}
+
+// ServerConfiguration contains a ServerFlag object and a range of
+// StudioVersion objects that the feature should apply to
+message ServerConfiguration {
+  optional StudioVersion min_version = 1;
+  optional StudioVersion max_version = 2;
+  repeated ServerFlag server_flags = 3;
+}
+
+// ServerConfigurationList is a list of ServerConfiguration objects
+message ServerConfigurationList {
+  repeated ServerConfiguration server_configurations = 1;
+}

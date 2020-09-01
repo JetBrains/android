@@ -3,6 +3,14 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
+load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+
+java_proto_library(
+    name = "android-core-proto",
+    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    protoc_version = "3.0.0",
+    visibility = ["//visibility:public"],
+)
 
 # managed by go/iml_to_build
 iml_module(
@@ -180,6 +188,7 @@ iml_module(
         "//tools/idea/.idea/libraries:xml-apis",
         "//tools/idea/plugins/webp:intellij.webp[module]",
         "//tools/idea/.idea/libraries:ini4j",
+        "//tools/adt/idea/android:android-core-proto",
     ],
 )
 
@@ -547,6 +556,7 @@ filegroup(
 filegroup(
     name = "artifacts",
     srcs = [
+        ":android-core-proto",
         ":deploy-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
