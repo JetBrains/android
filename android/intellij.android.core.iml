@@ -195,5 +195,14 @@
     <orderEntry type="library" name="xml-apis" level="project" />
     <orderEntry type="module" module-name="intellij.webp" />
     <orderEntry type="library" name="ini4j" level="project" />
+    <orderEntry type="module-library">
+      <library name="android-core-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
