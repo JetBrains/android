@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.SceneModeAction;
+import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
@@ -28,10 +28,10 @@ import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
-import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
+import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.LayoutScannerAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -69,7 +69,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     DropDownAction designModeAction = createDesignModeAction();
-    appendShortcutText(designModeAction, SwitchDesignModeAction.getInstance());
+    appendShortcutText(designModeAction, SwitchToNextScreenViewProviderAction.getInstance());
     group.add(designModeAction);
     group.addSeparator();
 
@@ -101,10 +101,11 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    DropDownAction designSurfaceMenu = new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.RENDER, (NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.BLUEPRINT, (NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new SceneModeAction(SceneMode.RENDER_AND_BLUEPRINT, (NlDesignSurface)mySurface));
+    DropDownAction designSurfaceMenu =
+      new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, (NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
     // Get the action instead of creating a new one, to make the popup menu display the shortcut.
     designSurfaceMenu.addAction(RefreshRenderAction.getInstance());
@@ -125,6 +126,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   }
 
   private boolean isInVisualizationTool() {
-    return StudioFlags.NELE_VISUALIZATION.get() && ((NlDesignSurface) mySurface).getSceneMode() == SceneMode.VISUALIZATION;
+    return StudioFlags.NELE_VISUALIZATION.get() &&
+           ((NlDesignSurface)mySurface).getScreenViewProvider() == NlScreenViewProvider.VISUALIZATION;
   }
 }

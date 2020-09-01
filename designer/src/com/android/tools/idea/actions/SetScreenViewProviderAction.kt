@@ -16,16 +16,17 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /**
- * Action class to switch the [SceneMode] in a [NlDesignSurface].
+ * [ToggleAction] to that sets an specific [NlScreenViewProvider] to the [NlDesignSurface].
  */
-class SceneModeAction(private val sceneMode: SceneMode, private val designSurface: NlDesignSurface) : ToggleAction(
-  sceneMode.displayName, "Show ${sceneMode.displayName} Surface", null) {
-  override fun isSelected(e: AnActionEvent) = designSurface.sceneMode == sceneMode
+class SetScreenViewProviderAction(private val sceneModeProvider: NlScreenViewProvider,
+                                  private val designSurface: NlDesignSurface) : ToggleAction(
+  sceneModeProvider.displayName, "Show ${sceneModeProvider.displayName} Surface", null) {
+  override fun isSelected(e: AnActionEvent) = designSurface.screenViewProvider == sceneModeProvider
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) = designSurface.setScreenMode(sceneMode, true)
+  override fun setSelected(e: AnActionEvent, state: Boolean) = designSurface.setScreenViewProvider(sceneModeProvider, true)
 }

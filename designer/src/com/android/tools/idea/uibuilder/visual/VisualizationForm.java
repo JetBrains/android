@@ -33,9 +33,9 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
@@ -172,10 +172,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private void updateScreenMode() {
     switch (myCurrentConfigurationSet) {
       case COLOR_BLIND_MODE:
-        mySurface.setScreenMode(SceneMode.COLOR_BLIND, false);
+        mySurface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false);
         break;
       default:
-        mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+        mySurface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false);
         break;
     }
   }

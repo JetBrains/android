@@ -69,7 +69,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
@@ -512,10 +512,8 @@ public class LayoutlibSceneManager extends SceneManager {
       return createSceneViewsForMenu();
     }
 
-    SceneMode mode = getDesignSurface().getSceneMode();
-
-    SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
-    mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
+    SceneView primarySceneView = getDesignSurface().getScreenViewProvider().createPrimarySceneView(getDesignSurface(), this);
+    mySecondarySceneView = getDesignSurface().getScreenViewProvider().createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
 
@@ -583,7 +581,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT) {
+      if (false && surface.getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
         requestLayout(true);
       }
       else {
@@ -710,7 +708,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
-    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT) {
+    if (getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
       return requestLayout(animate);
     }
 
