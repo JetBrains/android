@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.actions.SceneModeAction
+import com.android.tools.idea.actions.SetScreenViewProviderAction
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -41,7 +41,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -82,8 +82,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
             "action.scene.mode.description"),
             // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
                          StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
-            addAction(SceneModeAction(SceneMode.COMPOSE, surface))
-            addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
+            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
           }.visibleOnlyInComposeStaticPreview()
         }
         else null

@@ -350,7 +350,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                            boolean requestFocus);
   }
 
-  @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
+  @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
   private boolean myShowModelNames = false;
   private boolean myMockupVisible;
@@ -517,24 +517,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @NotNull
-  public SceneMode getSceneMode() {
-    return mySceneMode;
+  public ScreenViewProvider getScreenViewProvider() {
+    return myScreenViewProvider;
   }
 
-  @Nullable
-  public NavigationHandler getNavigationHandler() {
-    return myNavigationHandler;
-  }
-
-  public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
-    // TODO(b/160021437): Make SceneMode a property of SceneManager instead, the way is currently implemented, changes made to DesignSurface
-    //  properties affect previews from all NlModels, that's not always the desired behavior like in this case
-    if (setAsDefault) {
-      SceneMode.Companion.savePreferredMode(sceneMode);
+  public void setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
+    // TODO(b/160021437): Make ScreenViewProvider a property of SceneManager instead, the way is currently implemented, changes made to
+    //  DesignSurface properties affect previews from all NlModels, that's not always the desired behavior like in this case
+    if (setAsDefault && screenViewProvider instanceof NlScreenViewProvider) {
+      NlScreenViewProvider.Companion.savePreferredMode((NlScreenViewProvider)screenViewProvider);
     }
 
-    if (sceneMode != mySceneMode) {
-      mySceneMode = sceneMode;
+    if (screenViewProvider != myScreenViewProvider) {
+      myScreenViewProvider = screenViewProvider;
 
       for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
@@ -542,6 +537,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       }
       revalidateScrollArea();
     }
+  }
+
+  @Nullable
+  public NavigationHandler getNavigationHandler() {
+    return myNavigationHandler;
   }
 
   /**

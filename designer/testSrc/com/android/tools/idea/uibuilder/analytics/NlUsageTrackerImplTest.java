@@ -67,7 +67,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -204,7 +204,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
-    when(surface.getSceneMode()).thenReturn(SceneMode.RENDER_AND_BLUEPRINT);
+    when(surface.getScreenViewProvider()).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
     analyticsManager.setEditorModeWithoutTracking(DesignerEditorPanel.State.SPLIT);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
