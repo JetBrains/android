@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
+import com.android.tools.idea.common.error.IssueProvider
+import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.lint.detector.api.Category
+import com.google.common.collect.ImmutableCollection
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase
@@ -179,6 +185,53 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     // When minimized it should be cleared.
     assertTrue(control.scanner.issues.isEmpty())
     assertFalse(check.isLayoutScannerEnabled)
+  }
+
+  fun testHasNoA11yIssue() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    assertFalse(control.hasA11yIssue())
+  }
+
+  fun testHasSystemLintA11yIssue() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    addA11ySystemLintIssue(surface)
+
+    assertTrue(control.hasA11yIssue())
+  }
+
+  fun testHasAtfA11yIssue() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    // Precondition: Scanner has some issues already
+    val issuesSize = 5
+    simulateSurfaceRefreshedWithScanner(control, issuesSize)
+    assertEquals(issuesSize, control.scanner.issues.size)
+
+    assertTrue(control.hasA11yIssue())
+  }
+
+  private fun addA11ySystemLintIssue(surface: NlDesignSurface) {
+    surface.issueModel.addIssueProvider(object : IssueProvider() {
+      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+        issueListBuilder.add(object : Issue() {
+          override val summary: String
+            get() = "summary"
+          override val description: String
+            get() = "description"
+          override val severity: HighlightSeverity
+            get() = HighlightSeverity.ERROR
+          override val source: IssueSource
+            get() = IssueSource.NONE
+          override val category: String
+            get() = Category.A11Y.name
+        })
+      }
+    })
   }
 
   /**
