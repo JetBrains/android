@@ -193,10 +193,14 @@ iml_module(
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.gradle",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.structure": {
             "shard_count": 6,
             "test_filter": "com.android.tools.idea.gradle.structure",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.structure.configurables.variables.VariablesTableTest": {
             # Takes too long (b/152650494)
@@ -218,6 +222,8 @@ iml_module(
             # Timeout waiting to lock Artifact transforms cache (b/152652501)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.project.sync": {
             "shard_count": 5,
@@ -225,6 +231,8 @@ iml_module(
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.project.sync.snapshots": {
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -232,6 +240,8 @@ iml_module(
             "tags": ["no_windows"],
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.variant.view.BuildVariantUpdaterIntegTest": {
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -245,17 +255,25 @@ iml_module(
         "jetbrains": {
             "shard_count": 6,
             "test_filter": "org.jetbrains.android",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
             # testDependentNativeModules (ag/9872410)
@@ -287,6 +305,8 @@ iml_module(
         "testartifacts": {
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
@@ -307,6 +327,8 @@ iml_module(
         },
         "other": {
             "shard_count": 10,
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
@@ -358,7 +380,7 @@ iml_module(
         "block-network",
         "no_test_mac",
     ],
-    test_timeout = "eternal",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -1209,10 +1231,14 @@ iml_module(
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.gradle",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.structure": {
             "shard_count": 6,
             "test_filter": "com.android.tools.idea.gradle.structure",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.structure.configurables.variables.VariablesTableTest": {
             # Takes too long (b/152650494)
@@ -1234,6 +1260,8 @@ iml_module(
             # Timeout waiting to lock Artifact transforms cache (b/152652501)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.project.sync": {
             "shard_count": 5,
@@ -1241,6 +1269,8 @@ iml_module(
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.project.sync.snapshots": {
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -1248,6 +1278,8 @@ iml_module(
             "tags": ["no_windows"],
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "gradle.variant.view.BuildVariantUpdaterIntegTest": {
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -1261,17 +1293,25 @@ iml_module(
         "jetbrains": {
             "shard_count": 6,
             "test_filter": "org.jetbrains.android",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
             # testDependentNativeModules (ag/9872410)
@@ -1303,6 +1343,8 @@ iml_module(
         "testartifacts": {
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
@@ -1323,6 +1365,8 @@ iml_module(
         },
         "other": {
             "shard_count": 10,
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "eternal",
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
@@ -1361,7 +1405,7 @@ iml_module(
         "block-network",
         "no_test_mac",
     ],
-    test_timeout = "eternal",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     # do not sort: must match IML order
