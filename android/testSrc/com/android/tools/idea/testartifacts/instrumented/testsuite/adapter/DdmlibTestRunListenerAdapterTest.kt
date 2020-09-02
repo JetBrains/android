@@ -183,6 +183,29 @@ class DdmlibTestRunListenerAdapterTest {
   }
 
   @Test
+  fun runAssumptionFailure() {
+    val suiteId = "exampleTestSuite"
+    val testId = TestIdentifier("exampleTestClass", "exampleTest1")
+    DdmlibTestRunListenerAdapter(mockDevice, mockListener).apply {
+      testRunStarted(suiteId, /*testCount=*/1)
+      testStarted(testId)
+      testAssumptionFailure(testId, "test assumption failed")
+      testEnded(testId, mutableMapOf())
+      testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+    }
+
+    verify(mockListener).onTestCaseFinished(eq(device()),
+                                            eq(AndroidTestSuite(suiteId, suiteId, 1, AndroidTestSuiteResult.PASSED)),
+                                            eq(AndroidTestCase("exampleTestClass#exampleTest1",
+                                                               "exampleTest1", "exampleTestClass",
+                                                               "",
+                                                               AndroidTestCaseResult.SKIPPED,
+                                                               errorStackTrace = "test assumption failed")))
+    verify(mockListener).onTestSuiteFinished(eq(device()),
+                                             eq(AndroidTestSuite(suiteId, suiteId, 1, AndroidTestSuiteResult.PASSED)))
+  }
+
+  @Test
   fun testResultIsUpdatedInPlace() {
     val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
 
