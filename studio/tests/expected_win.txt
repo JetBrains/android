@@ -1192,10 +1192,6 @@ android-studio/plugins/android/lib/device-art-resources/pixel_xl_silver/layout
 android-studio/plugins/android/lib/device-art-resources/pixel_xl_silver/port_back.webp
 android-studio/plugins/android/lib/device-art-resources/pixel_xl_silver/port_fore.webp
 android-studio/plugins/android/lib/device-art-resources/pixel_xl_silver/port_shadow.webp
-android-studio/plugins/android/lib/device-art-resources/polestar_2/back.png
-android-studio/plugins/android/lib/device-art-resources/polestar_2/button.png
-android-studio/plugins/android/lib/device-art-resources/polestar_2/fore.png
-android-studio/plugins/android/lib/device-art-resources/polestar_2/layout
 android-studio/plugins/android/lib/device-art-resources/tablet/tablet_back_simple.9.png
 android-studio/plugins/android/lib/device-art-resources/tablet/tablet_shadow_simple_land.9.png
 android-studio/plugins/android/lib/device-art-resources/tablet/tablet_shadow_simple_port.9.png
