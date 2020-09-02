@@ -165,6 +165,10 @@ class TraceProcessorServiceImpl(
       .addQuery(QueryParameters.newBuilder()
                   .setTraceId(traceId)
                   .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+      // Query all CPU data.
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
 
     // Now let's add the queries that we limit for the processes we're interested in:
     for (id in processIds) {
@@ -204,6 +208,7 @@ class TraceProcessorServiceImpl(
     response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
     response.resultList.filter { it.hasTraceEventsResult() }.forEach { modelBuilder.addTraceEvents(it.traceEventsResult) }
     response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
+    response.resultList.filter { it.hasCpuCoreCountersResult() }.forEach { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }
     response.resultList.filter { it.hasCountersResult() }.forEach { modelBuilder.addCounters(it.countersResult) }
 
     val model = modelBuilder.build()

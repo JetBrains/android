@@ -136,6 +136,7 @@ class SystemTraceSurfaceflingerManagerTest {
     override fun getCaptureEndTimestampUs() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getProcessById(id: Int) = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getCpuCores(): List<CpuCoreModel> = throw UnsupportedOperationException("Not Implemented For Test")
+
     override fun getSystemTraceTechnology() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun isCapturePossibleCorrupted() = throw UnsupportedOperationException("Not Implemented For Test")
   }

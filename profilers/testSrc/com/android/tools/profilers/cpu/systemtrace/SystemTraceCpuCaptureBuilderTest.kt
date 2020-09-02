@@ -32,11 +32,15 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf()))
 
     val cpuCores = listOf(
-      CpuCoreModel(0, listOf(
-        SchedulingEventModel(ThreadState.RUNNING, 0L, 40L, 40L, 40L, 1, 1, 0),
-        SchedulingEventModel(ThreadState.RUNNING, 60L, 90L, 30L, 30L, 1, 1, 0),
-        SchedulingEventModel(ThreadState.RUNNING, 120L, 180L, 60L, 60L, 1, 1, 0))),
-      CpuCoreModel(1, listOf())
+      CpuCoreModel(
+        0,
+        listOf(
+          SchedulingEventModel(ThreadState.RUNNING, 0L, 40L, 40L, 40L, 1, 1, 0),
+          SchedulingEventModel(ThreadState.RUNNING, 60L, 90L, 30L, 30L, 1, 1, 0),
+          SchedulingEventModel(ThreadState.RUNNING, 120L, 180L, 60L, 60L, 1, 1, 0)),
+        mapOf()
+      ),
+      CpuCoreModel(1, listOf(), mapOf())
     )
 
     val model = TestModel(processes, cpuCores)
@@ -63,10 +67,14 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf()))
 
     val cpuCores = listOf(
-      CpuCoreModel(0, listOf(
-        SchedulingEventModel(ThreadState.RUNNING, 5000L, 10000L, 5000L, 5000L, 1, 1, 0),
-        SchedulingEventModel(ThreadState.RUNNING, 25000L, 70000L, 45000L, 45000L, 1, 1, 0))),
-      CpuCoreModel(1, listOf())
+      CpuCoreModel(
+        0,
+        listOf(
+          SchedulingEventModel(ThreadState.RUNNING, 5000L, 10000L, 5000L, 5000L, 1, 1, 0),
+          SchedulingEventModel(ThreadState.RUNNING, 25000L, 70000L, 45000L, 45000L, 1, 1, 0)),
+        mapOf()
+      ),
+      CpuCoreModel(1, listOf(), mapOf())
     )
 
     val model = TestModel(processes, cpuCores)
@@ -80,6 +88,47 @@ class SystemTraceCpuCaptureBuilderTest {
     // not have a proper equals override.
     assertThat(systemTraceData.getCpuUtilizationSeries().map { "${it.x}-${it.value}" })
       .containsExactly("0-30", "50000-20").inOrder() // First bucket = 30% utilization, Second bucket = 20% utilization.
+  }
+
+  @Test
+  fun buildCpuCounters() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val cpuCores = listOf(
+      CpuCoreModel(
+        0,
+        listOf(),
+        mapOf(
+          "cpufreq" to CounterModel("cpufreq", sortedMapOf(1L to 0.0, 2L to 1000.0)),
+          "cpuidle" to CounterModel("cpuidel", sortedMapOf(2L to 0.0, 3L to 4294967295.0))
+        )
+      ),
+      CpuCoreModel(
+        1,
+        listOf(),
+        mapOf(
+          "cpufreq" to CounterModel("cpufreq", sortedMapOf(10L to 2000.0)),
+          "cpuidle" to CounterModel("cpuidle", sortedMapOf(20L to 0.0))
+        ))
+    )
+
+    val model = TestModel(processes, cpuCores)
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1)
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
+    assertThat(systemTraceData.getCpuCounters()[0]).containsExactly(
+      "cpufreq", listOf(SeriesData(1, 0L), SeriesData(2, 1000L)),
+      "cpuidle", listOf(SeriesData(2, 0L), SeriesData(3, 4294967295L)))
+    assertThat(systemTraceData.getCpuCounters()[1]).containsExactly(
+      "cpufreq", listOf(SeriesData(10, 2000L)),
+      "cpuidle", listOf(SeriesData(20, 0L)))
   }
 
   @Test
@@ -126,6 +175,7 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getProcessById(id: Int) = processes[id]
     override fun getProcesses(): List<ProcessModel> = processes.values.sortedBy { it.id }
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
+
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
   }
