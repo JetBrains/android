@@ -384,7 +384,6 @@ public class AvdWizardUtils {
     return resourcePath;
   }
 
-  @VisibleForTesting
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
     return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
   }
