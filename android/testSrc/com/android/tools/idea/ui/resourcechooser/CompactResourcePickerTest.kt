@@ -20,10 +20,10 @@ import com.android.testutils.AssumeUtil
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
 import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
@@ -134,7 +134,23 @@ class CompactResourcePickerTest {
     assertTrue(selectedResource.startsWith("@android:color/"))
   }
 
-  private fun createAndWaitForResourcePickerPanel(onSelectedResource: (String) -> Unit): JPanel {
+  @Test
+  fun onlyFrameworkSources() {
+    val resourcePickerPanel = createAndWaitForResourcePickerPanel(listOf(ResourcePickerSources.ANDROID)) {}
+    val resourceSourceComboBox = UIUtil.findComponentOfType(resourcePickerPanel, JComboBox::class.java)!!
+
+    // We set the the picker to only be able to show Android framework resources (no other options available)
+    assertEquals("Android", resourceSourceComboBox.model.selectedItem!!.toString())
+    assertEquals(1, resourceSourceComboBox.model.size)
+
+    waitAndAssert<JList<in Any>>(resourcePickerPanel) {
+      // The local color resources only has 4 different resources, the framework repository should have more.
+      it != null && it.model.size > 4
+    }
+  }
+
+  private fun createAndWaitForResourcePickerPanel(resourcePickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
+                                                  onSelectedResource: (String) -> Unit): JPanel {
     val facet = AndroidFacet.getInstance(rule.module)!!
     val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(
       LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
@@ -143,6 +159,7 @@ class CompactResourcePickerTest {
       configuration,
       configuration.resourceResolver,
       ResourceType.COLOR,
+      resourcePickerSources,
       onSelectedResource,
       {},
       disposable

@@ -239,6 +239,7 @@ class ImageViewAssistant(
       defaultResourceType = null,
       showColorStateLists = true,
       showSampleData = true,
+      showThemeAttributes = true,
       file = virtualFile
     )
 
