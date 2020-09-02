@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -36,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
@@ -90,16 +92,26 @@ class CompactResourcePicker(
   configuration: Configuration,
   resourceResolver: ResourceResolver,
   resourceType: ResourceType,
+  selectedPickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit,
   parentDisposable: Disposable
-): JPanel(BorderLayout()) {
-  private val componentPadding = JBEmptyBorder(8, 12 , 8, 12)
+) : JPanel(BorderLayout()) {
+  private val sources: List<ResourcePickerSources> = if (selectedPickerSources.isEmpty()) {
+    // Make sure that the sources parameter does not return an empty list, otherwise default to all sources
+    Logger.getInstance(javaClass).warn("Parameter selectedPickerSources is empty, daulting to using all sources")
+    ResourcePickerSources.allSources()
+  }
+  else {
+    selectedPickerSources
+  }
+
+  private val componentPadding = JBEmptyBorder(8, 12, 8, 12)
 
   private val scaledCellHeight = resourceType.getScaledCellHeight()
 
-  private var resourcesModel: Map<ResourceSource, List<ResourceAssetSet>> by Delegates.observable(emptyMap()) { _, _, _ ->
-    updateResourcesList(ResourceSource.PROJECT)
+  private var resourcesModel: Map<ResourcePickerSources, List<ResourceAssetSet>> by Delegates.observable(emptyMap()) { _, _, _ ->
+    updateResourcesList(sources.first())
   }
 
   /**
@@ -126,14 +138,14 @@ class CompactResourcePicker(
     })
   }
 
-  private val resourceSourceComboBoxModel = DefaultCommonComboBoxModel<ResourceSource>("Project", ResourceSource.values().toList())
+  private val resourceSourceComboBoxModel = DefaultCommonComboBoxModel<ResourcePickerSources>(sources.first().displayableName, sources)
 
-  private val resourceSourceComboBox = ComboBox<ResourceSource>(resourceSourceComboBoxModel).apply {
+  private val resourceSourceComboBox = ComboBox<ResourcePickerSources>(resourceSourceComboBoxModel).apply {
     isEditable = false
     isEnabled = false
     addItemListener { event ->
       if (event.stateChange == ItemEvent.SELECTED) {
-        updateResourcesList(event.itemSelectable.selectedObjects.first() as ResourceSource)
+        updateResourcesList(event.itemSelectable.selectedObjects.first() as ResourcePickerSources)
       }
     }
   }
@@ -176,7 +188,7 @@ class CompactResourcePicker(
       override fun focusGained(e: FocusEvent?) {
         // Auto-select the first element if the list gains focus and there's no selection.
         if (selectionModel.isSelectionEmpty && !selectionModel.valueIsAdjusting && model.size > 0) {
-          selectionModel.setSelectionInterval(0,0)
+          selectionModel.setSelectionInterval(0, 0)
         }
       }
     })
@@ -193,7 +205,8 @@ class CompactResourcePicker(
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(JBUIScale.scale(1), 0, 0, 0, JBUI.CurrentTheme.Popup.separatorColor()),
       componentPadding)
-    val action = BrowseAction(facet, resourceType, configuration, selectedResourceCallback, resourcePickerDialogOpenedCallback)
+    val action = BrowseAction(facet, resourceType, configuration, sources.contains(ResourcePickerSources.THEME_ATTR),
+                              selectedResourceCallback, resourcePickerDialogOpenedCallback)
     add(ActionButtonWithText(action,
                              action.templatePresentation,
                              "",
@@ -253,19 +266,21 @@ class CompactResourcePicker(
                             resourceResolver: ResourceResolver,
                             type: ResourceType) {
     CompletableFuture.supplyAsync(Supplier {
-      val projectResources = ArrayList<ResourceAssetSet>().apply {
-        addAll(getModuleResources(facet, type, emptyList()).assetSets)
-        addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
+      val resourcesMap = mutableMapOf<ResourcePickerSources, List<ResourceAssetSet>>()
+
+      for (source in sources) {
+        resourcesMap[source] = when (source) {
+          // Project resources come from the current module and its dependencies.
+          ResourcePickerSources.PROJECT -> ArrayList<ResourceAssetSet>().apply {
+            addAll(getModuleResources(facet, type, emptyList()).assetSets)
+            addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
+          }
+          ResourcePickerSources.LIBRARY -> getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
+          ResourcePickerSources.ANDROID -> getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
+          ResourcePickerSources.THEME_ATTR -> getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
+        }
       }
-      val libraryResources = getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
-      val androidResources = getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
-      val themeAttributes = getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
-      return@Supplier mapOf<ResourceSource, List<ResourceAssetSet>>(
-        Pair(ResourceSource.PROJECT, projectResources),
-        Pair(ResourceSource.LIBRARY, libraryResources),
-        Pair(ResourceSource.ANDROID, androidResources),
-        Pair(ResourceSource.THEME_ATTR, themeAttributes)
-      )
+      return@Supplier resourcesMap
     }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync(BiConsumer { resourcesMap, _ ->
       showAsLoadingFuture.cancel(true)
       resourcesModel = resourcesMap
@@ -273,9 +288,9 @@ class CompactResourcePicker(
   }
 
   /**
-   * Update the [resourcesList] with the resources from the selected [ResourceSource].
+   * Update the [resourcesList] with the resources from the selected [ResourcePickerSources].
    */
-  private fun updateResourcesList(source: ResourceSource) {
+  private fun updateResourcesList(source: ResourcePickerSources) {
     resourcesList.setPaintBusy(false)
     resourcesList.emptyText.text = StatusText.getDefaultEmptyText()
     resourcesListModel = NameFilteringListModel<ResourceAssetSet>(
@@ -290,38 +305,11 @@ class CompactResourcePicker(
   }
 }
 
-/**
- * An enum for the different possible sources where resources could be loaded from.
- */
-private enum class ResourceSource(val displayableName: String) {
-  /**
-   * For all local resources, this is the resources from the current module and all the local modules it depends on.
-   */
-  PROJECT("Project"),
-  /**
-   * For resources from all the external libraries available for the current module.
-   */
-  LIBRARY("Libraries"),
-  /**
-   * For resources that are part of the Android Framework.
-   */
-  ANDROID("Android"),
-  /**
-   * For all [ResourceType.ATTR] resources that have a valid mapping to a resource of desired [ResourceType].
-   *
-   * Depends on the selected theme in the [Configuration] of the current file.
-   */
-  THEME_ATTR("Theme Attributes");
-
-  override fun toString(): String {
-    return displayableName
-  }
-}
-
 private class BrowseAction(
   facet: AndroidFacet,
   resourceType: ResourceType,
   configuration: Configuration,
+  showThemeAttributes: Boolean,
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit
 ) : AnAction("Browse", "Open the Resource Picker dialog", null) {
@@ -335,6 +323,7 @@ private class BrowseAction(
       resourceType,
       true,
       false,
+      showThemeAttributes,
       configuration.file
     )
     resourcePickerDialogOpenedCallback()

@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
@@ -95,6 +96,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
       defaultResourceType = defaultResourceType,
       showColorStateLists = !isImageViewDrawable,
       showSampleData = showSampleData,
+      showThemeAttributes = true,
       file = tag.containingFile.virtualFile
     )
     return if (dialog.showAndGet()) dialog.resourceName else null
@@ -147,6 +149,7 @@ object ColorSelectionAction: AnAction("Select Color") {
       initialColor,
       resourceReference,
       property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull(),
+      ResourcePickerSources.allSources(),
       restoreFocusTo,
       location,
       { color -> property.value = colorToString(color) },

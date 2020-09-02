@@ -35,10 +35,12 @@ import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.utils.HashCodes;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -72,6 +74,7 @@ import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.MouseInfo;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
@@ -388,11 +391,21 @@ public class AndroidAnnotatorUtil {
     }
 
     private void openColorPicker(@Nullable Color currentColor) {
+      List<ResourcePickerSources> pickerSources = new ArrayList<>();
+      pickerSources.add(ResourcePickerSources.PROJECT);
+      pickerSources.add(ResourcePickerSources.ANDROID);
+      pickerSources.add(ResourcePickerSources.LIBRARY);
+      if (getFileType(myElement) == XmlFileType.INSTANCE) {
+        // We can only support theme attributes for Xml files, since we can't substitute R.color.[resource_name] for a theme attribute.
+        pickerSources.add(ResourcePickerSources.THEME_ATTR);
+      }
+
       // TODO: When the color is color state, open color picker with resource tab and select it.
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceReference,
         myConfiguration,
+        pickerSources,
         null,
         MouseInfo.getPointerInfo().getLocation(),
         myHasCustomColor ? color -> {

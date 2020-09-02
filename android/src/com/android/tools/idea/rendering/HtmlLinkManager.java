@@ -25,11 +25,9 @@ import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
 import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
-import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
@@ -40,6 +38,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
@@ -110,7 +109,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -828,6 +826,7 @@ public class HtmlLinkManager {
       null,
       true,
       false,
+      true,
       file.getVirtualFile()
     );
 

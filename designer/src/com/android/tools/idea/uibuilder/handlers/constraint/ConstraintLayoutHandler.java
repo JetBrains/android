@@ -64,7 +64,6 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.GUIDELINE_VERTICAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED;
 import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -1271,6 +1270,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           ResourceType.DIMEN,
           true,
           false,
+          true,
           tag != null ? tag.getContainingFile().getVirtualFile() : null
         );
 
