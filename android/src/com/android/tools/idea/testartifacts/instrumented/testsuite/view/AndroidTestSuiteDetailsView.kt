@@ -130,6 +130,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       firstComponent = myDeviceSelectorListView.rootPanel
       secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
       proportion = 0.3f
+      dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
     }
 
     override fun doLayout() {
@@ -148,7 +149,12 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
   var isDeviceSelectorListVisible: Boolean
     get() = myComponentsSplitter.firstComponent.isVisible
     set(value) {
+      val valueChanged = value != myComponentsSplitter.firstComponent.isVisible
       myComponentsSplitter.firstComponent.isVisible = value
+      if (valueChanged) {
+        myComponentsSplitter.doLayout()
+        myComponentsSplitter.repaint()
+      }
     }
 
   val rootPanel: JPanel = JPanel(BorderLayout()).apply {
