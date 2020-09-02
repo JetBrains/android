@@ -44,7 +44,43 @@ public final class DeviceSkinUpdaterTest {
   private final Path mySdkSkins = myFileSystem.getPath("/home/juancnuno/Android/Sdk/skins");
 
   @Test
-  public void updateSkinsSdkDeviceSkinsAreUpToDate() throws IOException {
+  public void updateSkinsStudioSkinsIsNullAndSdkSkinsIsNull() {
+    // Arrange
+    Path device = myFileSystem.getPath("pixel_4");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsStudioSkinsIsNull() {
+    // Arrange
+    Path device = myFileSystem.getPath("pixel_4");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, mySdkSkins, true);
+
+    // Assert
+    assertEquals(mySdkSkins.resolve(device), deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsSdkSkinsIsNull() {
+    // Arrange
+    Path device = myFileSystem.getPath("pixel_4");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, myStudioSkins, null, true);
+
+    // Assert
+    assertEquals(myStudioSkins.resolve(device), deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsImplSdkDeviceSkinsAreUpToDate() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
@@ -53,14 +89,14 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(sdkDeviceSkins, deviceSkins);
   }
 
   @Test
-  public void updateSkinsEmulatorSupportsWebP() throws IOException {
+  public void updateSkinsImplEmulatorSupportsWebP() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Files.createDirectories(myStudioSkins.resolve(device));
@@ -68,14 +104,14 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(mySdkSkins.resolve(device), deviceSkins);
   }
 
   @Test
-  public void updateSkinsEmulatorDoesntSupportWebP() throws IOException {
+  public void updateSkinsImplEmulatorDoesntSupportWebP() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Files.createDirectories(myStudioSkins.resolve(device));
@@ -83,56 +119,56 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, false, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(mySdkSkins.resolve(device), deviceSkins);
   }
 
   @Test
-  public void updateSkinsFilesListThrowsNoSuchFileException() {
+  public void updateSkinsImplFilesListThrowsNoSuchFileException() {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(myStudioSkins.resolve(device), deviceSkins);
   }
 
   @Test
-  public void updateSkinsDeviceEqualsAndroidWearRound() {
+  public void updateSkinsImplDeviceEqualsAndroidWearRound() {
     // Arrange
     Path device = myFileSystem.getPath("AndroidWearRound");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(myStudioSkins.resolve("wear_round"), deviceSkins);
   }
 
   @Test
-  public void updateSkinsDeviceEqualsAndroidWearSquare() {
+  public void updateSkinsImplDeviceEqualsAndroidWearSquare() {
     // Arrange
     Path device = myFileSystem.getPath("AndroidWearSquare");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(myStudioSkins.resolve("wear_square"), deviceSkins);
   }
 
   @Test
-  public void updateSkinsSdkLayoutDoesntExist() throws IOException {
+  public void updateSkinsImplSdkLayoutDoesntExist() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
@@ -145,14 +181,14 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(sdkDeviceSkins, deviceSkins);
   }
 
   @Test
-  public void updateSkinsStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() throws IOException {
+  public void updateSkinsImplStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
@@ -172,14 +208,14 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(sdkDeviceSkins, deviceSkins);
   }
 
   @Test
-  public void updateSkinsStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() throws IOException {
+  public void updateSkinsImplStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
@@ -199,14 +235,14 @@ public final class DeviceSkinUpdaterTest {
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, myFileSystem, Mockito.mock(Converter.class));
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     assertEquals(sdkDeviceSkins, deviceSkins);
   }
 
   @Test
-  public void updateSkinsConvertAndCopyStudioDeviceSkins() throws IOException {
+  public void updateSkinsImplConvertAndCopyStudioDeviceSkins() throws IOException {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
     Path studioDeviceSkins = myStudioSkins.resolve(device);
@@ -262,7 +298,7 @@ public final class DeviceSkinUpdaterTest {
     });
 
     // Act
-    Object deviceSkins = updater.updateSkins(device);
+    Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
     Path sdkDeviceSkins = mySdkSkins.resolve(device);
