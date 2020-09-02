@@ -59,7 +59,19 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
       .addIssueProvider(Mockito.any(IssueProvider::class.java))
   }
 
-  private fun createTestIssue(): ValidatorData.Issue {
+  @Test
+  fun testCreateIssueOnInternalError() {
+    val internalIssue = createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
+    val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
+    val integrator = AccessibilityLintIntegrator(issueModel)
+
+    integrator.createIssue(internalIssue.build(), null)
+
+    // internal error ignored
+    assertEquals(0, integrator.issues.size)
+  }
+
+  private fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
     return ValidatorData.Issue.IssueBuilder()
       .setCategory("")
       .setType(ValidatorData.Type.ACCESSIBILITY)
@@ -68,6 +80,9 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
       .setSrcId(-1)
       .setFix(ValidatorData.Fix(""))
       .setSourceClass("")
-      .build()
+  }
+
+  private fun createTestIssue(): ValidatorData.Issue {
+    return createTestIssueBuilder().build()
   }
 }
