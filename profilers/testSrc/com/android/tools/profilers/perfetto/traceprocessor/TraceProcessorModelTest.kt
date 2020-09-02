@@ -17,6 +17,8 @@ package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.systemtrace.CounterModel
+import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
 import com.android.tools.profilers.cpu.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
@@ -25,7 +27,7 @@ import org.junit.Test
 class TraceProcessorModelTest {
 
   @Test
-  fun `addProcessMetadata`() {
+  fun addProcessMetadata() {
     val protoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
     protoBuilder.addProcess(1, "Process1")
       .addThread(2, "AnotherThreadProcess1")
@@ -53,7 +55,7 @@ class TraceProcessorModelTest {
   }
 
   @Test
-  fun `addTraceEvents`() {
+  fun addTraceEvents() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
     processProtoBuilder.addProcess(1, "Process1")
       .addThread(2, "AnotherThreadProcess1")
@@ -100,7 +102,7 @@ class TraceProcessorModelTest {
   }
 
   @Test
-  fun `addSchedulingEvents`() {
+  fun addSchedulingEvents() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
     processProtoBuilder.addProcess(1, "Process1")
       .addThread(2, "AnotherThreadProcess1")
@@ -162,7 +164,39 @@ class TraceProcessorModelTest {
   }
 
   @Test
-  fun `addCounters`() {
+  fun addCpuCounters() {
+    val cpuCounters = TraceProcessor.CpuCoreCountersResult.newBuilder()
+      .setNumCores(2)
+      .addCountersPerCore(
+        TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder()
+          .setCpu(0)
+          .addCounter(TraceProcessor.Counter.newBuilder()
+                        .setName("cpufreq")
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(0.0))
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(1000.0))
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3000).setValue(2000.0)))
+          .addCounter(TraceProcessor.Counter.newBuilder()
+                        .setName("cpuidle")
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1500).setValue(0.0))
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2500).setValue(4294967295.0))
+                        .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(3500).setValue(0.0))))
+      .addCountersPerCore(TraceProcessor.CpuCoreCountersResult.CountersPerCore.newBuilder().setCpu(1))
+      .build()
+
+    val model = TraceProcessorModel.Builder().apply {
+      addCpuCounters(cpuCounters)
+    }.build()
+
+    assertThat(model.getCpuCores()).containsExactly(
+      CpuCoreModel(0, listOf(), mapOf(
+        "cpufreq" to CounterModel("cpufreq", sortedMapOf(1L to 0.0, 2L to 1000.0, 3L to 2000.0)),
+        "cpuidle" to CounterModel("cpuidle", sortedMapOf(1L to 0.0, 2L to 4294967295.0, 3L to 0.0))
+      )),
+      CpuCoreModel(1, listOf(), mapOf()))
+  }
+
+  @Test
+  fun addCounters() {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
     processProtoBuilder.addProcess(1, "Process1").addThread(1, "MainThreadProcess1")
 

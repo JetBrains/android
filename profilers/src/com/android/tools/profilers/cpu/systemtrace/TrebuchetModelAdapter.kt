@@ -84,8 +84,9 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
       processById[process.id] = ProcessModel(process.id, process.name, threadMap, counterMap)
     }
 
+    // TODO(b/162354761): implement counters for Trebuchet.
     cores = trebuchetModel.cpus
-      .map { cpu -> CpuCoreModel(cpu.id, mapCpuProcessSliceToSchedEvent(cpu.slices, cpu.id)) }
+      .map { cpu -> CpuCoreModel(cpu.id, mapCpuProcessSliceToSchedEvent(cpu.slices, cpu.id), emptyMap()) }
       .sortedBy { core -> core.id }
   }
 

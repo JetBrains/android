@@ -28,7 +28,6 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -149,6 +148,9 @@ class TraceProcessorServiceImplTest {
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setSchedRequest(TraceProcessor.QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setCpuCoreCountersRequest(TraceProcessor.QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(33)))

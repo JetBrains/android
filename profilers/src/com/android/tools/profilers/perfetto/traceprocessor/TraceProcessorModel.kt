@@ -62,7 +62,12 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     processMap = processMapBuilder.toSortedMap()
 
     // Build cpuCores
-    cpuCores = (0 until builder.cpuCoresCount).map { CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf())) }
+    cpuCores = (0 until builder.cpuCoresCount).map {
+      val cpuCountersMap = builder.coreToCpuCounters.getOrDefault(it, listOf())
+        .map { counterModel -> counterModel.name to counterModel }
+        .toMap()
+      CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf()), cpuCountersMap)
+    }
   }
 
   override fun getCaptureStartTimestampUs() = startCaptureTimestamp
@@ -86,6 +91,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val threadToEventsMap = mutableMapOf<Int, List<TraceEventModel>>()
     internal val threadToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
+    internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
 
     fun addProcessMetadata(processMetadataResult: TraceProcessor.ProcessMetadataResult) {
@@ -217,6 +223,18 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING -> ThreadState.SLEEPING_CAPTURED
         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING_UNINTERRUPTIBLE -> ThreadState.WAITING_CAPTURED
         else -> ThreadState.UNKNOWN
+      }
+    }
+
+    fun addCpuCounters(result: TraceProcessor.CpuCoreCountersResult) {
+      cpuCoresCount = maxOf(cpuCoresCount, result.numCores)
+
+      result.countersPerCoreList.forEach { countersPerCore ->
+        coreToCpuCounters[countersPerCore.cpu] = countersPerCore.counterList.map { counter ->
+          CounterModel(counter.name,
+                       counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }
+                         .toMap().toSortedMap())
+        }
       }
     }
 

@@ -39,13 +39,14 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val captureTreeNodes = buildCaptureTreeNodes(mainProcess)
     val threadState = buildThreadStateData(mainProcess)
     val cpuState = buildCpuStateData(mainProcess)
+    val cpuCounters = buildCpuCountersData()
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 memoryCounters, frameManager, sfManager)
+                                 cpuCounters, memoryCounters, frameManager, sfManager)
   }
 
   /**
@@ -172,8 +173,8 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
             // We want to know the time from the start of the event to the end of the bucket so we compute where our bucket ends.
             val bucketEndTime = startUserTimeUs + UTILIZATION_BUCKET_LENGTH_US * (i + 1)
             // Because the time to the end of the bucket may (and often is) longer than our total time we take the min of the two.
-            val bucketTime = Math.min(bucketEndTime, sched.endTimestampUs) - sliceTimeInBucket
-            utilizationData.get(i).value += bucketTime
+            val bucketTime = minOf(bucketEndTime, sched.endTimestampUs) - sliceTimeInBucket
+            utilizationData[i].value += bucketTime
             sliceTimeInBucket += bucketTime
             i++
           }
@@ -203,6 +204,14 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       .map { it.key to convertCounterToSeriesData(it.value) }
       .toMap()
       .toSortedMap()
+  }
+
+  private fun buildCpuCountersData(): List<Map<String, List<SeriesData<Long>>>> {
+    return model.getCpuCores().map { cpuCoreModel ->
+      cpuCoreModel.countersMap.map {
+        it.key to convertCounterToSeriesData(it.value)
+      }.toMap()
+    }
   }
 
   private fun convertCounterToSeriesData(counter: CounterModel): List<SeriesData<Long>> {
