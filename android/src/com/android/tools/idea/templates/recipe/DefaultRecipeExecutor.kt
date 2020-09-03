@@ -426,12 +426,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
+      "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
 
     if (feature.valueType == ValueType.NONE) {
       feature.setValue(value)
     }
+  }
+
+  override fun setViewBinding(value: Boolean) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().viewBinding().enabled().setValue(value)
   }
 
   /**

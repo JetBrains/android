@@ -149,8 +149,7 @@ class NewAndroidModuleModel(
           data = data as ModuleTemplateData,
           appTitle = applicationName.get(),
           useKts = useGradleKts.get(),
-          bytecodeLevel = bytecodeLevel.value,
-          viewBindingSupport = viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE))
+          bytecodeLevel = bytecodeLevel.value)
       }
       FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
