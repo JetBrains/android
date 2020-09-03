@@ -626,10 +626,6 @@ public final class StudioFlags {
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
-    EMBEDDED_EMULATOR, "enabled", "Enable Embedded Emulator",
-    "Enables the Embedded Emulator tool window",
-    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
