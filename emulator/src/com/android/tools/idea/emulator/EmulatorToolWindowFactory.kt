@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -40,7 +39,7 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
 
   // Only show in Android projects.
   override fun shouldBeAvailable(project: Project): Boolean {
-    val available = StudioFlags.EMBEDDED_EMULATOR_ENABLED.get() && hasAndroidFacets(project) && canLaunchEmulator()
+    val available = hasAndroidFacets(project) && canLaunchEmulator()
     if (available) {
       EmulatorToolWindowManager.initializeForProject(project)
     }
