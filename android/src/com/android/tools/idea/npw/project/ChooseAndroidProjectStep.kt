@@ -20,7 +20,6 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
-import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getProjectTemplates
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -93,16 +92,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   private fun createUIComponents() {
-    loadingPanel = object : JBLoadingPanel(BorderLayout(), this, ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS) {
-      override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
-        super.setBounds(x, y, width, height)
-
-        // Work-around for IDEA-205343 issue.
-        components.forEach {
-          it!!.setBounds(x, y, width, height)
-        }
-      }
-    }
+    loadingPanel = JBLoadingPanel(BorderLayout(), this, ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS)
     loadingPanel.setLoadingText("Loading Android project template files")
   }
 
