@@ -94,9 +94,10 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
 
     // Assert columns.
-    assertThat(table.getModelForTesting().columnInfos).hasLength(2)
+    assertThat(table.getModelForTesting().columnInfos).hasLength(3)
     assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
-    assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Status")
+    assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
+    assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("Status")
 
     // Assert rows.
     assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
@@ -109,8 +110,9 @@ class AndroidTestResultsTableViewTest {
     }
 
     // Assert columns.
-    assertThat(table.getModelForTesting().columnInfos).hasLength(1)
+    assertThat(table.getModelForTesting().columnInfos).hasLength(2)
     assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
+    assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
 
     // Assert rows.
     assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
@@ -123,9 +125,9 @@ class AndroidTestResultsTableViewTest {
     table.addDevice(device("deviceId1", "deviceName1"))
     table.addDevice(device("deviceId2", "deviceName2"))
 
-    assertThat(table.getModelForTesting().columnInfos).hasLength(4)
-    assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("deviceName1")
-    assertThat(table.getModelForTesting().columnInfos[3].name).isEqualTo("deviceName2")
+    assertThat(table.getModelForTesting().columnInfos).hasLength(5)
+    assertThat(table.getModelForTesting().columnInfos[3].name).isEqualTo("deviceName1")
+    assertThat(table.getModelForTesting().columnInfos[4].name).isEqualTo("deviceName2")
 
     // No rows are added until any test results come in (except for the root aggregation row).
     assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)
@@ -330,7 +332,7 @@ class AndroidTestResultsTableViewTest {
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, isNull())
 
     // Select the test case 1. Click on the device 2 column.
-    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().setColumnSelectionInterval(4, 4)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { it.methodName == "method1" }, eq(device2))
 
@@ -342,7 +344,7 @@ class AndroidTestResultsTableViewTest {
     // Selecting the test case 2 again after clearing the selection should trigger the callback.
     // (Because a user may click the same row again after he/she closes the second page.)
     table.clearSelection()
-    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().setColumnSelectionInterval(4, 4)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(4, 4)
 
     verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { it.methodName == "method2" }, eq(device2))
@@ -400,21 +402,23 @@ class AndroidTestResultsTableViewTest {
     val view = table.getTableViewForTesting()
     val model = table.getModelForTesting()
 
-    assertThat(view.columnCount).isEqualTo(4)
+    assertThat(view.columnCount).isEqualTo(5)
     assertThat(model.columns[0].name).isEqualTo("Tests")
-    assertThat(model.columns[1].name).isEqualTo("Status")
-    assertThat(model.columns[2].name).isEqualTo("deviceName1")
-    assertThat(model.columns[3].name).isEqualTo("deviceName2")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("Status")
+    assertThat(model.columns[3].name).isEqualTo("deviceName1")
+    assertThat(model.columns[4].name).isEqualTo("deviceName2")
 
     // Apply column filter.
     table.setColumnFilter { device ->
       device.id == "deviceId2"
     }
 
-    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(view.columnCount).isEqualTo(4)
     assertThat(model.columns[0].name).isEqualTo("Tests")
-    assertThat(model.columns[1].name).isEqualTo("Status")
-    assertThat(model.columns[2].name).isEqualTo("deviceName2")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("Status")
+    assertThat(model.columns[3].name).isEqualTo("deviceName2")
   }
 
   @Test
@@ -424,16 +428,25 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 200))
+                      AndroidTestCase("testid3", "method1", "class2", "package1",
+                                      startTimestampMillis = 0, endTimestampMillis = 400,
+                                      result = AndroidTestCaseResult.FAILED))
     table.addTestCase(device1,
-                      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 300))
+                      AndroidTestCase("testid1", "method1", "class1", "package1",
+                                      startTimestampMillis = 0, endTimestampMillis = 200,
+                                      result = AndroidTestCaseResult.SKIPPED))
     table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 100))
+                      AndroidTestCase("testid2", "method2", "class1", "package1",
+                                      startTimestampMillis = 0, endTimestampMillis = 100,
+                                      result = AndroidTestCaseResult.PASSED))
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(6)
 
-    table.setRowComparator(TEST_NAME_COMPARATOR)
+    // Click on test name table header to sort them by name in ascending order.
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
+    }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -442,7 +455,10 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
 
-    table.setRowComparator(TEST_NAME_COMPARATOR.reversed())
+    // Click on test name table header again to sort them by name in descending order.
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
+    }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
@@ -451,7 +467,10 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method2")
     assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")
 
-    table.setRowComparator(TEST_DURATION_COMPARATOR)
+    // Click on test name table header again to bring back the original insertion order.
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
+    }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
@@ -459,6 +478,47 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1")
     assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+
+    // Click on test duration table header to sort them by duration in ascending order.
+    val durationColumnPositionX = view.tableHeader.columnModel.getColumn(0).width + 1
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, durationColumnPositionX, 0, /*clickCount=*/1, false))
+    }
+
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // 100 ms
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // 200 ms
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // 400 ms
+
+    // Click on test status table header to sort them by test status in ascending order.
+    val columnModel = view.tableHeader.columnModel
+    val statusColumnPositionX = columnModel.getColumn(0).width + columnModel.getColumn(1).width + 1
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, statusColumnPositionX, 0, /*clickCount=*/1, false))
+    }
+
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
+
+    // Click on a device test status table header to sort them by test status in ascending order.
+    val deviceStatusColumnPositionX =
+      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+    }
+
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
   }
 
   @Test
