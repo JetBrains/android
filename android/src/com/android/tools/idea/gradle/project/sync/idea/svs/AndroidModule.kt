@@ -23,6 +23,8 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.impl.BuildFolderPaths
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
@@ -44,7 +46,8 @@ class AndroidModule(
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   private val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  private val nativeModule: NativeModule?
+  private val nativeModule: NativeModule?,
+  private val buildFolderPaths: BuildFolderPaths
 ) {
   val findModelRoot: Model get() = gradleProject
   val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
@@ -103,12 +106,20 @@ class AndroidModule(
   }
 
   fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
+    // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
+    // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
+    val modelCache = ModelCache.create(buildFolderPaths)
+    val ideAndroidModels = ModelConverter.convertToIdeModels(
+      modelCache,
+      androidProject,
+      variantGroup.takeUnless { it.variants.isEmpty() },
+      nativeModule,
+      nativeAndroidProject,
+      projectSyncIssues
+    )
     with(ModelConsumer(consumer)) {
-      androidProject.deliver()
-      nativeModule?.deliver()
-      nativeAndroidProject?.deliver()
-      variantGroup.takeUnless { it.variants.isEmpty() }?.deliver()
-      projectSyncIssues?.deliver()
+      ideAndroidModels.deliver()
       additionalClassifierArtifacts?.deliver()
     }
   }
