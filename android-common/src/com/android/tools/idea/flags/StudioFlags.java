@@ -850,7 +850,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
     COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
     "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
