@@ -186,10 +186,10 @@ DONE.
          .getArgument<DebugViewDumpHandler>(2)
          .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
     }
-    val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
+    val (window, _) = LegacyTreeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
       resourceLookup, legacyClient, mock(Project::class.java))!!
-    assertThat(windowId).isEqualTo("window1")
+    assertThat(window.id).isEqualTo("window1")
 
     val expected = view(0x41673e3, width = 585, height = 804) {
       image(ImageIO.read(imageFile))
@@ -210,7 +210,7 @@ DONE.
       }
       view(0x3d2ff9c)
     }
-    assertDrawTreesEqual(expected, viewNode)
+    assertDrawTreesEqual(expected, window.root)
     verify(resourceLookup).dpi = 560
   }
 }
