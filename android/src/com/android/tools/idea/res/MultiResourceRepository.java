@@ -744,13 +744,14 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         }
         else {
           List<ResourceItem> nested = myResourceItems.get(index);
-          for (int i = 0; i < nested.size(); i++) {
-            if (myComparator.myPriorityComparator.compare(item, nested.get(i)) <= 0) {
-              nested.add(i, item);
-              return index;
+          // Iterate backwards since it is likely to require less iterations.
+          int i = nested.size();
+          while (--i >= 0) {
+            if (myComparator.myPriorityComparator.compare(item, nested.get(i)) > 0) {
+              break;
             }
           }
-          nested.add(item);
+          nested.add(i + 1, item);
         }
         return index;
       }
