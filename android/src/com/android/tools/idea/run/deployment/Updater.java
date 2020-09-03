@@ -228,7 +228,7 @@ final class Updater {
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
-    myPresentation.setText("Multiple Devices");
+    myPresentation.setText("Multiple Devices (" + selectedKeys.size() + ")");
   }
 
   private void updateInToolbarForSingleDevice() {

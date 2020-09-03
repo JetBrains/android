@@ -73,7 +73,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     Project project = facet.getModule().getProject();
     List<Device> devices = AsyncDevicesGetter.getInstance(project).get().orElse(Collections.emptyList());
 
-    if (!new ModifyDeviceSetDialog(project, devices).showAndGet()) {
+    if (!new SelectMultipleDevicesDialog(project, devices).showAndGet()) {
       return null;
     }
 

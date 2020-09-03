@@ -42,19 +42,19 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class ModifyDeviceSetDialogTest {
+public final class SelectMultipleDevicesDialogTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private ModifyDeviceSetDialog myDialog;
+  private SelectMultipleDevicesDialog myDialog;
 
   private void initDialog(@NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
                           @NotNull TableModel tableModel,
                           @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
-    ApplicationManager.getApplication().invokeAndWait(() -> myDialog = new ModifyDeviceSetDialog(myRule.getProject(),
-                                                                                                 runOnMultipleDevicesActionEnabledGet,
-                                                                                                 tableModel,
-                                                                                                 devicesSelectedServiceGetInstance));
+    ApplicationManager.getApplication().invokeAndWait(() -> myDialog = new SelectMultipleDevicesDialog(myRule.getProject(),
+                                                                                                       runOnMultipleDevicesActionEnabledGet,
+                                                                                                       tableModel,
+                                                                                                       devicesSelectedServiceGetInstance));
   }
 
   @After
@@ -63,7 +63,7 @@ public final class ModifyDeviceSetDialogTest {
   }
 
   @Test
-  public void modifyDeviceSetDialogRunOnMultipleDevicesActionIsEnabled() {
+  public void selectMultipleDevicesDialogRunOnMultipleDevicesActionIsEnabled() {
     // Arrange
     TableModel model = Mockito.mock(TableModel.class);
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -76,7 +76,7 @@ public final class ModifyDeviceSetDialogTest {
   }
 
   @Test
-  public void modifyDeviceSetDialog() {
+  public void selectMultipleDevicesDialog() {
     // Arrange
     TableModel model = Mockito.mock(TableModel.class);
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -85,7 +85,7 @@ public final class ModifyDeviceSetDialogTest {
     initDialog(() -> false, model, project -> service);
 
     // Assert
-    assertEquals("Modify Device Set", myDialog.getTitle());
+    assertEquals("Select Multiple Devices", myDialog.getTitle());
   }
 
   @Test
@@ -98,7 +98,7 @@ public final class ModifyDeviceSetDialogTest {
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(() -> true, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), project -> service);
+    initDialog(() -> true, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
@@ -124,7 +124,7 @@ public final class ModifyDeviceSetDialogTest {
     DevicesSelectedService service = new DevicesSelectedService(myRule.getProject(), project -> properties, clock, () -> false);
     service.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
 
-    initDialog(() -> false, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), project -> service);
+    initDialog(() -> false, new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)), project -> service);
 
     // Act
     myDialog.getTable().setSelected(false, 0);
@@ -160,7 +160,7 @@ public final class ModifyDeviceSetDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
+    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.getDeviceKeysSelectedWithDialog()).thenReturn(Collections.singleton(key));

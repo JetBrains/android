@@ -38,7 +38,7 @@ import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ModifyDeviceSetDialog extends DialogWrapper {
+final class SelectMultipleDevicesDialog extends DialogWrapper {
   @NotNull
   private final Project myProject;
 
@@ -51,20 +51,20 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
   @Nullable
-  private ModifyDeviceSetDialogTable myTable;
+  private SelectMultipleDevicesDialogTable myTable;
 
-  ModifyDeviceSetDialog(@NotNull Project project, @NotNull List<Device> devices) {
+  SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
     this(project,
          StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get,
-         new ModifyDeviceSetDialogTableModel(devices),
+         new SelectMultipleDevicesDialogTableModel(devices),
          DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
-  ModifyDeviceSetDialog(@NotNull Project project,
-                        @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
-                        @NotNull TableModel tableModel,
-                        @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
+  SelectMultipleDevicesDialog(@NotNull Project project,
+                              @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
+                              @NotNull TableModel tableModel,
+                              @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
@@ -75,20 +75,21 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     initTable();
     initOkAction();
     init();
-    setTitle(runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? "Run on Multiple Devices" : "Modify Device Set");
+    setTitle(runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? "Run on Multiple Devices" : "Select Multiple Devices");
   }
 
   private void initTable() {
     if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
       myTableModel.addTableModelListener(event -> {
-        if (event.getColumn() == ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX && event.getType() == TableModelEvent.UPDATE) {
+        if (event.getColumn() == SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX &&
+            event.getType() == TableModelEvent.UPDATE) {
           assert myTable != null;
           getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
         }
       });
     }
 
-    myTable = new ModifyDeviceSetDialogTable();
+    myTable = new SelectMultipleDevicesDialogTable();
 
     myTable.setModel(myTableModel);
     myTable.setSelectedDevices(myDevicesSelectedServiceGetInstance.apply(myProject).getDeviceKeysSelectedWithDialog());
@@ -157,7 +158,7 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
 
   @Override
   protected @NotNull String getDimensionServiceKey() {
-    return "com.android.tools.idea.run.deployment.ModifyDeviceSetDialog";
+    return "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog";
   }
 
   @NotNull
@@ -166,9 +167,8 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     return getTable();
   }
 
-  @NotNull
   @VisibleForTesting
-  ModifyDeviceSetDialogTable getTable() {
+  @NotNull SelectMultipleDevicesDialogTable getTable() {
     assert myTable != null;
     return myTable;
   }

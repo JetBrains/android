@@ -31,8 +31,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
-final class ModifyDeviceSetDialogTable extends JBTable {
-  ModifyDeviceSetDialogTable() {
+final class SelectMultipleDevicesDialogTable extends JBTable {
+  SelectMultipleDevicesDialogTable() {
     JTableHeader header = getTableHeader();
 
     header.setReorderingAllowed(false);
@@ -58,17 +58,18 @@ final class ModifyDeviceSetDialogTable extends JBTable {
   }
 
   boolean isSelected(int viewRowIndex) {
-    return (boolean)dataModel.getValueAt(convertRowIndexToModel(viewRowIndex), ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
+    int modelRowIndex = convertRowIndexToModel(viewRowIndex);
+    return (boolean)dataModel.getValueAt(modelRowIndex, SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
   }
 
   @VisibleForTesting
   void setSelected(@SuppressWarnings("SameParameterValue") boolean selected, int viewRowIndex) {
-    dataModel.setValueAt(selected, convertRowIndexToModel(viewRowIndex), ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
+    dataModel.setValueAt(selected, convertRowIndexToModel(viewRowIndex), SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
   }
 
   @NotNull
   private Device getDeviceAt(int viewRowIndex) {
-    return ((ModifyDeviceSetDialogTableModel)dataModel).getDeviceAt(convertRowIndexToModel(viewRowIndex));
+    return ((SelectMultipleDevicesDialogTableModel)dataModel).getDeviceAt(convertRowIndexToModel(viewRowIndex));
   }
 
   @NotNull
@@ -112,8 +113,8 @@ final class ModifyDeviceSetDialogTable extends JBTable {
   }
 
   private void setSelectedAndIconColumnMaxWidthsToFit() {
-    setMaxWidthToFit(convertColumnIndexToView(ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX));
-    setMaxWidthToFit(convertColumnIndexToView(ModifyDeviceSetDialogTableModel.TYPE_MODEL_COLUMN_INDEX));
+    setMaxWidthToFit(convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX));
+    setMaxWidthToFit(convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.TYPE_MODEL_COLUMN_INDEX));
   }
 
   private void setMaxWidthToFit(int viewColumnIndex) {
