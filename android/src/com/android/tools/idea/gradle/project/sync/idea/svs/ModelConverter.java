@@ -26,18 +26,26 @@ import com.android.builder.model.Variant;
 import com.android.builder.model.v2.models.ndk.NativeModule;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.impl.BuildFolderPaths;
 import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,10 +64,7 @@ public class ModelConverter {
     String selectedVariantName = findVariantToSelect(androidProject, variantGroup).getName();
     List<SyncIssueData> syncIssues = createSyncIssueData(androidProject, projectSyncIssues);
 
-    @Nullable V2NdkModel ndkModel =
-      nativeModule != null
-      ? new V2NdkModel(androidProject.getModelVersion(), modelCache.nativeModuleFrom(nativeModule))
-      : null;
+    @Nullable IdeNativeModule ideNativeModule = nativeModule != null ? modelCache.nativeModuleFrom(nativeModule) : null;
 
     @Nullable IdeNativeAndroidProject nativeProjectCopy =
       nativeAndroidProject != null
@@ -75,7 +80,7 @@ public class ModelConverter {
                                 fetchedIdeVariants,
                                 selectedVariantName,
                                 syncIssues,
-                                ndkModel,
+                                ideNativeModule,
                                 nativeProjectCopy,
                                 ideNativeVariantAbis);
   }
@@ -157,5 +162,55 @@ public class ModelConverter {
 
     // Otherwise return the first variant.
     return variants.stream().min(Comparator.comparing(Variant::getName)).orElse(null);
+  }
+
+  /**
+   * Set map from project path to build directory for all modules.
+   * It will be used to check if an Android library is a sub-module that wraps a local aar.
+   * @return
+   */
+  @NotNull
+  public static BuildFolderPaths populateModuleBuildDirs(@NotNull BuildController controller) {
+    IdeaProject rootIdeaProject = controller.findModel(IdeaProject.class);
+    if (rootIdeaProject == null) {
+      return new BuildFolderPaths();
+    }
+    BuildFolderPaths buildFolderPaths = new BuildFolderPaths();
+    // Set root build id.
+    for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
+      GradleProject gradleProject = ideaModule.getGradleProject();
+      if (gradleProject != null) {
+        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
+        buildFolderPaths.setRootBuildId(rootBuildId);
+        break;
+      }
+    }
+
+    // Set build folder for root and included projects.
+    List<IdeaProject> ideaProjects = new ArrayList<>();
+    ideaProjects.add(rootIdeaProject);
+    DomainObjectSet<? extends GradleBuild> includedBuilds = controller.getBuildModel().getIncludedBuilds();
+    for (GradleBuild includedBuild : includedBuilds) {
+      IdeaProject ideaProject = controller.getModel(includedBuild, IdeaProject.class);
+      assert ideaProject != null;
+      ideaProjects.add(ideaProject);
+    }
+
+    for (IdeaProject ideaProject : ideaProjects) {
+      for (IdeaModule ideaModule : ideaProject.getChildren()) {
+        GradleProject gradleProject = ideaModule.getGradleProject();
+        if (gradleProject != null) {
+          try {
+            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
+            buildFolderPaths.addBuildFolderMapping(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+          }
+          catch (UnsupportedOperationException exception) {
+            // getBuildDirectory is not available for Gradle older than 2.0.
+            // For older versions of gradle, there's no way to get build directory.
+          }
+        }
+      }
+    }
+    return buildFolderPaths;
   }
 }

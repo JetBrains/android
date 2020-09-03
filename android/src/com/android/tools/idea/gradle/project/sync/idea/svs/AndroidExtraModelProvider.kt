@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
+import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -56,6 +57,13 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       populateProjectSyncIssues(controller, androidModules)
 
       androidModules.forEach { it.deliverModels(consumer) }
+    }
+    catch (e: AndroidSyncException) {
+      consumer.consume(
+        buildModel,
+        IdeAndroidSyncError(e.message.orEmpty(), e.stackTrace.map { it.toString() }),
+        IdeAndroidSyncError::class.java
+      )
     }
     finally {
       // TODO(b/166240410): We DO ignore cross-included-build dependencies when selecting build variants to sync. This needs to be fixed.
@@ -94,6 +102,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     buildModel: GradleBuild
   ): List<AndroidModule> {
+    val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
     val androidModules: MutableList<AndroidModule> = mutableListOf()
     buildModel.projects.forEach { gradleProject ->
       val androidProject = findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)
@@ -103,7 +112,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           if (nativeModule != null) null
           else findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)
 
-        val module = AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule)
+        val module = AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule, buildFolderPaths)
         modulesById[module.id] = module
         androidModules.add(module)
       }
@@ -321,7 +330,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     val abiNames = module.getVariantAbiNames(variantName) ?: return null
 
     val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-                       ?: throw IllegalStateException("No valid Native abi found to request!")
+                       ?: throw AndroidSyncException("No valid Native abi found to request!")
 
     if (module.nativeModelVersion == NativeModelVersion.V2) {
       // V2 model is available, trigger the sync with V2 API
