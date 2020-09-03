@@ -44,6 +44,7 @@ import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.impl.OpenProjectTask
@@ -81,7 +82,7 @@ interface ProjectModelData {
   val projectLocation: StringProperty
   val useAppCompat: BoolProperty
   val useGradleKts: BoolProperty
-  val isViewBindingSupported: BoolProperty
+  val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -91,13 +92,13 @@ interface ProjectModelData {
 
 class NewProjectModel : WizardModel(), ProjectModelData {
   override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-  override val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
-  override val isViewBindingSupported = BoolValueProperty(true)
+  override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()

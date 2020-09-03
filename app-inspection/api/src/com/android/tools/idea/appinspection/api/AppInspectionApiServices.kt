@@ -16,18 +16,17 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
 import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectorLauncher
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
-import java.util.concurrent.ExecutorService
 
 typealias JarCopierCreator = (Common.Device) -> AppInspectionJarCopier?
 

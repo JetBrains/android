@@ -15,12 +15,9 @@
  */
 package com.android.tools.profilers.cpu.perfetto
 
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.atrace.PerfettoPacketDBSorter
+import com.android.tools.profilers.cpu.systemtrace.PerfettoPacketDBSorter
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import perfetto.protos.PerfettoTrace
-import java.io.FileInputStream
 
 class PerfettoSorterTest {
 

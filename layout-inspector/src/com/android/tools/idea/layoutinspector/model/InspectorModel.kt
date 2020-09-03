@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
@@ -35,6 +36,9 @@ class InspectorModel(val project: Project) {
   val resourceLookup = ResourceLookup(project)
   val stats = SessionStatistics()
   var lastGeneration = 0
+  var updating = false
+
+  private val memoryProbe = InspectorMemoryProbe(this)
 
   // TODO: store this at the window root
   private fun findSubimages(root: ViewNode?) =
@@ -119,6 +123,7 @@ class InspectorModel(val project: Project) {
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
   fun update(newRoot: ViewNode?, id: Any, allIds: List<*>, generation: Int) {
+    updating = true
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
     val oldRoot = roots[id]
     // changes in DIM_BEHIND will cause a structural change
@@ -148,6 +153,7 @@ class InspectorModel(val project: Project) {
     updateRoot(allIds)
     hasSubImages = root.children.any { findSubimages(it) }
     lastGeneration = generation
+    updating = false
     modificationListeners.forEach { it(oldRoot, roots[id], structuralChange) }
   }
 

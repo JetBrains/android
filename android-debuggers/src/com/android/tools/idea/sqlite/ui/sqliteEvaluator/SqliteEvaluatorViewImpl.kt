@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
+import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
@@ -22,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -33,6 +36,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ThreeComponentsSplitter
+import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiManager
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.EditorCustomization
@@ -42,6 +46,7 @@ import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.util.ArrayList
@@ -72,15 +77,22 @@ class SqliteEvaluatorViewImpl(
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
+  private val queryHistoryButton = CommonButton(AllIcons.Vcs.History)
   private val runButton = JButton("Run")
   private var evaluateSqliteStatementEnabled = false
+
+  private val queryHistoryView = QueryHistoryView(editorTextField)
 
   init {
     val evaluatorPanel = JPanel(BorderLayout())
     val controlsPanel = JPanel(BorderLayout())
+    val controlsLeftPanel = JPanel(FlowLayout())
+    val controlsRightPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
 
     evaluatorPanel.add(editorTextField, BorderLayout.CENTER)
     evaluatorPanel.add(controlsPanel, BorderLayout.SOUTH)
+    controlsPanel.add(controlsLeftPanel, BorderLayout.WEST)
+    controlsPanel.add(controlsRightPanel, BorderLayout.EAST)
 
     threeComponentsSplitter.dividerWidth = 0
     threeComponentsSplitter.firstSize = JBUI.scale(100)
@@ -93,8 +105,11 @@ class SqliteEvaluatorViewImpl(
     evaluatorPanel.border = JBUI.Borders.empty(6)
     tableView.component.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
-    evaluatorPanel.background = editorTextField.background
-    controlsPanel.background = editorTextField.background
+    editorTextField.background = primaryContentBackground
+    evaluatorPanel.background = primaryContentBackground
+    controlsPanel.background = primaryContentBackground
+    controlsLeftPanel.background = primaryContentBackground
+    controlsRightPanel.background = primaryContentBackground
 
     val active = KeymapManager.getInstance().activeKeymap
 
@@ -108,12 +123,21 @@ class SqliteEvaluatorViewImpl(
     runButton.isEnabled = false
     runButton.addActionListener { evaluateSqliteExpression() }
     runButton.name = "run-button"
+    controlsRightPanel.add(runButton)
 
     val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
 
     editorTextField.name = "editor"
     editorTextField.setPlaceholder("Enter query")
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
+
+    val myDocumentListener = object : DocumentListener {
+      override fun documentChanged(event: DocumentEvent) {
+        listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
+      }
+    }
+
+    editorTextField.document.addDocumentListener(myDocumentListener)
 
     databaseComboBox.addActionListener {
       setSchemaFromSelectedItem()
@@ -142,17 +166,18 @@ class SqliteEvaluatorViewImpl(
         }
       }
     }
+    controlsLeftPanel.add(databaseComboBox)
 
-    val myDocumentListener = object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
-      }
+    queryHistoryButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Vcs.History)
+    queryHistoryButton.toolTipText = "Show query history"
+    queryHistoryButton.addActionListener {
+      queryHistoryView.show(
+        component,
+        queryHistoryButton.x + queryHistoryButton.width/2,
+        evaluatorPanel.height - evaluatorPanel.border.getBorderInsets(controlsLeftPanel).bottom
+      )
     }
-
-    editorTextField.document.addDocumentListener(myDocumentListener)
-
-    controlsPanel.add(runButton, BorderLayout.EAST)
-    controlsPanel.add(databaseComboBox, BorderLayout.WEST)
+    controlsLeftPanel.add(queryHistoryButton)
   }
 
   override fun schemaChanged(databaseId: SqliteDatabaseId) {
@@ -215,5 +240,9 @@ class SqliteEvaluatorViewImpl(
 
   override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)
+  }
+
+  override fun setQueryHistory(queries: List<String>) {
+    queryHistoryView.setQueryHistory(queries)
   }
 }

@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
+import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

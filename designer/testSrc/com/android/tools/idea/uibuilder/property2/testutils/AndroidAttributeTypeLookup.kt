@@ -31,10 +31,12 @@ object AndroidAttributeFact {
   fun lookup(name: String): NelePropertyType {
     when (name) {
       // Material Design additions
+      "boxStrokeErrorColor" -> return NelePropertyType.COLOR_STATE_LIST
       "boxStrokeWidthFocused" -> return NelePropertyType.DIMENSION
       "checkedChip" -> return NelePropertyType.ID
       "checkedIcon" -> return NelePropertyType.DRAWABLE
       "checkedIconEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "checkedIconTint" -> return NelePropertyType.COLOR_STATE_LIST
       "checkedIconVisible" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "chipBackgroundColor" -> return NelePropertyType.COLOR_STATE_LIST
       "chipCornerRadius" -> return NelePropertyType.DIMENSION
@@ -69,6 +71,7 @@ object AndroidAttributeFact {
       "endIconTint" -> return NelePropertyType.COLOR_STATE_LIST
       "endIconTintMode" -> return NelePropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "errorContentDescription" -> return NelePropertyType.STRING
       "errorIconDrawable" -> return NelePropertyType.DRAWABLE
       "errorIconTint" -> return NelePropertyType.COLOR_STATE_LIST
       "errorIconTintMode" -> return NelePropertyType.ENUM
@@ -79,6 +82,8 @@ object AndroidAttributeFact {
       "fabCradleMargin" -> return NelePropertyType.DIMENSION
       "fabCradleRoundedCornerRadius" -> return NelePropertyType.DIMENSION
       "fabCradleVerticalOffset" -> return NelePropertyType.DIMENSION
+      "haloColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "haloRadius" -> return NelePropertyType.DIMENSION
       "helperTextTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "hideOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "hintTextColor" -> return NelePropertyType.COLOR_STATE_LIST
@@ -101,12 +106,24 @@ object AndroidAttributeFact {
       "itemShapeInsetStart" -> return NelePropertyType.DIMENSION
       "itemShapeInsetTop" -> return NelePropertyType.DIMENSION
       "itemSpacing" -> return NelePropertyType.DIMENSION
+      "labelBehavior" -> return NelePropertyType.ENUM
+      "labelStyle" -> return NelePropertyType.STYLE
       "layout_collapseMode" -> return NelePropertyType.ENUM
       "layout_collapseParallaxMultiplier" -> return NelePropertyType.FLOAT
       "layout_scrollFlags" -> return NelePropertyType.FLAGS
       "layout_scrollInterpolator" -> return NelePropertyType.INTERPOLATOR
       "liftOnScrollTargetViewId" -> return NelePropertyType.ID
       "lineSpacing" -> return NelePropertyType.DIMENSION
+      "paddingBottomSystemWindowInsets" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "paddingLeftSystemWindowInsets" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "paddingRightSystemWindowInsets" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "placeholderText" -> return NelePropertyType.STRING
+      "placeholderTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "placeholderTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "prefixText" -> return NelePropertyType.STRING
+      "prefixTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "prefixTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "selectionRequired" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "shapeAppearance" -> return NelePropertyType.STYLE
       "shapeAppearanceOverlay" -> return NelePropertyType.STYLE
       "shrinkMotionSpec" -> return NelePropertyType.ANIMATOR
@@ -119,6 +136,9 @@ object AndroidAttributeFact {
       "statusBarForeground" -> return NelePropertyType.DRAWABLE
       "strokeColor" -> return NelePropertyType.COLOR_STATE_LIST
       "strokeWidth" -> return NelePropertyType.DIMENSION
+      "suffixText" -> return NelePropertyType.STRING
+      "suffixTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
+      "suffixTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "tabBackground" -> return NelePropertyType.DRAWABLE
       "tabContentStart" -> return NelePropertyType.DIMENSION
       "tabGravity" -> return NelePropertyType.ENUM
@@ -144,8 +164,19 @@ object AndroidAttributeFact {
       "tabTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
       "tabTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "tabUnboundedRipple" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "tickColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "tickColorActive" -> return NelePropertyType.COLOR_STATE_LIST
+      "tickColorInactive" -> return NelePropertyType.COLOR_STATE_LIST
       "textEndPadding" -> return NelePropertyType.DIMENSION
+      "textInputLayoutFocusedRectEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "textStartPadding" -> return NelePropertyType.DIMENSION
+      "thumbColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "thumbElevation" -> return NelePropertyType.DIMENSION
+      "thumbRadius" -> return NelePropertyType.DIMENSION
+      "trackColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "trackColorActive" -> return NelePropertyType.COLOR_STATE_LIST
+      "trackColorInactive" -> return NelePropertyType.COLOR_STATE_LIST
+      "trackHeight" -> return NelePropertyType.DIMENSION
       "useMaterialThemeColors" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "expanded" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "liftOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
@@ -1176,9 +1207,10 @@ object AndroidAttributeFact {
       "useDisabledAlpha" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "userVisible" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "usesCleartextTraffic" -> return NelePropertyType.THREE_STATE_BOOLEAN
-      "value" -> return NelePropertyType.INTEGER
-      "valueFrom" -> return NelePropertyType.STRING
-      "valueTo" -> return NelePropertyType.STRING
+      "value" -> return NelePropertyType.FLOAT
+      "values" -> return NelePropertyType.ARRAY  // array of float for com.google.android.material.slider.RangeSlider
+      "valueFrom" -> return NelePropertyType.FLOAT
+      "valueTo" -> return NelePropertyType.FLOAT
       "valueType" -> return NelePropertyType.INTEGER
       "version" -> return NelePropertyType.INTEGER
       "versionCode" -> return NelePropertyType.INTEGER

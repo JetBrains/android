@@ -42,6 +42,7 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
@@ -55,12 +56,12 @@ class ExistingProjectModelData(
   override var project: Project,
   override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 ) : ProjectModelData {
-  override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val applicationName: StringValueProperty = StringValueProperty("My Application")
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
-  override val isViewBindingSupported = BoolValueProperty(project.isViewBindingSupported())
+  override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
@@ -122,17 +123,20 @@ class NewAndroidModuleModel(
   moduleParent,
   wizardContext
 ) {
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
+    projectTemplateDataBuilder = projectTemplateDataBuilder,
+    isNewModule = true,
+    viewBindingSupport = viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE))
   override val renderer = ModuleTemplateRenderer()
 
   val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
-    val msgId: String = when {
-      isLibrary -> "android.wizard.module.config.new.library"
-      else -> "android.wizard.module.config.new.application"
+    val msg: String = when {
+      isLibrary -> "My Library"
+      else -> "My Application"
     }
-    applicationName.set(message(msgId))
+    applicationName.set(msg)
   }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
@@ -141,7 +145,12 @@ class NewAndroidModuleModel(
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.Mobile -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), bytecodeLevel.value, isViewBindingSupported.get())
+        generateAndroidModule(
+          data = data as ModuleTemplateData,
+          appTitle = applicationName.get(),
+          useKts = useGradleKts.get(),
+          bytecodeLevel = bytecodeLevel.value,
+          viewBindingSupport = viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE))
       }
       FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
@@ -223,8 +232,12 @@ private fun Project.hasKtsUsage() : Boolean {
   return false
 }
 
-private fun Project.isViewBindingSupported(): Boolean {
-  val androidPluginInfo = AndroidPluginInfo.findFromModel(this) ?: return true
-  val agpVersion = androidPluginInfo.pluginVersion ?: return true
-  return agpVersion.isAtLeast(3, 6, 0)
+internal fun Project.isViewBindingSupported(): ViewBindingSupport {
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(this) ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
+  val agpVersion = androidPluginInfo.pluginVersion ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
+  return when {
+    agpVersion.isAtLeast(4, 0, 0) -> ViewBindingSupport.SUPPORTED_4_0_MORE
+    agpVersion.isAtLeast(3, 6, 0) -> ViewBindingSupport.SUPPORTED_3_6
+    else -> ViewBindingSupport.NOT_SUPPORTED
+  }
 }

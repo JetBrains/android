@@ -38,6 +38,7 @@ import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
@@ -57,7 +58,11 @@ private class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
+    projectTemplateDataBuilder = ProjectTemplateDataBuilder(false),
+    isNewModule = false,
+    viewBindingSupport = existingProjectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE)
+  )
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 

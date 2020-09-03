@@ -15,7 +15,18 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.SdkConstants
+import com.android.repository.Revision
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.RepoManager
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.testframework.FakePackage.FakeLocalPackage
+import com.android.repository.testframework.FakeProgressIndicator
+import com.android.repository.testframework.FakeRepoManager
+import com.android.repository.testframework.MockFileOp
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -23,18 +34,26 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.apache.commons.io.IOUtils
+import org.ini4j.Ini
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 
 private const val RESOURCE_BASE = "com/android/tools/idea/testartifacts/instrumented/testsuite/snapshots/"
 private const val SNAPSHOT_TAR = "fakeSnapshotWithScreenshot.tar"
 private const val SNAPSHOT_TAR_GZ = "fakeSnapshotWithScreenshot.tar.gz"
+private const val SNAPSHOT_WITH_PB_TAR = "fakeSnapshotWithPb.tar.gz"
+private const val RESOURCE_SYSTEM_IMAGE_BUILD_PROP = "systemImageBuild.prop"
+private const val SDK_SYSTEM_IMAGE_BUILD_PROP = "build.prop"
+private const val FAKE_EMULATOR_REVISION = "26.0.0"
+private const val INI_GLOBAL_SECTION_NAME = "global"
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -50,7 +69,34 @@ class RetentionViewTest {
     .around(disposableRule)
     .around(temporaryFolderRule)
 
-  private val retentionView = RetentionView()
+  private lateinit var retentionView: RetentionView
+  private lateinit var androidSdkHandler: AndroidSdkHandler
+  private lateinit var sdkPath: File
+
+  @Before
+  fun setUp() {
+    sdkPath = temporaryFolderRule.newFolder()
+    val systemImageFolder = sdkPath.resolve("system-images")
+      .resolve("android-29")
+      .resolve("google_apis_playstore")
+      .resolve("x86_64")
+    assertThat(systemImageFolder.mkdirs()).isTrue()
+    val buildPropUrl = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP)
+    assertThat(buildPropUrl).isNotNull()
+    val buildPropFile = systemImageFolder.resolve(SDK_SYSTEM_IMAGE_BUILD_PROP)
+    assertThat(buildPropFile.createNewFile()).isTrue()
+    with(FileOutputStream(buildPropFile)) {
+      IOUtils.copy(buildPropUrl.openStream(), this)
+    }
+
+    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
+    p.setRevision(Revision.parseRevision(FAKE_EMULATOR_REVISION))
+    val packages = RepositoryPackages()
+    packages.setLocalPkgInfos(ImmutableList.of<LocalPackage>(p))
+    val mgr: RepoManager = FakeRepoManager(null, packages)
+    androidSdkHandler = AndroidSdkHandler(sdkPath, null, MockFileOp(), mgr)
+    retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator())
+  }
 
   @Test
   fun loadTarScreenshot() {
@@ -59,12 +105,13 @@ class RetentionViewTest {
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR)
     assertThat(url).isNotNull()
-    with (FileOutputStream(snapshotFile)) {
+    with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
     retentionView.setSnapshotFile(snapshotFile)
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
     assertThat(retentionView.image).isNotNull()
+    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
   }
 
   @Test
@@ -74,17 +121,61 @@ class RetentionViewTest {
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
     assertThat(url).isNotNull()
-    with (FileOutputStream(snapshotFile)) {
+    with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
     retentionView.setSnapshotFile(snapshotFile)
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
     assertThat(retentionView.image).isNotNull()
+    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+  }
+
+  @Test
+  fun loadSnapshotWithPb() {
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    retentionView.setSnapshotFile(snapshotFile)
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
   }
 
   @Test
   fun loadNullScreenshot() {
     retentionView.setSnapshotFile(null)
     assertThat(retentionView.image).isNull()
+  }
+
+  @Test
+  fun checkSystemImageVersion() {
+    val hardwareIni =  Ini().also {
+      it.add(INI_GLOBAL_SECTION_NAME)
+      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
+                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
+      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
+    }
+    // The system image version must match the one from ${RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP}
+    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys")).isTrue()
+  }
+
+  @Test
+  fun checkSystemImageVersionEmptyIni() {
+    val hardwareIni =  Ini()
+    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys")).isFalse()
+  }
+
+  @Test
+  fun checkBadSystemImageVersion() {
+    val hardwareIni =  Ini().also {
+      it.add(INI_GLOBAL_SECTION_NAME)
+      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
+                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
+      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
+    }
+    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "invalid")).isFalse()
   }
 }

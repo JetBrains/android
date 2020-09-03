@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.GradleProjectInfo.beginInitializingGradleProjectAt;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
@@ -239,6 +240,8 @@ public class GradleProjectImporter {
     GradleProjectImportUtil.setupGradleSettings(gradleSettings);
     GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
     GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
+    // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio
+    projectSettings.setGradleJvm(USE_PROJECT_JDK);
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

@@ -16,10 +16,14 @@
 package com.android.tools.idea.profilers;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.profilers.performance.MemoryProfilerHeapDumpTest;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(ProfilersAndroidTestSuite.class)  // a suite mustn't contain itself
+@JarTestSuiteRunner.ExcludeClasses({
+  ProfilersAndroidTestSuite.class, // a suite mustn't contain itself
+  MemoryProfilerHeapDumpTest.class, // b/152344964
+})
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -98,7 +99,8 @@ fun androidConfig(
   applicationId: String = "",
   hasTests: Boolean = false,
   canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  viewBindingSupport: ViewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
@@ -113,6 +115,19 @@ fun androidConfig(
           disable ('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
       }
     """
+  }
+  val buildFeaturesBlock = when (viewBindingSupport) {
+    ViewBindingSupport.SUPPORTED_4_0_MORE -> """
+    buildFeatures {
+      viewBinding = true
+    }
+    """
+    ViewBindingSupport.SUPPORTED_3_6 -> """
+    viewBinding {
+      enabled = true
+    }
+    """
+    else -> ""
   }
 
   return """
@@ -133,6 +148,7 @@ fun androidConfig(
 
     $proguardConfigBlock
     $lintOptionsBlock
+    $buildFeaturesBlock
     }
     """
 }

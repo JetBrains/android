@@ -52,6 +52,10 @@ public enum ProfilerTrackRendererType {
    */
   CPU_CORE,
   /**
+   * For RSS (Resident Set Size) memory counters.
+   */
+  RSS_MEMORY,
+  /**
    * For Custom Event Visualization user events.
    */
   CUSTOM_EVENTS

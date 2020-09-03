@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -135,6 +137,14 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
       allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+    }
+
+    // TODO(b/166739137): buildSrc is actually more like an included build; buildSrc could in principle have sub-projects, libraries, etc.,
+    //  all themselves configured and built by the top-level Gradle build file in the buildSrc directory.
+    File buildSrc = new File(getBaseDirPath(myBuildModelContext.getProject()), "buildSrc");
+    VirtualFile buildSrcVirtualFile = myBuildModelContext.getGradleBuildFile(buildSrc);
+    if (buildSrcVirtualFile != null) {
+      allModels.add(getModuleBuildModel(buildSrcVirtualFile));
     }
 
     GradleSettingsModel settingsModel = getProjectSettingsModel();

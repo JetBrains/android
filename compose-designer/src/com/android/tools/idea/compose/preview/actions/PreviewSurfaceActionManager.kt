@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
+import com.android.tools.idea.common.actions.LayoutlibSceneManagerRefreshIconAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -63,6 +64,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       DefaultActionGroup(
         listOfNotNull(
           Separator(),
+          LayoutlibSceneManagerRefreshIconAction(sceneView.scene.sceneManager as LayoutlibSceneManager),
           StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
             ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
           },

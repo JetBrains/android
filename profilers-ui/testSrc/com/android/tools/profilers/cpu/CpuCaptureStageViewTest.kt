@@ -33,12 +33,12 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
-import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip
-import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip
-import com.android.tools.profilers.cpu.atrace.VsyncTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip
+import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
+import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule

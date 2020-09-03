@@ -93,28 +93,6 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     addActionListener(ActionListener { listener.onAndroidTestSuiteDetailsViewCloseButtonClicked() })
   }
 
-  private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView = DetailsViewDeviceSelectorListView(
-    object : DetailsViewDeviceSelectorListViewListener {
-      override fun onDeviceSelected(selectedDevice: AndroidDevice) {
-        this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
-        reloadAndroidTestResults()
-        myComponentsSplitter.secondComponent = contentView.rootPanel
-      }
-
-      override fun onRawOutputSelected() {
-        myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-      }
-    })
-
-  private val myComponentsSplitter: JBSplitter = JBSplitter().apply {
-    setHonorComponentsMinimumSize(false)
-    dividerWidth = 1
-    divider.background = UIUtil.CONTRAST_BORDER_COLOR
-    firstComponent = myDeviceSelectorListView.rootPanel
-    proportion = 0.3f
-    secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-  }
-
   @get:VisibleForTesting val contentView: DetailsViewContentView = DetailsViewContentView(parentDisposable, project, logger)
 
   val rawTestLogConsoleView: ConsoleViewImpl = ConsoleViewImpl(project, /*viewer=*/true).apply {
@@ -129,6 +107,55 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       false)
     add(rawTestLogToolbar.component, BorderLayout.EAST)
   }
+
+  private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView = DetailsViewDeviceSelectorListView(
+    object : DetailsViewDeviceSelectorListViewListener {
+      override fun onDeviceSelected(selectedDevice: AndroidDevice) {
+        this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
+        reloadAndroidTestResults()
+        myComponentsSplitter.secondComponent = contentView.rootPanel
+      }
+
+      override fun onRawOutputSelected() {
+        myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+      }
+    })
+
+  private val myComponentsSplitter: JBSplitter = object: JBSplitter(){
+    private val MAX_FIRST_COMPONENT_WIDTH: Int = 200
+    init {
+      setHonorComponentsMinimumSize(false)
+      dividerWidth = 1
+      divider.background = UIUtil.CONTRAST_BORDER_COLOR
+      firstComponent = myDeviceSelectorListView.rootPanel
+      secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+      proportion = 0.3f
+      dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
+    }
+
+    override fun doLayout() {
+      if (proportion * width > MAX_FIRST_COMPONENT_WIDTH) {
+        proportion = MAX_FIRST_COMPONENT_WIDTH.toFloat() / width
+      }
+      super.doLayout()
+    }
+  }
+
+  /**
+   * Shows or hides a device selector list.
+   */
+  @get:UiThread
+  @set:UiThread
+  var isDeviceSelectorListVisible: Boolean
+    get() = myComponentsSplitter.firstComponent.isVisible
+    set(value) {
+      val valueChanged = value != myComponentsSplitter.firstComponent.isVisible
+      myComponentsSplitter.firstComponent.isVisible = value
+      if (valueChanged) {
+        myComponentsSplitter.doLayout()
+        myComponentsSplitter.repaint()
+      }
+    }
 
   val rootPanel: JPanel = JPanel(BorderLayout()).apply {
     add(JPanel(BorderLayout()).apply {

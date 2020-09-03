@@ -232,6 +232,11 @@ public final class StudioFlags {
     "Show the popup picker for resource picking or attribute customization in layout editor.",
     true);
 
+  public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
+    NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
+    "Show the popup color resource picker when clicking the gutter icon of color resource in java and kotlin files.",
+    false);
+
   public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
     NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
     "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
@@ -389,6 +394,30 @@ public final class StudioFlags {
     "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
     "Requires applychanges.optimisticswap to be true.",
     true);
+
+    /**
+     * The level of APK change that will be supported by the deployment pipeline's optimistic
+     * "deploy-without-installing" path. Deploying changes that exceed the level of support
+     * configured here will cause the deployment to install via the package manager.
+     */
+    public enum OptimisticInstallSupportLevel {
+        /** Always fall back to a package manager installation. */
+        DISABLED,
+        /** Support deploying changes to dex files only. */
+        DEX,
+        /** Support deploying changes to dex files and native libraries only. */
+        DEX_AND_NATIVE,
+        /** Support deploying changes to dex files, native libraries, and resources. */
+        DEX_AND_NATIVE_AND_RESOURCES,
+    }
+
+    public static final Flag<OptimisticInstallSupportLevel> OPTIMISTIC_INSTALL_SUPPORT_LEVEL =
+            Flag.create(
+                    RUNDEBUG,
+                    "optimisticinstall.supportlevel",
+                    "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
+                    "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
+                    OptimisticInstallSupportLevel.DISABLED);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
@@ -839,6 +868,12 @@ public final class StudioFlags {
     "If enable, the preview will support Preview data sources",
     true);
 
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
+    COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
+    "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
+    true);
+
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",
@@ -976,7 +1011,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
     WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
-    false
+    true
   );
   // endregion
 

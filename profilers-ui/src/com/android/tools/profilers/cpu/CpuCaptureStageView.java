@@ -40,13 +40,14 @@ import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
-import com.android.tools.profilers.cpu.atrace.BufferQueueTooltip;
-import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerTooltip;
-import com.android.tools.profilers.cpu.atrace.VsyncTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
+import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
+import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
@@ -133,6 +134,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(SurfaceflingerTooltip.class, SurfaceflingerTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(VsyncTooltip.class, VsyncTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(BufferQueueTooltip.class, BufferQueueTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(RssMemoryTooltip.class, RssMemoryTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)

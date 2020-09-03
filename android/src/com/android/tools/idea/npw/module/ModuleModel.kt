@@ -38,6 +38,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.NO_ACTIVITY
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.openapi.command.WriteCommandAction
@@ -62,9 +63,13 @@ abstract class ModuleModel(
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
+    projectTemplateDataBuilder = projectTemplateDataBuilder,
+    isNewModule = true,
+    viewBindingSupport = projectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE)
+  )
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
-  override val isViewBindingSupported = projectModelData.isViewBindingSupported
+  override val viewBindingSupport = projectModelData.viewBindingSupport
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
 
   public override fun handleFinished() {

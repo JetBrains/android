@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
-import com.android.tools.idea.appinspection.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.api.JarCopierCreator
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger

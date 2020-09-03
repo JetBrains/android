@@ -71,7 +71,7 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
 
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-    val multiRepresentationPreview = SourceCodePreview(psiFile, providers)
+    val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
 
     return SourceCodeEditorWithMultiRepresentationPreview(project, textEditor, multiRepresentationPreview)
   }

@@ -18,11 +18,13 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
-import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.concurrency.createChildScope
@@ -94,9 +96,20 @@ internal class DefaultAppInspectionTarget(
     val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
       scope.async {
         val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
+        val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
+          .setLaunchedByName(params.projectName)
+          .setForce(params.force)
+        if (params.targetLibrary != null) {
+          launchMetadata.setVersionParams(
+            AppInspection.VersionParams.newBuilder()
+              .setVersionFileName(params.targetLibrary!!.versionFileName)
+              .setMinVersion(params.targetLibrary!!.minVersion)
+              .build()
+          ).build()
+        }
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
           .setDexPath(fileDevicePath)
-          .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
+          .setLaunchMetadata(launchMetadata)
           .build()
         val commandId = AppInspectionTransport.generateNextCommandId()
         val appInspectionCommand = AppInspectionCommand.newBuilder()
@@ -109,18 +122,22 @@ internal class DefaultAppInspectionTarget(
           filter = { it.appInspectionResponse.commandId == commandId }
         )
         val event = transport.executeCommand(appInspectionCommand, eventQuery)
-        if (event.appInspectionResponse.status == SUCCESS) {
-          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-          inspectorDisposableJobs[params.inspectorId] = scope.launch {
-            connection.awaitForDisposal()
-            messengers.remove(params.inspectorId)
-            inspectorDisposableJobs.remove(params.inspectorId)
+        when (event.appInspectionResponse.createInspectorResponse.status) {
+          AppInspection.CreateInspectorResponse.Status.SUCCESS -> {
+            val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+            inspectorDisposableJobs[params.inspectorId] = scope.launch {
+              connection.awaitForDisposal()
+              messengers.remove(params.inspectorId)
+              inspectorDisposableJobs.remove(params.inspectorId)
+            }
+            connection
           }
-          connection
-        }
-        else {
-          throw AppInspectionLaunchException(
-            "Could not launch inspector ${params.inspectorId}: ${event.appInspectionResponse.errorMessage}")
+          AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR -> throw event.appInspectionResponse.getException(
+            params.inspectorId)
+          AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> throw event.appInspectionResponse.getException(
+            params.inspectorId)
+          AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> throw event.appInspectionResponse.getException(params.inspectorId)
+          else -> throw event.appInspectionResponse.getException(params.inspectorId)
         }
       }
     }
@@ -153,4 +170,16 @@ fun launchInspectorForTest(
   scope: CoroutineScope
 ): AppInspectorMessenger {
   return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
+}
+
+/**
+ * Maps the ServiceResponse.ErrorType to an [AppInspectionServiceException] and returns the correct exception.
+ */
+private fun AppInspection.AppInspectionResponse.getException(inspectorId: String): AppInspectionServiceException {
+  val message = "Could not launch inspector ${inspectorId}: ${this.errorMessage}"
+  return when (this.createInspectorResponse.status) {
+    AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> AppInspectionVersionIncompatibleException(message)
+    AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> AppInspectionLibraryMissingException(message)
+    else -> AppInspectionLaunchException(message)
+  }
 }

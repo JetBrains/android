@@ -394,4 +394,11 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
       .filter { sceneView == it.sceneView }
       .forEach { remove(it) }
   }
+
+  fun findSceneViewRectangle(sceneView: SceneView): Rectangle? =
+    components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .filter { sceneView == it.sceneView }
+      .map { it.bounds }
+      .firstOrNull()
 }

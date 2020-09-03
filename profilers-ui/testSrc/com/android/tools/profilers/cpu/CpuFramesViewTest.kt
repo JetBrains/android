@@ -28,7 +28,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ExpandedItemListCellRendererWrapper
 import org.junit.Before

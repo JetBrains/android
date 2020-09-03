@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -93,5 +97,29 @@ class AgpClasspathDependencyRefactoringProcessorTest : UpgradeGradleFileModelTes
     writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInInterpolatedVariable"))
     val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
     assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testNonClasspathDependencies() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/BuildSrcDependency"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/BuildSrcDependency"))
+  }
+
+  @Test
+  fun testDependenciesInBuildSrc() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    lateinit var buildSrcFile: VirtualFile
+    runWriteAction {
+      buildSrcFile = projectRule.fixture.tempDirFixture.findOrCreateDir("buildSrc").createChildData(this, buildFileName)
+      val testFile = TestFileName("AgpClasspathDependency/BuildSrcDependency").toFile(testDataPath, testDataExtension!!)
+      val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+      VfsUtil.saveText(buildSrcFile, VfsUtilCore.loadText(virtualTestFile!!))
+    }
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/VersionInLiteralExpected"))
+    verifyFileContents(buildSrcFile, TestFileName("AgpClasspathDependency/BuildSrcDependencyExpected"))
   }
 }

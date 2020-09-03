@@ -35,12 +35,6 @@ import javax.swing.event.HyperlinkListener
  */
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
-  private val ACCESSIBILITY_CATEGORY = "Accessibility"
-  private val ACCESSIBILITY_ISSUE = "Accessibility Issue"
-  private val CONTENT_LABELING = "CONTENT_LABELING"
-  private val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
-  private val LOW_CONTRAST = "LOW_CONTRAST"
-
   private val issueProvider: IssueProvider = object : IssueProvider() {
     override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
       issues.forEach {
@@ -87,59 +81,70 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     else {
       IssueSource.fromNlComponent(component)
     }
-    issues.add(object : Issue() {
-      override val summary: String
-        get() =
-          when (result.mCategory) {
-            CONTENT_LABELING -> "Content labels missing or confusing"
-            TOUCH_TARGET_SIZE -> "Touch size too small"
-            LOW_CONTRAST -> "Low contrast"
-            else -> ACCESSIBILITY_ISSUE
-          }
-
-      override val description: String
-        get() {
-          if (result.mHelpfulUrl.isNullOrEmpty()) {
-            return result.mMsg
-          }
-          return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
-        }
-
-      override val severity: HighlightSeverity
-        get() {
-          return when (result.mLevel) {
-            ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
-            ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
-            else -> HighlightSeverity.INFORMATION
-          }
-        }
-
-      override val source: IssueSource = source
-
-      override val category: String = ACCESSIBILITY_CATEGORY
-
-      override val fixes: Stream<Fix>
-        get() {
-          return convertToFix(this, component, result)
-        }
-
-      override val hyperlinkListener: HyperlinkListener?
-        get() {
-          if (result.mHelpfulUrl.isNullOrEmpty()) {
-            return null
-          }
-          return HyperlinkListener {
-            if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-              Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
-            }
-          }
-        }
-    })
+    issues.add(NlAtfIssue(result, source))
   }
 
-  private fun convertToFix(issue: Issue, component: NlComponent?, result: ValidatorData.Issue): Stream<Issue.Fix> {
-    // TODO b/150331000 Implement this based on result later.
-    val fixes = ArrayList<Issue.Fix>()
-    return fixes.stream()
+}
+
+/**  Issue created by [ValidatorData.Issue] */
+class NlAtfIssue(
+  private val result: ValidatorData.Issue,
+  issueSource: IssueSource): Issue() {
+
+  companion object {
+    private const val ACCESSIBILITY_CATEGORY = "Accessibility"
+    private const val CONTENT_LABELING = "CONTENT_LABELING"
+    private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
+    private const val LOW_CONTRAST = "LOW_CONTRAST"
   }
+
+  override val summary: String
+    get() =
+      when (result.mCategory) {
+        CONTENT_LABELING -> "Content labels missing or confusing"
+        TOUCH_TARGET_SIZE -> "Touch size too small"
+        LOW_CONTRAST -> "Low contrast"
+        else -> "Accessibility Issue"
+      }
+
+  override val description: String
+    get() {
+      if (result.mHelpfulUrl.isNullOrEmpty()) {
+        return result.mMsg
+      }
+      return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
+    }
+
+  override val severity: HighlightSeverity
+    get() {
+      return when (result.mLevel) {
+        ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
+        ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
+        else -> HighlightSeverity.INFORMATION
+      }
+    }
+
+  override val source: IssueSource = issueSource
+
+  override val category: String = ACCESSIBILITY_CATEGORY
+
+  override val fixes: Stream<Fix>
+    get() {
+      return ArrayList<Fix>().stream()
+    }
+
+  override val hyperlinkListener: HyperlinkListener?
+    get() {
+      if (result.mHelpfulUrl.isNullOrEmpty()) {
+        return null
+      }
+      return HyperlinkListener {
+        if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+        }
+      }
+    }
+
+  /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
+  val srcClass: String = result.mSourceClass
 }

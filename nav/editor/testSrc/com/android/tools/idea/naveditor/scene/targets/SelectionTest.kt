@@ -147,13 +147,14 @@ class SelectionTest : NavTestCase() {
     val fragment3 = scene.getSceneComponent("fragment3")!!
 
     val action1 = scene.getSceneComponent("action1")!!
+    val action2 = scene.getSceneComponent("action2")!!
     val action3 = scene.getSceneComponent("action3")!!
 
     lassoSelect(sceneView, interactionManager, fragment1);
     assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
 
     lassoSelect(sceneView, interactionManager, fragment2);
-    assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent)
+    assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
 
     lassoSelect(sceneView, interactionManager, fragment3);
     assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
@@ -173,6 +174,3 @@ class SelectionTest : NavTestCase() {
     LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, x2s, y2s, InputEvent.SHIFT_DOWN_MASK)
   }
 }
-
-
-

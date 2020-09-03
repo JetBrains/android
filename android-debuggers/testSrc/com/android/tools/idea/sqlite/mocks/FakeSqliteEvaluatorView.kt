@@ -43,4 +43,6 @@ open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
   override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
 
   override fun reportError(message: String, t: Throwable?) { }
+
+  override fun setQueryHistory(queries: List<String>) { }
 }

@@ -33,7 +33,7 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    assertEquals(28, specs.size());
+    assertEquals(27, specs.size());
 
     DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
     assertNotNull(nexus4);
@@ -59,9 +59,6 @@ public class DeviceArtDescriptorTest extends TestCase {
       assertNotNull(descriptor.getName());
       for (ScreenOrientation orientation : new ScreenOrientation[] { ScreenOrientation.LANDSCAPE, ScreenOrientation.PORTRAIT}) {
         if (orientation == ScreenOrientation.PORTRAIT && (id.startsWith("tv_") || id.startsWith("automotive_"))) {
-          continue;
-        }
-        if (orientation == ScreenOrientation.LANDSCAPE && id.startsWith("polestar_")) {
           continue;
         }
         assertNotNull(id, descriptor.getFrameSize(orientation));

@@ -34,8 +34,10 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.LinkedList
 import java.util.concurrent.Executor
 
 /**
@@ -54,6 +56,11 @@ class SqliteEvaluatorController(
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
+  companion object {
+    private const val QUERY_HISTORY_KEY = "com.android.tools.idea.sqlite.queryhistory"
+    private const val MAX_QUERY_HISTORY_SIZE = 5
+  }
+
   private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
@@ -63,6 +70,8 @@ class SqliteEvaluatorController(
 
   // database + query that were used for last query/exec
   private var lastUsedEvaluationParams : EvaluationParams? = null
+
+  private val queryHistory = LinkedList<String>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
@@ -87,6 +96,11 @@ class SqliteEvaluatorController(
 
   fun setUp(evaluationParams: EvaluationParams? = null) {
     view.addListener(sqliteEvaluatorViewListener)
+
+    // load query history
+    PropertiesComponent.getInstance(project).getValues(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it) }
+    view.setQueryHistory(queryHistory.toList())
+
     model.addListener(modelListener)
     if (evaluationParams != null) {
       val statement = createSqliteStatement(project, evaluationParams.statementText)
@@ -146,6 +160,13 @@ class SqliteEvaluatorController(
 
   private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
+
+    // update query history
+    if (queryHistory.size >= MAX_QUERY_HISTORY_SIZE) queryHistory.removeLast()
+    queryHistory.addFirst(sqliteStatement.sqliteStatementWithInlineParameters)
+    view.setQueryHistory(queryHistory.toList())
+    // save query history
+    PropertiesComponent.getInstance(project).setValues(QUERY_HISTORY_KEY, queryHistory.toTypedArray())
 
     lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {

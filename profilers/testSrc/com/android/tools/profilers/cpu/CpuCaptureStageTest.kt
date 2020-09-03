@@ -120,7 +120,7 @@ class CpuCaptureStageTest {
                                        CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), SESSION_ID)
     profilers.stage = stage
 
-    assertThat(stage.trackGroupModels.size).isEqualTo(3)
+    assertThat(stage.trackGroupModels.size).isEqualTo(4)
 
     val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
@@ -135,7 +135,10 @@ class CpuCaptureStageTest {
     assertThat(coresTrackGroup.size).isEqualTo(4)
     assertThat(coresTrackGroup[0].title).isEqualTo("CPU 0")
 
-    val threadsTrackGroup = stage.trackGroupModels[2]
+    val rssMemoryTrackGroup = stage.trackGroupModels[2]
+    assertThat(rssMemoryTrackGroup.title).isEqualTo("RSS Memory")
+
+    val threadsTrackGroup = stage.trackGroupModels[3]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (40)")
     assertThat(threadsTrackGroup.size).isEqualTo(40)
   }
@@ -146,7 +149,7 @@ class CpuCaptureStageTest {
                                        CpuProfilerTestUtils.getTraceFile("perfetto.trace"), SESSION_ID)
     profilers.stage = stage
 
-    assertThat(stage.trackGroupModels.size).isEqualTo(3)
+    assertThat(stage.trackGroupModels.size).isEqualTo(4)
 
     val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
@@ -160,7 +163,10 @@ class CpuCaptureStageTest {
     assertThat(coresTrackGroup.title).isEqualTo("CPU cores (8)")
     assertThat(coresTrackGroup.size).isEqualTo(8)
 
-    val threadsTrackGroup = stage.trackGroupModels[2]
+    val rssMemoryTrackGroup = stage.trackGroupModels[2]
+    assertThat(rssMemoryTrackGroup.title).isEqualTo("RSS Memory")
+
+    val threadsTrackGroup = stage.trackGroupModels[3]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (41)")
     assertThat(threadsTrackGroup.size).isEqualTo(41)
   }

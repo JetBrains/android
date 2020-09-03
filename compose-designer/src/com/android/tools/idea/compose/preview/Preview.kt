@@ -46,6 +46,7 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
@@ -78,6 +79,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
@@ -521,6 +523,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (isFirstActivation.getAndSet(false)) onInit()
   }
 
+  override fun onCaretPositionChanged(event: CaretEvent) {
+    if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
+    // If we have not changed line, ignore
+    if (event.newPosition.line == event.oldPosition.line) return
+    val offset = event.editor.logicalPositionToOffset(event.newPosition)
+    memoizedElementsProvider.previewElements.find { element ->
+      element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+    }?.let { selectedPreviewElement ->
+      surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
+    }?.let {
+      surface.scrollToVisible(it)
+    }
+  }
+
   private fun logInteractiveSessionMetrics() {
     val touchEvents = surface.layoutlibSceneManagers.map { it.touchEventsCount }.sum()
     InteractivePreviewUsageTracker.getInstance(surface).logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
@@ -798,7 +814,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       refreshCallsCount.incrementAndGet()
-      updateNotifications()
       try {
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements

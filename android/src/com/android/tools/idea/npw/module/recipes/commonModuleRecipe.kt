@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 
 enum class IconsGenerationStyle {
   ALL,
@@ -43,7 +44,8 @@ fun RecipeExecutor.generateCommonModule(
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  viewBindingSupport: ViewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
   ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -72,7 +74,8 @@ fun RecipeExecutor.generateCommonModule(
       agpVersion,
       hasTests = generateTests,
       formFactorNames = projectData.includedFormFactorNames,
-      addLintOptions = addLintOptions
+      addLintOptions = addLintOptions,
+      viewBindingSupport = viewBindingSupport
     ),
     moduleOut.resolve(buildFile)
   )

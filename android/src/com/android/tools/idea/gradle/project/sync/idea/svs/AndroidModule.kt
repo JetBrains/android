@@ -16,12 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.builder.model.AndroidProject
+import com.android.builder.model.BaseArtifact
+import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.ProjectSyncIssues
+import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
+import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.ArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
+import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
@@ -30,19 +39,61 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
  */
 @UsedInBuildAction
 class AndroidModule(
-  val gradleProject: BasicGradleProject,
-  val androidProject: AndroidProject,
-  /** Old V1 model. It's only set if [NaiveModule] is not set. */
-  val nativeAndroidProject: NativeAndroidProject?,
+  private val gradleProject: BasicGradleProject,
+  private val androidProject: AndroidProject,
+  /** Old V1 model. It's only set if [nativeModule] is not set. */
+  private val nativeAndroidProject: NativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  val nativeModule: NativeModule?
+  private val nativeModule: NativeModule?
 ) {
+  val findModelRoot: Model get() = gradleProject
+  val modelVersion: GradleVersion? = runCatching { GradleVersion.tryParse(androidProject.modelVersion) }.getOrNull()
+  val projectType: Int get() = androidProject.projectType
+
+  /** All configured variant names if supported by the AGP version. */
+  val allVariantNames: Collection<String>? = safeGet(androidProject::getVariantNames, null)?.toSet()
+
+  /** Names of all currently fetch variants (currently pre single-variant-sync only). */
+  val fetchedVariantNames: Collection<String> = safeGet({ androidProject.variants.map { it.name }.toSet() }, emptySet())
+
+  val defaultVariantName: String?
+    get() = safeGet(androidProject::getDefaultVariant, null)
+            ?: allVariantNames?.getDefaultOrFirstItem("debug")
+
+  fun getVariantAbiNames(variantName: String): Collection<String>? {
+    fun unsafeGet() = nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
+                      ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
+    return safeGet(::unsafeGet, null)
+  }
+
   val id = createUniqueModuleId(gradleProject)
-  val variantGroup: VariantGroup = VariantGroup()
-  val hasNative: Boolean = nativeAndroidProject != null || nativeModule != null
+
+  enum class NativeModelVersion { None, V1, V2 }
+
+  val nativeModelVersion: NativeModelVersion = when {
+    nativeModule != null -> NativeModelVersion.V2
+    nativeAndroidProject != null -> NativeModelVersion.V1
+    else -> NativeModelVersion.None
+  }
+
+  private val variantGroup: VariantGroup = VariantGroup()
+
+  fun addVariant(variant: Variant) = variantGroup.variants.add(variant)
+  fun addNativeVariant(variant: NativeVariantAbi) = variantGroup.nativeVariants.add(variant)
 
   var projectSyncIssues: ProjectSyncIssues? = null
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
+
+  /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
+   * libraries other variants depend on.
+   **/
+  fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
+    // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
+    // The first case indicates full-variants sync and the later single-variant sync.
+    val androidProjectVariants = safeGet(androidProject::getVariants, emptyList())
+    val variants = if (androidProjectVariants.isNotEmpty()) androidProjectVariants else variantGroup.variants
+    return collectIdentifiers(variants)
+  }
 
   private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
@@ -64,3 +115,30 @@ class AndroidModule(
 }
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+
+@UsedInBuildAction
+fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
+  if (contains(defaultValue)) defaultValue else minBy { it }
+
+@UsedInBuildAction
+private fun collectIdentifiers(
+  variants: Collection<Variant>
+): List<ArtifactIdentifier> {
+  val libraries = mutableListOf<Library>()
+  // Collect libraries from all artifacts of all variants.
+  @Suppress("DEPRECATION")
+  variants.forEach { variant ->
+    val artifacts = mutableListOf<BaseArtifact>(variant.mainArtifact)
+    artifacts.addAll(variant.extraAndroidArtifacts)
+    artifacts.addAll(variant.extraJavaArtifacts)
+    artifacts.forEach {
+      libraries.addAll(it.compileDependencies.javaLibraries)
+      libraries.addAll(it.compileDependencies.libraries)
+    }
+  }
+
+  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
+    ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
+  }.distinct()
+}
+

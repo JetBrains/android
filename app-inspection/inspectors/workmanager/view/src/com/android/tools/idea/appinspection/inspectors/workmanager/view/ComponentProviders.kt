@@ -17,7 +17,10 @@
 
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
-import androidx.work.inspection.WorkManagerInspectorProtocol
+import androidx.work.inspection.WorkManagerInspectorProtocol.CallStack
+import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
@@ -71,8 +74,19 @@ class ClassNameProvider(private val ideServices: AppInspectionIdeServices, priva
 /**
  * Provides a component that represents a timestamp in a human readable format.
  */
-class TimeProvider : ComponentProvider<Long> {
+object TimeProvider : ComponentProvider<Long> {
   override fun convert(timestamp: Long) = JBLabel(timestamp.toFormattedTimeString())
+}
+
+/**
+ * Provides a component that represents a state text with icon.
+ */
+object StateProvider : ComponentProvider<State> {
+  override fun convert(state: State): JComponent {
+    return JBLabel(state.capitalizedName()).apply {
+      icon = state.icon()
+    }
+  }
 }
 
 /**
@@ -80,8 +94,8 @@ class TimeProvider : ComponentProvider<Long> {
  * click on that location to navigate into the code.
  */
 class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
-                         private val scope: CoroutineScope) : ComponentProvider<WorkManagerInspectorProtocol.CallStack> {
-  override fun convert(stack: WorkManagerInspectorProtocol.CallStack): JComponent {
+                         private val scope: CoroutineScope) : ComponentProvider<CallStack> {
+  override fun convert(stack: CallStack): JComponent {
     return if (stack.framesCount == 0) {
       JPanel(FlowLayout(FlowLayout.LEADING, 0, 0)).apply {
         add(JBLabel("Unavailable"))
@@ -109,7 +123,7 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
 /**
  * Provides a component that displays a list of string values.
  */
-class StringListProvider : ComponentProvider<ProtocolStringList> {
+object StringListProvider : ComponentProvider<ProtocolStringList> {
   override fun convert(strings: ProtocolStringList): JComponent {
     return if (strings.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
@@ -119,7 +133,7 @@ class StringListProvider : ComponentProvider<ProtocolStringList> {
       }
     }
     else {
-      JBLabel("None")
+      createEmptyContentLabel()
     }
   }
 }
@@ -130,7 +144,7 @@ class StringListProvider : ComponentProvider<ProtocolStringList> {
  */
 class IdListProvider(private val client: WorkManagerInspectorClient,
                      private val table: JTable,
-                     private val work: WorkManagerInspectorProtocol.WorkInfo) : ComponentProvider<List<String>> {
+                     private val work: WorkInfo) : ComponentProvider<List<String>> {
   override fun convert(ids: List<String>): JComponent {
     val currId = work.id
     return if (ids.isNotEmpty()) {
@@ -145,6 +159,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
                 table.selectionModel.setSelectionInterval(index, index)
               }
               client.getWorkInfoOrNull(index)?.run {
+                setIcon(state.icon())
                 if (tagsCount > 0) {
                   toolTipText = "<html><b>Tags</b><br>${tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
                 }
@@ -158,7 +173,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
       }
     }
     else {
-      JBLabel("None")
+      createEmptyContentLabel()
     }
   }
 }
@@ -166,15 +181,15 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
 /**
  * Provides a component that displays a list of constraint descriptions for some target worker.
  */
-class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constraints> {
-  override fun convert(constraint: WorkManagerInspectorProtocol.Constraints): JComponent {
+object ConstraintProvider : ComponentProvider<Constraints> {
+  override fun convert(constraint: Constraints): JComponent {
     val constraintDescs = mutableListOf<String>()
     when (constraint.requiredNetworkType) {
-      WorkManagerInspectorProtocol.Constraints.NetworkType.CONNECTED -> constraintDescs.add("Network must be connected")
-      WorkManagerInspectorProtocol.Constraints.NetworkType.UNMETERED -> constraintDescs.add("Network must be unmetered")
-      WorkManagerInspectorProtocol.Constraints.NetworkType.NOT_ROAMING -> constraintDescs.add("Network must not be roaming")
-      WorkManagerInspectorProtocol.Constraints.NetworkType.METERED -> constraintDescs.add("Network must be metered")
-      WorkManagerInspectorProtocol.Constraints.NetworkType.UNRECOGNIZED -> constraintDescs.add("Network must be recognized")
+      Constraints.NetworkType.CONNECTED -> constraintDescs.add("Network must be connected")
+      Constraints.NetworkType.UNMETERED -> constraintDescs.add("Network must be unmetered")
+      Constraints.NetworkType.NOT_ROAMING -> constraintDescs.add("Network must not be roaming")
+      Constraints.NetworkType.METERED -> constraintDescs.add("Network must be metered")
+      Constraints.NetworkType.UNRECOGNIZED -> constraintDescs.add("Network must be recognized")
       else -> {
       }
     }
@@ -200,7 +215,7 @@ class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constr
       }
     }
     else {
-      JBLabel("None")
+      createEmptyContentLabel()
     }
   }
 }
@@ -208,15 +223,16 @@ class ConstraintProvider : ComponentProvider<WorkManagerInspectorProtocol.Constr
 /**
  * Provides a component which displays all the key/value pairs in a worker's output data.
  */
-class OutputDataProvider : ComponentProvider<WorkManagerInspectorProtocol.Data> {
-  override fun convert(data: WorkManagerInspectorProtocol.Data): JComponent {
+object OutputDataProvider : ComponentProvider<WorkInfo> {
+  override fun convert(workInfo: WorkInfo): JComponent {
+    val data = workInfo.data
     return if (data.entriesList.isNotEmpty()) {
       val panel = JPanel(VerticalFlowLayout(0, 0)).apply {
         data.entriesList.forEach { pair ->
           val pairPanel = JPanel(HorizontalLayout(0))
           pairPanel.add(JLabel("${pair.key} = "))
           pairPanel.add(JLabel("\"${pair.value}\"").apply {
-            foreground = WorkManagerInspectorColors.DATA_TEXT_COLOR
+            foreground = WorkManagerInspectorColors.DATA_VALUE_TEXT_COLOR
           })
           add(pairPanel)
         }
@@ -226,7 +242,21 @@ class OutputDataProvider : ComponentProvider<WorkManagerInspectorProtocol.Data> 
                       .setContentBorder(JBUI.Borders.empty(0, 20, 0, 0)))
     }
     else {
-      JBLabel("None")
+      val state = workInfo.state
+      JBLabel().apply {
+        if (state.isFinished()) {
+          text = WorkManagerInspectorBundle.message("table.data.null")
+          foreground = WorkManagerInspectorColors.DATA_TEXT_NULL_COLOR
+        }
+        else {
+          text = WorkManagerInspectorBundle.message("table.data.awaiting")
+          foreground = WorkManagerInspectorColors.DATA_TEXT_AWAITING_COLOR
+        }
+      }
     }
   }
+}
+
+private fun createEmptyContentLabel() = JBLabel(WorkManagerInspectorBundle.message("detail.content.none")).apply {
+  foreground = WorkManagerInspectorColors.EMPTY_CONTENT_COLOR
 }

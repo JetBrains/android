@@ -25,6 +25,7 @@ import com.android.tools.adtui.instructions.UrlInstruction
 import com.intellij.icons.AllIcons
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtilities
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -47,13 +48,21 @@ class LabelData(vararg val chunks: Chunk)
  * users a change to click on a link that takes them to a browser page where they can read more
  * about what is causing the empty state / what they can do.
  */
-class EmptyStatePanel @JvmOverloads constructor(reason: LabelData, helpUrlData: UrlData? = null): JPanel(BorderLayout()) {
+class EmptyStatePanel @JvmOverloads constructor(private val reason: LabelData, helpUrlData: UrlData? = null): JPanel(BorderLayout()) {
   init {
     add(createInstructionsPanel(this, reason, helpUrlData))
   }
 
   @JvmOverloads
   constructor(reason: String, helpUrlData: UrlData? = null): this(LabelData(TextChunk(reason)), helpUrlData)
+
+  /**
+   * The raw reason text rendered by this empty state panel (in other words, icons not included)
+   *
+   * Useful for testing.
+   */
+  @get:TestOnly
+  val reasonText get() = reason.chunks.mapNotNull { it as? TextChunk }.joinToString(" ") { it.text }
 }
 
 private fun createInstructionsPanel(parent: JComponent, reason: LabelData, helpUrlData: UrlData?): InstructionsPanel {

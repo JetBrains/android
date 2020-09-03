@@ -17,10 +17,10 @@ package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import javax.swing.Icon
 
 interface AppInspectorTabProvider {
   companion object {
@@ -32,7 +32,8 @@ interface AppInspectorTabProvider {
 
   val inspectorId: String
   val displayName: String
-  val inspectorAgentJar: AppInspectorJar
+  val icon: Icon? get() = null
+  val inspectorLaunchParams: AppInspectorLaunchParams
   fun isApplicable(): Boolean = true
 
   /**

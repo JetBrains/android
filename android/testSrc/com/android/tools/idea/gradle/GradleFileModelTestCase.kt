@@ -63,7 +63,7 @@ open class GradleFileModelTestCase {
   protected lateinit var buildFile: VirtualFile
   protected lateinit var testDataPath: String
   private val isGroovy: Boolean get() = languageName == GradleFileModelTestCase.GROOVY_LANGUAGE
-  private val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
+  protected val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
   protected val gradleBuildModel: GradleBuildModel
     get() {
       val projectBuildModel = ProjectBuildModel.get(projectRule.project)

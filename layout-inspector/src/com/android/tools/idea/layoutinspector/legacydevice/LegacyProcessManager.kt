@@ -76,6 +76,9 @@ class LegacyProcessManager(
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
       synchronized(listenerLock) {
+        if (!devices.contains(device.serialNumber)) {
+          addDevice(device)
+        }
         if (changeMask and IDevice.CHANGE_CLIENT_LIST > 0) {
           replaceProcesses(device)
         }
@@ -154,8 +157,8 @@ class LegacyProcessManager(
 
   private fun replaceProcesses(iDevice: IDevice) {
     var changes = false
-    iDevice.clients.forEach { changes = replaceClient(it) or changes }
-    changes = removeOldProcesses(iDevice) or changes
+    iDevice.clients.forEach { changes = replaceClient(it) || changes }
+    changes = removeOldProcesses(iDevice) || changes
     if (changes) {
       fireProcessesChanged()
     }

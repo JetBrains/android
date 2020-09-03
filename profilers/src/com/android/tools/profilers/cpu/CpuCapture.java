@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.CpuSystemTraceData;
+import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import java.util.Collection;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;

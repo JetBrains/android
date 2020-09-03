@@ -112,6 +112,14 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   private val myTableViewContainer = JBScrollPane(myTableView)
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
+  @get:UiThread
+  val preferredTableWidth: Int
+    get() = myTableView.preferredSize.width
+
+  @get:UiThread
+  val aggregatedTestResults: AndroidTestResults
+    get() = myModel.myRootAggregationRow
+
   /**
    * Adds a device to the table.
    *
@@ -185,6 +193,18 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   fun showTestDuration(device: AndroidDevice?) {
     myTableView.showTestDuration(device)
   }
+
+  /**
+   * Shows or hides a test status column in the table.
+   */
+  @get:UiThread
+  @set:UiThread
+  var showTestStatusColumn: Boolean
+    get() = myModel.showTestStatusColumn
+    set(value) {
+      myModel.showTestStatusColumn = value
+      refreshTable()
+    }
 
   /**
    * Refreshes and redraws the table.
@@ -644,9 +664,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 /**
  * A view model class of [AndroidTestResultsTableViewComponent].
  */
-private class AndroidTestResultsTableModel :
-  ListTreeTableModelOnColumns(AggregationRow(), arrayOf(TestNameColumn, TestStatusColumn)) {
-
+private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(AggregationRow(), arrayOf()) {
   /**
    * A map of test results rows. The key is [AndroidTestCase.id] and the value is [AndroidTestResultsRow].
    * Note that [AndroidTestResultsRow] has test results for every devices.
@@ -657,6 +675,8 @@ private class AndroidTestResultsTableModel :
 
   private val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
   private lateinit var myFilteredColumns: Array<ColumnInfo<Any, Any>>
+
+  var showTestStatusColumn: Boolean = true
 
   /**
    * A filter to show and hide columns.
@@ -719,11 +739,16 @@ private class AndroidTestResultsTableModel :
   }
 
   private fun updateFilteredColumns() {
-    myFilteredColumns = arrayOf(*super.getColumns(), *(myDeviceColumns.filter {
+    val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(TestNameColumn)
+    if (showTestStatusColumn) {
+      filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
+    }
+    myDeviceColumns.filter {
       myColumnFilter?.invoke(it.device) ?: true
     }.map {
       it as ColumnInfo<Any, Any>
-    }.toTypedArray()))
+    }.toCollection(filteredColumns)
+    myFilteredColumns = filteredColumns.toTypedArray()
   }
 
   override fun getColumnClass(column: Int): Class<*> {
@@ -835,8 +860,9 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
                                              column: Int): Component {
     val results = value as? AndroidTestResults ?: return this
     super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
-    horizontalAlignment = CENTER
+    icon = null
     horizontalTextPosition = CENTER
+    horizontalAlignment = CENTER
     foreground = getColorFor(results.getTestResultSummary())
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this

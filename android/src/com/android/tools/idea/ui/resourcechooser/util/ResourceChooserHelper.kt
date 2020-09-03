@@ -99,8 +99,8 @@ fun createAndShowColorPickerPopup(
   configuration: Configuration?,
   restoreFocusComponent: Component?,
   locationToShow: Point?,
-  colorPickedCallback: (Color) -> Unit,
-  colorResourcePickedCallback: (String) -> Unit
+  colorPickedCallback: ((Color) -> Unit)?,
+  colorResourcePickedCallback: ((String) -> Unit)?
 ) {
   val disposable = Disposer.newDisposable("ResourcePickerPopup")
   val onPopupClosed = {
@@ -108,7 +108,8 @@ fun createAndShowColorPickerPopup(
   }
   val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
 
-  val colorPicker = ColorPickerBuilder()
+  val colorPicker = if (colorPickedCallback == null) null else {
+    ColorPickerBuilder()
     .setOriginalColor(initialColor)
     .addSaturationBrightnessComponent()
     .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
@@ -125,9 +126,11 @@ fun createAndShowColorPickerPopup(
       }
     })
     .build()
+  }
+
   val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  val popupContent = if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && facet != null) {
-    val resourcePicker = CompactResourcePicker(
+  val resourcePicker = if (colorResourcePickedCallback == null || facet == null || !StudioFlags.NELE_RESOURCE_POPUP_PICKER.get()) null else {
+    CompactResourcePicker(
       facet,
       configuration,
       configuration.resourceResolver,
@@ -136,6 +139,13 @@ fun createAndShowColorPickerPopup(
       popupDialog::close,
       disposable
     )
+  }
+
+  if (colorPicker == null && resourcePicker == null) {
+    return
+  }
+
+  val popupContent = if (colorPicker != null && resourcePicker != null) {
     // TODO: Use relative resource url instead.
     HorizontalTabbedPanelBuilder() // Use tabbed panel instead.
       .addTab("Resources", resourcePicker)
@@ -143,9 +153,8 @@ fun createAndShowColorPickerPopup(
       .setDefaultPage(if (initialColorResource != null) 0 else 1)
       .build()
   }
-  else {
-    colorPicker
-  }
+  else colorPicker ?: resourcePicker!!
+
   popupDialog.show(popupContent, null, locationToShow ?: MouseInfo.getPointerInfo().location)
 }
 

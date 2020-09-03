@@ -18,20 +18,22 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -67,6 +69,26 @@ class AppInspectionView(
   private val uiDispatcher: CoroutineDispatcher,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
+
+  /**
+   * All relevant data needed to add a tab into a tabbed pane.
+   *
+   * This class allows us to collect information up front before adding all tabs into the tab pane,
+   * instead of just adding tabs as threads return them. This ensures we can keep a consistent
+   * ordering across inspector launches.
+   */
+  private class TabMetadata(
+    val provider: AppInspectorTabProvider,
+    val component: JComponent
+  ): Comparable<TabMetadata> {
+    fun addTo(tabbedPane: JTabbedPane) {
+      tabbedPane.addTab(provider.displayName, provider.icon, component)
+      component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())
+    }
+
+    override fun compareTo(other: TabMetadata) = this.provider.displayName.compareTo(other.provider.displayName)
+  }
+
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
@@ -89,18 +111,7 @@ class AppInspectionView(
     }
 
   @VisibleForTesting
-  val inspectorTabs = CommonTabbedPane(object : CommonTabbedPaneUI() {
-    // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
-    //  an app inspection tool window.
-    override fun calculateTabAreaHeight(tabPlacement: Int, horizRunCount: Int, maxTabHeight: Int): Int {
-      if (tabPane.tabCount > 1) {
-        return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight)
-      }
-      else {
-        return 0
-      }
-    }
-  })
+  val inspectorTabs = CommonTabbedPane()
 
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
@@ -162,7 +173,7 @@ class AppInspectionView(
         // If a process was just killed, we'll get notified about that by being sent a dead
         // process. In that case, remove all inspectors except for those that opted-in to stay up
         // in offline mode.
-        inspectorTabs.removeAllTabs { tab -> tab.getClientProperty(KEY_SUPPORTS_OFFLINE) == false }
+        inspectorTabs.removeAllTabs { tab -> tab.getClientProperty(KEY_SUPPORTS_OFFLINE) != true }
       }
       else {
         // If here, either we have no selected process (e.g. we just opened this view) or we got
@@ -198,6 +209,7 @@ class AppInspectionView(
   }
 
   private suspend fun launchInspectorTabsForCurrentProcess(force: Boolean = false) {
+    val tabs = mutableListOf<TabMetadata>()
     val jobs = getTabProviders()
       .filter { provider -> provider.isApplicable() }
       .map { provider ->
@@ -207,15 +219,14 @@ class AppInspectionView(
               AppInspectorLauncher.LaunchParameters(
                 currentProcess,
                 provider.inspectorId,
-                provider.inspectorAgentJar,
+                provider.inspectorLaunchParams.inspectorAgentJar,
                 project.name,
+                (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.targetLibrary,
                 force
               )
             )
             withContext(uiDispatcher) {
-              provider.createTab(project, ideServices, currentProcess, client)
-                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                .also { tab -> tab.component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())}
+              tabs.add(TabMetadata(provider, provider.createTab(project, ideServices, currentProcess, client).component))
             }
             scope.launch {
               if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
@@ -247,6 +258,12 @@ class AppInspectionView(
               scope.launch { launchInspectorTabsForCurrentProcess(true) }
             }
           }
+          catch (e: AppInspectionVersionIncompatibleException) {
+            withContext(uiDispatcher) { tabs.add(provider.toIncompatibleVersionMessage()) }
+          }
+          catch (e: AppInspectionLibraryMissingException) {
+            withContext(uiDispatcher) { tabs.add(provider.toIncompatibleVersionMessage()) }
+          }
           catch (e: Exception) {
             Logger.getInstance(AppInspectionView::class.java).error(e)
           }
@@ -255,9 +272,17 @@ class AppInspectionView(
 
     jobs.joinAll()
     withContext(uiDispatcher) {
+      inspectorTabs.removeAllTabs()
+      tabs.sorted().forEach { tab -> tab.addTo(inspectorTabs) }
       updateUi()
       fireTabsChangedListener()
     }
+  }
+
+  private fun AppInspectorTabProvider.toIncompatibleVersionMessage(): TabMetadata {
+    val reason = AppInspectionBundle.message("incompatible.version",
+                                             (inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate)
+    return TabMetadata(this, EmptyStatePanel(reason))
   }
 
   private fun fireTabsChangedListener() {
@@ -272,7 +297,10 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
-    val inspectorComponent: JComponent = if (inspectorTabs.tabCount == 0) noInspectorsMessage else inspectorTabs
+    // Active inspectors are sorted to the front, so make sure one of them gets default focus
+    inspectorTabs.selectedIndex = if (inspectorTabs.tabCount > 0) 0 else -1
+
+    val inspectorComponent: JComponent = if (inspectorTabs.tabCount > 0) inspectorTabs else noInspectorsMessage
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }

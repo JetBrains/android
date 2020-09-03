@@ -142,7 +142,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     else {
       myJava8SettingsPanel.setVisible(false);
     }
-    myPanel.setMinimumSize(new JBDimension(500, 99));
+    myPanel.setPreferredSize(new JBDimension(500, -1));
   }
 
   @Override

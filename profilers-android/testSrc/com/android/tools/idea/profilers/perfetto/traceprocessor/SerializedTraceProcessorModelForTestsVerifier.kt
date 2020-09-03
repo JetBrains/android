@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.testutils.TestUtils
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.atrace.SystemTraceSurfaceflingerManager
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
 import com.google.common.collect.ImmutableMap
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import org.junit.After
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -34,7 +32,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import java.io.Serializable
 
 /**
  * This test verifies that our serialized TPD model used for unit tests and stored in profilers/testData

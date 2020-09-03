@@ -29,9 +29,9 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.atrace.AtraceParser
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
