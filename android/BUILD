@@ -265,8 +265,6 @@ iml_module(
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
-            # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
         },
         "navigator": {
             "shard_count": 2,
@@ -1303,8 +1301,6 @@ iml_module(
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
-            # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
         },
         "navigator": {
             "shard_count": 2,
