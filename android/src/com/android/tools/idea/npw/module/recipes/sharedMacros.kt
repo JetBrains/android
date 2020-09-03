@@ -99,8 +99,7 @@ fun androidConfig(
   applicationId: String = "",
   hasTests: Boolean = false,
   canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false,
-  viewBindingSupport: ViewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
+  addLintOptions: Boolean = false
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
@@ -115,19 +114,6 @@ fun androidConfig(
           disable ('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
       }
     """
-  }
-  val buildFeaturesBlock = when (viewBindingSupport) {
-    ViewBindingSupport.SUPPORTED_4_0_MORE -> """
-    buildFeatures {
-      viewBinding = true
-    }
-    """
-    ViewBindingSupport.SUPPORTED_3_6 -> """
-    viewBinding {
-      enabled = true
-    }
-    """
-    else -> ""
   }
 
   return """
@@ -148,7 +134,6 @@ fun androidConfig(
 
     $proguardConfigBlock
     $lintOptionsBlock
-    $buildFeaturesBlock
     }
     """
 }
