@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -274,8 +275,19 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
+    val inspectorTabsPane =  CommonTabbedPane(object : CommonTabbedPaneUI() {
+      // TODO(b/152556591): Remove this when we launch our second inspector and the tool window becomes
+      //  an app inspection tool window.
+      override fun calculateTabAreaHeight(tabPlacement: Int, horizRunCount: Int, maxTabHeight: Int): Int {
+        if (tabPane.tabCount > 1) {
+          return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight)
+        }
+        else {
+          return 0
+        }
+      }
+    })
     // Active inspectors are sorted to the front, so make sure one of them gets default focus
-    val inspectorTabsPane = CommonTabbedPane()
     inspectorTabs.forEach { tab -> tab.addTo(inspectorTabsPane) }
     inspectorTabsPane.selectedIndex = if (inspectorTabs.size > 0) 0 else -1
 
