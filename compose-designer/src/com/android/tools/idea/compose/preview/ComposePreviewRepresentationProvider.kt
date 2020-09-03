@@ -72,7 +72,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
-      StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
@@ -102,9 +101,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     )
   )
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    add(IssueNotificationAction.getInstance())
-  }
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
+    StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
+    IssueNotificationAction.getInstance()
+  ))
 }
 
 /**
