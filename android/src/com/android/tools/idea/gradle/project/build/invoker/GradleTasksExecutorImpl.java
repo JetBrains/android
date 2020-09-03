@@ -342,7 +342,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       finally {
         if (buildError != null) {
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildFailure();
+            buildAttributionManager.onBuildFailure(attributionFileDir);
           }
 
           if (wasBuildCanceled(buildError)) {

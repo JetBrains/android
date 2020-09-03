@@ -76,7 +76,8 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  override fun onBuildFailure() {
+  override fun onBuildFailure(attributionFileDir: File) {
+    FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
     analyzersWrapper.onBuildFailure()
     BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())
   }

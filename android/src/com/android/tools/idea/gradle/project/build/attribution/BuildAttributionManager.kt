@@ -23,7 +23,7 @@ interface BuildAttributionManager : ProgressListener {
 
   fun onBuildSuccess(attributionFileDir: File)
 
-  fun onBuildFailure()
+  fun onBuildFailure(attributionFileDir: File)
 
   fun openResultsTab()
 }
