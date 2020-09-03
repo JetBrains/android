@@ -17,15 +17,14 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.impl.IdeJavaLibrary;
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl;
 import com.android.ide.common.gradle.model.impl.IdeJavaLibraryCore;
 import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.impl.IdeModuleLibrary;
+import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.ModuleLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
@@ -40,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -60,7 +58,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    IdeLibrary javaLibrary = new IdeJavaLibrary(
+    IdeLibrary javaLibrary = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "guava", jarFile
       ), false
@@ -97,7 +95,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     builder.setCompileJarFile(libCompileJar.getPath());
     builder.setResFolder(resFolder.getPath());
     builder.setLocalJars(Collections.singletonList(localJar.getPath()));
-    IdeAndroidLibrary library = builder.build();
+    IdeAndroidLibraryImpl library = builder.build();
 
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
@@ -124,7 +122,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
     ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder(gradlePath);
-    IdeModuleLibrary library = builder.build();
+    IdeModuleLibraryImpl library = builder.build();
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
@@ -140,26 +138,26 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   }
 
   public void testGetDependencyDisplayName() {
-    IdeJavaLibrary library1 = new IdeJavaLibrary(
+    IdeJavaLibraryImpl library1 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "com.google.guava:guava:11.0.2@jar", new File("")
       ),
       false);
     assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
 
-    IdeJavaLibrary library2 = new IdeJavaLibrary(
+    IdeJavaLibraryImpl library2 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File("")
       ), false);
     assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
 
-    IdeJavaLibrary library3 = new IdeJavaLibrary(
+    IdeJavaLibraryImpl library3 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File("")
       ), false);
     assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
 
-    IdeJavaLibrary library4 = new IdeJavaLibrary(
+    IdeJavaLibraryImpl library4 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "foo:bar:1.0", new File("")
       ), false);
