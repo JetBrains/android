@@ -863,7 +863,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun getState(): PreviewRepresentationState? {
-    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
+    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: ""
     return mapOf(
       SELECTED_GROUP_KEY to selectedGroupName,
       BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString())
@@ -873,7 +873,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val selectedGroupName = state[SELECTED_GROUP_KEY]
     val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
     onRestoreState = {
-      if (selectedGroupName != null) {
+      if (!selectedGroupName.isNullOrEmpty()) {
         availableGroups.find { it.name == selectedGroupName }?.let {
           groupFilter = it
         }
