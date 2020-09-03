@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
+import com.android.ide.common.gradle.model.IdeJavaLibrary;
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl;
 import com.android.ide.common.gradle.model.impl.IdeJavaLibraryCore;
@@ -58,7 +59,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    IdeLibrary javaLibrary = new IdeJavaLibraryImpl(
+    IdeJavaLibrary javaLibrary = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "guava", jarFile
       ), false
