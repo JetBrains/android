@@ -93,7 +93,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
-  public void modifyDeviceSet() {
+  public void selectMultipleDevices() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_4_API_29");
 
@@ -116,13 +116,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setDevicesGetterGetter(p -> myDevicesGetter)
       .setDevicesSelectedServiceGetInstance(p -> service)
       .setExecutionTargetServiceGetInstance(p -> myExecutionTargetService)
-      .setNewModifyDeviceSetDialog((p, devices) -> dialog)
+      .setNewSelectMultipleDevicesDialog((p, devices) -> dialog)
       .build();
 
     Project project = myRule.getProject();
 
     // Act
-    action.modifyDeviceSet(project);
+    action.selectMultipleDevices(project);
 
     // Assert
     Mockito.verify(service).setMultipleDevicesSelectedInComboBox(true);
@@ -132,7 +132,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
-  public void modifyDeviceSetDialogSelectionEmpty() {
+  public void selectMultipleDevicesDialogSelectionEmpty() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_4_API_29");
 
@@ -151,13 +151,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setDevicesGetterGetter(p -> myDevicesGetter)
       .setDevicesSelectedServiceGetInstance(p -> myDevicesSelectedService)
       .setExecutionTargetServiceGetInstance(p -> myExecutionTargetService)
-      .setNewModifyDeviceSetDialog((p, devices) -> dialog)
+      .setNewSelectMultipleDevicesDialog((p, devices) -> dialog)
       .build();
 
     Project project = myRule.getProject();
 
     // Act
-    action.modifyDeviceSet(project);
+    action.selectMultipleDevices(project);
 
     // Assert
     assertFalse(myDevicesSelectedService.isMultipleDevicesSelectedInComboBox());

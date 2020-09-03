@@ -25,7 +25,7 @@ import javax.swing.Icon;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
-final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
+final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   static final int SELECTED_MODEL_COLUMN_INDEX = 0;
   static final int TYPE_MODEL_COLUMN_INDEX = 1;
   private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
@@ -41,7 +41,7 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  ModifyDeviceSetDialogTableModel(@NotNull List<Device> devices) {
+  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
     int size = devices.size();
     mySelected = new ArrayList<>(Collections.nCopies(size, false));
 

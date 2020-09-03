@@ -81,8 +81,7 @@ public final class PopupActionGroupTest {
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -108,8 +107,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -136,8 +134,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -173,8 +170,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(availableDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 

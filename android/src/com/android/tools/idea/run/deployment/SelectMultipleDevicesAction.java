@@ -20,15 +20,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-// TODO Reduce the visibility of ModifyDeviceSetAction and ID
-public final class ModifyDeviceSetAction extends AnAction {
-  public static final String ID = "ModifyDeviceSet";
+// TODO Reduce the visibility of SelectMultipleDevicesAction and ID
+public final class SelectMultipleDevicesAction extends AnAction {
+  public static final String ID = "SelectMultipleDevices";
 
-  private ModifyDeviceSetAction() {
+  private SelectMultipleDevicesAction() {
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    DeviceAndSnapshotComboBoxAction.getInstance().modifyDeviceSet(Objects.requireNonNull(event.getProject()));
+    DeviceAndSnapshotComboBoxAction.getInstance().selectMultipleDevices(Objects.requireNonNull(event.getProject()));
   }
 }

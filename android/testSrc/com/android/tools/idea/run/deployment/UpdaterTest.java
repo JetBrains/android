@@ -242,7 +242,7 @@ public final class UpdaterTest {
     assertTrue(myProperties.getBoolean(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
 
     assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
-    assertEquals("Multiple Devices", myPresentation.getText());
+    assertEquals("Multiple Devices (1)", myPresentation.getText());
   }
 
   @NotNull
