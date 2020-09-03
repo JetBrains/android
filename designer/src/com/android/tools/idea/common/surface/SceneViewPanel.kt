@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
@@ -387,7 +386,7 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
   /**
    * Removes the given [SceneView] from the panel.
    */
-  @AnyThread
+  @UiThread
   fun removeSceneView(sceneView: SceneView) {
     components
       .filterIsInstance<SceneViewPeerPanel>()
