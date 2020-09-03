@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibrary
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaLibrary
-import com.android.ide.common.gradle.model.impl.IdeModuleLibrary
+import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
@@ -164,7 +164,7 @@ class ModelSerializationTest {
 
   @Test
   fun level2AndroidLibrary() = assertSerializable {
-    IdeAndroidLibrary(
+    IdeAndroidLibraryImpl(
       "artifactAddress",
       File("folder"),
       "manifest",
@@ -189,12 +189,12 @@ class ModelSerializationTest {
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    IdeJavaLibrary("artifactAddress", File("artifactFile"), true)
+    IdeJavaLibraryImpl("artifactAddress", File("artifactFile"), true)
   }
 
   @Test
   fun level2ModuleLibrary() = assertSerializable {
-    IdeModuleLibrary("projectPath", "artifactAddress", "buildId")
+    IdeModuleLibraryImpl("projectPath", "artifactAddress", "buildId")
   }
 
   @Test
