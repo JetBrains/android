@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
