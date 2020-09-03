@@ -41,6 +41,7 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
+import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
@@ -251,15 +252,13 @@ class DeviceViewPanelTest {
 
     assertThat(viewSettings.scalePercent).isEqualTo(100)
 
-    val newModel = model {
-      view(ROOT, 0, 0, 100, 200) {
+    val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW1, 25, 30, 50, 50) {
           image()
         }
       }
-    }
 
-    model.update(newModel.root, ROOT, listOf(ROOT), 0)
+    model.update(newWindow, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
     assertThat(viewSettings.scalePercent).isEqualTo(135)
@@ -267,14 +266,12 @@ class DeviceViewPanelTest {
     viewSettings.scalePercent = 200
 
     // Update the model
-    val newModel2 = model {
-      view(ROOT, 0, 0, 100, 200) {
+    val newWindow2 = window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW2, 50, 20, 30, 40) {
           image()
         }
       }
-    }
-    model.update(newModel2.root, ROOT, listOf(ROOT), 0)
+    model.update(newWindow2, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
     assertThat(viewSettings.scalePercent).isEqualTo(200)

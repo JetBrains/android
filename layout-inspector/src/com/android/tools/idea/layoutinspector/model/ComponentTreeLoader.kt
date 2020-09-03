@@ -54,7 +54,7 @@ object ComponentTreeLoader : TreeLoader {
     resourceLookup: ResourceLookup,
     client: InspectorClient,
     project: Project
-  ): Triple<ViewNode?, Long?, Int>? {
+  ): Pair<AndroidWindow?, Int>? {
     return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
   }
 
@@ -64,13 +64,16 @@ object ComponentTreeLoader : TreeLoader {
     client: InspectorClient,
     skiaParser: SkiaParserService,
     project: Project
-  ): Triple<ViewNode?, Long?, Int>? {
+  ): Pair<AndroidWindow?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    var root: ViewNode? = null
-    if (event.tree.hasRoot()) {
-      root = ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
-    }
-    return Triple(root, root?.drawId, event.tree.generation)
+    val window: AndroidWindow? =
+      if (event.tree.hasRoot()) {
+        ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+      }
+      else {
+        null
+      }
+    return Pair(window, event.tree.generation)
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
@@ -95,7 +98,7 @@ private class ComponentTreeLoaderImpl(
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
   @Slow
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -104,22 +107,23 @@ private class ComponentTreeLoaderImpl(
     }
     return try {
       val rootView = loadRootView() ?: return null
-      rootView.imageType = tree.payloadType
-      val bytes = defaultClient.getPayload(tree.payloadId)
-      if (bytes.isNotEmpty()) {
-        try {
-          when (tree.payloadType) {
-            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, client)
-            SKP -> processSkp(bytes, skiaParser, project, client, rootView)
-            else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType) {
+        val bytes = defaultClient.getPayload(tree.payloadId)
+        if (bytes.isNotEmpty()) {
+          try {
+            when (tree.payloadType) {
+              PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, client)
+              SKP -> processSkp(bytes, skiaParser, project, client, rootView)
+              else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+            }
+          }
+          catch (ex: Exception) {
+            // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
+            Logger.getInstance(LayoutInspector::class.java).warn(ex)
           }
         }
-        catch (ex: Exception) {
-          // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
-          Logger.getInstance(LayoutInspector::class.java).warn(ex)
-        }
       }
-      rootView
+      window
     }
     finally {
       loadStartTime.set(0)

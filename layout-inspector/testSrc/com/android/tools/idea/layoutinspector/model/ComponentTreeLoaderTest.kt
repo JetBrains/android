@@ -153,9 +153,10 @@ class ComponentTreeLoaderTest {
     `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.drawId }.sorted() == listOf(1L, 2L, 3L, 4L) }, any()))
       .thenReturn(skiaResponse)
 
-    val (tree, _, _) =
+    val (window, _) =
       ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
-    assertThat(tree!!.drawId).isEqualTo(1)
+    val tree = window!!.root
+    assertThat(tree.drawId).isEqualTo(1)
     assertThat(tree.x).isEqualTo(0)
     assertThat(tree.y).isEqualTo(0)
     assertThat(tree.width).isEqualTo(100)
@@ -210,9 +211,10 @@ class ComponentTreeLoaderTest {
     val client: DefaultInspectorClient = mock()
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
-    val (tree, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
+    val (window, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
+    val tree = window!!.root
 
-    assertThat(tree!!.imageType).isEqualTo(PNG_AS_REQUESTED)
+    assertThat(window.imageType).isEqualTo(PNG_AS_REQUESTED)
     ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren[0] as DrawViewImage).image as BufferedImage, 0.0)
     assertThat(tree.flatten().flatMap { it.drawChildren.asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
@@ -280,10 +282,9 @@ class ComponentTreeLoaderTest {
 
     val client: DefaultInspectorClient = mock()
     val skiaParser: SkiaParserService = mock()
-    val (root, id, generation) =
+    val (window, generation) =
       ComponentTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
-    assertThat(root).isNull()
-    assertThat(id).isNull()
+    assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
   }
 }

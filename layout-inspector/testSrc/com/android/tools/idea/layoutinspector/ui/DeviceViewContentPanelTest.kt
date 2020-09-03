@@ -27,7 +27,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.window
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
@@ -76,9 +76,9 @@ class DeviceViewContentPanelTest {
     assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
-      view(ROOT, 0, 0, 100, 200) {
+      window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
-      }, ROOT, listOf(ROOT), 0)
+      }, listOf(ROOT), 0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -253,11 +253,11 @@ class DeviceViewContentPanelTest {
     }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate levels in the drawing.
-    val window2 = view(VIEW2, 60, 60, 30, 30) {
+    val window2 = window(VIEW2, VIEW2, 60, 60, 30, 30) {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
+    model.update(window2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -295,11 +295,11 @@ class DeviceViewContentPanelTest {
     }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate levels in the drawing.
-    val window2 = view(VIEW2, 60, 60, 30, 30, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
+    val window2 = window(VIEW2, VIEW2, 60, 60, 30, 30, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
+    model.update(window2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)

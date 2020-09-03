@@ -73,7 +73,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
       layoutInspectorModel.updateConnection(DisconnectedClient)
       ApplicationManager.getApplication().invokeLater {
         if (currentClient === DisconnectedClient) {
-          layoutInspectorModel.update(null, 0, listOf<Any>(), 0)
+          layoutInspectorModel.update(null, listOf<Any>(), 0)
         }
       }
     }
@@ -82,8 +82,8 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   private fun loadComponentTree(event: Any) {
     val time = System.currentTimeMillis()
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
-    val (root, rootId, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
-                                                                    currentClient, layoutInspectorModel.project) ?: return
+    val (window, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
+                                                                          currentClient, layoutInspectorModel.project) ?: return
     if (allIds != null) {
       ApplicationManager.getApplication().invokeLater {
         synchronized(latestLoadTime) {
@@ -91,7 +91,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
             return@invokeLater
           }
           latestLoadTime.set(time)
-          layoutInspectorModel.update(root, rootId, allIds, generation)
+          layoutInspectorModel.update(window, allIds, generation)
         }
       }
     }

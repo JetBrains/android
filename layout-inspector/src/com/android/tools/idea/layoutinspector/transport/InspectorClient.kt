@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -141,7 +142,7 @@ object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
     override fun loadComponentTree(
       data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-    ): Triple<ViewNode, Any, Int>? = null
+    ): Pair<AndroidWindow, Int>? = null
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
