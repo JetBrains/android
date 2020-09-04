@@ -131,10 +131,17 @@ private class ComponentTreeLoaderImpl(
     rootView: ViewNode
   ) {
     val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
-    val requestedNodeInfo = allNodes.map {
-      val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, rootView.width, rootView.height))
-      RequestedNodeInfo(it.drawId, bounds.width, bounds.height, bounds.x, bounds.y)
+    val surfaceOriginX = rootView.x - tree.rootSurfaceOffsetX
+    val surfaceOriginY = rootView.y - tree.rootSurfaceOffsetY
+    val requestedNodeInfo = allNodes.mapNotNull {
+      val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+      if (bounds.isEmpty) null
+      else RequestedNodeInfo(it.drawId, bounds.width, bounds.height,
+                             bounds.x - surfaceOriginX, bounds.y - surfaceOriginY)
     }.toList()
+    if (requestedNodeInfo.isEmpty()) {
+      return
+    }
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser)
 
     if (errorMessage != null) {
