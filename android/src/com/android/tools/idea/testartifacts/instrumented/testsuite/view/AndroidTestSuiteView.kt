@@ -554,7 +554,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           val historyFileName =
             PathUtil.suggestFileName(runConfiguration.name) + " - " +
             SimpleDateFormat(SMTestRunnerResultsForm.HISTORY_DATE_FORMAT, Locale.US).format(Date(myClock.millis())) + ".xml"
-          val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject), historyFileName)
+          val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject!!), historyFileName)
           FileUtilRt.createParentDirs(outputFile)
 
           val transformerFactory = TransformerFactory.newInstance() as SAXTransformerFactory
