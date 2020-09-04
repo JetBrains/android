@@ -516,8 +516,7 @@ public final class AndroidCompileUtil {
       if (className.equals(FileUtil.getNameWithoutExtension(psiFile.getName()))) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile != null && Comparing.equal(projectFileIndex.getSourceRootForFile(virtualFile), sourceRoot)) {
-          final String path = virtualFile.getPath();
-          final File f = new File(path);
+          final File f = VfsUtilCore.virtualToIoFile(virtualFile);
 
           if (!FileUtil.filesEqual(f, classFile) && f.exists()) {
             if (f.delete()) {
@@ -527,7 +526,7 @@ public final class AndroidCompileUtil {
               ApplicationManager.getApplication().invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                  Messages.showErrorDialog(project, "Can't delete file " + path, CommonBundle.getErrorTitle());
+                  Messages.showErrorDialog(project, "Can't delete file " + virtualFile.getPresentableUrl(), CommonBundle.getErrorTitle());
                 }
               }, project.getDisposed());
             }
