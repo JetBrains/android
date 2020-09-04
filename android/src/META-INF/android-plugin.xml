@@ -21,6 +21,7 @@
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
+  <depends>org.jetbrains.idea.gradle.dsl</depends>
 
   <!-- One of the layoutlib plugins is required -->
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
@@ -660,7 +661,6 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
-    <projectService serviceInterface="com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler" serviceImplementation="com.android.tools.idea.gradle.dsl.ProjectBuildModelHandlerImpl" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager" />
