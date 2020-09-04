@@ -62,7 +62,6 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
-import kotlin.math.max
 import kotlin.math.min
 
 private const val PARSER_PACKAGE_NAME = "skiaparser"
