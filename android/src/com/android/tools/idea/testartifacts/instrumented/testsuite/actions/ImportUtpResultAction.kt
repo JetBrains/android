@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented
+package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -22,6 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.InvalidProtocolBufferException
+import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
@@ -38,15 +39,23 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.util.text.DateFormatUtil
 import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
+import java.io.IOException
 import java.nio.file.Paths
+import java.util.Date
+import javax.swing.Icon
 
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
+ *
+ * @param importFile a UTP result protobuf file to open, or null to open file chooser dialog
  */
-class ImportUtpResultAction : AnAction() {
+class ImportUtpResultAction(icon: Icon? = null,
+                            text: String = "Import Android Test Results...",
+                            private val importFile: VirtualFile? = null) : AnAction(text, text, icon) {
   companion object {
     const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
     private val NOTIFICATION_GROUP = NotificationGroup("Import Android Test Results", NotificationDisplayType.BALLOON)
@@ -113,21 +122,21 @@ class ImportUtpResultAction : AnAction() {
    * @param e an action event with environment settings.
    */
   override fun actionPerformed(e: AnActionEvent) {
-    val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected", "test-result.pb")
-    val defaultPath = e.project?.let { project ->
-      ModuleManager.getInstance(project).modules.asSequence().map { module ->
-        ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
-          it.findFileByRelativePath(relativePath.toString())
-        }.filterNotNull().firstOrNull()
-      }.filterNotNull().firstOrNull()
+    val project = e.project ?: return
+
+    if (importFile != null) {
+      parseResultsAndDisplay(importFile.toIoFile(), project, project)
+      return
     }
+
+    val defaultPath = getDefaultAndroidGradlePluginTestOutputFile(project)
     chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
-                 .withFileFilter { it.extension == "pb" },
+        .withFileFilter { it.extension == "pb" },
       e.project,
       defaultPath
     ) { file: VirtualFile ->
-      parseResultsAndDisplay(file.toIoFile(), requireNotNull(e.project), requireNotNull(e.project))
+      parseResultsAndDisplay(file.toIoFile(), project, project)
     }
   }
 
@@ -141,4 +150,46 @@ class ImportUtpResultAction : AnAction() {
     e.presentation.isEnabledAndVisible = (e.project != null
                                           && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
   }
+}
+
+/**
+ * A pair of timestamp and ImportUtpResultAction.
+ *
+ * @param timestamp a timestamp in millis when the test execution started
+ * @param action an action to import the test
+ */
+data class ImportUtpResultActionFromFile(val timestamp: Long, val action: ImportUtpResultAction)
+
+/**
+ * Creates an ImportUtpResultAction from the default output directory of Android Gradle plugin.
+ */
+fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): ImportUtpResultActionFromFile? {
+  val file = getDefaultAndroidGradlePluginTestOutputFile(project) ?: return null
+  val resultProto = try {
+    TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream)
+  } catch (e: IOException) {
+    null
+  } ?: return null
+
+  val (startTimeMillis, testName) = resultProto.testResultList.asSequence().map {
+    val startTimeMillis = it.testCase.startTime.seconds * 1000 + it.testCase.startTime.nanos / 1000000
+    Pair(startTimeMillis, it.testCase.testClass)
+  }.filter {
+    it.first > 0 && it.second.isNotBlank()
+  }.firstOrNull() ?: return null
+
+  val actionText = "${testName} (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})"
+  return ImportUtpResultActionFromFile(startTimeMillis, ImportUtpResultAction(text = actionText, importFile = file))
+}
+
+private fun getDefaultAndroidGradlePluginTestOutputFile(project: Project?): VirtualFile? {
+  if (project == null) {
+    return null
+  }
+  val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected", "test-result.pb")
+  return ModuleManager.getInstance(project).modules.asSequence().map { module ->
+    ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
+      it.findFileByRelativePath(relativePath.toString())
+    }.filterNotNull().firstOrNull()
+  }.filterNotNull().firstOrNull()
 }
