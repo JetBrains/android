@@ -601,9 +601,6 @@
     <option name="namespaces" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="resource" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="to" path="ActionManager" hit="Migrates to resource namespaces" />
-    <option name="device" path="ActionManager" hit="Modify Device Set..." />
-    <option name="modify" path="ActionManager" hit="Modify Device Set..." />
-    <option name="set" path="ActionManager" hit="Modify Device Set..." />
     <option name="modularize" path="ActionManager" hit="Modularize..." />
     <option name="module" path="ActionManager" hit="Module" />
     <option name="help" path="ActionManager" hit="Motion Layout Help Panel" />
@@ -619,8 +616,6 @@
     <option name="resources" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="their" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="to" path="ActionManager" hit="Moves classes and their associated resources to another module" />
-    <option name="devices" path="ActionManager" hit="Multiple Devices" />
-    <option name="multiple" path="ActionManager" hit="Multiple Devices" />
     <option name="card" path="ActionManager" hit="Navigate to SD card folder" />
     <option name="folder" path="ActionManager" hit="Navigate to SD card folder" />
     <option name="navigate" path="ActionManager" hit="Navigate to SD card folder" />
@@ -823,6 +818,9 @@
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />
     <option name="device" path="ActionManager" hit="Select Device" />
     <option name="select" path="ActionManager" hit="Select Device" />
+    <option name="devices" path="ActionManager" hit="Select Multiple Devices..." />
+    <option name="multiple" path="ActionManager" hit="Select Multiple Devices..." />
+    <option name="select" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="an" path="ActionManager" hit="Select an Emulator boot mode" />
     <option name="boot" path="ActionManager" hit="Select an Emulator boot mode" />
     <option name="emulator" path="ActionManager" hit="Select an Emulator boot mode" />
