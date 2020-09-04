@@ -160,7 +160,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();
         VirtualFile file = images.pop();
-        progressIndicator.setText(file.getPath());
+        progressIndicator.setText(file.getPresentableUrl());
         if (file.isDirectory()) {
           for (VirtualFile f : file.getChildren()) {
             images.push(f);
