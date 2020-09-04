@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented
+package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 
 @RunWith(JUnit4::class)
@@ -86,7 +86,7 @@ class ImportUtpResultActionTest {
     val anActionEvent = AnActionEvent(null, DataContext{ projectRule.project },
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
-    ActionManager.getInstance().getAction("ImportUtpResultAction").update(anActionEvent)
+    ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isTrue()
   }
 
@@ -95,7 +95,7 @@ class ImportUtpResultActionTest {
     val anActionEvent = AnActionEvent(null, DataContext{ projectRule.project },
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
-    ActionManager.getInstance().getAction("ImportUtpResultAction").update(anActionEvent)
+    ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isFalse()
   }
 }
