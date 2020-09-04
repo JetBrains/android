@@ -33,6 +33,7 @@ import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.util.text.nullize
 
 const val DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/"
@@ -92,6 +93,7 @@ object HelpActions {
    * If no description of the property is known the method returns just the name of the
    * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
    */
+  @NlsSafe
   fun createHelpText(property: NelePropertyItem, allowEmptyDescription: Boolean): String {
     val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
     if (description.isEmpty() && !allowEmptyDescription) {
