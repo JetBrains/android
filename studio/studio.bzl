@@ -612,7 +612,12 @@ def intellij_platform(
         name = name,
         jars = [src + "/linux/android-studio/lib/" + jar for jar in spec.jar_order],
         visibility = ["//visibility:public"],
-        data = native.glob([src + "/linux/android-studio/**"]),
+        # Local linux sandbox does not support spaces in names, so we exclude some files
+        # Otherwise we get: "link or target filename contains space"
+        data = native.glob(
+            include = [src + "/linux/android-studio/**"],
+            exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
+        ),
     )
 
     studio_data(
