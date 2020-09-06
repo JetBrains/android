@@ -193,6 +193,7 @@ class TableViewImpl : TableView {
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
     table.emptyText.text = "Table is empty"
+    table.emptyText.isShowAboveCenter = false
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.tableHeader.reorderingAllowed = false
