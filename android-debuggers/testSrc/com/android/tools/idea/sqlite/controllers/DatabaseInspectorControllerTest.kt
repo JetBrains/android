@@ -1427,4 +1427,20 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     assertEquals(SqliteSchema(emptyList()), databaseInspectorModel.getDatabaseSchema(fileDatabaseId))
   }
+
+  fun testRefreshButtonDisabledWhenFileDatabaseIsOpen() {
+    // Prepare
+    val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file")))
+    val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
+    val schema = SqliteSchema(emptyList())
+
+    // Act
+    databaseInspectorModel.addDatabaseSchema(fileDatabaseId, schema)
+    databaseInspectorModel.removeDatabaseSchema(fileDatabaseId)
+    databaseInspectorModel.addDatabaseSchema(liveDatabaseId, schema)
+
+    // Assert
+    orderVerifier.verify(databaseInspectorView).setRefreshButtonState(false)
+    orderVerifier.verify(databaseInspectorView).setRefreshButtonState(true)
+  }
 }

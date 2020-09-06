@@ -61,4 +61,6 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
   override fun reportError(message: String, throwable: Throwable?) {
     errorInvocations.add(Pair(message, throwable))
   }
+
+  override fun setRefreshButtonState(state: Boolean) { }
 }
