@@ -55,6 +55,7 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.KeyStroke
+import javax.swing.LayoutFocusTraversalPolicy
 
 /**
  * @see SqliteEvaluatorView
@@ -94,6 +95,10 @@ class SqliteEvaluatorViewImpl(
     controlsPanel.add(controlsLeftPanel, BorderLayout.WEST)
     controlsPanel.add(controlsRightPanel, BorderLayout.EAST)
 
+    // Override the splitter's custom traversal policy back to the default, because the custom policy prevents from tabbing
+    // across the components.
+    threeComponentsSplitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    threeComponentsSplitter.isFocusCycleRoot = false
     threeComponentsSplitter.dividerWidth = 0
     threeComponentsSplitter.firstSize = JBUI.scale(100)
     threeComponentsSplitter.orientation = true
