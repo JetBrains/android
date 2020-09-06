@@ -2356,7 +2356,8 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).setLiveUpdatesState(false)
+    orderVerifier.verify(tableView).setLiveUpdatesButtonState(false)
+    orderVerifier.verify(tableView).setRefreshButtonState(false)
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).showTableColumns(sqliteResultSet._columns.toViewColumns())
     orderVerifier.verify(tableView).setRowOffset(0)

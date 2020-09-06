@@ -325,6 +325,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .isNotEmpty()
   }
 
+  fun setRefreshButtonState(state: Boolean) {
+    refreshSchemaButton.isEnabled = state
+  }
+
   private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
     private val colorTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 

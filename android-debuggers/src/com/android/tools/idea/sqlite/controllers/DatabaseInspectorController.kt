@@ -123,6 +123,10 @@ class DatabaseInspectorControllerImpl(
       closeTabsBelongingToClosedDatabases(currentOpenDatabaseIds, openDatabaseIds)
       view.updateDatabases(diffOperations)
 
+      // enable refresh button if at least one live db is open
+      val hasLiveDb = openDatabaseIds.any { it is SqliteDatabaseId.LiveSqliteDatabaseId }
+      view.setRefreshButtonState(hasLiveDb)
+
       currentOpenDatabaseIds = openDatabaseIds
       currentCloseDatabaseIds = closeDatabaseIds
     }

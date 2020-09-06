@@ -945,7 +945,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertFalse(liveUpdatesCheckBox.isEnabled)
 
     // Act
-    view.setLiveUpdatesState(false)
+    view.setLiveUpdatesButtonState(false)
     view.startTableLoading()
 
     // Assert

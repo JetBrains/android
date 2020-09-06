@@ -148,6 +148,10 @@ class DatabaseInspectorViewImpl(
     notifyError(message, throwable)
   }
 
+  override fun setRefreshButtonState(state: Boolean) {
+    leftPanelView.setRefreshButtonState(state)
+  }
+
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
     leftPanelView.updateKeepConnectionOpenButton(keepOpen)
   }

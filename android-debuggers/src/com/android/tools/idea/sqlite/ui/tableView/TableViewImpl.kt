@@ -118,6 +118,8 @@ class TableViewImpl : TableView {
 
   // if false, the live updates checkbox should never become enabled
   private var liveUpdatesEnabled = true
+  // if false, the refresh button should never become enabled
+  private var refreshEnabled = true
 
   init {
     val southPanel = JPanel(BorderLayout())
@@ -338,8 +340,12 @@ class TableViewImpl : TableView {
     this.orderBy = orderBy
   }
 
-  override fun setLiveUpdatesState(state: Boolean) {
+  override fun setLiveUpdatesButtonState(state: Boolean) {
     liveUpdatesEnabled = state
+  }
+
+  override fun setRefreshButtonState(state: Boolean) {
+    refreshEnabled = state
   }
 
   override fun reportError(message: String, t: Throwable?) {
@@ -371,7 +377,7 @@ class TableViewImpl : TableView {
 
   private fun setControlButtonsEnabled(enabled: Boolean) {
     liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
-    refreshButton.isEnabled = enabled
+    refreshButton.isEnabled = refreshEnabled && enabled
     pageSizeComboBox.isEnabled = enabled
   }
 
