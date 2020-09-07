@@ -50,6 +50,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
 
   override fun getProcessById(id: Int): ProcessModel? = processById[id]
   override fun getProcesses(): List<ProcessModel> = processById.values.toList()
+  override fun getDanglingThread(tid: Int): ThreadModel? = null
 
   override fun getCpuCores(): List<CpuCoreModel> = cores
 

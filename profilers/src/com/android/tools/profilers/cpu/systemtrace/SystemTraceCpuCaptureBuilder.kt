@@ -135,6 +135,9 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
     val schedData = mutableMapOf<Int, List<SeriesData<CpuThreadSliceInfo>>>()
 
+    // Create a lookup table for thread names, to be used when the full process info is missing
+    val threadNames = model.getProcesses().flatMap { it.getThreads() }.map { it.id to it.name }.toMap()
+
     for (cpu in model.getCpuCores()) {
       val processList: MutableList<SeriesData<CpuThreadSliceInfo>> = ArrayList()
       var lastSliceEnd = cpu.schedulingEvents.firstOrNull()?.endTimestampUs ?: startUserTimeUs
@@ -145,15 +148,12 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
           processList.add(SeriesData(lastSliceEnd, CpuThreadSliceInfo.NULL_THREAD))
         }
 
-        // Trebuchet data is inconsistent when accounting for the PIDs and TIDs referenced in the scheduling data from
-        // each CPU (while it's ok from the per-process scheduling data).
         // Some of PIDs and TIDs are not present on the process/thread lists, so we do our best to find their data here.
-        var processName = ""
-        var threadName = ""
-        model.getProcessById(sched.processId)?.let {
-          processName = it.getSafeProcessName()
-          it.threadById[sched.threadId]?.let{ thread -> threadName = thread.name }
-        }
+        val processName = model.getProcessById(sched.processId)?.getSafeProcessName() ?: ""
+        // Start by checking threads in the known processes, fallback to dangling threads and again to an empty name.
+        val threadName = model.getProcessById(sched.processId)?.threadById?.get(sched.threadId)?.name
+                         ?: model.getDanglingThread(sched.threadId)?.name
+                         ?: ""
 
         processList.add(
           SeriesData(sched.startTimestampUs,

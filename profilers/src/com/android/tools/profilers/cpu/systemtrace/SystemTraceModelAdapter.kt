@@ -34,6 +34,12 @@ interface SystemTraceModelAdapter {
   fun getProcessById(id: Int): ProcessModel?
   fun getProcesses(): List<ProcessModel>
 
+  /**
+   * Return a ThreadModel if we have information for a possible dangling thread with that thread id,
+   * which is a thread that we don't have the information about which process they belong to.
+   */
+  fun getDanglingThread(tid: Int): ThreadModel?
+
   fun getCpuCores(): List<CpuCoreModel>
 
   fun getSystemTraceTechnology(): Cpu.CpuTraceType
