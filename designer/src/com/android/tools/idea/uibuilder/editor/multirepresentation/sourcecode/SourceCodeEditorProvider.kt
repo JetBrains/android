@@ -44,12 +44,14 @@ private val PROVIDERS_EP = ExtensionPointName.create<PreviewRepresentationProvid
  * [FileEditorState] that contains the state of both the editor and the preview sides.
  */
 data class SourceCodeEditorWithMultiRepresentationPreviewState(
+  val parentState: FileEditorState = FileEditorState.INSTANCE,
   val editorState: FileEditorState = FileEditorState.INSTANCE,
   val previewState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState.INSTANCE) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState?, level: FileEditorStateLevel?): Boolean =
     otherState is SourceCodeEditorWithMultiRepresentationPreviewState &&
     otherState.editorState.canBeMergedWith(editorState, level) &&
-    otherState.previewState.canBeMergedWith(previewState, level)
+    otherState.previewState.canBeMergedWith(previewState, level) &&
+    otherState.parentState.canBeMergedWith(parentState, level)
 }
 
 /**
