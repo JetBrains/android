@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -182,15 +183,15 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))
   }
 
-  fun testResultSetThrowsAfterDisposed() {
+  fun testResultSetCanceledOnDisposed() {
     // Prepare
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(
       databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
-    )!!
+    )
     Disposer.dispose(resultSet)
-    val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
+    val error = pumpEventsAndWaitForFutureCancellation(resultSet.getRowBatch(0,3))
 
     // Assert
     assertThat(error).isNotNull()
