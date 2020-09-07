@@ -676,10 +676,9 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               is FakeArtifactElement -> element.realExpression.psiElement
               else -> element.psiElement
             }
-            val presentableText = when (element) {
-              is FakeArtifactElement -> "AGP classpath dependency"
-              else -> "AGP version specification"
-            }
+            // This text gets used in the `target` display of the preview, and so needs to conform with our user interface
+            // (having this be more of a verb than a noun).
+            val presentableText = "Upgrading AGP configuration"
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
             }
