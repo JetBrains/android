@@ -31,11 +31,15 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
+    val danglingThreads = mapOf(
+      33 to ThreadModel(33, 0, "DanglingThread", listOf(), listOf()))
+
     val cpuCores = listOf(
       CpuCoreModel(
         0,
         listOf(
           SchedulingEventModel(ThreadState.RUNNING, 0L, 40L, 40L, 40L, 1, 1, 0),
+          SchedulingEventModel(ThreadState.RUNNING, 45L, 55L, 10L, 10L, 0, 33, 0),
           SchedulingEventModel(ThreadState.RUNNING, 60L, 90L, 30L, 30L, 1, 1, 0),
           SchedulingEventModel(ThreadState.RUNNING, 120L, 180L, 60L, 60L, 1, 1, 0)),
         mapOf()
@@ -43,7 +47,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, cpuCores)
+    val model = TestModel(processes, danglingThreads, cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
@@ -53,7 +57,8 @@ class SystemTraceCpuCaptureBuilderTest {
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
     assertThat(systemTraceData.getCpuThreadSliceInfoStates(0).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
-      .containsExactly("0-1-40", "40-0-0", "60-1-30", "90-0-0", "120-1-60", "200-0-0").inOrder()
+      .containsExactly("0-1-40", "40-0-0", "45-0-10", "55-0-0", "60-1-30", "90-0-0", "120-1-60", "200-0-0").inOrder()
+    assertThat(systemTraceData.getCpuThreadSliceInfoStates(0).filter { it.value.name == "DanglingThread" }).hasSize(1)
     assertThat(systemTraceData.getCpuThreadSliceInfoStates(1).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
       .containsExactly("200-0-0").inOrder()
   }
@@ -77,7 +82,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
@@ -116,7 +121,7 @@ class SystemTraceCpuCaptureBuilderTest {
         ))
     )
 
-    val model = TestModel(processes, cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
@@ -146,7 +151,7 @@ class SystemTraceCpuCaptureBuilderTest {
           "nonmem.rss" to CounterModel("nonmem.rss", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)),
           "non-memory" to CounterModel("non-memory", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)))))
 
-    val model = TestModel(processes, listOf())
+    val model = TestModel(processes, emptyMap(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
@@ -168,12 +173,15 @@ class SystemTraceCpuCaptureBuilderTest {
   }
 
   private class TestModel(
-    private val processes: Map<Int, ProcessModel>, private val cpuCores: List<CpuCoreModel>) : SystemTraceModelAdapter {
+    private val processes: Map<Int, ProcessModel>,
+    private val danglingThreads: Map<Int, ThreadModel>,
+    private val cpuCores: List<CpuCoreModel>) : SystemTraceModelAdapter {
 
     override fun getCaptureStartTimestampUs() = 0L
     override fun getCaptureEndTimestampUs() = 200L
     override fun getProcessById(id: Int) = processes[id]
     override fun getProcesses(): List<ProcessModel> = processes.values.sortedBy { it.id }
+    override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
