@@ -238,7 +238,8 @@ class DatabaseInspectorControllerImpl(
 
   private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
     try {
-      return databaseRepository.fetchSchema(databaseId)
+      val schema = databaseRepository.fetchSchema(databaseId)
+      return filterSqliteSchema(schema)
     }
     catch (e: LiveInspectorException) {
       return null
@@ -444,6 +445,12 @@ class DatabaseInspectorControllerImpl(
         closeTab(tabId)
       }
     })
+  }
+
+  /** Removes tables we don't care about from the schema. */
+  private fun filterSqliteSchema(schema: SqliteSchema): SqliteSchema {
+    val filteredTables = schema.tables.filter { it.name != "android_metadata" && it.name != "sqlite_sequence" }
+    return SqliteSchema(filteredTables)
   }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
