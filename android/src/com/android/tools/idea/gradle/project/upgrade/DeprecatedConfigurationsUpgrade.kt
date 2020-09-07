@@ -32,7 +32,7 @@ fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement
   val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
   val compileRuntimeProcessor = processor.componentRefactoringProcessors.firstIsInstance<CompileRuntimeConfigurationRefactoringProcessor>()
   processor.setCommandName("Replace Deprecated Configurations")
-  val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor, null, "Deprecated compile / runtime configurations")
+  val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor, null, "Upgrading deprecated configurations")
   processor.targets.add(wrappedElement)
   val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
