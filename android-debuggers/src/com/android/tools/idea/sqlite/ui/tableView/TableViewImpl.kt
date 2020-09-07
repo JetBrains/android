@@ -416,7 +416,7 @@ class TableViewImpl : TableView {
           false
         }
 
-        e.presentation.isEnabled = (table.model as MyTableModel).isEditable && isNullable
+        e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false && isNullable
         super.update(e)
       }
     }
@@ -429,6 +429,13 @@ class TableViewImpl : TableView {
         val value = (table.model as MyTableModel).getValueAt(row, column)
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(value), null)
+      }
+
+      override fun update(e: AnActionEvent) {
+        val column = table.selectedColumn
+
+        e.presentation.isEnabled = column > 0
+        super.update(e)
       }
     }
 
