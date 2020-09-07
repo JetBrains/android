@@ -129,7 +129,7 @@ fun createAndShowColorPickerPopup(
   }
 
   val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  val resourcePicker = if (colorResourcePickedCallback == null || facet == null || !StudioFlags.NELE_RESOURCE_POPUP_PICKER.get()) null else {
+  val resourcePicker = if (colorResourcePickedCallback == null || facet == null) null else {
     CompactResourcePicker(
       facet,
       configuration,

@@ -227,11 +227,6 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
-    NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
-    "Show the popup picker for resource picking or attribute customization in layout editor.",
-    true);
-
   public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
     NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
     "Show the popup color resource picker when clicking the gutter icon of color resource in java and kotlin files.",

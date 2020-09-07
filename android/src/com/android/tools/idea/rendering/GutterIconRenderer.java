@@ -167,7 +167,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       Project project = editor.getProject();
       if (project == null) return;
 
-      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
+      if (StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
         // Show the resource picker popup.
         ResourceChooserHelperKt.createAndShowResourcePickerPopup(
           ResourceType.DRAWABLE,
