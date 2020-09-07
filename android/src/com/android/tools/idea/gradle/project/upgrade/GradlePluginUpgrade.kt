@@ -165,6 +165,11 @@ fun performRecommendedPluginUpgrade(
         LOG.error("no Java8Default processor found in AGP Upgrade Processor")
       }
       val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+          val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
+          dialog.show()
+          return@invokeAndWaitIfNeeded false
+        }
         val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
         dialog.showAndGet()
       }
@@ -311,6 +316,11 @@ fun performForcedPluginUpgrade(
         LOG.error("no Java8Default processor found in AGP Upgrade Processor")
       }
       val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+        if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+          val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
+          dialog.show()
+          return@invokeAndWaitIfNeeded false
+        }
         val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
         dialog.showAndGet()
       }
