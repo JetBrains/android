@@ -73,7 +73,7 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
       LOGGER.debug("TPD Client: building new channel to localhost:$cachedChannelPort")
       cachedChannel = ManagedChannelBuilder.forAddress("localhost", cachedChannelPort)
         .usePlaintext()
-        .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
+        .maxInboundMessageSize(512 * 1024 * 1024) // 512 Mb
         .build()
     }
 
