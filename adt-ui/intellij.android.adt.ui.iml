@@ -37,5 +37,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="intellij.webp" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>
