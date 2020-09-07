@@ -23,6 +23,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
+import org.jetbrains.plugins.gradle.settings.GradleSettings
+import java.util.*
 
 class UpdateGradlePluginProcessor(
   val project: Project,
@@ -40,9 +43,32 @@ class UpdateGradlePluginProcessor(
     }
 
   override fun findUsages(): Array<UsageInfo> {
-    return ProjectBuildModel.getForIncludedBuilds(project).flatMap {
+    return getForIncludedBuilds(project).flatMap {
       getUsages(it)
     }.toTypedArray()
+  }
+
+
+  /**
+   * This method returns a list of all participating [ProjectBuildModel] from a given [Project]. This includes any included
+   * builds. No ordering is guaranteed.
+   *
+   *
+   * This method should never be called on the UI thread, it will cause the parsing of Gradle build files which can take a long time.
+   * The returned [ProjectBuildModel] is not thread safe.
+   *
+   * @param project the project to obtain all the [ProjectBuildModel]s for
+   * @return a list of all [ProjectBuildModel]s
+   */
+  fun getForIncludedBuilds(project: Project): List<ProjectBuildModel> {
+    val result: MutableList<ProjectBuildModel> = ArrayList()
+    result.add(ProjectBuildModel.get(project))
+    val basePath = project.basePath ?: return result
+    val settings: GradleProjectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath) ?: return result
+    val compositeBuild: GradleProjectSettings.CompositeBuild = settings.getCompositeBuild() ?: return result
+    compositeBuild.compositeParticipants.stream().map { it.rootPath }
+      .forEach { result.add(ProjectBuildModel.getForCompositeBuild(project, it)!!) }
+    return result
   }
 
   override fun performRefactoring(usages: Array<out UsageInfo>) {
