@@ -42,21 +42,13 @@ import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.uiDesigner.core.GridConstraints
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
-import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
-import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW
-import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK
-import com.intellij.uiDesigner.core.GridLayoutManager
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.util.function.Supplier
 import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.event.ListSelectionListener
 
 /**
@@ -68,7 +60,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 ) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val tabsPanel = CommonTabbedPane()
-  private val rootPanel = JPanel(GridLayoutManager(1, 1))
   private val formFactors: Supplier<List<FormFactorInfo>>? = Suppliers.memoize { createFormFactors(title) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
@@ -76,11 +67,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   init {
     loadingPanel.add(tabsPanel)
-
-    val d = Dimension(-1, -1)
-    val sp = SIZEPOLICY_CAN_GROW or SIZEPOLICY_CAN_SHRINK
-    val gc = GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_BOTH, sp, sp, d, d, d, 0, false)
-    rootPanel.add(loadingPanel, gc)
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
@@ -138,7 +124,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       }
     }
 
-    FormScalingUtil.scaleComponentTree(this.javaClass, rootPanel)
+    FormScalingUtil.scaleComponentTree(this.javaClass, loadingPanel)
     loadingPanel.stopLoading()
   }
 
@@ -160,7 +146,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   override fun canGoForward(): ObservableBool = canGoForward
 
-  override fun getComponent(): JComponent = rootPanel
+  override fun getComponent(): JComponent = loadingPanel
 
   override fun getPreferredFocusComponent(): JComponent = tabsPanel
 
