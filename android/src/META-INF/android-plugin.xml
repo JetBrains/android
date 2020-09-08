@@ -857,6 +857,10 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
   </extensions>
+  
+  <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
+    <upToDateChecker implementation="com.android.tools.idea.gradle.project.sync.GradleDslUpToDateChecker" />
+  </extensions>
 
 
   <extensionPoints>
@@ -1022,6 +1026,7 @@
     <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
     <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl" />
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleDslUpToDateChecker$GradleDslUpToDateCheckerService"/>
   </extensions>
 
   <!-- End new deployment target selection -->
