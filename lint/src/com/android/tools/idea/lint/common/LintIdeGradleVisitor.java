@@ -220,14 +220,14 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                 GrReferenceExpression referenceExpression = (GrReferenceExpression) invokedExpression;
                 GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
                 if (qualifierExpression != null) {
-                  String qualifierName = qualifierExpression.getText();
-                  String name = referenceExpression.getReferenceName();
-                  String value = unnamedArguments.get(0);
-                  GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
-                  for (GradleScanner detector : detectors) {
-                    detector.checkDslPropertyAssignment(context, name, value, qualifierName,null,
-                                                        invokedExpression, argumentList, applicationStatement);
-                  }
+                  parentName = qualifierExpression.getText();
+                }
+                String name = referenceExpression.getReferenceName();
+                String value = unnamedArguments.get(0);
+                GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
+                for (GradleScanner detector : detectors) {
+                  detector.checkDslPropertyAssignment(context, name, value, parentName, null,
+                                                      invokedExpression, argumentList, applicationStatement);
                 }
               }
             }
@@ -247,16 +247,17 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               if (lvalue instanceof GrReferenceExpression) {
                 GrReferenceExpression lvalueRef = (GrReferenceExpression) lvalue;
                 GrExpression qualifierExpression = lvalueRef.getQualifierExpression();
+                String qualifierName = null;
                 if (qualifierExpression != null) {
-                  String qualifierName = qualifierExpression.getText();
-                  String name = lvalueRef.getReferenceName();
-                  GrExpression rvalue = expression.getRValue();
-                  if (rvalue != null) {
-                    String value = rvalue.getText();
-                    for (GradleScanner detector : detectors) {
-                      detector.checkDslPropertyAssignment(context, name, value, qualifierName,
-                                                          null, lvalue, rvalue, expression);
-                    }
+                  qualifierName = qualifierExpression.getText();
+                }
+                String name = lvalueRef.getReferenceName();
+                GrExpression rvalue = expression.getRValue();
+                if (rvalue != null) {
+                  String value = rvalue.getText();
+                  for (GradleScanner detector : detectors) {
+                    detector.checkDslPropertyAssignment(context, name, value, qualifierName,
+                                                        null, lvalue, rvalue, expression);
                   }
                 }
               }
