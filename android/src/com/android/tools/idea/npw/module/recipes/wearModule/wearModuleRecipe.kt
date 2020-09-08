@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.module.recipes.wearModule
 
 import com.android.tools.idea.npw.module.recipes.IconsGenerationStyle
-import com.android.tools.idea.npw.module.recipes.addSupportWearableDependency
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -40,7 +39,6 @@ fun RecipeExecutor.generateWearModule(
     themesXml = null, colorsXml = null
   )
 
-  addSupportWearableDependency()
   addDependency("com.google.android.gms:play-services-wearable:+")
   addDependency("com.android.support:percent:+")
   addDependency("com.android.support:support-v4:+")
