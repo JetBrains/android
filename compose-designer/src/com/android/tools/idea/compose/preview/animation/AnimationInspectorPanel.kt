@@ -21,7 +21,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.utils.HtmlBuilder
@@ -71,6 +70,21 @@ import javax.swing.text.DefaultCaret
 import kotlin.math.ceil
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
+
+/**
+ * Height of the animation inspector timeline header, i.e. "Prop Keys" panel title and timeline labels.
+ */
+private const val TIMELINE_HEADER_HEIGHT = 25
+
+/**
+ * Half width of the shape used as the handle of the timeline scrubber.
+ */
+private const val TIMELINE_HANDLE_HALF_WIDTH = 5;
+
+/**
+ * Half height of the shape used as the handle of the timeline scrubber.
+ */
+private const val TIMELINE_HANDLE_HALF_HEIGHT = 5;
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
@@ -357,9 +371,18 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       endStateComboBox.model = DefaultComboBoxModel(states)
     }
 
-    private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "*")).apply {
+    private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "${TIMELINE_HEADER_HEIGHT}px,*")).apply {
       preferredSize = JBDimension(200, 200)
-      add(JBScrollPane(animatedPropertiesPanel), TabularLayout.Constraint(0, 0))
+      val propKeysTitlePanel = JPanel(TabularLayout("*", "*")).apply {
+        // Bottom border separating this title header from the properties panel.
+        border = MatteBorder(0, 0, 1, 0, JBColor.border())
+        background = UIUtil.getTextFieldBackground()
+        add(JBLabel(message("animation.inspector.prop.keys.title")).apply {
+          border = JBUI.Borders.empty(0, 5)
+        }, TabularLayout.Constraint(0, 0))
+      }
+      add(propKeysTitlePanel, TabularLayout.Constraint(0, 0))
+      add(JBScrollPane(animatedPropertiesPanel), TabularLayout.Constraint(1, 0))
     }
 
     /**
@@ -668,8 +691,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       }
 
     }.apply {
-      setPaintTicks(true)
-      setPaintLabels(true)
+      paintTicks = true
+      paintLabels = true
       updateMajorTicks()
       setUI(TimelineSliderUI())
     }
@@ -750,6 +773,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      */
     private inner class TimelineSliderUI : BasicSliderUI(slider) {
 
+      private val labelVerticalMargin = 5
+
       override fun getThumbSize(): Dimension {
         val originalSize = super.getThumbSize()
         return if (slider.parent == null) originalSize else Dimension(originalSize.width, slider.parent.height - labelsAndTicksHeight())
@@ -765,8 +790,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       override fun calculateLabelRect() {
         super.calculateLabelRect()
-        // Correct the label rect, so the tick rect overlaps with it.
-        labelRect.y -= labelsAndTicksHeight()
+        labelRect.y = labelVerticalMargin
       }
 
       override fun paintTrack(g: Graphics) {
@@ -777,18 +801,51 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         // BasicSliderUI paints a dashed rect around the slider when it's focused. We shouldn't paint anything.
       }
 
+      override fun paintLabels(g: Graphics?) {
+        super.paintLabels(g)
+        // Draw the line border below the labels.
+        g as Graphics2D
+        g.color = JBColor.border()
+        g.stroke = BasicStroke(1f)
+        val borderHeight = TIMELINE_HEADER_HEIGHT - 1 // Subtract the stroke (1)
+        g.drawLine(0, borderHeight, slider.width, borderHeight)
+      }
+
       override fun paintThumb(g: Graphics) {
         g as Graphics2D
         g.color = JBColor(0x4A81FF, 0xB4D7FF)
         g.stroke = BasicStroke(1f)
         val halfWidth = thumbRect.width / 2
-        g.drawLine(thumbRect.x + halfWidth, thumbRect.y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
+        val x = thumbRect.x + halfWidth
+        val y = thumbRect.y + TIMELINE_HEADER_HEIGHT
+        g.drawLine(x, y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
+
+        // The scrubber handle should have the following shape:
+        //         ___
+        //        |   |
+        //         \ /
+        // We add 5 points with the following coordinates:
+        // (x, y): bottom of the scrubbler handle
+        // (x - halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (left side)
+        // (x - halfWidth, y - Height): top-left point of the scrubber, where there is a right angle
+        // (x + halfWidth, y - Height): top-right point of the scrubber, where there is a right angle
+        // (x + halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (right side)
+        val handleHeight = TIMELINE_HANDLE_HALF_HEIGHT * 2
+        val xPoints = intArrayOf(
+          x,
+          x - TIMELINE_HANDLE_HALF_WIDTH,
+          x - TIMELINE_HANDLE_HALF_WIDTH,
+          x + TIMELINE_HANDLE_HALF_WIDTH,
+          x + TIMELINE_HANDLE_HALF_WIDTH
+        )
+        val yPoints = intArrayOf(y, y - TIMELINE_HANDLE_HALF_HEIGHT, y - handleHeight, y - handleHeight, y - TIMELINE_HANDLE_HALF_HEIGHT)
+        g.fillPolygon(xPoints, yPoints, xPoints.size)
       }
 
       override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
         g as Graphics2D
         g.color = JBColor.border()
-        g.drawLine(x, tickRect.y, x, tickRect.height);
+        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height);
       }
 
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
