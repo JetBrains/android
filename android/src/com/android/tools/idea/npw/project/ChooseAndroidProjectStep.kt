@@ -60,10 +60,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 ) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val tabsPanel = CommonTabbedPane()
-  private val formFactors: Supplier<List<FormFactorInfo>>? = Suppliers.memoize { createFormFactors(title) }
+  private val formFactors: Supplier<List<FormFactorInfo>> = Suppliers.memoize { createFormFactors(title) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
-  private val selectedFormFactorInfo: FormFactorInfo get() = formFactors!!.get()[tabsPanel.selectedIndex]
 
   init {
     loadingPanel.add(tabsPanel)
@@ -86,7 +85,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     loadingPanel.startLoading()
     // Constructing FormFactors performs disk access and XML parsing, so let's do it in background thread.
     BackgroundTaskUtil.executeOnPooledThread(this, Runnable {
-      val formFactors = formFactors!!.get()
+      val formFactors = formFactors.get()
 
       // Update UI with the loaded formFactors. Switch back to UI thread.
       GuiUtils.invokeLaterIfNeeded(
@@ -129,6 +128,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   override fun onProceeding() {
+    val selectedFormFactorInfo = formFactors.get()[tabsPanel.selectedIndex]
     val selectedTemplate =  selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
     with(newProjectModuleModel!!) {
       formFactor.set(selectedFormFactorInfo.formFactor)
@@ -195,4 +195,3 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     }
   }
 }
-
