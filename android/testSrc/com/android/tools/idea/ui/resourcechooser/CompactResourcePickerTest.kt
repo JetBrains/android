@@ -23,8 +23,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
 import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.UIUtil
@@ -110,8 +112,7 @@ class CompactResourcePickerTest {
     assertEquals("@color/colorForeground", selectedResource)
   }
 
-  //@Test
-  // TODO(b/153469993): The test fails on Windows after a seemingly unrelated change.
+  @Test
   fun changeToFrameworkResourceSource() {
     var selectedResource = ""
     val resourcePickerPanel = createAndWaitForResourcePickerPanel { selectedResource = it }
@@ -147,11 +148,15 @@ class CompactResourcePickerTest {
       disposable
     )
 
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      UIUtil.findComponentOfType(panel, JList::class.java)!!.setUI(HeadlessListUI())
+    }
+
     // Wait for the panel to be populated
     waitAndAssert<JList<in Any>>(panel) {
       it != null && it.model.size > 0
     }
-    UIUtil.findComponentOfType(panel, JList::class.java)!!.setUI(HeadlessListUI())
     return panel
   }
 }
