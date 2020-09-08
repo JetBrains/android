@@ -25,9 +25,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.Nullable
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -110,7 +112,8 @@ private data class LayoutData private constructor(
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
                          private val sceneViewToolbar: JComponent?,
-                         private val sceneViewBottomBar: JComponent?) : JPanel() {
+                         private val sceneViewBottomBar: JComponent?,
+                         private val sceneViewLeftBar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -140,6 +143,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           // Extend top to account for the top toolbar
           it.top += sceneViewTopPanel.preferredSize.height
           it.bottom += sceneViewBottomPanel.preferredSize.height
+          it.left += sceneViewLeftPanel.preferredSize.width
         }
         return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
@@ -232,12 +236,22 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
   }
 
+  val sceneViewLeftPanel = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isVisible = true
+    if (sceneViewLeftBar != null) {
+      add(sceneViewLeftBar, BorderLayout.CENTER)
+    }
+  }
+
+
   init {
     isOpaque = false
     layout = null
 
     add(sceneViewTopPanel)
     add(sceneViewBottomPanel)
+    add(sceneViewLeftPanel)
   }
 
   override fun isValid(): Boolean {
@@ -265,7 +279,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       sceneViewTopPanel.isVisible = true
     }
     sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height, width + insets.horizontal, sceneViewBottomPanel.preferredSize.height)
-
+    sceneViewLeftPanel.setBounds(0, sceneViewTopPanel.preferredSize.height, sceneViewLeftPanel.preferredSize.width, height)
     super.doLayout()
   }
 
@@ -395,6 +409,13 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
       .filterIsInstance<SceneViewPeerPanel>()
       .any { sceneView == it.sceneView }
 
+    // The left bar should only be added for only one of the SceneViewPeerPanels
+    // Check if a left Panel already exists and is visible, and if not add one
+    val leftBarAlreadyAdded = components
+      .filterIsInstance<SceneViewPeerPanel>().any {
+        it.sceneViewLeftPanel.isVisible
+      }
+
     if (!alreadyAdded) {
       val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
         sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
@@ -409,7 +430,13 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
         null
       }
 
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar).also {
+      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && !leftBarAlreadyAdded) {
+        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
+      } else {
+        null
+      }
+
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar).also {
         it.alignmentX = sceneViewAlignment
       })
     }

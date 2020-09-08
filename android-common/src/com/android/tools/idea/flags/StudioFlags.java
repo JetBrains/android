@@ -257,6 +257,12 @@ public final class StudioFlags {
     "Enable the per SceneView bottom bar that displays the SceneView contextual actions.",
     false);
 
+  public static final Flag<Boolean> NELE_SCENEVIEW_LEFT_BAR = Flag.create(
+    NELE, "sceneview.left.bar", "Enable SceneView left bar for overlay actions.",
+    "Enable the SceneView left bar that displays the overlay actions.",
+    true);
+
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",

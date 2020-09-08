@@ -83,7 +83,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
-    if(OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
+    if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
+        && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       group.addSeparator();
       OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
       group.add(overlayAction);
