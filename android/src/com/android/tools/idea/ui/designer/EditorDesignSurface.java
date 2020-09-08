@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class EditorDesignSurface extends AdtPrimaryPanel {
 
-  private OverlayConfiguration myOverlayConfiguration = new OverlayConfiguration();
+  private final OverlayConfiguration myOverlayConfiguration = new OverlayConfiguration();
 
   public EditorDesignSurface(LayoutManager layout) {
     super(layout);
