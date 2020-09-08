@@ -64,13 +64,13 @@ public class StudioPathManager {
     if (isRunningInBazelTest()) {
       // This can be a Bazel test running with a bundled or unbundled Studio SDK.
       // We can find it out quickly by probing the directory layout.
-      if (Paths.get(PathManager.getHomePath()).endsWith("tools/idea")) {
-        // Bazel test running on bundled build.
-        return getSourcesRootBundled();
-      }
-      else {
+      if (PathManager.getHomePath().contains("/prebuilts/studio/intellij-sdk/")) {
         // Bazel test running on unbundled build.
         return getSourcesRootUnbundled();
+      }
+      else {
+        // Bazel test running on bundled build or as aswb.
+        return getSourcesRootBundled();
       }
     }
 
