@@ -104,8 +104,9 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     // Start the third emulator.
     emulator3.start()
