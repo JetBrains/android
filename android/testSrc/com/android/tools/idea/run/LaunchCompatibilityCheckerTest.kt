@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,12 +44,16 @@ class LaunchCompatibilityCheckerTest {
 
   private lateinit var facet: AndroidFacet
   private lateinit var mockManifestManager: MergedManifestManager
+  private lateinit var mockAndroidModel: AndroidModel
 
   @Before
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
     mockManifestManager = mock(MergedManifestManager::class.java)
     projectRule.module.replaceService(MergedManifestManager::class.java, mockManifestManager, projectRule.module)
+
+    mockAndroidModel = mock(AndroidModel::class.java)
+    AndroidModel.set(facet, mockAndroidModel)
   }
 
   @Test
@@ -62,8 +67,8 @@ class LaunchCompatibilityCheckerTest {
       """.trimIndent()
     projectRule.fixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, manifest)
     runInEdtAndWait {
-      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(20)
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as? LaunchCompatibilityCheckerImpl
+      assertThat(checker!!.myMinSdkVersion.apiLevel).isEqualTo(20)
     }
   }
 
@@ -79,8 +84,8 @@ class LaunchCompatibilityCheckerTest {
 
     runInEdtAndWait {
       DumbServiceImpl.getInstance(projectRule.project).isDumb = true
-      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(27)
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as? LaunchCompatibilityCheckerImpl
+      assertThat(checker!!.myMinSdkVersion.apiLevel).isEqualTo(27)
       DumbServiceImpl.getInstance(projectRule.project).isDumb = false
     }
   }
@@ -96,8 +101,8 @@ class LaunchCompatibilityCheckerTest {
 
     runInEdtAndWait {
       DumbServiceImpl.getInstance(projectRule.project).isDumb = true
-      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-      assertThat(checker.myMinSdkVersion.apiLevel).isEqualTo(28)
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as? LaunchCompatibilityCheckerImpl
+      assertThat(checker!!.myMinSdkVersion.apiLevel).isEqualTo(28)
       DumbServiceImpl.getInstance(projectRule.project).isDumb = false
     }
   }
@@ -111,8 +116,8 @@ class LaunchCompatibilityCheckerTest {
 
     runInEdtAndWait {
       DumbServiceImpl.getInstance(projectRule.project).isDumb = true
-      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as LaunchCompatibilityCheckerImpl
-      assertThat(checker.myMinSdkVersion).isEqualTo(AndroidVersion.DEFAULT)
+      val checker = LaunchCompatibilityCheckerImpl.create(facet, null, null) as? LaunchCompatibilityCheckerImpl
+      assertThat(checker!!.myMinSdkVersion).isEqualTo(AndroidVersion.DEFAULT)
       DumbServiceImpl.getInstance(projectRule.project).isDumb = false
     }
   }
