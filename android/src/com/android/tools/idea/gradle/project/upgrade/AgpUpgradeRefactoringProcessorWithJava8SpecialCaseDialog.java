@@ -108,7 +108,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
             }
         }
       };
-      myProcessor.setAdditionalPreviewActions(Collections.singletonList(backAction));
+      myProcessor.setBackFromPreviewAction(backAction);
     }
 
     StringBuilder sb = new StringBuilder();
