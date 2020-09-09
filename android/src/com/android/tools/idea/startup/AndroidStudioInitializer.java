@@ -30,6 +30,7 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
+import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -67,6 +68,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AppUIUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.concurrent.ScheduledExecutorService;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
@@ -103,6 +105,12 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     }
 
     setupAnalytics();
+    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
+    scheduler.execute(() -> {
+      ServerFlagInitializer.initializeService();
+      AndroidStudioUsageTracker.setupScheduledReports();
+    });
+
     disableIdeaJUnitConfigurations(actionManager);
     disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
@@ -165,7 +173,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    AndroidStudioUsageTracker.subscribeToEvents();
     new GcPauseWatcher();
   }
 

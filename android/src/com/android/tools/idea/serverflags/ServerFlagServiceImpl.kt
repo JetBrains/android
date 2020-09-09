@@ -61,5 +61,31 @@ class ServerFlagServiceImpl(override val configurationVersion: Long, private val
     }
     return defaultInstance.parserForType.parseFrom(flag.protoValue)
   }
+
+  override fun toString(): String {
+    if (flags.isEmpty()) {
+      return "No server flags are enabled."
+    }
+
+    val sb = StringBuilder()
+    for ((name, flag) in flags.entries.sortedBy { it.key }) {
+      sb.append("Name: $name\nPercentEnabled: ${flag.percentEnabled}\nValue: ${flag.Value}\n\n")
+    }
+
+    return sb.toString()
+  }
 }
+
+private val ServerFlag.Value: String
+  get() {
+    return when {
+      this.hasStringValue() -> this.stringValue
+      this.hasBooleanValue() -> this.booleanValue.toString()
+      this.hasFloatValue() -> this.floatValue.toString()
+      this.hasIntValue() -> this.intValue.toString()
+      this.hasProtoValue() -> "custom proto"
+      else -> "No value specified"
+    }
+  }
+
 
