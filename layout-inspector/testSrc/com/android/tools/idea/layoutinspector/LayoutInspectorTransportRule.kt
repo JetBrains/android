@@ -27,6 +27,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -60,6 +61,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.net.Socket
+import java.util.ArrayDeque
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -136,8 +138,6 @@ class LayoutInspectorTransportRule(
    */
   var initialRoot = view(0L)
 
-  // "2" since it's called for debug_view_attributes and debug_view_attributes_application_package
-  private val unsetSettingsLatch = CountDownLatch(2)
   private val scheduler = VirtualTimeScheduler()
   private var inspectorClientFactory: () -> InspectorClient = {
     DefaultInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
@@ -191,24 +191,61 @@ class LayoutInspectorTransportRule(
       FeaturesHandler.CHUNK_TYPE, FeaturesHandler(emptyMap(), listOf(ClientData.FEATURE_VIEW_HIERARCHY))))
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-        when (args) {
-          "settings put global debug_view_attributes 1",
-          "settings put global debug_view_attributes_application_package com.example",
-          "settings delete global debug_view_attributes",
-          "settings delete global debug_view_attributes_application_package" -> {
-            com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-            if (args.startsWith("settings delete")) {
-              unsetSettingsLatch.countDown()
-            }
-            return true
-          }
-
+        val response = when (command) {
+          "shell" -> handleShellCommand(args) ?: return false
           else -> return false
         }
+        writeOkay(socket.getOutputStream())
+        writeString(socket.getOutputStream(), response)
+        return true
       }
     })
 
     scheduler.scheduleAtFixedRate({ timer.step() }, 0, FpsTimer.ONE_FRAME_IN_NS, TimeUnit.NANOSECONDS)
+  }
+
+  var debugViewAttributesChanges = 0
+    private set
+  var debugViewAttributes: String? = null
+    private set
+  var debugViewAttributesApplicationPackage: String? = null
+    private set
+
+  /**
+   * Handle shell commands.
+   *
+   * Examples:
+   *  - "settings get global debug_view_attributes"
+   *  - "settings get global debug_view_attributes_application_package"
+   *  - "settings put global debug_view_attributes 1"
+   *  - "settings put global debug_view_attributes_application_package com.example.myapp"
+   *  - "settings delete global debug_view_attributes"
+   *  - "settings delete global debug_view_attributes_application_package"
+   */
+  private fun handleShellCommand(command: String): String? {
+    val args = ArrayDeque(command.split(' '))
+    if (args.poll() != "settings") {
+      return null
+    }
+    val operation = args.poll()
+    if (args.poll() != "global") {
+      return null
+    }
+    val variable = when (args.poll()) {
+      "debug_view_attributes" -> this::debugViewAttributes
+      "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
+      else -> return null
+    }
+    val argument = if (args.isEmpty()) "" else args.poll()
+    if (args.isNotEmpty()) {
+      return null
+    }
+    return when (operation) {
+      "get" -> { variable.get().toString() }
+      "put" -> { variable.set(argument); debugViewAttributesChanges++; ""}
+      "delete" -> { variable.set(null); debugViewAttributesChanges++; ""}
+      else -> null
+    }
   }
 
   /**
@@ -239,6 +276,14 @@ class LayoutInspectorTransportRule(
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
       }
     }
+  }
+
+  fun withDebugViewAttributes(value: String?) = apply {
+    debugViewAttributes = value
+  }
+
+  fun withDebugViewAttributesApplicationPackage(value: String?) = apply {
+    debugViewAttributesApplicationPackage = value
   }
 
   fun attach() = apply {
@@ -401,14 +446,11 @@ class LayoutInspectorTransportRule(
       inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
       grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
-      if (inspectorClient is DefaultInspectorClient) {
-        waitForUnsetSettings()
+      waitForCondition(10, TimeUnit.SECONDS) {
+        debugViewAttributes == null &&
+        debugViewAttributesApplicationPackage == null
       }
     }
-  }
-
-  private fun waitForUnsetSettings() {
-    assertThat(unsetSettingsLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
