@@ -57,17 +57,16 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
-    checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
-    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
-    checkAction(actions[2], Separator.class, null);
-    checkAction(actions[3], ActionGroup.class, "UI Mode");
-    checkAction(actions[4], Separator.class, null);
-    checkAction(actions[5], ActionGroup.class, "Night Mode");
-    checkAction(actions[6], Separator.class, null);
-    checkAction(actions[7], OrientationMenuAction.CreateVariationAction.class, "Create Landscape Variation");
-    checkAction(actions[8], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
-    checkAction(actions[9], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
-    assertThat(actions).hasLength(10);
+    int index = 0;
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], ActionGroup.class, "UI Mode");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Landscape Variation");
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
+    assertThat(actions).hasLength(index);
   }
 
   public void testActionWithExistingLandscapeVariation() {
@@ -76,20 +75,19 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     Presentation presentation = action.getTemplatePresentation().clone();
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
-    checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
-    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
+    int index = 0;
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class,
                 "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
-    checkAction(actions[2], Separator.class, null);
-    checkAction(actions[3], ActionGroup.class, "UI Mode");
-    checkAction(actions[4], Separator.class, null);
-    checkAction(actions[5], ActionGroup.class, "Night Mode");
-    checkAction(actions[6], Separator.class, null);
-    checkAction(actions[7], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
-    checkAction(actions[8], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
-    checkAction(actions[9], Separator.class, null);
-    checkAction(actions[10], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
-    checkAction(actions[11], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
-    assertThat(actions).hasLength(12);
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], ActionGroup.class, "UI Mode");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
+    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
+    assertThat(actions).hasLength(index);
   }
 
   public void testActionWithExistingLandscapeAndTabletVariation() {
@@ -98,20 +96,19 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
-    checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
-    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
+    int index = 0;
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class,
                 "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
-    checkAction(actions[2], Separator.class, null);
-    checkAction(actions[3], ActionGroup.class, "UI Mode");
-    checkAction(actions[4], Separator.class, null);
-    checkAction(actions[5], ActionGroup.class, "Night Mode");
-    checkAction(actions[6], Separator.class, null);
-    checkAction(actions[7], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
-    checkAction(actions[8], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
-    checkAction(actions[9], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-sw600dp");
-    checkAction(actions[10], Separator.class, null);
-    checkAction(actions[11], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
-    assertThat(actions).hasLength(12);
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], ActionGroup.class, "UI Mode");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
+    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
+    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-sw600dp");
+    checkAction(actions[index++], Separator.class, null);
+    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
+    assertThat(actions).hasLength(index);
   }
 
   private static void checkAction(@NotNull AnAction action, @NotNull Class<? extends AnAction> actionClass, @Nullable String title) {

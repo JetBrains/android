@@ -18,10 +18,12 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.NightModeMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
@@ -85,6 +87,11 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
       group.add(overlayAction);
     }
+
+    group.addSeparator();
+    NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
+    appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
+    group.add(nightModeAction);
 
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);

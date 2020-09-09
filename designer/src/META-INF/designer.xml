@@ -111,6 +111,13 @@
               description="Toggle the preview orientation between portrait and landscape">
         <keyboard-shortcut keymap="$default" first-keystroke="O"/>
       </action>
+      <action id="Android.Designer.ToggleDeviceNightMode"
+              icon="StudioIcons.DeviceConfiguration.NIGHT_MODE"
+              class="com.android.tools.idea.common.actions.ToggleDeviceNightModeAction"
+              text="Toggle Device Night Mode"
+              description="Enable or disable the Night mode of preview">
+        <keyboard-shortcut keymap="$default" first-keystroke="N"/>
+      </action>
       <action id="Android.Designer.NextDevice"
               class="com.android.tools.idea.common.actions.NextDeviceAction"
               text="Preview Next Device"
