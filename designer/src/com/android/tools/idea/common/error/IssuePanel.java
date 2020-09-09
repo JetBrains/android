@@ -108,6 +108,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private boolean hasUserSeenNewErrors;
   private boolean isMinimized;
   private boolean myInitialized;
+  /**
+   * If set to false, the panel will not minimize/maximaze without user interaction.
+   * The default behaviour is to have the panel automatically collapse if no errors are present.
+   */
+  private boolean myAutoSize = true;
 
   public IssuePanel(@NotNull DesignSurface designSurface, @NotNull IssueModel issueModel) {
     super(new BorderLayout());
@@ -253,6 +258,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     return titlePanel;
   }
 
+  /**
+   * Disables the auto-sizing of the panel. This will prevent the panel from automatically collapsing if there are no errors.
+   */
+  public void disableAutoSize() {
+    myAutoSize = false;
+  }
+
   @NotNull
   private static JBScrollPane createListScrollPane(@NotNull JPanel content) {
     JBScrollPane pane = new JBScrollPane(content);
@@ -282,7 +294,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         myTitleLabel.setText(TITLE_NO_ISSUES);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
-        setMinimized(true);
+        if (myAutoSize) {
+          setMinimized(true);
+        }
         return;
       }
       updateTitlebarStyle();

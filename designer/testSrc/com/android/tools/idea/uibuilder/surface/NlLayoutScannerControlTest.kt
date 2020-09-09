@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.Issue
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssueProvider
@@ -113,7 +114,7 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
 
     // check if issue panel is opened
     val showIssuePanelArg = ArgumentCaptor.forClass(Boolean::class.java)
-    Mockito.verify(surface, Mockito.times(1)).setShowIssuePanel(showIssuePanelArg.capture())
+    Mockito.verify(surface, Mockito.times(1)).setShowIssuePanel(showIssuePanelArg.capture(), eq(false))
     assertTrue(showIssuePanelArg.value)
   }
 

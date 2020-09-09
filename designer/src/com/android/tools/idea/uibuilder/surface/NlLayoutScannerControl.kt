@@ -89,7 +89,7 @@ class NlLayoutScannerControl: LayoutScannerControl {
           }
           // Has result to display
           surface.analyticsManager.trackShowIssuePanel()
-          surface.setShowIssuePanel(true)
+          surface.setShowIssuePanel(true, false)
           scannerResult?.complete(true)
         } finally {
           scanner.removeListener(this)

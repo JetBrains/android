@@ -74,7 +74,7 @@ public class IssueNotificationAction extends ToggleAction {
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
     if (surface != null) {
       surface.getAnalyticsManager().trackShowIssuePanel();
-      surface.setShowIssuePanel(state);
+      surface.setShowIssuePanel(state, true);
     }
   }
 
