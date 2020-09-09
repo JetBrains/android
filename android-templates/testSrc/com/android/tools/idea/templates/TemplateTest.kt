@@ -337,7 +337,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewModalBottomSheetWithKotlin() {
-    checkCreateTemplate("Modal Bottom Sheet", withKotlin)
+    checkCreateTemplate("Modal Bottom Sheet", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -417,7 +417,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
-    checkCreateTemplate("Login Fragment", withKotlin)
+    checkCreateTemplate("Login Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Other templates ---
