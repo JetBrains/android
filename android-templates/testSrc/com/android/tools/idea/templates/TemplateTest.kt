@@ -171,7 +171,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewTabbedActivityWithKotlin() {
-    checkCreateTemplate("Tabbed Activity", withKotlin)
+    checkCreateTemplate("Tabbed Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -221,7 +221,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewScrollingActivityWithKotlin() {
-    checkCreateTemplate("Scrolling Activity", withKotlin)
+    checkCreateTemplate("Scrolling Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
