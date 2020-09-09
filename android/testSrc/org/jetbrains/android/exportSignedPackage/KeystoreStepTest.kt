@@ -22,9 +22,8 @@ import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
@@ -34,17 +33,17 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
-class KeystoreStepTest : PlatformTestCase() {
+class KeystoreStepTest : LightPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
   private lateinit var myAndroidFacet1: AndroidFacet
   private lateinit var myAndroidFacet2: AndroidFacet
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(myProject, testRootDisposable)
+    ideComponents = IdeComponents(project, testRootDisposable)
     facets = ArrayList()
-    myAndroidFacet1 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
-    myAndroidFacet2 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
+    myAndroidFacet1 = AndroidFacet(module, AndroidFacet.NAME, AndroidFacetConfiguration())
+    myAndroidFacet2 = AndroidFacet(module, AndroidFacet.NAME, AndroidFacetConfiguration())
   }
 
   fun testEnableEncryptedKeyExportFlagFalse() {
@@ -205,7 +204,7 @@ class KeystoreStepTest : PlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(project)
     return wizard
   }
 
