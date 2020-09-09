@@ -1771,9 +1771,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myIssuePanel;
   }
 
-  public void setShowIssuePanel(boolean show) {
+  /**
+   * Sets the status of the issue panel.
+   * @param show wether to show or hide the issue panel.
+   * @param userInvoked if true, this was the direct consequence of a user action.
+   */
+  public void setShowIssuePanel(boolean show, boolean userInvoked) {
     UIUtil.invokeLaterIfNeeded(() -> {
       myIssuePanel.setMinimized(!show);
+      if (userInvoked) {
+        myIssuePanel.disableAutoSize();
+      }
       revalidate();
       repaint();
     });
