@@ -276,7 +276,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewBlankWearActivityWithKotlin() {
-    checkCreateTemplate("Blank Activity", withKotlin)
+    checkCreateTemplate("Blank Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -286,7 +286,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear)
+    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -327,7 +327,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewListFragmentWithKotlin() {
-    checkCreateTemplate("Fragment (List)", withKotlin)
+    checkCreateTemplate("Fragment (List)", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
