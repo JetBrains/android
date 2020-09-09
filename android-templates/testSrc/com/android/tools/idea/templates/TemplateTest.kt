@@ -191,7 +191,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewPrimaryDetailFlowWithKotlin() {
-    checkCreateTemplate("Primary/Detail Flow", withKotlin)
+    checkCreateTemplate("Primary/Detail Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
