@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
+import java.io.IOException
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
@@ -293,7 +294,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
             openSqliteDatabase(databaseFileData).await()
           }
-          catch (e: OfflineDatabaseException) {
+          catch (e: IOException) {
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
           }
         }
