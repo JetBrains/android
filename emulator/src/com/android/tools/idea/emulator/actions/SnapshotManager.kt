@@ -27,45 +27,90 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+import java.util.concurrent.TimeUnit
 import kotlin.streams.asSequence
 
 /**
  * Manages emulator snapshots and boot mode.
  */
 class SnapshotManager(val avdFolder: Path, val avdId: String) {
+
+  val snapshotsFolder: Path = avdFolder.resolve("snapshots")
+
   /**
    * Fetches and returns a list of snapshots by reading the "snapshots" subfolder of the AVD folder.
+   *
+   * @param excludeQuickBoot if true, the quick boot snapshot is not included in the returned list
    */
   @Slow
-  fun fetchSnapshotList(): List<SnapshotInfo> {
-    val snapshotsFolder = avdFolder.resolve("snapshots")
+  fun fetchSnapshotList(excludeQuickBoot: Boolean = false): List<SnapshotInfo> {
     return Files.list(snapshotsFolder).use { stream ->
       stream.asSequence()
-        .map {
-          val snapshotDirName = it.fileName.toString()
-          if (snapshotDirName != "default_boot") {
-            val snapshotProtoFile = it.resolve("snapshot.pb")
-            try {
-              val snapshot = Files.newInputStream(snapshotProtoFile).use {
-                Snapshot.parseFrom(it)
-              }
-              if (snapshot.imagesCount == 0) {
-                return@map null // Incomplete snapshot.
-              }
-              return@map SnapshotInfo(it, snapshot)
-            }
-            catch (ignore: NoSuchFileException) {
-            }
-            catch (e: IOException) {
-              logger.warn("Error reading ${snapshotProtoFile}")
-            }
-          }
-          return@map null
+        .mapNotNull { folder ->
+          if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
         }
-        .filterNotNull()
-        .sortedBy(SnapshotInfo::displayName)
         .toList()
     }
+  }
+
+  @Slow
+  private fun readSnapshotInfo(snapshotFolder: Path): SnapshotInfo? {
+    val snapshotProtoFile = snapshotFolder.resolve(SNAPSHOT_PROTO_FILE)
+    try {
+      val snapshot = Files.newInputStream(snapshotProtoFile).use {
+        Snapshot.parseFrom(it)
+      }
+      if (snapshot.imagesCount == 0) {
+        return null // Incomplete snapshot.
+      }
+      return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder))
+    }
+    catch (ignore: NoSuchFileException) {
+    }
+    catch (e: IOException) {
+      logger.warn("Error reading ${snapshotProtoFile} - ${e.localizedMessage}")
+    }
+    return null
+  }
+
+  /**
+   * Reads and returns information for the given snapshot. Returns null in case of errors.
+   */
+  @Slow
+  fun readSnapshotInfo(snapshotFolderName: String): SnapshotInfo? {
+    return readSnapshotInfo(snapshotsFolder.resolve(snapshotFolderName))
+  }
+
+  /*
+   * Writes the given snapshot proto to the snapshot.pb file.
+   */
+  @Slow
+  fun saveSnapshotProto(snapshotFolder: Path, snapshotProto: Snapshot) {
+    val protoFile = snapshotFolder.resolve(SNAPSHOT_PROTO_FILE)
+    try {
+      Files.newOutputStream(protoFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { stream->
+        snapshotProto.writeTo(stream)
+      }
+    }
+    catch (e: IOException) {
+      logger.warn("Error writing ${protoFile} - ${e.localizedMessage}")
+    }
+  }
+
+  private fun folderSize(folder: Path): Long {
+    var size = 0L
+    Files.list(folder).use { stream ->
+      stream.forEach { file ->
+        try {
+          size += if (Files.isDirectory(file)) folderSize(file) else Files.size(file)
+        }
+        catch (_: IOException) {
+          // Ignore I/O errors.
+        }
+      }
+    }
+    return size
   }
 
   /**
@@ -93,7 +138,7 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
       "fastboot.forceColdBoot" to toYesNo(bootMode.bootType == BootType.COLD),
       "fastboot.forceFastBoot" to toYesNo(bootMode.bootType == BootType.QUICK),
       "fastboot.forceChosenSnapshotBoot" to toYesNo(bootMode.bootType == BootType.SNAPSHOT),
-      "fastboot.chosenSnapshotFile" to bootMode.bootSnapshot
+      "fastboot.chosenSnapshotFile" to bootMode.bootSnapshotId
     )
     updateKeyValueFile(avdFolder.resolve("config.ini"), updates)
 
@@ -109,17 +154,22 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
 /**
  * Information about an Emulator snapshot.
  */
-class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot) {
+class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot, val sizeOnDisk: Long) {
   /**
    * The ID of the snapshot.
    */
   val snapshotId = snapshotFolder.fileName.toString()
 
   /**
+   * True if the snapshot was created automatically when the emulator shut down.
+   */
+  val isQuickBoot = snapshotId == QUICK_BOOT_SNAPSHOT_ID
+
+  /**
    * The name of the snapshot to be used in the UI. May be different from the name of the snapshot folder.
    */
   val displayName: String
-    get() = snapshot.logicalName.nullize() ?: snapshotId
+    get() = if (isQuickBoot) "Quickboot (auto-saved)" else snapshot.logicalName.nullize() ?: snapshotId
 
   /**
    * The screenshot file containing an image of the device screen when the snapshot was taken.
@@ -128,15 +178,57 @@ class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot) {
     get() = snapshotFolder.resolve("screenshot.png")
 
   /**
+   * Returns the creation time in milliseconds since epoch.
+   */
+  val creationTime: Long
+    get() = TimeUnit.SECONDS.toMillis(snapshot.creationTime)
+
+  /**
+   * Returns the description of the snapshot.
+   */
+  val description: String
+    get() = snapshot.description
+
+  /**
    * Indicates that the last attempt to load the snapshot was unsuccessful.
    */
   val failedToLoad: Boolean
     get() = snapshot.failedToLoadReasonCode != 0L
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as SnapshotInfo
+
+    if (snapshotFolder != other.snapshotFolder) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    return snapshotFolder.hashCode()
+  }
+}
+
+/**
+ * Creates a [BootMode] corresponding to the given boot snapshot. A null [bootSnapshot] value implies cold boot.
+ */
+fun createBootMode(bootSnapshot: SnapshotInfo?): BootMode {
+  return when (bootSnapshot?.snapshotId) {
+    null -> BootMode(BootType.COLD, null)
+    QUICK_BOOT_SNAPSHOT_ID -> BootMode(BootType.QUICK, null)
+    else -> BootMode(BootType.SNAPSHOT, bootSnapshot.snapshotId)
+  }
 }
 
 /**
  * Describes the snapshot, if any, used to start the Emulator.
  */
-data class BootMode(val bootType: BootType, val bootSnapshot: String?)
+data class BootMode(val bootType: BootType, val bootSnapshotId: String?)
 
 enum class BootType { COLD, QUICK, SNAPSHOT }
+
+const val QUICK_BOOT_SNAPSHOT_ID = "default_boot"
+
+private const val SNAPSHOT_PROTO_FILE = "snapshot.pb"

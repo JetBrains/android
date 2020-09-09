@@ -42,6 +42,7 @@ import java.awt.Container
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.text.Collator
 import javax.swing.JRootPane
 
 /**
@@ -62,6 +63,7 @@ internal class BootOptionsDialog(
   private lateinit var bootFromSnapshotRadio: JBRadioButton
   private lateinit var snapshotListCombo: ComboBox<SnapshotInfo>
   private var snapshotListUpdateCount = 0
+  private val snapshotComparator = compareBy(Collator.getInstance(), SnapshotInfo::displayName)
 
   /**
    * Creates contents of the dialog.
@@ -142,7 +144,7 @@ internal class BootOptionsDialog(
           // Focus came from outside of the current JVM.
           if (snapshotListUpdateCount > 0) {
             executeOnPooledThread {
-              val snapshots = snapshotManager.fetchSnapshotList()
+              val snapshots = snapshotManager.fetchSnapshotList(excludeQuickBoot = true)
               invokeLaterInAnyModalityState {
                 updateSnapshotList(snapshots)
               }
@@ -174,9 +176,9 @@ internal class BootOptionsDialog(
   }
 
   private fun updateSnapshotList(snapshots: List<SnapshotInfo>) {
-    val selectedId = if (snapshotListUpdateCount == 0) bootMode.bootSnapshot else snapshotListModel.selected?.snapshotId
+    val selectedId = if (snapshotListUpdateCount == 0) bootMode.bootSnapshotId else snapshotListModel.selected?.snapshotId
     snapshotListModel.removeAll()
-    snapshotListModel.addAll(0, snapshots)
+    snapshotListModel.addAll(0, snapshots.sortedWith(snapshotComparator))
     snapshotListModel.selectedItem = snapshots.find { it.snapshotId == selectedId }
     bootFromSnapshotRadio.isEnabled = snapshots.isNotEmpty()
     snapshotListUpdateCount++
