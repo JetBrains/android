@@ -447,7 +447,13 @@ class AgpUpgradeRefactoringProcessor(
     showUsageView(viewDescriptor, factory, usages)
   }
 
-  var additionalPreviewActions : List<Action> = listOf()
+  var backFromPreviewAction : Action? = null
+    set(value) {
+      backFromPreviewAction?.let { additionalPreviewActions.remove(it) }
+      field = value
+      value?.let { additionalPreviewActions.add(it) }
+    }
+  private var additionalPreviewActions : MutableList<Action> = mutableListOf()
 
   // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
   // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
