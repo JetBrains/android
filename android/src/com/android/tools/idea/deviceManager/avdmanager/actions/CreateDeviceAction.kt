@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.deviceManager
+package com.android.tools.idea.deviceManager.avdmanager.actions
 
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.ui.layout.panel
+import com.android.tools.idea.deviceManager.avdmanager.ConfigureDeviceModel
+import java.awt.event.ActionEvent
 
-class DeviceManagerToolWindow(toolWindow: ToolWindow) {
-  val content = panel {
-    row {
-      label("Device Manager")
-    }
+/**
+ * Create a new [com.android.sdklib.devices.Device]
+ */
+class CreateDeviceAction : DeviceUiAction {
+  constructor(provider: DeviceProvider) : super(provider, "Create")
+
+  constructor(provider: DeviceProvider, text: String) : super(provider, text)
+
+  override fun isEnabled(): Boolean = true
+
+  override fun actionPerformed(e: ActionEvent) {
+    showHardwareProfileWizard(ConfigureDeviceModel(provider))
   }
 }

@@ -110,8 +110,8 @@ class AndroidVirtualDevice(
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    myProgressStep!!.progressIndicator.isIndeterminate = true
-    myProgressStep!!.progressIndicator.text = "Creating Android virtual device"
+    myProgressStep.progressIndicator.isIndeterminate = true
+    myProgressStep.progressIndicator.text = "Creating Android virtual device"
     installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
     try {
       val avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdkHandler), sdkHandler)

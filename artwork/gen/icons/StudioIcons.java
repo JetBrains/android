@@ -45,6 +45,8 @@ public class StudioIcons {
     public static final Icon CLEAR = load("/studio/icons/common/clear.svg"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.svg"); // 16x16
     public static final Icon CROP = load("/studio/icons/common/crop.svg"); // 16x16
+    public static final Icon CIRCLE_GREEN = load("/studio/icons/common/circle_green.svg"); // 10x10
+    public static final Icon CIRCLE_RED = load("/studio/icons/common/circle_red.svg"); // 10x10
     public static final Icon DELETE = load("/studio/icons/common/delete.svg"); // 16x16
     public static final Icon EDIT = load("/studio/icons/common/edit.svg"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.svg"); // 16x16
