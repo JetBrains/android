@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.model.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_class = "com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorModelTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
@@ -28,14 +29,12 @@ iml_module(
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/.idea/libraries:javax.activation",
-        "//tools/idea/.idea/libraries:jaxb-api",
-        "//tools/idea/.idea/libraries:jaxb-runtime",
-        "//tools/idea/.idea/libraries:javax.annotation-api",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
         "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
     ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -49,6 +48,10 @@ iml_module(
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
 
