@@ -37,8 +37,6 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
-import com.android.tools.idea.npw.ui.ActivityGallery;
-import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -66,6 +64,7 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -105,8 +104,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
   private JBLabel myAppCompatHelp;
-  private JBLabel myTemplateIconTitle;
-  private JBLabel myTemplateIconDetail;
+  private JBLabel myTemplateTitle;
+  private JBLabel myTemplateDetail;
+  private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
@@ -277,20 +277,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   }
 
   private void setTemplateThumbnail(@NotNull Template template) {
-    setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
-  }
+    myTemplateTitle.setText(template.getName());
+    myTemplateDetail.setText("<html>" + template.getDescription() + "</html>");
 
-  private void setTemplateThumbnail(@Nullable TemplateIcon icon, @NotNull String name, @NotNull String description) {
-    if (icon != null) {
-      icon.cropBlankWidth();
-      icon.setHeight(256);
-      myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(name);
-
-      myTemplateIconDetail.setText("<html>" + description + "</html>");
+    String documentationUrl = template.getDocumentationUrl();
+    if (documentationUrl != null) {
+      myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
+      myDocumentationLink.setHyperlinkTarget(documentationUrl);
     }
-    myTemplateIconTitle.setVisible(icon != null);
-    myTemplateIconDetail.setVisible(icon != null);
+    myDocumentationLink.setVisible(documentationUrl != null);
   }
 
   private void updateAppCompatCheckBox() {
