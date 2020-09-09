@@ -162,21 +162,48 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
-  fun testQueryHistoryMaxSize() {
+  fun testQueryHistoryDoesNotContainDuplicateEntries() {
     // Prepare
-    val sqlStatement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
-    `when`(mockDatabaseConnection.query(sqlStatement)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    val sqlStatement1 = SqliteStatement(SqliteStatementType.SELECT, "SELECT1")
+    val sqlStatement2 = SqliteStatement(SqliteStatementType.SELECT, "SELECT2")
+    val sqlStatement3 = SqliteStatement(SqliteStatementType.SELECT, "SELECT1")
+    `when`(mockDatabaseConnection.query(sqlStatement1)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement2)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement3)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
     sqliteEvaluatorController.setUp()
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
-    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
 
     // Assert
-    verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT", "SELECT", "SELECT", "SELECT", "SELECT"))
+    verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT1", "SELECT2", "fake query"))
+  }
+
+  fun testQueryHistoryMaxSize() {
+    // Prepare
+    val sqlStatement1 = SqliteStatement(SqliteStatementType.SELECT, "SELECT1")
+    val sqlStatement2 = SqliteStatement(SqliteStatementType.SELECT, "SELECT2")
+    val sqlStatement3 = SqliteStatement(SqliteStatementType.SELECT, "SELECT3")
+    val sqlStatement4 = SqliteStatement(SqliteStatementType.SELECT, "SELECT4")
+    val sqlStatement5 = SqliteStatement(SqliteStatementType.SELECT, "SELECT5")
+    `when`(mockDatabaseConnection.query(sqlStatement1)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement2)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement3)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement4)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.query(sqlStatement5)).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement1))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement2))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement3))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement4))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, sqlStatement5))
+
+    // Assert
+    verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT5", "SELECT4", "SELECT3", "SELECT2", "SELECT1"))
   }
 
   fun testEvaluateSqlActionQueryFailure() {
