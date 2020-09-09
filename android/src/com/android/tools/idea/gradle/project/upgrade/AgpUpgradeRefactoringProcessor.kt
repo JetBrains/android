@@ -72,9 +72,12 @@ import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
+import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
@@ -97,6 +100,8 @@ import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
+import com.intellij.usages.ConfigurableUsageTarget
+import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -375,6 +380,13 @@ class AgpUpgradeRefactoringProcessor(
 
     val initialElements = viewDescriptor.elements
     val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements)
+      .map {
+        when (val action = backFromPreviewAction) {
+          null -> WrappedUsageTarget(it) as UsageTarget
+          else -> WrappedConfigurableUsageTarget(it, action) as UsageTarget
+        }
+      }
+      .toArray(UsageTarget.EMPTY_ARRAY)
     val convertUsagesRef = Ref<Array<Usage>>()
     if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
         {
@@ -1323,6 +1335,70 @@ class WrappedPsiElement(
 
   // The target of our navigation will be the realElement.
   override fun getTargetElement(): PsiElement = realElement
+}
+
+/**
+ * The UsageView (preview) window includes a toolbar ribbon, which itself includes a settings button if:
+ * - the refactoring usageViewDescriptor contains at least one target, and;
+ * - the target is a ConfigurableUsageTarget.
+ *
+ * In order to work around the bug in the UsageView leading to inconsistent tree views when findUsages is re-executed, we always have
+ * a target, generating [PsiElement2UsageTargetAdapter]s from our [WrappedPsiElement]s.  However: the PsiElement2UsageTargetAdapter
+ * implements [ConfigurableUsageTarget], which leads to a settings icon even if our refactoring has no meaningful settings; and the
+ * implementation of showSettings() on [PsiElement2UsageTargetAdapter] in any case does not do what we want, in a non-overrideable way.
+ *
+ * Therefore, instead of using raw [PsiElement2UsageTargetAdapter]s, we wrap them in one of these delegating classes: one which implements
+ * [UsageTarget], for use when there is no suitable showSettings() action, and one which implements [ConfigurableUsageTarget], when there
+ * is.
+ */
+private class WrappedUsageTarget(
+  private val usageTarget: PsiElement2UsageTargetAdapter
+): PsiElementUsageTarget by usageTarget,
+   TypeSafeDataProvider by usageTarget,
+   PsiElementNavigationItem by usageTarget,
+   ItemPresentation by usageTarget,
+   UsageTarget by usageTarget {
+  // We need these overrides (here and in WrappedConfigurableUsageTarget) because of multiple implementations
+  override fun canNavigate() = usageTarget.canNavigate()
+  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+  override fun getName() = usageTarget.getName()
+  override fun findUsages() = usageTarget.findUsages()
+  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
+  // We need these because otherwise the default methods get called
+  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
+    usageTarget.highlightUsages(file, editor, clearHighlights)
+  override fun isReadOnly() = usageTarget.isReadOnly()
+  override fun getFiles() = usageTarget.getFiles()
+  override fun update() = usageTarget.update()
+}
+
+private class WrappedConfigurableUsageTarget(
+  private val usageTarget: PsiElement2UsageTargetAdapter,
+  private val showSettingsAction: Action
+): PsiElementUsageTarget by usageTarget,
+   TypeSafeDataProvider by usageTarget,
+   PsiElementNavigationItem by usageTarget,
+   ItemPresentation by usageTarget,
+   ConfigurableUsageTarget by usageTarget {
+  override fun canNavigate() = usageTarget.canNavigate()
+  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+  override fun getName() = usageTarget.getName()
+  override fun findUsages() = usageTarget.findUsages()
+  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
+
+  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
+    usageTarget.highlightUsages(file, editor, clearHighlights)
+  override fun isReadOnly() = usageTarget.isReadOnly()
+  override fun getFiles() = usageTarget.getFiles()
+  override fun update() = usageTarget.update()
+
+  override fun showSettings() = showSettingsAction.actionPerformed(null)
 }
 
 /**
