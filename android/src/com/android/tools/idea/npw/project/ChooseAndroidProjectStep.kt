@@ -82,7 +82,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     newProjectModuleModel = NewProjectModuleModel(model)
     val renderModel = newProjectModuleModel!!.extraRenderTemplateModel
     return listOf(
-      ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
+      if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+        ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
+      } else {
+        com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
+      },
       ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
