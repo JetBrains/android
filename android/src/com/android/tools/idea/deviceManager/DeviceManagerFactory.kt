@@ -16,18 +16,39 @@
 package com.android.tools.idea.deviceManager
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
+import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentFactory;
 import icons.StudioIcons
+import javax.swing.JComponent
+
+// It should match id in a corresponding .xml
+const val DEVICE_MANAGER_ID = "Device Manager"
+const val emulatorTabName = "Emulator"
+const val physicalTabName = "Physical"
+const val deviceGroupsTabName = "Device Groups"
 
 class DeviceManagerFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val deviceManagerToolWindow = DeviceManagerToolWindow(toolWindow)
+    val emulatorTab = EmulatorTab(project, toolWindow)
+    val physicalTab = PhysicalTab(project, toolWindow)
+    val deviceGroupsTab = DeviceGroupsTab(project, toolWindow)
     val contentFactory = ContentFactory.SERVICE.getInstance();
-    val content = contentFactory.createContent(deviceManagerToolWindow.content, "", false);
-    toolWindow.contentManager.addContent(content)
+
+    fun createTab(content: JComponent, name: String) {
+      val c = contentFactory.createContent(content, name, false);
+      toolWindow.contentManager.addContent(c)
+    }
+
+    createTab(emulatorTab.content, emulatorTabName)
+    createTab(physicalTab.content, physicalTabName)
+    createTab(deviceGroupsTab.content, deviceGroupsTabName)
 
     // FIXME(qumeric): create and use custom icon
     toolWindow.apply {
@@ -36,7 +57,26 @@ class DeviceManagerFactory : ToolWindowFactory {
       isShowStripeButton = false
       stripeTitle = "Device Manager"
     }
+
+    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
   override fun isApplicable(project: Project): Boolean = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()
+}
+
+private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
+
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
+    val contentManager = window.contentManager
+    val dialogPanels = contentManager.contents.filter { it.component is DialogPanel }
+    if (!window.isVisible) {
+      contentManager.removeAllContents(true)
+      ResourceManagerTracking.logPanelCloses()
+    } else {
+      dialogPanels.forEach {
+        // TODO(qumeric):
+      }
+    }
+  }
 }
