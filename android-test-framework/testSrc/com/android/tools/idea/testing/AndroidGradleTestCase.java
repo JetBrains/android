@@ -499,7 +499,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
   }
 
-  private static String getEmbeddedJdk8Path() throws IOException {
+  protected static String getEmbeddedJdk8Path() throws IOException {
     String sourcesRoot = StudioPathManager.getSourcesRoot();
     String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
     String relativePath = toSystemDependentName(jdkDevPath);
