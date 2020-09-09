@@ -316,7 +316,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewNativeCppActivityWithKotlin() {
-    checkCreateTemplate("Native C++", withKotlin)
+    checkCreateTemplate("Native C++", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Fragment templates ---
