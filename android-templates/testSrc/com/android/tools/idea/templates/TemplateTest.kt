@@ -387,7 +387,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFullscreenFragmentWithKotlin() {
-    checkCreateTemplate("Fullscreen Fragment", withKotlin)
+    checkCreateTemplate("Fullscreen Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -407,7 +407,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewGoogleAdMobFragmentWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin)
+    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
