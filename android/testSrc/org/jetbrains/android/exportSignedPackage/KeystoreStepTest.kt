@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
@@ -38,12 +39,24 @@ class KeystoreStepTest : LightPlatformTestCase() {
   private lateinit var facets: MutableList<AndroidFacet>
   private lateinit var myAndroidFacet1: AndroidFacet
   private lateinit var myAndroidFacet2: AndroidFacet
+
+  private val mockitoCleaner = MockitoThreadLocalsCleaner()
+
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(project, testRootDisposable)
     facets = ArrayList()
     myAndroidFacet1 = AndroidFacet(module, AndroidFacet.NAME, AndroidFacetConfiguration())
     myAndroidFacet2 = AndroidFacet(module, AndroidFacet.NAME, AndroidFacetConfiguration())
+    mockitoCleaner.setup()
+  }
+
+  override fun tearDown() {
+    try {
+      mockitoCleaner.cleanupAndTearDown()
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testEnableEncryptedKeyExportFlagFalse() {
