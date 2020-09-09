@@ -405,7 +405,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(imageBytes))
           .setFormat(ImageFormat.newBuilder()
-            .setFormat(request.format)
+            .setFormat(ImgFormat.RGBA8888)
             .setWidth(rotatedImage.width)
             .setHeight(rotatedImage.height)
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
