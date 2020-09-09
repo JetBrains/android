@@ -17,16 +17,21 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.IdeInfo
+import com.intellij.build.BuildContentManager
+import com.intellij.notification.NotificationGroup.Companion.toolWindowGroup
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Embedded Emulator constants. */
 
 const val EMULATOR_TOOL_WINDOW_ID = "Android Emulator"
 
-val EMULATOR_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
+val EMULATOR_TOOL_WINDOW_TITLE
+  get() = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
 @JvmField val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
+
+@JvmField internal val EMULATOR_TOOL_WINDOW_NOTIFICATION_GROUP = toolWindowGroup("Android Emulator", BuildContentManager.TOOL_WINDOW_ID)

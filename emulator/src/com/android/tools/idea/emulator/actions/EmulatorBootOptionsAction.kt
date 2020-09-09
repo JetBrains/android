@@ -40,7 +40,7 @@ class EmulatorBootOptionsAction : AbstractEmulatorAction() {
       invokeLater {
         showDialogAndSave(project, bootMode, snapshotsFuture, snapshotManager)
       }
-      snapshotsFuture.set(snapshotManager.fetchSnapshotList())
+      snapshotsFuture.set(snapshotManager.fetchSnapshotList(excludeQuickBoot = true))
     }
   }
 
