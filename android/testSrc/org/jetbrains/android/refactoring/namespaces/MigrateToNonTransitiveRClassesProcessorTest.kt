@@ -179,10 +179,6 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       Manifest.getMainManifest(AndroidFacet.getInstance(libModule)!!)!!.`package`.value = "com.example.lib"
       Manifest.getMainManifest(AndroidFacet.getInstance(sublibModule)!!)!!.`package`.value = "com.example.sublib"
     }
-
-    // TODO(b/152019651): Investigate why AndroidManifestIndex causes a timeout in this test without this.
-    FileDocumentManager.getInstance().saveAllDocuments()
-    FileBasedIndex.getInstance().ensureUpToDate(AndroidManifestIndex.NAME, project, null)
   }
 
   fun testMiddleModule_Java() {
