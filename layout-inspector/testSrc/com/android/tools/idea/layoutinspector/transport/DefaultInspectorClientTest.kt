@@ -97,6 +97,50 @@ class DefaultInspectorClientTest {
     assertThat(client.isConnected).isTrue()
   }
 
+  @Test
+  fun testViewDebugAttributesApplicationPackageSetAndReset() {
+    transportRule.attach()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isEqualTo("myProcess")
+    transportRule.inspectorClient.disconnect().get()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isNull()
+    assertThat(transportRule.debugViewAttributesChanges).isEqualTo(2)
+  }
+
+  @Test
+  fun testViewDebugAttributesApplicationPackageOverriddenAndReset() {
+    transportRule.withDebugViewAttributesApplicationPackage("com.example.another-app").attach()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isEqualTo("myProcess")
+    transportRule.inspectorClient.disconnect().get()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isNull()
+    assertThat(transportRule.debugViewAttributesChanges).isEqualTo(2)
+  }
+
+  @Test
+  fun testViewDebugAttributesApplicationPackageNotOverriddenIfMatching() {
+    transportRule.withDebugViewAttributesApplicationPackage("myProcess").attach()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isEqualTo("myProcess")
+    transportRule.inspectorClient.disconnect().get()
+    assertThat(transportRule.debugViewAttributes).isNull()
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isEqualTo("myProcess")
+    assertThat(transportRule.debugViewAttributesChanges).isEqualTo(0)
+  }
+
+  @Test
+  fun testViewDebugAttributesNotOverridden() {
+    transportRule.withDebugViewAttributes("1").attach()
+    assertThat(transportRule.debugViewAttributes).isEqualTo("1")
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isNull()
+    transportRule.inspectorClient.disconnect().get()
+    assertThat(transportRule.debugViewAttributes).isEqualTo("1")
+    assertThat(transportRule.debugViewAttributesApplicationPackage).isNull()
+    assertThat(transportRule.debugViewAttributesChanges).isEqualTo(0)
+  }
+
   private fun createEvent(
     window1: ViewNode,
     vararg otherWindows: ViewNode
