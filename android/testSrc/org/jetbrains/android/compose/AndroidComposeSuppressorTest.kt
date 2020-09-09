@@ -45,7 +45,7 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
       @Composable
       fun MyView() {}
 
-      fun <weak_warning descr="Function name'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
+      fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
       """.trimIndent()
     )
 
