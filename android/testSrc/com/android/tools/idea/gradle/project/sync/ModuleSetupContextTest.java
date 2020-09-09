@@ -22,12 +22,10 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.idea.Bombed;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import java.util.Calendar;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,11 +40,14 @@ public class ModuleSetupContextTest extends HeavyPlatformTestCase {
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
   }
 
-  @Bombed(year = 2020, month = Calendar.SEPTEMBER, day = 8, user = "Mikhail Mazurkevich", description = "Please recheck this test with strict mode in workspace model")
   public void testGetModuleFinder() {
-    Module app = createGradleModule("app");
-    Module lib = createGradleModule("lib");
-    Module javaLib = createGradleModule("javaLib");
+    Module app = createModule("app");
+    Module lib = createModule("lib");
+    Module javaLib = createModule("javaLib");
+
+    createModuleFacet(app);
+    createModuleFacet(lib);
+    createModuleFacet(javaLib);
 
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(app, myModelsProvider);
 
@@ -71,17 +72,12 @@ public class ModuleSetupContextTest extends HeavyPlatformTestCase {
     assertNull(project.getUserData(MODULES_BY_GRADLE_PATH_KEY));
   }
 
-  @NotNull
-  private Module createGradleModule(@NotNull String name) {
-    Module module = createModule(name);
-
+  private void createModuleFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
-    GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), name, null);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = ":" + name;
+    GradleFacet facet = facetManager.createFacet(GradleFacet.getFacetType(), module.getName(), null);
+    facet.getConfiguration().GRADLE_PROJECT_PATH = ":" + module.getName();
 
     ModifiableFacetModel facetModel = myModelsProvider.getModifiableFacetModel(module);
     facetModel.addFacet(facet);
-
-    return module;
   }
 }
