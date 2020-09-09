@@ -22,6 +22,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCom
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -115,7 +116,8 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
     } ?: works
   }
 
-  private fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
+  @VisibleForTesting
+  fun handleEvent(eventBytes: ByteArray) = synchronized(lock) {
     val event = Event.parseFrom(eventBytes)
     when (event.oneOfCase!!) {
       Event.OneOfCase.WORK_ADDED -> {
