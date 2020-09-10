@@ -58,13 +58,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.LayoutManager;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
@@ -75,20 +69,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
-import javax.swing.Action;
-import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollBar;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -454,7 +435,7 @@ public class MoreFontsDialog extends DialogWrapper {
       for (int i = 0; i < batches; i ++) {
         final int batchStart = i * FONT_CACHE_LOAD_BATCH_SIZE;
         final int batchEnd = Math.min((i + 1) * FONT_CACHE_LOAD_BATCH_SIZE, familyCount);
-        ForkJoinPool.commonPool().submit(() -> {
+        ForkJoinPool.commonPool().execute(() -> {
           for (int j = batchStart; j < batchEnd; j++) {
             FontFamily family = families.get(j);
             Font addedFont = getMenuFontFromFamily(family);

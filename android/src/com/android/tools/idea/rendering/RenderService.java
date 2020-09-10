@@ -324,7 +324,7 @@ public class RenderService implements Disposable {
    * This method will run the passed action asynchronously
    */
   public static void runAsyncRenderAction(@NotNull Runnable runnable) {
-    ourRenderingExecutor.submit(runnable);
+    ourRenderingExecutor.execute(runnable);
   }
 
   /**
