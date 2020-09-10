@@ -72,7 +72,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
     else if (currentClientReference.compareAndSet(client, DisconnectedClient)) {
       layoutInspectorModel.updateConnection(DisconnectedClient)
       ApplicationManager.getApplication().invokeLater {
-        if (currentClient === client) {
+        if (currentClient === DisconnectedClient) {
           layoutInspectorModel.update(null, 0, listOf<Any>(), 0)
         }
       }
