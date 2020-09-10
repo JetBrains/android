@@ -132,7 +132,11 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet.addAllElements(FIELD_METHOD_WILDCARDS.map { LookupElementBuilder.create(it.key).withTailText(" " + it.value) })
+        resultSet.addAllElements(FIELD_METHOD_WILDCARDS.map {
+          LookupElementBuilder.create(it.key).withTailText(" " + it.value).withInsertHandler { context, _ ->
+            context.document.replaceString(context.startOffset - 1, context.tailOffset, it.key)
+          }
+        })
       }
     }
 
