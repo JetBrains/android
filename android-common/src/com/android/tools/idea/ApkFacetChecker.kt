@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 
 /**
- * This class exists so that modules outside of core can use ApkFacet without depending on it directly.
+ * This class exists so that is possible to check if a module is associate to ApkFacet or not, without depending on ApkFacet directly.
  * It is initialized by ApkFacetCheckerInitializer, that exists in core and has direct access to ApkFacet.
  */
 class ApkFacetChecker(private val myHasApkFacet: (module: Module) -> Boolean) {

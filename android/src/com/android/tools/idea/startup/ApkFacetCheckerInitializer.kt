@@ -22,10 +22,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 
 /**
- * Class that initializes ApkFacetChecker as soon as the project is opened and stores it in the project.
- * By doing this we can expose [ApkFacet] outside of core, without having other modules depending on core.
+ * Class that initializes [ApkFacetChecker] as soon as the project is opened and stores it in the project.
  */
-class ApkFacetProviderInitializer : ProjectManagerListener {
+class ApkFacetCheckerInitializer : ProjectManagerListener {
   companion object {
     private val checker: (module: Module) -> Boolean = { ApkFacet.getInstance(it) != null }
   }
