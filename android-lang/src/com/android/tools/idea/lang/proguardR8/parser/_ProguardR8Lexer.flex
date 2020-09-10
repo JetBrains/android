@@ -175,6 +175,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "synchronized"                         { return SYNCHRONIZED; }
   "native"                               { return NATIVE; }
   "strictfp"                             { return STRICTFP; }
+  "synthetic"                            { return SYNTHETIC; }
   "<methods>"                            { return _METHODS_; }
   "public"                               { return PUBLIC; }
   "final"                                { return FINAL; }
