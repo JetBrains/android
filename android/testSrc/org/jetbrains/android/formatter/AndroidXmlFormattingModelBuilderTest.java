@@ -1,20 +1,18 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
+import static com.android.tools.idea.testing.Facets.withAndroidFacet;
+
 import com.android.tools.idea.util.AndroidTestPaths;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.LanguageFormatting;
 import com.intellij.lang.xml.XMLLanguage;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidXmlFormattingModelBuilderTest extends LightJavaCodeInsightFixtureTestCase {
@@ -38,28 +36,6 @@ public class AndroidXmlFormattingModelBuilderTest extends LightJavaCodeInsightFi
       AndroidXmlFormattingModelBuilder androidFormatter = findAndroidXmlFormattingModelBuilder();
       assertTrue(androidFormatter.isEngagedToFormat(psiFile));
     });
-  }
-
-  private void withAndroidFacet(Module module, Runnable runnable) {
-    AndroidFacetType facetType = AndroidFacet.getFacetType();
-    final AndroidFacet f = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null);
-
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      final ModifiableFacetModel model = FacetManager.getInstance(module).createModifiableModel();
-      model.addFacet(f);
-      model.commit();
-    });
-
-    try {
-      runnable.run();
-    }
-    finally {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        final ModifiableFacetModel model = FacetManager.getInstance(module).createModifiableModel();
-        model.removeFacet(f);
-        model.commit();
-      });
-    }
   }
 
   @NotNull

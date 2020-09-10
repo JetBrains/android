@@ -965,6 +965,10 @@ public class IdeSdks {
     return sdks;
   }
 
+  public boolean hasConfiguredAndroidSdk(){
+    return getAndroidSdkPath() != null;
+  }
+
   /**
    * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
    */
