@@ -19,7 +19,11 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetConfiguration;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,6 +31,21 @@ import org.jetbrains.annotations.NotNull;
 
 public final class Facets {
   private Facets() {
+  }
+
+  public static void withAndroidFacet(Module module, Runnable runnable) {
+    final AndroidFacet f = createAndAddAndroidFacet(module);
+
+    try {
+      runnable.run();
+    }
+    finally {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        final ModifiableFacetModel model = FacetManager.getInstance(module).createModifiableModel();
+        model.removeFacet(f);
+        model.commit();
+      });
+    }
   }
 
   @NotNull

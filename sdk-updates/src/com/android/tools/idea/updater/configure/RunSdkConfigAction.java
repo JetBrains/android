@@ -18,11 +18,9 @@ package com.android.tools.idea.updater.configure;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -30,8 +28,6 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -46,14 +42,8 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    if (e == null || ActionPlaces.WELCOME_SCREEN.equals(e.getPlace()) || IdeInfo.getInstance().isAndroidStudio()) {
-      Presentation presentation = e == null ? getTemplatePresentation() : e.getPresentation();
-      presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
-    }
-    else {
-      Project project = e.getProject();
-      e.getPresentation().setEnabled(project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
-    }
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
   }
 
   @Override
@@ -61,7 +51,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.SDK_MANAGER)
                                    .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
-    if (e != null && ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
+    if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Invoked from Welcome Screen, might not have an SDK setup yet
       AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdkData == null) {

@@ -56,7 +56,7 @@
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="false" keep-content="true" overrides="true">
+    <group id="AndroidToolsGroup" icon="AndroidIcons.Android" popup="false" keep-content="true" overrides="true">
       <add-to-group group-id="ToolsMenu" anchor="first"/>
     </group>
 

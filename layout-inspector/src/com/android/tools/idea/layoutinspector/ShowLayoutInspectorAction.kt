@@ -16,20 +16,25 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.ui.enableLiveLayoutInspector
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.facet.ui.FacetDependentToolWindow
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-class ShowLayoutInspectorAction : AnAction(
+class ShowLayoutInspectorAction : DumbAwareAction(
   AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
   AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
   StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
 ) {
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = enableLiveLayoutInspector
+
+    val project = e.project
+    e.presentation.isEnabled = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
