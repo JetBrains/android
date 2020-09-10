@@ -324,7 +324,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     int modifiersEx = 0;
 
     interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+    assertEquals(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE),
                  interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
@@ -346,7 +346,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
                          screenView.getY() + screenView.getScaledContentSize().height,
                          0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+    Mockito.verify(surface).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE));
   }
 
   protected InteractionManager setupLinearLayoutCursorTest() {
@@ -402,7 +402,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     int modifiersEx = 0;
 
     interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
-    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+    assertEquals(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE),
                  interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
@@ -424,7 +424,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
                          screenView.getY() + screenView.getScaledContentSize().height,
                          0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+    Mockito.verify(surface).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE));
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
