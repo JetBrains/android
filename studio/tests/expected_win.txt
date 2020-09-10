@@ -1222,6 +1222,9 @@ android-studio/plugins/android/lib/device-art-resources/wear_round/layout
 android-studio/plugins/android/lib/device-art-resources/wear_round/mask.png
 android-studio/plugins/android/lib/device-art-resources/wear_round/select.png
 android-studio/plugins/android/lib/device-art-resources/wear_round/shadow.png
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/device_bezel.png
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/hardware.ini
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/layout
 android-studio/plugins/android/lib/device-art-resources/wear_square/back.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/fore.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/layout
