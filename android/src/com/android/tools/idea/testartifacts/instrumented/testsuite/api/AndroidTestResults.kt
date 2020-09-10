@@ -170,3 +170,8 @@ fun AndroidTestResults.getRoundedTotalDuration(): Duration {
     Duration.ofSeconds(duration.seconds)
   }
 }
+
+data class AndroidTestResultsTreeNode(
+  val results: AndroidTestResults,
+  val childResults: Sequence<AndroidTestResultsTreeNode>
+)
