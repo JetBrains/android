@@ -222,7 +222,7 @@ public class HeapDumpCaptureObjectTest {
     CountDownLatch addFilterLatch = new CountDownLatch(1);
     capture.addInstanceFilter(leakFilter.get(), Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
-    capture.getInstanceFilterExecutor().submit(addFilterLatch::countDown);
+    capture.getInstanceFilterExecutor().execute(addFilterLatch::countDown);
     addFilterLatch.await();
     List<InstanceObject> filtredInstances = capture.getInstances().collect(Collectors.toList());
     Truth.assertThat(filtredInstances).hasSize(7);
@@ -236,7 +236,7 @@ public class HeapDumpCaptureObjectTest {
     CountDownLatch removeFilterLatch = new CountDownLatch(1);
     capture.removeInstanceFilter(leakFilter.get(), Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
-    capture.getInstanceFilterExecutor().submit(removeFilterLatch::countDown);
+    capture.getInstanceFilterExecutor().execute(removeFilterLatch::countDown);
     removeFilterLatch.await();
     Truth.assertThat(capture.getInstances().count()).isEqualTo(allInstanceCount);
   }

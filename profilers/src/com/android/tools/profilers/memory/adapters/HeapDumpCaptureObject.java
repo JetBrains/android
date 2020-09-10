@@ -363,7 +363,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
     myCurrentInstanceFilters.add(filterToAdd);
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
-    myExecutorService.submit(() -> {
+    myExecutorService.execute(() -> {
       // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
       Set<InstanceObject> currentMatchedInstances = new HashSet<>();
       for (HeapSet heap : myHeapSets.values()) {
@@ -392,7 +392,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
     myCurrentInstanceFilters.remove(filterToRemove);
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
-    myExecutorService.submit(() -> {
+    myExecutorService.execute(() -> {
       // Run the remaining analyzers on the full instance set, since we don't know the the instances that have been removed from the
       // HeapSets using the filter that we are removing.
       Set<InstanceObject> allInstances = new HashSet<>(myInstanceIndex.size());
