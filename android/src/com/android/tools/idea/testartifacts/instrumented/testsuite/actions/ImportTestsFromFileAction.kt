@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testartifacts.instrumented.testsuite.export.importAndroidTestMatrixResultXmlFile
 import com.intellij.execution.testframework.sm.SmRunnerBundle
 import com.intellij.execution.testframework.sm.runner.history.actions.AbstractImportTestsAction
 import com.intellij.icons.AllIcons
@@ -48,8 +49,17 @@ class ImportTestsFromFileAction: AnAction(SmRunnerBundle.message("sm.test.runner
       } else {
         object: AbstractImportTestsAction(null, null, null) {
           override fun getFile(project: Project): VirtualFile? = file
+          override fun actionPerformed(e: AnActionEvent) {
+            val project = e.project ?: return
+            val virtualFile = getFile(project) ?: return
+            if (!importAndroidTestMatrixResultXmlFile(project, virtualFile)) {
+              // Fallback to the standard IntelliJ test import action.
+              super.actionPerformed(e)
+            }
+          }
         }.actionPerformed(e)
       }
     }
   }
 }
+

@@ -18,6 +18,9 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
+import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromHistoryAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
@@ -28,14 +31,19 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.dualView.TreeTableView
+import com.intellij.util.TimeoutUtil.sleep
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -545,6 +553,50 @@ class AndroidTestSuiteViewTest {
 
     assertThat(view.myDetailsView.isDeviceSelectorListVisible).isTrue()
     assertThat(view.myResultsTableView.showTestStatusColumn).isTrue()
+  }
+
+  @Test
+  fun testHistoryIsSavedAfterTestExecution() {
+    fun getTestHistory(): List<ImportTestsFromHistoryAction> {
+      val mockEvent = mock<AnActionEvent>()
+      `when`(mockEvent.project).thenReturn(projectRule.project)
+      return ImportTestGroup().getChildren(mockEvent).map {
+        it as? ImportTestsFromHistoryAction
+      }.filterNotNull()
+    }
+
+    val initialTestHistoryCount = getTestHistory().size
+
+    val runConfig = mock<RunConfiguration>().apply {
+      `when`(name).thenReturn("mockRunConfig")
+      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    }
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig)
+
+    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
+      view.onTestCaseStarted(device, suite, testcase)
+      testcase.result = result
+      view.onTestCaseFinished(device, suite, testcase)
+    }
+
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(ProgressIndicatorUtils.withTimeout(30000) {
+      while(getTestHistory().size == initialTestHistoryCount) {
+        ProgressManager.checkCanceled()
+        sleep(100)
+      }
+      true
+    }).isTrue()
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {

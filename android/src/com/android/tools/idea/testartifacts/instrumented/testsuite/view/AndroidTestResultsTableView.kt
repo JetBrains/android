@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedTotalDuration
@@ -116,8 +117,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     get() = myTableView.preferredSize.width
 
   @get:UiThread
-  val aggregatedTestResults: AndroidTestResults
-    get() = myModel.myRootAggregationRow
+  val rootResultsNode: AndroidTestResultsTreeNode = myModel.myRootAggregationRow.toAndroidTestResultsTreeNode()
 
   /**
    * Adds a device to the table.
@@ -1192,4 +1192,16 @@ private class AggregationRow(override val packageName: String = "",
   fun sort(comparator: Comparator<AndroidTestResults>) {
     (children as? Vector<AndroidTestResults>)?.sortWith(comparator)
   }
+}
+
+private fun AggregationRow.toAndroidTestResultsTreeNode(): AndroidTestResultsTreeNode {
+  return AndroidTestResultsTreeNode(this, sequence {
+    yieldAll(allChildren.mapNotNull {
+      when(it) {
+        is AndroidTestResultsRow -> AndroidTestResultsTreeNode(it, emptySequence())
+        is AggregationRow -> it.toAndroidTestResultsTreeNode()
+        else -> null
+      }
+    })
+  })
 }

@@ -319,7 +319,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
           && (executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID)
               || executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID))) {
-        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(), executor.getId());
+        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(), executor.getId(),
+                                               this);
         consoleView.attachToProcess(handler);
       } else {
         AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
