@@ -17,6 +17,7 @@ package com.android.tools.adtui.swing;
 
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.TreeWalker;
+import com.google.common.base.Predicates;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -169,22 +170,32 @@ public final class FakeUi {
   }
 
   /**
-   * Returns the first component satisfying the given predicate by doing breadth-first search
-   * starting from the root component, or null if no components satisfy the predicate.
+   * Returns the first component of the given type by doing breadth-first search starting from the root
+   * component, or null if no components satisfy the predicate.
    */
   @Nullable
-  public Component findComponent(@NotNull Predicate<Component> predicate) {
-    Deque<Container> queue = new ArrayDeque<>();
-    if (predicate.test(root)) {
-      return root;
+  public <T> T findComponent(@NotNull Class<T> type) {
+    return findComponent(type, Predicates.alwaysTrue());
+  }
+
+  /**
+   * Returns the first component of the given type satisfying the given predicate by doing breadth-first
+   * search starting from the root component, or null if no components satisfy the predicate.
+   */
+  @SuppressWarnings("unchecked")
+  @Nullable
+  public <T> T findComponent(@NotNull Class<T> type, @NotNull Predicate<T> predicate) {
+    if (type.isInstance(root) && predicate.test((T)root)) {
+      return (T)root;
     }
     if (root instanceof Container) {
+      Deque<Container> queue = new ArrayDeque<>();
       queue.add((Container)root);
       Container container;
       while ((container = queue.poll()) != null) {
         for (Component child : container.getComponents()) {
-          if (predicate.test(child)) {
-            return child;
+          if (type.isInstance(child) && predicate.test((T)child)) {
+            return (T)child;
           }
           if (child instanceof Container) {
             queue.add((Container)child);
