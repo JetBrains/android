@@ -23,10 +23,8 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.impl.BuildFolderPaths
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
-import com.android.ide.common.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
@@ -68,11 +66,10 @@ class AndroidModule private constructor(
       androidProject: AndroidProject,
       nativeAndroidProject: NativeAndroidProject?,
       nativeModule: NativeModule?,
-      buildFolderPaths: BuildFolderPaths
+      modelCache: ModelCache
     ): AndroidModule {
       val modelVersionString = safeGet(androidProject::getModelVersion, "")
       val modelVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
-      val modelCache = ModelCache.create(buildFolderPaths)
 
       val ideAndroidProject = modelCache.androidProjectFrom(androidProject)
       val idePrefetchedVariants =
