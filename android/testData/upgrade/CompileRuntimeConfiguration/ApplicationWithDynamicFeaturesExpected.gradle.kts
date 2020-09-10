@@ -41,7 +41,7 @@ dependencies {
     releaseApi("androidx.constraintlayout:constraintlayout:1.1.3")
     api("androidx.navigation:navigation-fragment-ktx:2.2.2")
     api("androidx.navigation:navigation-ui-ktx:2.2.2")
-    testApi("junit:junit:4.13")
-    androidTestApi("androidx.test.ext:junit:1.1.1")
+    testImplementation("junit:junit:4.13")
+    androidTestImplementation("androidx.test.ext:junit:1.1.1")
     androidTestRuntimeOnly("androidx.test.espresso:espresso-core:3.2.0")
 }
