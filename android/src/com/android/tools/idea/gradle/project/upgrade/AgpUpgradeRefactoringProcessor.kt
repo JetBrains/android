@@ -1399,11 +1399,11 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
  * Currently, the difference between these messages is simply that the Processor reports on the state of all its
  * Components, while each Component reports only on itself.
  */
-private fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int) {
+internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int? = null) {
   val processorEvent = UpgradeAssistantProcessorEvent.newBuilder()
     .setUpgradeUuid(uuid)
     .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).build())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).apply { usages?.let { setUsages(it) } }.build())
   processorEvent.addComponentInfo(classpathRefactoringProcessor.getComponentInfo())
   componentRefactoringProcessors.forEach {
     processorEvent.addComponentInfo(it.getComponentInfo())

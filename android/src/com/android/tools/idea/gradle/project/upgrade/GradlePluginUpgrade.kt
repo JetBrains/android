@@ -34,6 +34,7 @@ import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -193,6 +194,8 @@ private fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor
   }
   val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
     if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+      processor.trackProcessorUsage(FAILURE_PREDICTED)
+      LOG.warn("cannot upgrade: classpath processor is always a no-op")
       val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
       dialog.show()
       return@invokeAndWaitIfNeeded false
