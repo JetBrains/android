@@ -93,7 +93,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "image1")
 
     // Check EmulatorPowerButtonAction.
-    var button = ui.findComponent { it is ActionButton && it.action.templateText == "Power" } ?: throw AssertionError()
+    var button = ui.findComponent(ActionButton::class.java) { it.action.templateText == "Power" } ?: throw AssertionError()
     ui.mousePressOn(button)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -104,7 +104,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
     // Check EmulatorVolumeUpButtonAction.
-    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Up" } ?: throw AssertionError()
+    button = ui.findComponent(ActionButton::class.java) { it.action.templateText == "Volume Up" } ?: throw AssertionError()
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -115,7 +115,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
 
     // Check EmulatorVolumeDownButtonAction.
-    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Down" } ?: throw AssertionError()
+    button = ui.findComponent(ActionButton::class.java) { it.action.templateText == "Volume Down" } ?: throw AssertionError()
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")

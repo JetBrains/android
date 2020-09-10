@@ -86,9 +86,9 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val textField = checkNotNull(ui.findComponent { it is JTextField }) as JTextField
+      val textField = checkNotNull(ui.findComponent(JTextField::class.java))
       textField.text = "first snapshot"
-      val checkBox = checkNotNull(ui.findComponent { it is JCheckBox && it.text == "Boot from this snapshot" }) as JCheckBox
+      val checkBox = checkNotNull(ui.findComponent(JCheckBox::class.java) { it.text == "Boot from this snapshot" })
       checkBox.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")
@@ -109,14 +109,14 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val snapshotRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Boot from snapshot" }) as JRadioButton
+      val snapshotRadio = checkNotNull(ui.findComponent(JRadioButton::class.java) { it.text == "Boot from snapshot" })
       assertThat(snapshotRadio.isSelected).isTrue()
-      val comboBox = checkNotNull(ui.findComponent { it is JComboBox<*> }) as JComboBox<*>
+      val comboBox = checkNotNull(ui.findComponent(JComboBox::class.java))
       waitForCondition(2, TimeUnit.SECONDS) {
         comboBox.itemCount != 0
       }
       assertThat((comboBox.selectedItem as SnapshotInfo).displayName).isEqualTo("first snapshot")
-      val quickBootRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Quick boot (default)" }) as JRadioButton
+      val quickBootRadio = checkNotNull(ui.findComponent(JRadioButton::class.java) { it.text == "Quick boot (default)" })
       quickBootRadio.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")

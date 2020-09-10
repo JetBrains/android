@@ -41,6 +41,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JButton
+import javax.swing.JTextField
 
 class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
@@ -336,7 +337,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       phonePairingPinCode.forEachIndexed{ index, ch ->
         // Note: FakeUi keyboard does not emulate focus, so we need to focus each
         //       custom component individually
-        fakeUi.keyboard.setFocus(fakeUi.findComponent { c -> c.name == "PinCode-Digit-${index}" })
+        fakeUi.keyboard.setFocus(fakeUi.findComponent<JTextField> { c -> c.name == "PinCode-Digit-${index}" })
         fakeUi.keyboard.type(ch.toInt())
       }
 
@@ -393,9 +394,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   private inline fun <reified T: Component?> FakeUi.findComponent(crossinline predicate: (T) -> Boolean) : T {
-    return this.findComponent {
-      T::class.java.isInstance(it) && predicate(it as T)
-    } as T
+    return this.findComponent(T::class.java) { predicate(it as T) } as T
   }
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)

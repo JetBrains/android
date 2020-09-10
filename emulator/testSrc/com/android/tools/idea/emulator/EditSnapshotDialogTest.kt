@@ -55,13 +55,13 @@ class EditSnapshotDialogTest {
     createDialogAndInteractWithIt({ dialogWrapper.show() }) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
-      val nameField = checkNotNull(ui.findComponent { it is JTextField }) as JTextField
+      val nameField = checkNotNull(ui.findComponent(JTextField::class.java))
       nameField.text = "  magic moment  " // Leading and trailing spaces are used to test truncation.
 
-      val descriptionField = checkNotNull(ui.findComponent { it is JTextPane }) as JTextPane
+      val descriptionField = checkNotNull(ui.findComponent(JTextPane::class.java))
       descriptionField.text = "  This snapshot captures a truly magic moment  " // Leading and trailing spaces are used to test truncation.
 
-      val useToBootCheckbox = checkNotNull(ui.findComponent { it is JCheckBox }) as JCheckBox
+      val useToBootCheckbox = checkNotNull(ui.findComponent(JCheckBox::class.java))
       useToBootCheckbox.isSelected = true
 
       val okButton = rootPane.defaultButton
