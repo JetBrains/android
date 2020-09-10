@@ -390,8 +390,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
         val image = drawDisplayImage(w, h)
         val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
-        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 4)
-        val alpha = 0xFF.toByte()
+        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
         var i = 0
         for (y in 0 until rotatedImage.height) {
           for (x in 0 until rotatedImage.width) {
@@ -399,13 +398,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             imageBytes[i++] = (rgb ushr 16).toByte()
             imageBytes[i++] = (rgb ushr 8).toByte()
             imageBytes[i++] = rgb.toByte()
-            imageBytes[i++] = alpha
           }
         }
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(imageBytes))
           .setFormat(ImageFormat.newBuilder()
-            .setFormat(ImgFormat.RGBA8888)
+            .setFormat(ImgFormat.RGB888)
             .setWidth(rotatedImage.width)
             .setHeight(rotatedImage.height)
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
