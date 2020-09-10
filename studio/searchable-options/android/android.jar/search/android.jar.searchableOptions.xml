@@ -301,7 +301,6 @@
     <option name="analyze" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="memory" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="usage" path="ActionManager" hit="Analyze Memory Usage" />
-    <option name="android" path="ActionManager" hit="Android" />
     <option name="android" path="ActionManager" hit="Android Component" />
     <option name="component" path="ActionManager" hit="Android Component" />
     <option name="android" path="ActionManager" hit="Android Resource Directory" />
