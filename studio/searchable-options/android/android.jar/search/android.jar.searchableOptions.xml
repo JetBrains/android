@@ -412,6 +412,12 @@
     <option name="or" path="ActionManager" hit="Create or select an Emulator snapshot" />
     <option name="select" path="ActionManager" hit="Create or select an Emulator snapshot" />
     <option name="snapshot" path="ActionManager" hit="Create or select an Emulator snapshot" />
+    <option name="create" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="delete" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="load" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="or" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="rename" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="snapshots" path="ActionManager" hit="Create, load, rename or delete snapshots" />
     <option name="build" path="ActionManager" hit="Debug Without Build" />
     <option name="debug" path="ActionManager" hit="Debug Without Build" />
     <option name="without" path="ActionManager" hit="Debug Without Build" />
@@ -576,6 +582,8 @@
     <option name="s" path="ActionManager" hit="Make Module(s)" />
     <option name="make" path="ActionManager" hit="Make Project" />
     <option name="project" path="ActionManager" hit="Make Project" />
+    <option name="manage" path="ActionManager" hit="Manage Snapshots" />
+    <option name="snapshots" path="ActionManager" hit="Manage Snapshots" />
     <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
