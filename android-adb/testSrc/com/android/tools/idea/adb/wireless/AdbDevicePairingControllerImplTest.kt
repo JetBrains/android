@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
@@ -35,7 +36,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Component
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -83,7 +83,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
 
     override fun setUp() {
       super.setUp()
-      FakeUi.setPortableUiFont()
+      setPortableUiFont()
       enableHeadlessDialogs(testRootDisposable)
     }
 
@@ -337,12 +337,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       phonePairingPinCode.forEachIndexed{ index, ch ->
         // Note: FakeUi keyboard does not emulate focus, so we need to focus each
         //       custom component individually
-        fakeUi.keyboard.setFocus(fakeUi.findComponent<JTextField> { c -> c.name == "PinCode-Digit-${index}" })
+        fakeUi.keyboard.setFocus(fakeUi.getComponent<JTextField> { c -> c.name == "PinCode-Digit-${index}" })
         fakeUi.keyboard.type(ch.toInt())
       }
 
       // Click the "pair" button
-      val okButton = fakeUi.findComponent<JButton> { comp -> comp.text == "Pair" }
+      val okButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
       Truth.assertThat(okButton).isNotNull()
       fakeUi.clickOn(okButton)
 
@@ -385,16 +385,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       // We need to layout, since a new panel (for the pin code device) should have been added
       fakeUi.layout()
 
-      val pairButton = fakeUi.findComponent<JButton> { comp -> comp.text == "Pair" }
+      val pairButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
       Truth.assertThat(pairButton).isNotNull()
       createDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pinCodeDialog ->
         enterPinCode(pinCodeDialog, phonePairingPinCode)
       }
     }
-  }
-
-  private inline fun <reified T: Component?> FakeUi.findComponent(crossinline predicate: (T) -> Boolean) : T {
-    return this.findComponent(T::class.java) { predicate(it as T) } as T
   }
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)

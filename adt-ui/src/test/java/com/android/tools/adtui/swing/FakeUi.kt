@@ -13,72 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing;
+@file:JvmName("FakeUiUtil")
+package com.android.tools.adtui.swing
 
-import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.TreeWalker;
-import com.google.common.base.Predicates;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.testFramework.PlatformTestUtil;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.VolatileImage;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Enumeration;
-import java.util.function.Predicate;
-import javax.swing.UIManager;
-import javax.swing.plaf.FontUIResource;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.TreeWalker
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.testFramework.PlatformTestUtil
+import java.awt.Component
+import java.awt.Container
+import java.awt.GraphicsConfiguration
+import java.awt.GraphicsDevice
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.geom.AffineTransform
+import java.awt.image.BufferedImage
+import java.awt.image.ColorModel
+import java.util.ArrayDeque
+import java.util.Enumeration
+import java.util.function.Predicate
+import javax.swing.UIManager
+import javax.swing.plaf.FontUIResource
 
 /**
  * A utility class to interact with Swing components in unit tests.
+ *
+ * @param root the top-level component component
+ * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
  */
-public final class FakeUi {
-  public final FakeKeyboard keyboard;
-  public final FakeMouse mouse;
-  public final double screenScale;
+class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0) {
 
-  @NotNull
-  private final Component root;
+  @JvmField
+  val keyboard: FakeKeyboard = FakeKeyboard()
+  @JvmField
+  val mouse: FakeMouse = FakeMouse(this, keyboard)
 
-  /**
-   * Initializes the UI emulating a non-HiDPI screen.
-   *
-   * @param rootComponent the top-level component component
-   */
-  public FakeUi(@NotNull Component rootComponent) {
-    this(rootComponent, 1);
-  }
-
-  /**
-   * Initializes the UI emulating a HiDPI screen.
-   *
-   * @param rootComponent the top-level component component
-   * @param screenScale size of a virtual pixel in physical pixels
-   */
-  public FakeUi(@NotNull Component rootComponent, double screenScale) {
-    root = rootComponent;
-    this.screenScale = screenScale;
-    keyboard = new FakeKeyboard();
-    mouse = new FakeMouse(this, keyboard);
-    //noinspection FloatingPointEquality
-    if (screenScale != 1 && rootComponent.getParent() == null) {
-      // Applying graphics configuration involves reparenting, so don't do it for a component that already has a parent.
-      applyGraphicsConfiguration(new FakeGraphicsConfiguration(screenScale), root);
+  init {
+    if (screenScale != 1.0 && root.parent == null) {
+      // Applying graphics configuration involves re-parenting, so don't do it for a component that already has a parent.
+      applyGraphicsConfiguration(FakeGraphicsConfiguration(screenScale), root)
     }
-    root.setPreferredSize(root.getSize());
-    layout();
+    root.preferredSize = root.size
+    layout()
   }
 
   /**
@@ -88,289 +65,244 @@ public final class FakeUi {
    * Note: The constructor automatically forces a layout pass. You should only need to call this
    * method if you update the UI after constructing the FakeUi.
    */
-  public void layout() {
-    new TreeWalker(root).descendantStream().forEach(Component::doLayout);
+  fun layout() {
+    TreeWalker(root).descendantStream().forEach { obj: Component -> obj.doLayout() }
   }
 
   /**
    * Forces a re-layout of all components scoped by this FakeUi instance and dispatches all resulting
    * resizing events.
    */
-  public void layoutAndDispatchEvents() throws InterruptedException {
-    layout();
+  @Throws(InterruptedException::class)
+  fun layoutAndDispatchEvents() {
+    layout()
     // Allow resizing events to propagate.
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   /**
    * Renders the component and returns the image reflecting its appearance.
    */
-  @NotNull
-  public BufferedImage render() {
-    BufferedImage image = ImageUtils.createDipImage((int)(root.getWidth() * screenScale), (int)(root.getHeight() * screenScale),
-                                                    BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = image.createGraphics();
-    graphics.setTransform(AffineTransform.getScaleInstance(screenScale, screenScale));
-    root.printAll(graphics);
-    graphics.dispose();
-    return image;
+  fun render(): BufferedImage {
+    val image =
+        ImageUtils.createDipImage((root.width * screenScale).toInt(), (root.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+    val graphics = image.createGraphics()
+    graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
+    root.printAll(graphics)
+    graphics.dispose()
+    return image
   }
 
   /**
    * Dumps the content of the Swing tree to stderr.
    */
-  public void dump() {
-    dump(root, "");
+  fun dump() {
+    dump(root, "")
   }
 
-  private static void dump(@NotNull Component component, @NotNull String prefix) {
-    System.err.println(prefix + component.getClass().getSimpleName() + "@(" +
-                       component.getX() + ", " + component.getY() + ") [" +
-                       component.getSize().getWidth() + "x" + component.getSize().getHeight() + "]" +
-                       (isMouseTarget(component) ? " {*}" : ""));
-    if (component instanceof Container) {
-      Container container = (Container)component;
-      for (int i = 0; i < container.getComponentCount(); i++) {
-        dump(container.getComponent(i), prefix + "  ");
+  private fun dump(component: Component, prefix: String) {
+    System.err.println("$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
+                       "[${component.size.getWidth()}x${component.size.getHeight()}]" +
+                       if (isMouseTarget(component)) " {*}" else "")
+    if (component is Container) {
+      for (i in 0 until component.componentCount) {
+        dump(component.getComponent(i), "$prefix  ")
       }
     }
   }
 
-  @NotNull
-  public Component getRoot() {
-    return root;
-  }
-
-  @NotNull
-  public Point getPosition(@NotNull Component component) {
-    int rx = 0;
-    int ry = 0;
-    while (component != root) {
-      rx += component.getX();
-      ry += component.getY();
-      component = component.getParent();
+  fun getPosition(component: Component): Point {
+    var comp = component
+    var rx = 0
+    var ry = 0
+    while (comp !== root) {
+      rx += comp.x
+      ry += comp.y
+      comp = comp.parent
     }
-    return new Point(rx, ry);
+    return Point(rx, ry)
   }
 
-  @NotNull
-  public Point toRelative(@NotNull Component component, int x, int y) {
-    Point position = getPosition(component);
-    return new Point(x - position.x, y - position.y);
+  fun toRelative(component: Component, x: Int, y: Int): Point {
+    val position = getPosition(component)
+    return Point(x - position.x, y - position.y)
   }
 
   /**
    * Simulates pressing and releasing the left mouse button over the given component.
    */
-  public void clickOn(@NotNull Component component) throws InterruptedException {
-    Point location = getPosition(component);
-    mouse.click(location.x, location.y);
+  @Throws(InterruptedException::class)
+  fun clickOn(component: Component) {
+    val location = getPosition(component)
+    mouse.click(location.x, location.y)
     // Allow events to propagate.
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-  }
-
-  /**
-   * Returns the first component of the given type by doing breadth-first search starting from the root
-   * component, or null if no components satisfy the predicate.
-   */
-  @Nullable
-  public <T> T findComponent(@NotNull Class<T> type) {
-    return findComponent(type, Predicates.alwaysTrue());
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   /**
    * Returns the first component of the given type satisfying the given predicate by doing breadth-first
    * search starting from the root component, or null if no components satisfy the predicate.
    */
-  @SuppressWarnings("unchecked")
-  @Nullable
-  public <T> T findComponent(@NotNull Class<T> type, @NotNull Predicate<T> predicate) {
-    if (type.isInstance(root) && predicate.test((T)root)) {
-      return (T)root;
+  @Suppress("UNCHECKED_CAST")
+  fun <T> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? {
+    if (type.isInstance(root) && predicate(root as T)) {
+      return root
     }
-    if (root instanceof Container) {
-      Deque<Container> queue = new ArrayDeque<>();
-      queue.add((Container)root);
-      Container container;
-      while ((container = queue.poll()) != null) {
-        for (Component child : container.getComponents()) {
-          if (type.isInstance(child) && predicate.test((T)child)) {
-            return (T)child;
+    if (root is Container) {
+      val queue = ArrayDeque<Container>()
+      queue.add(root)
+      var container: Container
+      while (queue.poll().also { container = it } != null) {
+        for (child in container.components) {
+          if (type.isInstance(child) && predicate(child as T)) {
+            return child
           }
-          if (child instanceof Container) {
-            queue.add((Container)child);
+          if (child is Container) {
+            queue.add(child)
           }
         }
       }
     }
-    return null;
+    return null
   }
 
-  @Nullable
-  private static RelativePoint findTarget(@NotNull Component component, int x, int y) {
+  inline fun <reified T: Component?> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
+    return findComponent(T::class.java) { predicate(it) }
+  }
+
+  fun <T> findComponent(type: Class<T>, predicate: Predicate<T>): T? {
+    return findComponent(type) { predicate.test(it) }
+  }
+
+  inline fun <reified T: Component?> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
+    return findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
+  }
+
+  fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T {
+    return findComponent(type) { predicate.test(it) } ?: throw AssertionError()
+  }
+
+  fun targetMouseEvent(x: Int, y: Int): RelativePoint? {
+    return findTarget(root, x, y)
+  }
+
+  private fun findTarget(component: Component, x: Int, y: Int): RelativePoint? {
     if (component.contains(x, y)) {
-      if (component instanceof Container) {
-        Container container = (Container)component;
-        for (int i = 0; i < container.getComponentCount(); i++) {
-          Component child = container.getComponent(i);
-          RelativePoint target = findTarget(child, x - child.getX(), y - child.getY());
+      if (component is Container) {
+        for (i in 0 until component.componentCount) {
+          val child = component.getComponent(i)
+          val target = findTarget(child, x - child.x, y - child.y)
           if (target != null) {
-            return target;
+            return target
           }
         }
       }
       if (isMouseTarget(component)) {
-        return new RelativePoint(component, x, y);
+        return RelativePoint(component, x, y)
       }
     }
-    return null;
+    return null
   }
 
-  private static boolean isMouseTarget(@NotNull Component target) {
-    return target.getMouseListeners().length > 0 ||
-           target.getMouseMotionListeners().length > 0 ||
-           target.getMouseWheelListeners().length > 0;
-  }
-
-  @Nullable
-  public RelativePoint targetMouseEvent(int x, int y) {
-    return findTarget(root, x, y);
-  }
-
-  /**
-   * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
-   */
-  public static void setPortableUiFont() {
-    Enumeration<?> keys = UIManager.getLookAndFeelDefaults().keys();
-    while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
-      Object value = UIManager.get(key);
-      if (value instanceof FontUIResource) {
-        FontUIResource font = (FontUIResource)value;
-        UIManager.put(key, new FontUIResource("Droid Sans", font.getStyle(), font.getSize()));
-      }
-    }
+  private fun isMouseTarget(target: Component): Boolean {
+    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty()
   }
 
   /**
    * IJ doesn't always refresh the state of the toolbar buttons. This method forces it to refresh.
    */
-  public void updateToolbars() {
-    updateToolbars(root);
+  fun updateToolbars() {
+    updateToolbars(root)
   }
 
-  private static void updateToolbars(@NotNull Component component) {
-    if (component instanceof ActionButton) {
-      ActionButton button = (ActionButton)component;
-      button.updateUI();
-      button.updateIcon();
-    }
-
-    if (component instanceof ActionToolbar) {
-      ActionToolbar toolbar = (ActionToolbar)component;
-      toolbar.updateActionsImmediately();
-    }
-
-    if (component instanceof Container) {
-      for (Component child : ((Container)component).getComponents()) {
-        updateToolbars(child);
-      }
-    }
-  }
-
-  private static void applyGraphicsConfiguration(@NotNull GraphicsConfiguration config, @NotNull Component component) {
+  private fun applyGraphicsConfiguration(config: GraphicsConfiguration, component: Component) {
     // Work around package-private visibility of the Component.setGraphicsConfiguration method.
-    Container container = new Container() {
-      @Override
-      public GraphicsConfiguration getGraphicsConfiguration() {
-        return config;
+    val container: Container = object : Container() {
+      override fun getGraphicsConfiguration(): GraphicsConfiguration {
+        return config
       }
-    };
-    container.add(component);
+    }
+    container.add(component)
   }
 
-  public static class RelativePoint {
-    public final Component component;
-    public final int x;
-    public final int y;
-
-    public RelativePoint(Component component, int x, int y) {
-      this.component = component;
-      this.x = x;
-      this.y = y;
+  private fun updateToolbars(component: Component) {
+    if (component is ActionButton) {
+      component.updateUI()
+      component.updateIcon()
     }
-  }
-
-  private static class FakeGraphicsConfiguration extends GraphicsConfiguration {
-    private final AffineTransform transform;
-    private final GraphicsDevice device;
-
-    protected FakeGraphicsConfiguration(double scale) {
-      transform = AffineTransform.getScaleInstance(scale, scale);
-      device = new FakeGraphicsDevice(this);
+    if (component is ActionToolbar) {
+      val toolbar = component as ActionToolbar
+      toolbar.updateActionsImmediately()
     }
-
-    @Override
-    public GraphicsDevice getDevice() {
-      return device;
-    }
-
-    @Override
-    public VolatileImage createCompatibleVolatileImage(int width, int height) {
-      return super.createCompatibleVolatileImage(width, height);
-    }
-
-    @Override
-    public ColorModel getColorModel() {
-      return ColorModel.getRGBdefault();
-    }
-
-    @Override
-    public ColorModel getColorModel(int transparency) {
-      return ColorModel.getRGBdefault();
-    }
-
-    @Override
-    public AffineTransform getDefaultTransform() {
-      return transform;
-    }
-
-    @Override
-    public AffineTransform getNormalizingTransform() {
-      return transform;
-    }
-
-    @Override
-    public Rectangle getBounds() {
-      return new Rectangle();
+    if (component is Container) {
+      for (child in component.components) {
+        updateToolbars(child)
+      }
     }
   }
 
-  private static class FakeGraphicsDevice extends GraphicsDevice {
-    private final GraphicsConfiguration defaultConfiguration;
+  class RelativePoint(@JvmField val component: Component, @JvmField val x: Int, @JvmField val y: Int)
 
-    FakeGraphicsDevice(GraphicsConfiguration config) {
-      defaultConfiguration = config;
+  private class FakeGraphicsConfiguration(scale: Double) : GraphicsConfiguration() {
+
+    private val transform: AffineTransform = AffineTransform.getScaleInstance(scale, scale)
+    private val device: GraphicsDevice = FakeGraphicsDevice(this)
+
+    override fun getDevice(): GraphicsDevice {
+      return device
     }
 
-    @Override
-    public int getType() {
-      return TYPE_RASTER_SCREEN;
+    override fun getColorModel(): ColorModel {
+      return ColorModel.getRGBdefault()
     }
 
-    @Override
-    public String getIDstring() {
-      return "FakeDevice";
+    override fun getColorModel(transparency: Int): ColorModel {
+      return ColorModel.getRGBdefault()
     }
 
-    @Override
-    public GraphicsConfiguration[] getConfigurations() {
-      return new GraphicsConfiguration[0];
+    override fun getDefaultTransform(): AffineTransform {
+      return transform
     }
 
-    @Override
-    public GraphicsConfiguration getDefaultConfiguration() {
-      return defaultConfiguration;
+    override fun getNormalizingTransform(): AffineTransform {
+      return transform
+    }
+
+    override fun getBounds(): Rectangle {
+      return Rectangle()
+    }
+  }
+
+  private class FakeGraphicsDevice constructor(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
+
+    override fun getType(): Int {
+      return TYPE_RASTER_SCREEN
+    }
+
+    override fun getIDstring(): String {
+      return "FakeDevice"
+    }
+
+    override fun getConfigurations(): Array<GraphicsConfiguration> {
+      return emptyArray()
+    }
+
+    override fun getDefaultConfiguration(): GraphicsConfiguration {
+      return defaultConfiguration
+    }
+  }
+}
+
+/**
+ * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+ */
+fun setPortableUiFont() {
+  val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
+  while (keys.hasMoreElements()) {
+    val key = keys.nextElement()
+    val value = UIManager.get(key)
+    if (value is FontUIResource) {
+      UIManager.put(key, FontUIResource("Droid Sans", value.style, value.size))
     }
   }
 }
