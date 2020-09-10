@@ -258,10 +258,15 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
             # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
+            "timeout": "long",
+        },
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
@@ -1294,10 +1299,15 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
             # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
+            "timeout": "long",
+        },
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
