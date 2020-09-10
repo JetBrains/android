@@ -21,9 +21,22 @@ import java.awt.Cursor
  * The custom cursors cannot be created in headless environment thus we cannot test them by bazel.
  * For testing purpose, replace the [AdtUiCursorType] with built-in cursors to make them testable.
  * Be aware that the replacing cursors must not be used during the testing, otherwise the test result may be false positive.
+ *
+ * By default, the resizing cursors are replaced with the built-in ones.
  */
 class TestAdtUiCursorsProvider : AdtUiCursorsProvider {
   private val replacedCursorMap = mutableMapOf<AdtUiCursorType, Cursor>()
+
+  init {
+    replacedCursorMap[AdtUiCursorType.SW_RESIZE] = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.SE_RESIZE] = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.NW_RESIZE] = Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.NE_RESIZE] = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.N_RESIZE] = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.S_RESIZE] = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.W_RESIZE] = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)
+    replacedCursorMap[AdtUiCursorType.E_RESIZE] = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR)
+  }
 
   override fun getCursor(type: AdtUiCursorType): Cursor = replacedCursorMap.getOrDefault(type, Cursor.getDefaultCursor())
 

@@ -35,6 +35,15 @@ enum class AdtUiCursorType(val icon: Icon, internal val hotSpotMapFun: (Buffered
   GRAB(StudioIcons.Cursors.GRAB),
   MOVE(StudioIcons.Cursors.MOVE),
   GRABBING(StudioIcons.Cursors.GRABBING),
+  // Some of resizing cursors may use same icons. Do not merge them since they are for different purposes.
+  SW_RESIZE(StudioIcons.Cursors.NESW_RESIZE),
+  SE_RESIZE(StudioIcons.Cursors.NWSE_RESIZE),
+  NW_RESIZE(StudioIcons.Cursors.NWSE_RESIZE),
+  NE_RESIZE(StudioIcons.Cursors.NESW_RESIZE),
+  N_RESIZE(StudioIcons.Cursors.NS_RESIZE),
+  S_RESIZE(StudioIcons.Cursors.NS_RESIZE),
+  W_RESIZE(StudioIcons.Cursors.EW_RESIZE),
+  E_RESIZE(StudioIcons.Cursors.EW_RESIZE),
 }
 
 /**
