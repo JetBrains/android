@@ -25,6 +25,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
@@ -104,6 +105,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     buildModel: GradleBuild
   ): List<AndroidModule> {
     val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+    val modelCache = ModelCache.create(buildFolderPaths)
     val androidModules: MutableList<AndroidModule> = mutableListOf()
     buildModel.projects.forEach { gradleProject ->
       val androidProject = findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)
@@ -118,7 +120,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           androidProject,
           nativeAndroidProject,
           nativeModule,
-          buildFolderPaths
+          modelCache
         )
         modulesById[module.id] = module
         androidModules.add(module)
