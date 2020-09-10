@@ -1152,6 +1152,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     fun computeReplacementName(name: String, compileReplacement: String): String? {
       return when {
         name == "compile" -> compileReplacement
+        name.endsWith("Compile") && (name.startsWith("test") || name.startsWith("androidTest")) ->
+          name.removeSuffix("Compile").appendCapitalized("implementation")
         name.endsWith("Compile") -> name.removeSuffix("Compile").appendCapitalized(compileReplacement)
         name == "runtime" -> "runtimeOnly"
         name.endsWith("Runtime") -> "${name}Only"

@@ -29,8 +29,8 @@ dependencies {
     implementation(project(":app"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib:${rootProject.extra["kotlin_version"]}")
     api("androidx.core:core-ktx:1.2.0")
-    testApi("junit:junit:4.13")
-    androidTestApi("androidx.test.ext:junit:1.1.1")
+    testImplementation("junit:junit:4.13")
+    androidTestImplementation("androidx.test.ext:junit:1.1.1")
     androidTestRuntimeOnly("androidx.test.espresso:espresso-core:3.2.0")
     androidTestImplementation("androidx.annotation:annotation:1.1.0")
 }
