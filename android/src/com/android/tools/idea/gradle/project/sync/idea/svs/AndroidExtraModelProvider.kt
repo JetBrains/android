@@ -24,12 +24,14 @@ import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
+import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -56,6 +58,13 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       populateProjectSyncIssues(controller, androidModules)
 
       androidModules.forEach { it.deliverModels(consumer) }
+    }
+    catch (e: AndroidSyncException) {
+      consumer.consume(
+        buildModel,
+        IdeAndroidSyncError(e.message.orEmpty(), e.stackTrace.map { it.toString() }),
+        IdeAndroidSyncError::class.java
+      )
     }
     finally {
       // TODO(b/166240410): We DO ignore cross-included-build dependencies when selecting build variants to sync. This needs to be fixed.
@@ -94,6 +103,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     buildModel: GradleBuild
   ): List<AndroidModule> {
+    val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
     val androidModules: MutableList<AndroidModule> = mutableListOf()
     buildModel.projects.forEach { gradleProject ->
       val androidProject = findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)
@@ -103,7 +113,13 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           if (nativeModule != null) null
           else findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)
 
-        val module = AndroidModule(gradleProject, androidProject, nativeAndroidProject, nativeModule)
+        val module = AndroidModule.create(
+          gradleProject,
+          androidProject,
+          nativeAndroidProject,
+          nativeModule,
+          buildFolderPaths
+        )
         modulesById[module.id] = module
         androidModules.add(module)
       }
@@ -131,7 +147,10 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     androidModules: List<AndroidModule>
   ) {
     androidModules.forEach { module ->
-      module.projectSyncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
+      val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
+      if (syncIssues != null) {
+        module.setSyncIssues(syncIssues.syncIssues)
+      }
     }
   }
 
@@ -190,9 +209,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    *  2. For Android library modules, it chooses the variant needed by dependent modules. For example, if variant "debug" in module "app"
    *     depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
    *     (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.
-   *
-   *  All of the [Variant] or [NativeVariantAbi] models obtained from Gradle are stored in the [AndroidModule]s [VariantGroup]
-   *  once this method returns.
    */
   fun chooseSelectedVariants(
     controller: BuildController,
@@ -265,18 +281,16 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     val module = modulesById[moduleConfiguration.id] ?: return null // TODO(b/166240410): Composite build modules are not be resolved here.
     val variant = syncAndAddVariant(controller, module, moduleConfiguration.variant) ?: return null
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
-    return variant.mainArtifact.dependencies.libraries.mapNotNull { library ->
-      val dependencyProject = library.project ?: return@mapNotNull null
-      val dependencyVariant = library.projectVariant ?: return@mapNotNull null
-      ModuleConfiguration(createUniqueModuleId(library?.buildId ?: "", dependencyProject), dependencyVariant, abi)
+    return variant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
+      val dependencyProject = moduleDependency.projectPath ?: return@mapNotNull null
+      val dependencyVariant = moduleDependency.variant ?: return@mapNotNull null
+      ModuleConfiguration(createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject), dependencyVariant, abi)
     }
   }
 
   /**
    * Query Gradle for the [Variant] of the [module] with the given [variantName]. Gradle's parameterized tooling API is used in order
    * to pass the name of the variant and whether or not sources should be generated to the ModelBuilder via the [ModelBuilderParameter].
-   *
-   * This method adds the resulting [Variant] to the [module]s [VariantGroup] if not null. If no model is returned, nothing is added.
    *
    * @param[module] the module to request a [Variant] for
    * @param[controller] the Gradle [BuildController] that is queried for the model
@@ -286,10 +300,11 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     controller: BuildController,
     module: AndroidModule,
     variantName: String
-  ): Variant? = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
-    parameter.setVariantName(variantName)
-  }?.also {
-    module.addVariant(it)
+  ): IdeVariant? {
+    val variant = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
+      parameter.setVariantName(variantName)
+    }
+    return variant?.let { module.addVariant(it) }
   }
 
   /**
@@ -297,8 +312,6 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    * to pass the name of the variant and the abi name to the ModelBuilder via the [ModelBuilderParameter].
    *
    * If the passed [module] doesn't have a NativeAndroidProject then this method does nothing.
-   *
-   * This method adds the resulting [NativeVariantAbi] to the [module]s [VariantGroup] if not null. If no model is returned, nothing is added.
    *
    * @param[module] the module to request a [Variant] for
    * @param[controller] the Gradle [BuildController] that is queried for the model
@@ -321,7 +334,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     val abiNames = module.getVariantAbiNames(variantName) ?: return null
 
     val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-                       ?: throw IllegalStateException("No valid Native abi found to request!")
+                       ?: throw AndroidSyncException("No valid Native abi found to request!")
 
     if (module.nativeModelVersion == NativeModelVersion.V2) {
       // V2 model is available, trigger the sync with V2 API

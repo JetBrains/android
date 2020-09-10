@@ -117,16 +117,16 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     sb.append("<br/><ul>");
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
       if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
-        sb.append("<li>").append(p.getCommandName());
+        sb.append("<li>").append(p.getCommandName()).append(".");
         String url = p.getReadMoreUrl();
         if (url != null) {
-          sb.append(" [<a href='").append(url).append("'>read more</a>]");
+          sb.append(" <a href='").append(url).append("'>Read more</a>.");
         }
         sb.append("</li>");
       }
     }
     if (myProcessor.getClasspathRefactoringProcessor().isEnabled()) {
-      sb.append("<li>").append(myProcessor.getClasspathRefactoringProcessor().getCommandName()).append("</li>");
+      sb.append("<li>").append(myProcessor.getClasspathRefactoringProcessor().getCommandName()).append(".").append("</li>");
     }
     sb.append("</ul>");
     myEditorPane.setText(sb.toString());

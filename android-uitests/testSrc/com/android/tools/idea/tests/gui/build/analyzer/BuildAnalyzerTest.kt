@@ -89,7 +89,9 @@ class BuildAnalyzerTest {
   }
 
   private fun verifyTasksPage(view: BuildAnalyzerViewFixture, tasksPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
-    tasksPage.tree.requireSelection(0)
+    tasksPage.tree.requireNoSelection()
+    tasksPage.findDetailsPanel("empty-details").requireVisible()
+
     tasksPage.tree.selectPath(":app:sample1")
     tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
@@ -123,7 +125,10 @@ class BuildAnalyzerTest {
   }
 
   private fun verifyWarningsPage(warningsPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
-    warningsPage.tree.requireSelection("Always-Run Tasks")
+    warningsPage.tree.requireNoSelection()
+    warningsPage.findDetailsPanel("empty-details").requireVisible()
+
+    warningsPage.tree.selectPath("Always-Run Tasks")
     warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS").requireVisible()
 
     warningsPage.tree.focus()

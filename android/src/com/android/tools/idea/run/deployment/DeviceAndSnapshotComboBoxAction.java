@@ -70,8 +70,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
-  @NotNull
-  private final BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+  private final @NotNull BiFunction<Project, List<Device>, DialogWrapper> myNewSelectMultipleDevicesDialog;
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
@@ -90,8 +89,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     @Nullable
     private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
-    @Nullable
-    private BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+    private @Nullable BiFunction<Project, List<Device>, DialogWrapper> myNewSelectMultipleDevicesDialog;
 
     @Nullable
     private Function<Project, RunManager> myGetRunManager;
@@ -101,7 +99,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       myDevicesGetterGetter = project -> null;
       myDevicesSelectedServiceGetInstance = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
-      myNewModifyDeviceSetDialog = (project, devices) -> null;
+      myNewSelectMultipleDevicesDialog = (project, devices) -> null;
       myGetRunManager = project -> null;
     }
 
@@ -129,9 +127,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return this;
     }
 
-    @NotNull
-    Builder setNewModifyDeviceSetDialog(@NotNull BiFunction<Project, List<Device>, DialogWrapper> newModifyDeviceSetDialog) {
-      myNewModifyDeviceSetDialog = newModifyDeviceSetDialog;
+    @NotNull Builder setNewSelectMultipleDevicesDialog(
+      @NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
+      myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
       return this;
     }
 
@@ -154,7 +152,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
-           .setNewModifyDeviceSetDialog(ModifyDeviceSetDialog::new)
+           .setNewSelectMultipleDevicesDialog(SelectMultipleDevicesDialog::new)
            .setGetRunManager(RunManager::getInstance));
   }
 
@@ -172,8 +170,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert builder.myExecutionTargetServiceGetInstance != null;
     myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
 
-    assert builder.myNewModifyDeviceSetDialog != null;
-    myNewModifyDeviceSetDialog = builder.myNewModifyDeviceSetDialog;
+    assert builder.myNewSelectMultipleDevicesDialog != null;
+    myNewSelectMultipleDevicesDialog = builder.myNewSelectMultipleDevicesDialog;
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
@@ -243,19 +241,17 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Collections.singleton(device.getKey());
   }
 
-  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
-    myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(multipleDevicesSelected);
-    setActiveTarget(project, getSelectedDeviceKeys(project));
-  }
-
-  void modifyDeviceSet(@NotNull Project project) {
+  void selectMultipleDevices(@NotNull Project project) {
     List<Device> devices = myDevicesGetterGetter.apply(project).get().orElseThrow(AssertionError::new);
 
-    if (!myNewModifyDeviceSetDialog.apply(project, devices).showAndGet()) {
+    if (!myNewSelectMultipleDevicesDialog.apply(project, devices).showAndGet()) {
       return;
     }
 
-    setMultipleDevicesSelected(project, !myDevicesSelectedServiceGetInstance.apply(project).isDialogSelectionEmpty());
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+    service.setMultipleDevicesSelectedInComboBox(!service.isDialogSelectionEmpty());
+
+    setActiveTarget(project, getSelectedDeviceKeys(project));
   }
 
   @NotNull

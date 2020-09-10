@@ -65,6 +65,7 @@ import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.HeavyPlatformTestCase
@@ -1408,5 +1409,38 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(databaseInspectorView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+  }
+
+  fun testSchemaIsFiltered() {
+    // Prepare
+    val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file")))
+    val schema = SqliteSchema(listOf(
+      SqliteTable("android_metadata", emptyList(), null, false),
+      SqliteTable("sqlite_sequence", emptyList(), null, false))
+    )
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    runDispatching { databaseRepository.addDatabaseConnection(fileDatabaseId, mockDatabaseConnection) }
+
+    // Act
+    runDispatching { databaseInspectorController.addSqliteDatabase(fileDatabaseId) }
+
+    // Assert
+    assertEquals(SqliteSchema(emptyList()), databaseInspectorModel.getDatabaseSchema(fileDatabaseId))
+  }
+
+  fun testRefreshButtonDisabledWhenFileDatabaseIsOpen() {
+    // Prepare
+    val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file")))
+    val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
+    val schema = SqliteSchema(emptyList())
+
+    // Act
+    databaseInspectorModel.addDatabaseSchema(fileDatabaseId, schema)
+    databaseInspectorModel.removeDatabaseSchema(fileDatabaseId)
+    databaseInspectorModel.addDatabaseSchema(liveDatabaseId, schema)
+
+    // Assert
+    orderVerifier.verify(databaseInspectorView).setRefreshButtonState(false)
+    orderVerifier.verify(databaseInspectorView).setRefreshButtonState(true)
   }
 }

@@ -62,9 +62,10 @@ interface TasksDataPageModel {
 
   /**
    * Takes [TasksPageId] from the provided node and selects it as described in [selectPageById].
+   * Null means changing to empty selection.
    * Notifies listener if model state changes.
    */
-  fun selectNode(tasksTreeNode: TasksTreeNode)
+  fun selectNode(tasksTreeNode: TasksTreeNode?)
 
   /**
    * Selects node in a tree to the one with provided id.
@@ -175,8 +176,9 @@ class TasksDataPageModelImpl(
     notifyModelChanges()
   }
 
-  override fun selectNode(tasksTreeNode: TasksTreeNode) {
-    selectedPageId = tasksTreeNode.descriptor.pageId
+  override fun selectNode(tasksTreeNode: TasksTreeNode?) {
+    val currentGrouping = selectedGrouping
+    selectedPageId = tasksTreeNode?.descriptor?.pageId ?: TasksPageId.emptySelection(currentGrouping)
     notifyModelChanges()
   }
 
@@ -194,7 +196,8 @@ class TasksDataPageModelImpl(
     modelUpdatedListener = listener
   }
 
-  override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? = treeStructure.pageIdToNode[pageId]?.descriptor
+  override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? =
+    treeStructure.pageIdToNode[pageId]?.descriptor
 
   private fun notifyModelChanges() {
     if (modelChanged) {
@@ -211,7 +214,7 @@ private class TasksTreeStructure(
 
   val pageIdToNode: MutableMap<TasksPageId, TasksTreeNode> = mutableMapOf()
 
-  var treeRoot = DefaultMutableTreeNode()
+  val treeRoot = DefaultMutableTreeNode()
 
   var treeStats: TreeStats = TreeStats()
 

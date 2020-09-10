@@ -53,9 +53,10 @@ interface WarningsDataPageModel {
   /**
    * Selects node in a tree to provided.
    * Provided node object should be the one created in this model and exist in the trees it holds.
+   * Null means changing to empty selection.
    * Notifies listener if model state changes.
    */
-  fun selectNode(warningsTreeNode: WarningsTreeNode)
+  fun selectNode(warningsTreeNode: WarningsTreeNode?)
 
   /** Looks for the tree node by it's pageId and selects it as described in [selectNode] if found. */
   fun selectPageById(warningsPageId: WarningsPageId)
@@ -128,8 +129,8 @@ class WarningsDataPageModelImpl(
   override val isEmpty: Boolean
     get() = reportData.totalIssuesCount == 0
 
-  override fun selectNode(warningsTreeNode: WarningsTreeNode) {
-    selectedPageId = warningsTreeNode.descriptor.pageId
+  override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
+    selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
     notifyModelChanges()
   }
 

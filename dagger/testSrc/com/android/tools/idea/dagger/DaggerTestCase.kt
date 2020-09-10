@@ -121,6 +121,26 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       public @interface ViewModelInject {}
       """.trimIndent()
     )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package dagger;
+
+      public interface Lazy<T> {
+        T get();
+      }
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package javax.inject;
+
+      public interface Provider<T> { 
+        T get();
+      }
+      """.trimIndent()
+    )
   }
 
   override fun tearDown() {

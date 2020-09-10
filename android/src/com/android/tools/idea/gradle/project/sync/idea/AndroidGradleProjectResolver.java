@@ -31,6 +31,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
+import static com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModelsKt.ideAndroidSyncErrorToException;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.displayForceUpdatesDisabledMessage;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
@@ -49,18 +50,11 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
-import static com.intellij.util.containers.ContainerUtil.map;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.ProjectSyncIssues;
-import com.android.builder.model.v2.models.ndk.NativeModule;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.impl.BuildFolderPaths;
-import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
@@ -80,6 +74,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V1NdkModel;
+import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
@@ -91,8 +86,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels;
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelConverter;
-import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidSyncError;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -143,7 +137,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 import kotlin.Unit;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -152,7 +145,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
-import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
@@ -173,8 +165,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
-
-  @Nullable private ModelCache modelCache;
   private boolean myShouldExportDependencies;
 
   public AndroidGradleProjectResolver() {
@@ -198,10 +188,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return nextResolver.createModule(gradleModule, projectDataNode);
     }
 
-    AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null) {
-      GradleVersion modelVersion = getModelVersion(androidProject.getModelVersion());
-      validateModelVersion(modelVersion, androidProject.getModelVersion());
+    IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
+    if (androidModels != null) {
+      String modelVersionString = androidModels.getAndroidProject().getModelVersion();
+      GradleVersion modelVersion = getModelVersion(modelVersionString);
+      validateModelVersion(modelVersion, modelVersionString);
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
@@ -209,16 +200,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return null;
     }
 
-    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
-    if (androidProject != null) {
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidModels);
+    if (androidModels != null) {
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
     }
-    patchLanguageLevels(moduleDataNode, gradleModule, androidProject);
+    patchLanguageLevels(moduleDataNode, gradleModule, androidModels != null ? androidModels.getAndroidProject() : null);
 
     return moduleDataNode;
   }
 
-  private void patchLanguageLevels(DataNode<ModuleData> moduleDataNode, @NotNull IdeaModule gradleModule, AndroidProject androidProject) {
+  private void patchLanguageLevels(DataNode<ModuleData> moduleDataNode,
+                                   @NotNull IdeaModule gradleModule,
+                                   @Nullable IdeAndroidProject androidProject) {
     DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
     if (javaModuleData == null) {
       return;
@@ -287,22 +280,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    *
    * @param moduleNode     the module node to attach the models to
    * @param gradleModule   the module in question
-   * @param androidProject the android project obtained from this module (null is none found)
+   * @param androidModels  the android project models obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
                                                @NotNull IdeaModule gradleModule,
-                                               @Nullable AndroidProject androidProject) {
+                                               @Nullable IdeAndroidModels androidModels) {
     String moduleName = moduleNode.getData().getInternalName();
     File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
     @NotNull CachedVariants cachedVariants = findCachedVariants(gradleModule);
 
-    VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
-    NativeModule nativeModule = resolverCtx.getExtraProject(gradleModule, NativeModule.class);
-    NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
-    // The ProjectSyncIssues model was introduced in the Android Gradle plugin 3.6, it contains all the
-    // sync issues that have been produced by the plugin. Before this the sync issues were attached to the
-    // AndroidProject.
-    ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
@@ -314,13 +300,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradleModuleModel gradleModel = null;
     Collection<SyncIssueData> issueData = null;
 
-    if (androidProject != null) {
-      IdeAndroidModels ideModels = ModelConverter
-        .convertToIdeModels(modelCache, androidProject, variantGroup, nativeModule, nativeAndroidProject, projectSyncIssues);
-
-      androidModel = createAndroidModuleModel(moduleName, rootModulePath, ideModels, cachedVariants);
-      issueData = ideModels.getSyncIssues();
-      ndkModuleModel = maybeCreateNdkModuleModel(moduleName, rootModulePath, ideModels, cachedVariants);
+    if (androidModels != null) {
+      androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidModels, cachedVariants);
+      issueData = androidModels.getSyncIssues();
+      ndkModuleModel = maybeCreateNdkModuleModel(moduleName, rootModulePath, androidModels, cachedVariants);
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
@@ -335,7 +318,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       gradleModel =
         createGradleModuleModel(moduleName,
                                 gradleModule,
-                                androidProject == null ? null : androidProject.getModelVersion(),
+                                androidModels == null ? null : androidModels.getAndroidProject().getModelVersion(),
                                 kaptGradleModel,
                                 buildScriptClasspathModel,
                                 gradlePluginList);
@@ -360,7 +343,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       issueData.forEach(it -> moduleNode.createChild(SYNC_ISSUE, it));
     }
     // We also need to patch java modules as we disabled the kapt resolver.
-    // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
+    // Setup Kapt this functionality should be done by KaptProjectResolverExtension if possible.
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
 
     // 5 - Populate extra things
@@ -409,8 +392,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                           @NotNull IdeAndroidModels ideModels,
                                                           @NotNull CachedVariants cachedVariants) {
     // Prefer V2 NativeModule if available
-    if (ideModels.getV2NdkModel() != null) {
-      return new NdkModuleModel(moduleName, rootModulePath, ideModels.getV2NdkModel());
+    if (ideModels.getV2NativeModule() != null) {
+      return new NdkModuleModel(moduleName,
+                                rootModulePath,
+                                new V2NdkModel(ideModels.getAndroidProject().getModelVersion(), ideModels.getV2NativeModule()));
     }
     else {
       // V2 model not available, fallback to V1 model.
@@ -591,7 +576,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
-    // to remedy this we need to go through all datanodes added by other resolvers and set this flag.
+    // to remedy this we need to go through all data nodes added by other resolvers and set this flag.
     if (myShouldExportDependencies) {
       Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, LIBRARY_DEPENDENCY);
       for (DataNode<LibraryDependencyData> libraryDataNode : libraryDataNodes) {
@@ -663,63 +648,20 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (isAndroidGradleProject != null) {
       return isAndroidGradleProject;
     }
-    isAndroidGradleProject = resolverCtx.hasModulesWithModel(AndroidProject.class) ||
-                             resolverCtx.hasModulesWithModel(NativeAndroidProject.class);
+    isAndroidGradleProject = resolverCtx.hasModulesWithModel(IdeAndroidModels.class);
     return resolverCtx.putUserDataIfAbsent(IS_ANDROID_PROJECT_KEY, isAndroidGradleProject);
   }
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    BuildFolderPaths buildFolderPaths = populateModuleBuildDirs(gradleProject);
-    modelCache = ModelCache.create(buildFolderPaths);
+    IdeAndroidSyncError syncError = resolverCtx.getModels().getModel(IdeAndroidSyncError.class);
+    if (syncError != null) {
+      throw ideAndroidSyncErrorToException(syncError);
+    }
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
-  }
-
-  /**
-   * Set map from project path to build directory for all modules.
-   * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
-   */
-  private BuildFolderPaths populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
-    BuildFolderPaths buildFolderPaths = new BuildFolderPaths();
-    // Set root build id.
-    for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
-      GradleProject gradleProject = ideaModule.getGradleProject();
-      if (gradleProject != null) {
-        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-        buildFolderPaths.setRootBuildId(rootBuildId);
-        break;
-      }
-    }
-
-    // Set build folder for root and included projects.
-    List<IdeaProject> ideaProjects = new ArrayList<>();
-    ideaProjects.add(rootIdeaProject);
-    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
-    for (Build includedBuild : includedBuilds) {
-      IdeaProject ideaProject = resolverCtx.getModels().getModel(includedBuild, IdeaProject.class);
-      assert ideaProject != null;
-      ideaProjects.add(ideaProject);
-    }
-
-    for (IdeaProject ideaProject : ideaProjects) {
-      for (IdeaModule ideaModule : ideaProject.getChildren()) {
-        GradleProject gradleProject = ideaModule.getGradleProject();
-        if (gradleProject != null) {
-          try {
-            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
-            buildFolderPaths.addBuildFolderMapping(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
-          }
-          catch (UnsupportedOperationException exception) {
-            // getBuildDirectory is not available for Gradle older than 2.0.
-            // For older versions of gradle, there's no way to get build directory.
-          }
-        }
-      }
-    }
-    return buildFolderPaths;
   }
 
   /**
@@ -729,7 +671,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @Override
   @NotNull
   public Set<Class<?>> getExtraProjectModelClasses() {
-    throw new UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overriden.");
+    throw new UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.");
   }
 
   @NotNull
@@ -920,6 +862,5 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     classPath.add(getJarPathForClass(getClass()));
     classPath.add(getJarPathForClass(Revision.class));
     classPath.add(getJarPathForClass(AndroidGradleSettings.class));
-    classPath.add(getJarPathForClass(AndroidProject.class));
   }
 }

@@ -324,6 +324,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.emulator.EmulatorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.ui.designer.overlays.OverlayPersistentStateService"/>
     <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatService" />
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
@@ -353,6 +354,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.repositories.RepositoryUrlManager"/>
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.common.surface.DesignSurfaceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <applicationService serviceInterface="org.jetbrains.android.facet.AndroidFacetConfiguration$EditorTabProvider"
@@ -586,6 +588,12 @@
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
+    <!-- FIXME(qumeric): create and use custom icon -->
+    <facet.toolWindow id="Device Manager"
+                      facetIdList="android,apk"
+                      anchor="right"
+                      icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
+                      factoryClass="com.android.tools.idea.deviceManager.DeviceManagerFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
@@ -850,6 +858,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
                     dynamic="false"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.ui.designer.overlays.overlayProvider"
+                    interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
@@ -972,6 +982,9 @@
 
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
+              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+
+    <listener class="com.android.tools.idea.startup.ApkFacetProviderInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </applicationListeners>
 

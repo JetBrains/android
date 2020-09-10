@@ -48,17 +48,19 @@ class TaskViewDetailPagesFactory(
   val actionHandlers: ViewActionHandlers
 ) {
 
-  fun createDetailsPage(pageId: TasksPageId): JComponent = if (pageId.pageType == TaskDetailsPageType.EMPTY_SELECTION) {
-    createEmptyPage()
-  }
-  else {
-    model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
-      createDetailsPage(nodeDescriptor)
-    } ?: JPanel()
-  }
+  fun createDetailsPage(pageId: TasksPageId): JComponent =
+    if (pageId.pageType == TaskDetailsPageType.EMPTY_SELECTION) {
+      createEmptyPage()
+    }
+    else {
+      model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
+        createDetailsPage(nodeDescriptor)
+      } ?: JPanel()
+    }
 
   private fun createEmptyPage() = JPanel().apply {
     layout = BorderLayout()
+    name = "empty-details"
     val messageLabel = JLabel("Select page for details").apply {
       verticalAlignment = SwingConstants.CENTER
       horizontalAlignment = SwingConstants.CENTER

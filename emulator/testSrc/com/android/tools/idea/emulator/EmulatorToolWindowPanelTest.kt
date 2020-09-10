@@ -88,7 +88,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     ui.updateToolbars()
     assertAppearance(ui, "image1")
 
@@ -148,7 +148,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     ui.updateToolbars()
 
     // Zoom in.

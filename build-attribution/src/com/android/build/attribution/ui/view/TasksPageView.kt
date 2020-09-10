@@ -55,6 +55,7 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 @NonNls
 private const val SPLITTER_PROPERTY = "BuildAnalyzer.TasksView.Splitter.Proportion"
@@ -83,16 +84,15 @@ class TasksPageView(
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
+    selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
     TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
       comparator = SpeedSearchComparator(false)
     }
     TreeUtil.installActions(this)
     addTreeSelectionListener { e ->
-      if (fireActionHandlerEvents && e.path != null && e.isAddedPath) {
-        (e.path.lastPathComponent as? TasksTreeNode)?.let {
-          actionHandlers.tasksTreeNodeSelected(it)
-        }
+      if (fireActionHandlerEvents) {
+        actionHandlers.tasksTreeNodeSelected(e?.newLeadSelectionPath?.lastPathComponent as? TasksTreeNode)
       }
     }
   }

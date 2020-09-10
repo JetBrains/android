@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
@@ -37,6 +36,7 @@ import java.awt.Insets
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.max
 
 
 /**
@@ -50,6 +50,12 @@ private const val TOP_BAR_BOTTOM_MARGIN = 3
  */
 @SwingCoordinate
 private const val BOTTOM_BAR_TOP_MARGIN = 3
+
+/**
+ * Minimum allowed width for the SceneViewPeerPanel.
+ */
+@SwingCoordinate
+private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 
 /**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
@@ -139,12 +145,20 @@ class SceneViewPeerPanel(val sceneView: SceneView,
                    contentSize.height < minimumSize.height) {
           // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space.
           // Horizontally, we align the content to the left.
-          val rightSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
-          val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0) / 2
-          Insets(sceneViewMargin.top + vSpace,
-                 sceneViewMargin.left,
+          val hSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
+          val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0)
+
+          val (left, right) = when (alignmentX) {
+            LEFT_ALIGNMENT -> sceneViewMargin.left to sceneViewMargin.right + hSpace
+            RIGHT_ALIGNMENT -> sceneViewMargin.left + hSpace to sceneViewMargin.right
+            CENTER_ALIGNMENT -> sceneViewMargin.left + hSpace / 2 to sceneViewMargin.right + hSpace / 2
+            else -> throw IllegalArgumentException("$alignmentX is not supported")
+          }
+
+          Insets(sceneViewMargin.top,
+                 left,
                  sceneViewMargin.bottom + vSpace,
-                 sceneViewMargin.right  + rightSpace)
+                 right)
         }
         else {
           sceneViewMargin
@@ -263,7 +277,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
 
   override fun getMinimumSize(): Dimension =
     Dimension(
-      sceneViewTopPanel.minimumSize.width,
+      max(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH),
       sceneViewBottomPanel.preferredSize.height + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
 }
 
@@ -277,6 +291,21 @@ class SceneViewPeerPanel(val sceneView: SceneView,
 internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
                               layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
+  /**
+   * Alignment for the {@link SceneView} when its size is less than the minimum size.
+   * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
+   * the rectangle formed by the minimum size.
+   */
+  var sceneViewAlignment: Float = CENTER_ALIGNMENT
+    set(value) {
+      if (value != field) {
+        field = value
+        components
+          .filterIsInstance<SceneViewPeerPanel>()
+          .forEach { it.alignmentX = value }
+        repaint()
+      }
+    }
 
   /**
    * Returns the components of this panel that are [PositionableContent]
@@ -380,14 +409,16 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
         null
       }
 
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar))
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar).also {
+        it.alignmentX = sceneViewAlignment
+      })
     }
   }
 
   /**
    * Removes the given [SceneView] from the panel.
    */
-  @AnyThread
+  @UiThread
   fun removeSceneView(sceneView: SceneView) {
     components
       .filterIsInstance<SceneViewPeerPanel>()

@@ -19,7 +19,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose") {
   addFileToProject(
-    "src/androidx/compose/Composable.kt",
+    "src/${composableAnnotationPackage.replace(".", "/")}/Composable.kt",
     // language=kotlin
     """
     package $composableAnnotationPackage
@@ -31,7 +31,7 @@ fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage:
 
 fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.ui.tooling.preview") {
   addFileToProject(
-    "src/com/android/tools/preview/Preview.kt",
+    "src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
     // language=kotlin
     """
     package $previewAnnotationPackage

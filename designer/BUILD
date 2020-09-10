@@ -194,6 +194,7 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/idea/platform/platform-tests:intellij.platform.tests[module, test]",
     ],
 )
 

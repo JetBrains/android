@@ -32,13 +32,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
-import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroup
@@ -50,7 +48,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.editor.PlatformEditorBundle
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
@@ -85,8 +82,6 @@ import kotlin.math.min
 
 private const val PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton"
 private const val SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton"
-private const val SORT_BY_NAME_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByNameToggleButton"
-private const val SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySortByDurationToggleButton"
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
@@ -124,17 +119,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     "Show skipped tests", getIconFor(AndroidTestCaseResult.SKIPPED, false),
     SKIPPED_TOGGLE_BUTTON_STATE_KEY, true)
 
-  @VisibleForTesting val mySortByNameToggleButton = MyToggleAction(
-    PlatformEditorBundle.message("action.sort.alphabetically"),
-    AllIcons.ObjectBrowser.Sorted,
-    SORT_BY_NAME_TOGGLE_BUTTON_STATE_KEY,
-    false)
-  @VisibleForTesting val mySortByDurationToggleButton = MyToggleAction(
-    ExecutionBundle.message("junit.runing.info.sort.by.statistics.action.name"),
-    AllIcons.RunConfigurations.SortbyDuration,
-    SORT_BY_DURATION_TOGGLE_BUTTON_STATE_KEY,
-    false)
-
   private val myComponentsSplitter: JBSplitter = JBSplitter().apply {
     setHonorComponentsMinimumSize(false)
     dividerWidth = 1
@@ -144,7 +128,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @VisibleForTesting val myResultsTableView: AndroidTestResultsTableView
   @VisibleForTesting val myDetailsView: AndroidTestSuiteDetailsView
 
-  private val myInsertionOrderMap: MutableMap<AndroidTestResults, Int> = mutableMapOf()
   @VisibleForTesting val myLogger: AndroidTestSuiteLogger = AndroidTestSuiteLogger()
 
   // Number of devices which we will run tests against.
@@ -176,37 +159,18 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
     }
     myResultsTableView.setColumnFilter(myDeviceAndApiLevelFilterComboBoxAction.filter)
-    myResultsTableView.setRowComparator(java.util.Comparator { o1, o2 ->
-      if (mySortByNameToggleButton.isSelected) {
-        val result = TEST_NAME_COMPARATOR.compare(o1, o2)
-        if (result != 0) {
-          return@Comparator result
-        }
-      }
-      if (mySortByDurationToggleButton.isSelected) {
-        val result = TEST_DURATION_COMPARATOR.compare(o1, o2) * -1
-        if (result != 0) {
-          return@Comparator result
-        }
-      }
-      myInsertionOrderMap.getOrDefault(o1, Int.MAX_VALUE).compareTo(
-        myInsertionOrderMap.getOrDefault(o2, Int.MAX_VALUE))
-    })
     myDeviceAndApiLevelFilterComboBoxAction.listener = object: DeviceAndApiLevelFilterComboBoxActionListener {
       override fun onFilterUpdated() {
         myResultsTableView.refreshTable()
       }
     }
 
-    val testFilterAndSorterActionGroup = DefaultActionGroup()
-    testFilterAndSorterActionGroup.addAll(
+    val testFilterActionGroup = DefaultActionGroup()
+    testFilterActionGroup.addAll(
       myPassedToggleButton,
       mySkippedToggleButton,
       Separator.getInstance(),
       myDeviceAndApiLevelFilterComboBoxAction,
-      Separator.getInstance(),
-      mySortByNameToggleButton,
-      mySortByDurationToggleButton,
       Separator.getInstance(),
       myResultsTableView.createExpandAllAction(),
       myResultsTableView.createCollapseAllAction(),
@@ -237,7 +201,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           add(JBLabel("Filter tests:"))
           add(ActionManager.getInstance().createActionToolbar(
             ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-            testFilterAndSorterActionGroup, true).component)
+            testFilterActionGroup, true).component)
         })
       }, BorderLayout.NORTH)
       add(myResultsTableView.getComponent(), BorderLayout.CENTER)
@@ -332,11 +296,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
       myScheduledDevices++
       if (myScheduledDevices == 1) {
-        myResultsTableView.showTestDuration(device)
         myResultsTableView.showTestStatusColumn = false
       }
       else {
-        myResultsTableView.showTestDuration(null)
         myDetailsView.isDeviceSelectorListVisible = true
         myResultsTableView.showTestStatusColumn = true
       }
@@ -366,10 +328,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
                                  testCase: AndroidTestCase) {
     AppUIUtil.invokeOnEdt {
       myResultsTableView.addTestCase(device, testCase)
-        .iterator()
-        .forEachRemaining { results: AndroidTestResults ->
-          myInsertionOrderMap.computeIfAbsent(results) { myInsertionOrderMap.size }
-        }
       myDetailsView.reloadAndroidTestResults()
     }
   }

@@ -71,7 +71,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -346,7 +346,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setSelectionModel(NopSelectionModel)
     .build()
     .apply {
-      setScreenMode(SceneMode.COMPOSE, false)
+      setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)
       setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     }
   private val staticPreviewInteractionHandler = NlInteractionHandler(surface)
@@ -863,7 +863,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun getState(): PreviewRepresentationState? {
-    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: return null
+    val selectedGroupName = previewElementProvider.groupNameFilter.name ?: ""
     return mapOf(
       SELECTED_GROUP_KEY to selectedGroupName,
       BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString())
@@ -873,7 +873,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val selectedGroupName = state[SELECTED_GROUP_KEY]
     val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
     onRestoreState = {
-      if (selectedGroupName != null) {
+      if (!selectedGroupName.isNullOrEmpty()) {
         availableGroups.find { it.name == selectedGroupName }?.let {
           groupFilter = it
         }

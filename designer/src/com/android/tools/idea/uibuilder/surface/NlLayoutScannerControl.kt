@@ -19,6 +19,7 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AtfAuditResult
 import com.intellij.openapi.Disposable
@@ -81,14 +82,14 @@ class NlLayoutScannerControl: LayoutScannerControl {
     override fun lintUpdated(result: ValidatorResult?) {
       if (result != null) {
         try {
-          if (result.issues.isEmpty()) {
-            // Nothing to show
+          if (!hasA11yIssue()) {
+            // Nothing to show to users.
             scannerResult?.complete(false)
             return
           }
           // Has result to display
           surface.analyticsManager.trackShowIssuePanel()
-          surface.setShowIssuePanel(true)
+          surface.setShowIssuePanel(true, false)
           scannerResult?.complete(true)
         } finally {
           scanner.removeListener(this)
@@ -127,6 +128,21 @@ class NlLayoutScannerControl: LayoutScannerControl {
     manager.forceReinflate()
     surface.requestRender()
     return true
+  }
+
+  /** Returns true if the system has any accessibility specific issues to display to user. False otherwise. */
+  @VisibleForTesting
+  fun hasA11yIssue(): Boolean {
+    if (scanner.issues.isNotEmpty()) {
+      return true
+    }
+
+    surface.issueModel.issues.forEach {
+      if (Category.A11Y.name == it.category) {
+        return true
+      }
+    }
+    return false
   }
 }
 

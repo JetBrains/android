@@ -61,6 +61,9 @@ interface DatabaseInspectorView {
 
   fun reportError(message: String, throwable: Throwable?)
 
+  /** If [state] is false, it prevents the refresh button from ever becoming enabled **/
+  fun setRefreshButtonState(state: Boolean)
+
   interface Listener {
     /** Called when the user wants to open a table */
     fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)

@@ -28,9 +28,8 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.deployment.ModifyDeviceSetAction;
-import com.android.tools.idea.run.deployment.MultipleDevicesAction;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
+import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -125,13 +124,8 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static void setUpDeviceComboBoxActions(@NotNull ActionManager manager) {
-    if (StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get()) {
-      Actions.hideAction(manager, MultipleDevicesAction.ID);
-      Actions.hideAction(manager, ModifyDeviceSetAction.ID);
-    }
-    else {
-      Actions.hideAction(manager, RunOnMultipleDevicesAction.ID);
-    }
+    String id = StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get() ? SelectMultipleDevicesAction.ID : RunOnMultipleDevicesAction.ID;
+    Actions.hideAction(manager, id);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {

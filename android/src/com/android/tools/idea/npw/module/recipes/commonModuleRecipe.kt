@@ -44,8 +44,7 @@ fun RecipeExecutor.generateCommonModule(
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
-  addLintOptions: Boolean = false,
-  viewBindingSupport: ViewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
+  addLintOptions: Boolean = false
   ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -74,8 +73,7 @@ fun RecipeExecutor.generateCommonModule(
       agpVersion,
       hasTests = generateTests,
       formFactorNames = projectData.includedFormFactorNames,
-      addLintOptions = addLintOptions,
-      viewBindingSupport = viewBindingSupport
+      addLintOptions = addLintOptions
     ),
     moduleOut.resolve(buildFile)
   )

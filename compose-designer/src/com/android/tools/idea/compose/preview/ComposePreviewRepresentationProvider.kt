@@ -17,7 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.actions.SceneModeAction
+import com.android.tools.idea.actions.SetColorBlindModeAction
+import com.android.tools.idea.actions.SetScreenViewProviderAction
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -41,8 +42,9 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -70,7 +72,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StopInteractivePreviewAction(),
       StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
-      StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
@@ -82,8 +83,17 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
             "action.scene.mode.description"),
             // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
                          StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
-            addAction(SceneModeAction(SceneMode.COMPOSE, surface))
-            addAction(SceneModeAction(SceneMode.COMPOSE_BLUEPRINT, surface))
+            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+            StudioFlags.COMPOSE_COLORBLIND_MODE.ifEnabled {
+              addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
+                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
+                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
+                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
+                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
+                addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
+              })
+            }
           }.visibleOnlyInComposeStaticPreview()
         }
         else null
@@ -91,9 +101,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     )
   )
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    add(IssueNotificationAction.getInstance())
-  }
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
+    StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
+    IssueNotificationAction.getInstance()
+  ))
 }
 
 /**

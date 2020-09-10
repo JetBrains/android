@@ -130,6 +130,37 @@ import org.jetbrains.annotations.TestOnly;
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
   /**
+   * Alignment for the {@link SceneView} when its size is less than the minimum size.
+   * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
+   * the rectangle formed by the minimum size.
+   */
+  public enum SceneViewAlignment {
+    /**
+     * Align content to the left within the minimum size bounds.
+     */
+    LEFT(LEFT_ALIGNMENT),
+    /**
+     * Align content to the right within the minimum size bounds.
+     */
+    RIGHT(RIGHT_ALIGNMENT),
+    /**
+     * Center contents within the minimum size bounds.
+     */
+    CENTER(CENTER_ALIGNMENT);
+
+    /**
+     * The Swing alignment value equivalent to this alignment setting. See
+     * {@link java.awt.Component#LEFT_ALIGNMENT}, {@link java.awt.Component#RIGHT_ALIGNMENT}
+     * and {@link java.awt.Component#CENTER_ALIGNMENT}.
+     */
+    private final float mySwingAlignmentXValue;
+
+    SceneViewAlignment(float swingValue) {
+      mySwingAlignmentXValue = swingValue;
+    }
+  }
+
+  /**
    * If the difference between old and new scaling values is less than threshold, the scaling will be ignored.
    */
   @SurfaceZoomLevel
@@ -320,9 +351,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       public void componentResized(ComponentEvent componentEvent) {
         if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
           if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
-            // Zoom-to-fit as default size of content when DesignSurface becomes visible at first time.
-            zoomToFit();
+            // Set previous scale when DesignSurface becomes visible at first time.
+            NlModel model = Iterables.getFirst(getModels(), null);
+            if (model == null) {
+              // No model is attached, ignore the setup of initial zoom level.
+              return;
+            }
 
+            restorePreviousZoomLevel(model);
             // The default size is defined, enable the flag.
             myIsInitialZoomLevelDetermined = true;
           }
@@ -437,7 +473,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     // Remove the associated panels if any
     //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
     if (mySceneViewPanel != null) {
-      mySceneViewPanel.removeSceneView(sceneView);
+      UIUtil.invokeLaterIfNeeded(() -> mySceneViewPanel.removeSceneView(sceneView));
     }
   }
 
@@ -626,12 +662,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     addModel(model);
-    zoomToFit();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        zoomToFit();
+        restorePreviousZoomLevel(model);
         revalidateScrollArea();
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
@@ -1033,13 +1068,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   @SwingCoordinate
   public Dimension getExtentSize() {
-    Dimension extentSize = myScrollPane.getViewport().getExtentSize();
-    extentSize.setSize(
-      extentSize.width - UIUtil.getScrollBarWidth(),
-      extentSize.height - UIUtil.getScrollBarWidth()
-    );
-
-    return extentSize;
+    return myScrollPane.getViewport().getExtentSize();
   }
 
   /**
@@ -1081,7 +1110,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    @SurfaceScale double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
+    @SurfaceScale final double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
       return false;
     }
@@ -1103,6 +1132,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     myScale = newScale;
+    NlModel model = Iterables.getFirst(getModels(), null);
+    if (model != null) {
+      storeCurrentZoomLevel(model);
+    }
 
     if (view != null) {
       @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
@@ -1113,6 +1146,30 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     revalidateScrollArea();
     notifyScaleChanged();
     return true;
+  }
+
+  /**
+   * Save the current zoom level from the file of the given {@link NlModel}.
+   */
+  private void storeCurrentZoomLevel(@NotNull NlModel model) {
+    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    state.saveFileScale(model.getFile(), myScale);
+  }
+
+  /**
+   * Load the saved zoom level from the file of the given {@link NlModel}.
+   * If there is no saved zoom level, {@link #zoomToFit()} is invoked.
+   */
+  private void restorePreviousZoomLevel(@NotNull NlModel model) {
+    SurfaceState state = DesignSurfaceSettings.getInstance().getSurfaceState();
+    Double previousScale = state.loadFileScale(model.getFile());
+    if (previousScale != null) {
+      setScale(previousScale);
+    }
+    else {
+      // No previous scale, use zoom-to-fit as default.
+      zoomToFit();
+    }
   }
 
   /**
@@ -1714,9 +1771,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myIssuePanel;
   }
 
-  public void setShowIssuePanel(boolean show) {
+  /**
+   * Sets the status of the issue panel.
+   * @param show wether to show or hide the issue panel.
+   * @param userInvoked if true, this was the direct consequence of a user action.
+   */
+  public void setShowIssuePanel(boolean show, boolean userInvoked) {
     UIUtil.invokeLaterIfNeeded(() -> {
       myIssuePanel.setMinimized(!show);
+      if (userInvoked) {
+        myIssuePanel.disableAutoSize();
+      }
       revalidate();
       repaint();
     });
@@ -1794,5 +1859,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public final PositionableContentLayoutManager getSceneViewLayoutManager() {
     return (PositionableContentLayoutManager)mySceneViewPanel.getLayout();
+  }
+
+  /**
+   * Sets the {@link SceneViewAlignment} for the {@link SceneView}s. This only applies to {@link SceneView}s when the
+   * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
+   */
+  public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
+    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.mySwingAlignmentXValue);
   }
 }

@@ -88,7 +88,10 @@ interface TableView {
   fun setColumnSortIndicator(orderBy: OrderBy)
 
   /** If [state] is false, it prevents the live updates button from ever becoming enabled **/
-  fun setLiveUpdatesState(state: Boolean)
+  fun setLiveUpdatesButtonState(state: Boolean)
+
+  /** If [state] is false, it prevents the refresh button from ever becoming enabled **/
+  fun setRefreshButtonState(state: Boolean)
 
   interface Listener {
     fun loadPreviousRowsInvoked()

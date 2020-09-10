@@ -21,7 +21,7 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
-import com.google.common.annotations.VisibleForTesting
+import com.android.tools.lint.detector.api.Category
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import java.awt.Desktop
@@ -72,7 +72,10 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
   fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
-    if (result.mLevel == ValidatorData.Level.VERBOSE || result.mLevel == ValidatorData.Level.INFO) {
+    if (result.mLevel == ValidatorData.Level.VERBOSE ||
+        result.mLevel == ValidatorData.Level.INFO ||
+        result.mType == ValidatorData.Type.INTERNAL_ERROR) {
+      // Hide anything that's verbose, info or of internal error.
       return
     }
     val source = if (component == null) {
@@ -92,7 +95,6 @@ class NlAtfIssue(
   issueSource: IssueSource): Issue() {
 
   companion object {
-    private const val ACCESSIBILITY_CATEGORY = "Accessibility"
     private const val CONTENT_LABELING = "CONTENT_LABELING"
     private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
     private const val LOW_CONTRAST = "LOW_CONTRAST"
@@ -126,7 +128,7 @@ class NlAtfIssue(
 
   override val source: IssueSource = issueSource
 
-  override val category: String = ACCESSIBILITY_CATEGORY
+  override val category: String = Category.A11Y.name
 
   override val fixes: Stream<Fix>
     get() {

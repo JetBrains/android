@@ -26,10 +26,12 @@ android-studio/bin/lldb/android/x86_64/lldb-server
 android-studio/bin/lldb/bin/LLDBFrontend.exe
 android-studio/bin/lldb/bin/concrt140.dll
 android-studio/bin/lldb/bin/liblldb.dll
+android-studio/bin/lldb/bin/libwinpthread-1.dll
+android-studio/bin/lldb/bin/libxml2.dll
 android-studio/bin/lldb/bin/llvm-symbolizer.exe
 android-studio/bin/lldb/bin/minidump_stackwalk.exe
 android-studio/bin/lldb/bin/msvcp140.dll
-android-studio/bin/lldb/bin/python27.dll
+android-studio/bin/lldb/bin/ucrtbase.dll
 android-studio/bin/lldb/bin/vcruntime140.dll
 android-studio/bin/lldb/bin/x86_64-linux-android-c++filt.exe
 android-studio/bin/lldb/lib/python/lldb/__init__.py
@@ -43,8 +45,8 @@ android-studio/bin/lldb/lib/python/lldb/formatters/cpp/gnu_libstdcpp.py
 android-studio/bin/lldb/lib/python/lldb/formatters/cpp/libcxx.py
 android-studio/bin/lldb/lib/python/lldb/formatters/metrics.py
 android-studio/bin/lldb/lib/python/lldb/formatters/synth.py
-android-studio/bin/lldb/lib/python/lldb/runtime/__init__.py
 android-studio/bin/lldb/lib/python/lldb/utils/__init__.py
+android-studio/bin/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/bin/lldb/lib/python/lldb/utils/symbolication.py
 android-studio/bin/lldb/lib/python/six.py
 android-studio/bin/lldb/shared/jobject_printers/jstring_reader.py

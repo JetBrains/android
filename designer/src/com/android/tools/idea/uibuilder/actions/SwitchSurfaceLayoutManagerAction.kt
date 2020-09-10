@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,7 +34,7 @@ interface LayoutManagerSwitcher {
   /**
    * Sets a new [SurfaceLayoutManager].
    */
-  fun setLayoutManager(layoutManager: SurfaceLayoutManager)
+  fun setLayoutManager(layoutManager: SurfaceLayoutManager, sceneViewAlignment: SceneViewAlignment = SceneViewAlignment.CENTER)
 }
 
 /**
@@ -41,7 +42,9 @@ interface LayoutManagerSwitcher {
  * @param displayName Name to be shown for this option.
  * @param layoutManager [SurfaceLayoutManager] to switch to when this option is selected.
  */
-data class SurfaceLayoutManagerOption(val displayName: String, val layoutManager: SurfaceLayoutManager)
+data class SurfaceLayoutManagerOption(val displayName: String,
+                                      val layoutManager: SurfaceLayoutManager,
+                                      val sceneViewAlignment: SceneViewAlignment = SceneViewAlignment.CENTER)
 
 /**
  * [DropDownAction] that allows switching the layout manager in the surface.
@@ -54,7 +57,7 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
     override fun setSelected(e: AnActionEvent, state: Boolean) {
-      layoutManagerSwitcher.setLayoutManager(option.layoutManager)
+      layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
     }
 
     override fun isSelected(e: AnActionEvent): Boolean = layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)

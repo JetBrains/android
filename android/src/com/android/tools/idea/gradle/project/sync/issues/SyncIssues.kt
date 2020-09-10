@@ -31,6 +31,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findProjec
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.io.Serializable
 
 data class SyncIssueData(
   val message: String,
@@ -38,7 +39,7 @@ data class SyncIssueData(
   val multiLineMessage: List<String>?,
   val severity: Int,
   val type: Int
-)
+): Serializable
 
 class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> by issues {
   companion object {
@@ -48,11 +49,11 @@ class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> 
     @JvmName("forModule")
     @JvmStatic
     fun Module.syncIssues(): SyncIssues {
-      val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return SyncIssues.EMPTY
-      val projectDataNode = findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return SyncIssues.EMPTY
+      val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return EMPTY
+      val projectDataNode = findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return EMPTY
       val moduleDataNode = find(projectDataNode, ProjectKeys.MODULE) { node ->
         node.data.internalName == name
-      } ?: return SyncIssues.EMPTY
+      } ?: return EMPTY
       return SyncIssues(findAll(moduleDataNode, SYNC_ISSUE).map { dataNode -> dataNode.data })
     }
   }

@@ -15,36 +15,24 @@
  */
 package com.android.tools.idea.ui.wizard;
 
-import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * The general look and feel for all Studio-specific wizards.
  */
 public final class SimpleStudioWizardLayout implements ModelWizardDialog.CustomLayout {
   private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
-  private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 700);
-
-  private final BindingsManager myBindings = new BindingsManager();
-
-  private JPanel myRootPanel;
-  private JBLabel myTitleLabel;
-  private JPanel myCenterPanel;
+  private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
 
   @NotNull
   @Override
   public JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel) {
-    myBindings.bind(new TextProperty(myTitleLabel), titleHeader.title());
-    myCenterPanel.add(innerPanel);
-    return myRootPanel;
+    return innerPanel;
   }
 
   @Override
@@ -59,6 +47,5 @@ public final class SimpleStudioWizardLayout implements ModelWizardDialog.CustomL
 
   @Override
   public void dispose() {
-    myBindings.releaseAll();
   }
 }

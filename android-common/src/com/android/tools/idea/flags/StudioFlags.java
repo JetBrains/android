@@ -336,6 +336,11 @@ public final class StudioFlags {
     "Enable the new transition panel in the motion editor",
     true);
 
+  public static final Flag<Boolean> NELE_OVERLAY_PROVIDER = Flag.create(
+    NELE, "toggle.overlay.provider.extension.point", "Toggle overlay provider extension point.",
+    "Enable the overlay provider extension point",
+    true);
+
   //endregion
 
   //region Navigation Editor
@@ -621,9 +626,9 @@ public final class StudioFlags {
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
-    EMBEDDED_EMULATOR, "enabled", "Enable Embedded Emulator",
-    "Enables the Embedded Emulator tool window",
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_NEW_SNAPSHOT_UI = Flag.create(
+    EMBEDDED_EMULATOR, "new.snapshot.ui", "Enable new snapshot UI",
+    "Enables the new snapshot management UI",
     true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
@@ -850,7 +855,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
     COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
     "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
@@ -986,6 +991,13 @@ public final class StudioFlags {
     "If enabled, a transition between static and animated compose preview is almost instant",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
+    COMPOSE, "preview.colorblind",
+    "Enable the colorblind mode for Compose previews",
+    "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
+    false
+  );
   //endregion
 
   //region Manifests
@@ -1012,6 +1024,14 @@ public final class StudioFlags {
     WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
     true
+  );
+
+  //region Device Manager
+  private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
+  public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
+    DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
+    "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
+    false
   );
   // endregion
 

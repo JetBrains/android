@@ -171,7 +171,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewTabbedActivityWithKotlin() {
-    checkCreateTemplate("Tabbed Activity", withKotlin)
+    checkCreateTemplate("Tabbed Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -191,7 +191,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewPrimaryDetailFlowWithKotlin() {
-    checkCreateTemplate("Primary/Detail Flow", withKotlin)
+    checkCreateTemplate("Primary/Detail Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -201,7 +201,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFullscreenActivityWithKotlin() {
-    checkCreateTemplate("Fullscreen Activity", withKotlin)
+    checkCreateTemplate("Fullscreen Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -211,7 +211,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewLoginActivityWithKotlin() {
-    checkCreateTemplate("Login Activity", withKotlin)
+    checkCreateTemplate("Login Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -221,7 +221,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewScrollingActivityWithKotlin() {
-    checkCreateTemplate("Scrolling Activity", withKotlin)
+    checkCreateTemplate("Scrolling Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -251,7 +251,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleAdMobAdsActivityWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Activity", withKotlin)
+    checkCreateTemplate("Google AdMob Ads Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -261,7 +261,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin)
+    checkCreateTemplate("Google Maps Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -316,7 +316,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewNativeCppActivityWithKotlin() {
-    checkCreateTemplate("Native C++", withKotlin)
+    checkCreateTemplate("Native C++", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Fragment templates ---
@@ -337,7 +337,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewModalBottomSheetWithKotlin() {
-    checkCreateTemplate("Modal Bottom Sheet", withKotlin)
+    checkCreateTemplate("Modal Bottom Sheet", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -387,7 +387,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFullscreenFragmentWithKotlin() {
-    checkCreateTemplate("Fullscreen Fragment", withKotlin)
+    checkCreateTemplate("Fullscreen Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -407,7 +407,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewGoogleAdMobFragmentWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin)
+    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -417,7 +417,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
-    checkCreateTemplate("Login Fragment", withKotlin)
+    checkCreateTemplate("Login Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Other templates ---

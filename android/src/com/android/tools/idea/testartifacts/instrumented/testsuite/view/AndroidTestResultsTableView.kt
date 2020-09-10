@@ -22,7 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedTotalDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getSummaryResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.plus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -42,7 +42,6 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
-import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -59,7 +58,6 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.RelativeFont
-import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dualView.TreeTableView
@@ -71,10 +69,9 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
-import java.awt.Dimension
-import java.awt.Graphics
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -89,10 +86,12 @@ import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.ListSelectionModel
+import javax.swing.SortOrder
 import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.JTableHeader
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeNode
@@ -176,22 +175,6 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
     myModel.setColumnFilter(filter)
     refreshTable()
-  }
-
-  @UiThread
-  fun setRowComparator(comparator: Comparator<AndroidTestResults>) {
-    myTableView.myRowComparator = comparator
-    refreshTable()
-  }
-
-  /**
-   * Shows an elapsed time of a test execution in table rows for a given device.
-   *
-   * @param device a device to retrieve the time or null to hide the string.
-   */
-  @UiThread
-  fun showTestDuration(device: AndroidDevice?) {
-    myTableView.showTestDuration(device)
   }
 
   /**
@@ -406,10 +389,11 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
                                                    private val logger: AndroidTestSuiteLogger)
   : TreeTableView(model), DataProvider {
 
-  private var myDeviceToShowTestDuration: AndroidDevice? = null
   private var myLastReportedResults: AndroidTestResults? = null
   private var myLastReportedDevice: AndroidDevice? = null
-  var myRowComparator: Comparator<AndroidTestResults>? = null
+
+  private var mySortKeyColumn: Int = -1
+  private var mySortOrder: SortOrder = SortOrder.UNSORTED
 
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
@@ -439,8 +423,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
-      private var myDurationTextWidth: Int = 0
-      private var myDurationText: String = ""
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
                                          selected: Boolean,
@@ -461,40 +443,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           }
         })
         icon = getIconFor(results.getTestResultSummary())
-
-        val duration = myDeviceToShowTestDuration?.let { results.getRoundedDuration(it) }
-        if (duration == null) {
-          myDurationTextWidth = 0
-          myDurationText = ""
-        } else {
-          myDurationText = StringUtil.formatDuration(duration.toMillis(), "\u2009")
-          val fontMetrics = getFontMetrics(RelativeFont.SMALL.derive(font))
-          myDurationTextWidth = fontMetrics.stringWidth(myDurationText + "\u2009")
-        }
-      }
-
-      // Note: Override paintComponent and draw the test duration text manually. Ideally,
-      // ColoredTreeCellRenderer should support drawing a right aligned text but it doesn't.
-      // I referred how com.intellij.execution.testframework.sm.runner.ui.TestTreeRenderer
-      // renders the duration text to implement it.
-      override fun paintComponent(g: Graphics) {
-        super.paintComponent(g)
-        // Make sure that a duration string doesn't overlap with test name.
-        if (width >= preferredSize.width) {
-          setupAntialiasing(g)
-          g.color = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
-          g.font = RelativeFont.SMALL.derive(font)
-          g.drawString(myDurationText, width - myDurationTextWidth, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
-        }
-      }
-
-      override fun getPreferredSize(): Dimension {
-        val size = super.getPreferredSize()
-        if (myDurationTextWidth > 0) {
-          // Extend the preferred width by adding duration text width plus padding in between.
-          size.width += myDurationTextWidth + 10
-        }
-        return size
       }
     }
 
@@ -617,6 +565,53 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     }
   }
 
+  override fun createDefaultTableHeader(): JTableHeader {
+    return super.createDefaultTableHeader().apply {
+      val originalHeaderCellRenderer = defaultRenderer
+      defaultRenderer = object: TableCellRenderer {
+        override fun getTableCellRendererComponent(table: JTable, value: Any?, isSelected: Boolean,
+                                                   hasFocus: Boolean, row: Int, column: Int): Component {
+          val component = originalHeaderCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+          if (component !is JLabel) {
+            return component
+          }
+          component.icon = if (column == mySortKeyColumn) {
+            when(mySortOrder) {
+              SortOrder.ASCENDING -> DefaultLookup.getIcon(component, ui, "Table.ascendingSortIcon")
+              SortOrder.DESCENDING -> DefaultLookup.getIcon(component, ui, "Table.descendingSortIcon")
+              else -> DefaultLookup.getIcon(component, ui, "Table.naturalSortIcon")
+            }
+          } else {
+            null
+          }
+          return component
+        }
+      }
+      addMouseListener(object: MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount != 1) {
+            return
+          }
+          val clickedColumnIndex = columnAtPoint(e.point)
+          if (clickedColumnIndex < 0) {
+            return
+          }
+          if (mySortKeyColumn == clickedColumnIndex) {
+            mySortOrder = when(mySortOrder) {
+              SortOrder.ASCENDING -> SortOrder.DESCENDING
+              SortOrder.DESCENDING -> SortOrder.UNSORTED
+              else -> SortOrder.ASCENDING
+            }
+          } else {
+            mySortKeyColumn = clickedColumnIndex
+            mySortOrder = SortOrder.ASCENDING
+          }
+          refreshTable()
+        }
+      })
+    }
+  }
+
   override fun processKeyEvent(e: KeyEvent) {
     // Moves the keyboard focus to the next component instead of the next row in the table.
     if (e.keyCode == KeyEvent.VK_TAB) {
@@ -635,19 +630,24 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     super.processKeyEvent(e)
   }
 
-  /**
-   * Shows an elapsed time of a test execution in table rows for a given device. Set null to hide
-   * the duration string.
-   */
-  fun showTestDuration(device: AndroidDevice?) {
-    myDeviceToShowTestDuration = device
-  }
-
   fun refreshTable() {
     val prevSelectedObject = selectedObject
     val prevExpandedPaths = TreeUtil.collectExpandedPaths(tree)
     model.applyFilter()
-    myRowComparator?.let { model.sort(it) }
+
+    // TreeTableView doesn't support TableRowSorter so we sort items
+    // directly in the model (IDEA-248054).
+    val rowComparator = if (mySortKeyColumn >= 0) {
+      when(mySortOrder) {
+        SortOrder.ASCENDING -> getColumnInfo(mySortKeyColumn).comparator
+        SortOrder.DESCENDING -> getColumnInfo(mySortKeyColumn).comparator?.reversed()
+        else -> null
+      }
+    } else {
+      null
+    } as? Comparator<AndroidTestResults> ?: model.insertionOrderComparator
+    model.sort(rowComparator)
+
     model.reload()
     tableChanged(null)
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
@@ -672,6 +672,11 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
+
+  private val myRowInsertionOrder: MutableMap<AndroidTestResults, Int> = mutableMapOf(myRootAggregationRow to 0)
+  val insertionOrderComparator: Comparator<AndroidTestResults> = compareBy {
+    myRowInsertionOrder.getOrDefault(it, Int.MAX_VALUE)
+  }
 
   private val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
   private lateinit var myFilteredColumns: Array<ColumnInfo<Any, Any>>
@@ -704,9 +709,13 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
     val row = myTestResultsRows.getOrPut(testCase.id) {
       AndroidTestResultsRow(testCase.methodName, testCase.className, testCase.packageName).also { resultsRow ->
         val testClassAggRow = myTestClassAggregationRow.getOrPut(resultsRow.getFullTestClassName()) {
-          AggregationRow(resultsRow.packageName, resultsRow.className).also { myRootAggregationRow.add(it) }
+          AggregationRow(resultsRow.packageName, resultsRow.className).also {
+            myRootAggregationRow.add(it)
+            myRowInsertionOrder.putIfAbsent(it, myRowInsertionOrder.size)
+          }
         }
         testClassAggRow.add(resultsRow)
+        myRowInsertionOrder.putIfAbsent(resultsRow, myRowInsertionOrder.size)
       }
     }
     row.addTestCase(device, testCase)
@@ -739,7 +748,8 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   }
 
   private fun updateFilteredColumns() {
-    val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(TestNameColumn)
+    val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(
+      TestNameColumn, TestDurationColumn as ColumnInfo<Any, Any>)
     if (showTestStatusColumn) {
       filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
     }
@@ -814,25 +824,55 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   }
 }
 
-val TEST_NAME_COMPARATOR = compareBy<AndroidTestResults> {
-  it.methodName
-}.thenBy {
-  it.className
-}.thenBy {
-  it.getFullTestCaseName()
-}
-
-val TEST_DURATION_COMPARATOR = compareBy<AndroidTestResults> {
-  it.getTotalDuration()
-}
-
 /**
  * A column for displaying a test name.
  */
 private object TestNameColumn : TreeColumnInfo("Tests") {
-  private val myComparator = TEST_NAME_COMPARATOR
+  private val myComparator = compareBy<AndroidTestResults> {
+    it.methodName
+  }.thenBy {
+    it.className
+  }.thenBy {
+    it.getFullTestCaseName()
+  }
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
-  override fun getWidth(table: JTable?): Int = 400
+  override fun getWidth(table: JTable?): Int = 360
+}
+
+/**
+ * A column for displaying a test duration.
+ */
+private object TestDurationColumn : ColumnInfo<AndroidTestResults, AndroidTestResults>("Duration") {
+  private val myComparator = compareBy<AndroidTestResults> {
+    it.getTotalDuration()
+  }
+  override fun valueOf(item: AndroidTestResults): AndroidTestResults = item
+  override fun getComparator(): Comparator<AndroidTestResults> = myComparator
+  override fun getWidth(table: JTable?): Int = 90
+  override fun getRenderer(item: AndroidTestResults?): TableCellRenderer = TestDurationColumnCellRenderer
+  override fun getCustomizedRenderer(o: AndroidTestResults?, renderer: TableCellRenderer?): TableCellRenderer {
+    return TestDurationColumnCellRenderer
+  }
+}
+
+private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
+  override fun getTableCellRendererComponent(table: JTable,
+                                             value: Any?,
+                                             isSelected: Boolean,
+                                             hasFocus: Boolean,
+                                             row: Int,
+                                             column: Int): Component {
+    val results = value as? AndroidTestResults ?: return this
+    val durationText = StringUtil.formatDuration(results.getRoundedTotalDuration().toMillis(), "\u2009")
+    super.getTableCellRendererComponent(table, durationText, isSelected, hasFocus, row, column)
+    icon = null
+    horizontalTextPosition = CENTER
+    horizontalAlignment = CENTER
+    foreground = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+    font = RelativeFont.SMALL.derive(font)
+    background = UIUtil.getTableBackground(isSelected, table.hasFocus())
+    return this
+  }
 }
 
 /**

@@ -18,6 +18,7 @@ package com.android.tools.adtui.device;
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -77,16 +78,17 @@ public class DeviceArtDescriptor {
     }
 
     // In development environments, search a few other folders
+    String srcRoot = StudioPathManager.getSourcesRoot();
     String basePath = PathManager.getHomePath();
     String[] paths = new String[] {
-      FileUtil.join("plugins", "android"),
-      FileUtil.join("..", "adt", "idea", "artwork", "resources"),
-      FileUtil.join("android", "artwork", "resources"),
-      FileUtil.join("community", "android", "artwork", "resources"),
+      FileUtil.join(basePath, "plugins", "android"),
+      FileUtil.join(srcRoot, "tools", "adt", "idea", "artwork", "resources"),
+      FileUtil.join(basePath, "android", "artwork", "resources"),
+      FileUtil.join(basePath, "community", "android", "artwork", "resources"),
     };
 
     for (String p : paths) {
-      File base = new File(basePath, p);
+      File base = new File(p);
       if (base.isDirectory()) {
         File files = new File(base, FN_BASE);
         if (files.isDirectory()) {

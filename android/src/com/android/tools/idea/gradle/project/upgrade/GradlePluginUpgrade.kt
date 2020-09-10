@@ -160,14 +160,7 @@ fun performRecommendedPluginUpgrade(
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
       val processor = AgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-      val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
-      if (java8Processor == null) {
-        LOG.error("no Java8Default processor found in AGP Upgrade Processor")
-      }
-      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
-        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
-        dialog.showAndGet()
-      }
+      val runProcessor = showAndGetAgpUpgradeDialog(processor)
       if (runProcessor) {
         DumbService.getInstance(project).smartInvokeLater { processor.run() }
       }
@@ -186,6 +179,28 @@ fun performRecommendedPluginUpgrade(
   }
 
   return false
+}
+
+/**
+ * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor.  The
+ * usual case is the return value from a dialog presenting information and options to the user, but we show a different
+ * dialog if we detect that the upgrade will fail in some way.
+ */
+private fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
+  val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
+  if (java8Processor == null) {
+    LOG.error("no Java8Default processor found in AGP Upgrade Processor")
+  }
+  val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
+    if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+      val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
+      dialog.show()
+      return@invokeAndWaitIfNeeded false
+    }
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
+    dialog.showAndGet()
+  }
+  return runProcessor
 }
 
 @VisibleForTesting
@@ -306,14 +321,7 @@ fun performForcedPluginUpgrade(
     // The user accepted the upgrade
     if (AGP_UPGRADE_ASSISTANT.get()) {
       val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
-      val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
-      if (java8Processor == null) {
-        LOG.error("no Java8Default processor found in AGP Upgrade Processor")
-      }
-      val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
-        val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!)
-        dialog.showAndGet()
-      }
+      val runProcessor = showAndGetAgpUpgradeDialog(processor)
       if (runProcessor) {
         DumbService.getInstance(project).smartInvokeLater { processor.run() }
       }

@@ -15,8 +15,8 @@
  */
 package com.android.build.attribution.ui.view.chart
 
-import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.TreePathUtil
@@ -29,10 +29,13 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.Point
 import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TreeExpansionEvent
@@ -47,7 +50,7 @@ private const val STACK_WIDTH_PX = 100
 private const val STACK_LEFT_BORDER_PX = 100
 private const val RIGHT_SELECTION_MARGIN_PX = 3
 private const val FULL_WIDTH_PX = STACK_WIDTH_PX + STACK_LEFT_BORDER_PX + RIGHT_SELECTION_MARGIN_PX
-private val MERGED_ITEMS_COLOR = Color(0xBDBDBD)
+private val MERGED_ITEMS_COLOR = Gray._189
 
 class TimeDistributionTreeChart(
   val model: TimeDistributionTreeChartCalculationModel,
@@ -76,11 +79,34 @@ class TimeDistributionTreeChart(
     repaint()
   }
 
+  private val mouseListener = object : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      model.itemByCoordinates(e.point)?.let {
+        tree.selectionModel.selectionPath = it.treePath
+        tree.requestFocusInWindow()
+      }
+    }
+
+    override fun mouseMoved(e: MouseEvent) {
+      if (model.hoveredItem?.contains(e.point) == true) return
+      model.hoveredItem = model.itemByCoordinates(e.point)
+      repaint()
+    }
+
+    override fun mouseExited(e: MouseEvent) {
+      model.hoveredItem = null
+      repaint()
+    }
+  }
+
   init {
     tree.model.addTreeModelListener(treeModelListener)
     tree.addTreeExpansionListener(treeExpansionListener)
     tree.addFocusListener(focusListener)
     tree.addTreeSelectionListener(treeSelectionListener)
+
+    addMouseListener(mouseListener)
+    addMouseMotionListener(mouseListener)
   }
 
   private fun Dimension.makeFullWidth() = JBUI.size(this).withWidth(FULL_WIDTH_PX)
@@ -136,6 +162,7 @@ class TimeDistributionTreeChartCalculationModel(
 ) {
 
   var chartItems: List<ChartRowItem> = emptyList()
+  var hoveredItem: ChartRowItem? = null
   val mergedItemsBar = MergedItemsBar()
   val selectionArea = ChartSelectionArea()
 
@@ -222,6 +249,8 @@ class TimeDistributionTreeChartCalculationModel(
     }
   }
 
+  fun itemByCoordinates(p: Point): ChartRowItem? = chartItems.firstOrNull { it.contains(p) }
+
   /**
    * Selection area that is drawn under the currently selected [ChartRowItem].
    */
@@ -232,25 +261,7 @@ class TimeDistributionTreeChartCalculationModel(
     var polygon: Polygon? = null
 
     fun recalculateCoordinates() {
-      polygon = null
-      selectedChartRowItem?.let { selectedChartRowItem ->
-        polygon = Polygon().apply {
-          val leftTopY: Int = selectedChartRowItem.treeRowY
-          val leftBottomY: Int = leftTopY + selectedChartRowItem.treeRowHeight
-          addPoint(0, leftTopY)
-          addPoint(leftLineBreakingPointScaledPx, leftTopY)
-          if (selectedChartRowItem.shownAsSeparateBar) {
-            val rightTopY: Int = selectedChartRowItem.stackBarY - stackBarsSpacingScaledPx
-            val rightBottomY: Int = rightTopY + selectedChartRowItem.stackBarHeight + 2 * stackBarsSpacingScaledPx
-            addPoint(rightLineBreakingPointScaledPx, rightTopY)
-            addPoint(selectionRightPointScaledPx, rightTopY)
-            addPoint(selectionRightPointScaledPx, rightBottomY)
-            addPoint(rightLineBreakingPointScaledPx, rightBottomY)
-          }
-          addPoint(leftLineBreakingPointScaledPx, leftBottomY)
-          addPoint(0, leftBottomY)
-        }
-      }
+      polygon = selectedChartRowItem?.toSelectionAreaPolygon()
     }
 
     override fun draw(g: Graphics) {
@@ -274,14 +285,24 @@ class TimeDistributionTreeChartCalculationModel(
     private val keyColor: Color
   ) : ChartDrawableElement {
 
+    private val shadowColor = JBColor(keyColor.darker(), keyColor.brighter())
+
     val selected: Boolean
       get() = selectionArea.selectedChartRowItem == this
+
+    val hovered: Boolean
+      get() = hoveredItem == this
 
     var treeRowY: Int = 0
     var treeRowHeight: Int = 0
     var stackBarY: Int = 0
     var stackBarHeight: Int = 0
+    var clickHandlingArea: Polygon? = null
 
+    /**
+     * [curY] start position on the stack chart for this element.
+     * Returns new position on the stack for the next element. Should be increased by height allocated for this element.
+     */
     fun recalculateCoordinates(stackHeightPxPerPercent: Double, curY: Int): Int {
       val rowBounds = treePathToCoordinates(treePath)
       if (rowBounds == null) {
@@ -297,6 +318,8 @@ class TimeDistributionTreeChartCalculationModel(
 
       stackBarY = curY + stackBarsSpacingScaledPx
       stackBarHeight = (stackHeightPxPerPercent * itemNormalizedHeightPercentage).toInt() - stackBarsSpacingScaledPx
+
+      clickHandlingArea = toSelectionAreaPolygon()
       if (!shownAsSeparateBar) {
         mergedItemsBar.mergedItems.add(this)
         return curY
@@ -317,31 +340,61 @@ class TimeDistributionTreeChartCalculationModel(
     }
 
     private fun drawBullet(g: Graphics) {
-      g.color = keyColor
       val size = rowColorBulletSizeScaledPx
       val y = treeRowY + (treeRowHeight - size) / 2
+
+      g.color = keyColor
       g.fillRect(0, y, size, size)
       if (!shownAsSeparateBar) {
         g.color = MERGED_ITEMS_COLOR
         g.fillPolygon(intArrayOf(0, size, size), intArrayOf(y + size, y + size, y), 3)
+      }
+      if (hovered) {
+        g.color = shadowColor
+        g.drawRect(0, y, size, size)
       }
     }
 
     private fun drawStackBar(g: Graphics) {
       g.color = keyColor
       g.fillRect(stackLeftBorderScaledPx, stackBarY, stackWidthScaledPx, stackBarHeight)
+
+      if (hovered) {
+        g.color = shadowColor
+        g.drawRect(stackLeftBorderScaledPx, stackBarY, stackWidthScaledPx, stackBarHeight)
+      }
     }
 
     private fun drawConnectorLine(g: Graphics) {
-      g.color = keyColor
       val leftMidY = treeRowY + treeRowHeight / 2
       val rightMidY = stackBarY + stackBarHeight / 2
+
+      g.color = if (hovered) shadowColor else keyColor
       g.drawPolyline(
         intArrayOf(rowColorBulletSizeScaledPx, leftLineBreakingPointScaledPx, rightLineBreakingPointScaledPx, stackLeftBorderScaledPx),
         intArrayOf(leftMidY, leftMidY, rightMidY, rightMidY),
         4
       )
     }
+
+    fun toSelectionAreaPolygon(): Polygon = Polygon().apply {
+      val leftTopY: Int = treeRowY
+      val leftBottomY: Int = leftTopY + treeRowHeight
+      addPoint(0, leftTopY)
+      addPoint(leftLineBreakingPointScaledPx, leftTopY)
+      if (shownAsSeparateBar) {
+        val rightTopY: Int = stackBarY - stackBarsSpacingScaledPx
+        val rightBottomY: Int = rightTopY + stackBarHeight + 2 * stackBarsSpacingScaledPx
+        addPoint(rightLineBreakingPointScaledPx, rightTopY)
+        addPoint(selectionRightPointScaledPx, rightTopY)
+        addPoint(selectionRightPointScaledPx, rightBottomY)
+        addPoint(rightLineBreakingPointScaledPx, rightBottomY)
+      }
+      addPoint(leftLineBreakingPointScaledPx, leftBottomY)
+      addPoint(0, leftBottomY)
+    }
+
+    fun contains(p: Point): Boolean = clickHandlingArea?.contains(p) ?: false
 
     val shownAsSeparateBar: Boolean
       get() = stackBarHeight >= minStackBarSizeScaledPx

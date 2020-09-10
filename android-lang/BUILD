@@ -88,7 +88,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -190,7 +189,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

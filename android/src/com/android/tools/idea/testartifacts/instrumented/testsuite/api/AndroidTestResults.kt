@@ -158,3 +158,15 @@ fun AndroidTestResults.getRoundedDuration(device: AndroidDevice): Duration? {
     Duration.ofSeconds(duration.seconds)
   }
 }
+
+/**
+ * Returns a total test execution duration rounded down by second if it is longer than a second.
+ */
+fun AndroidTestResults.getRoundedTotalDuration(): Duration {
+  val duration = getTotalDuration()
+  return if (duration < Duration.ofSeconds(1)) {
+    duration
+  } else {
+    Duration.ofSeconds(duration.seconds)
+  }
+}

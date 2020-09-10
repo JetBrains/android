@@ -163,7 +163,10 @@ class SqliteEvaluatorController(
 
     // update query history
     if (queryHistory.size >= MAX_QUERY_HISTORY_SIZE) queryHistory.removeLast()
-    queryHistory.addFirst(sqliteStatement.sqliteStatementWithInlineParameters)
+    val newEntry = sqliteStatement.sqliteStatementWithInlineParameters
+    if (queryHistory.contains(newEntry)) queryHistory.remove(newEntry)
+
+    queryHistory.addFirst(newEntry)
     view.setQueryHistory(queryHistory.toList())
     // save query history
     PropertiesComponent.getInstance(project).setValues(QUERY_HISTORY_KEY, queryHistory.toTypedArray())

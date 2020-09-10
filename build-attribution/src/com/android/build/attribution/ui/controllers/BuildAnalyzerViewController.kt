@@ -71,7 +71,7 @@ class BuildAnalyzerViewController(
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
   }
 
-  override fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode) {
+  override fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.tasksPageModel.selectNode(tasksTreeNode)
     val newAnalyticsPage = analytics.getStateFromModel(model)
@@ -89,7 +89,7 @@ class BuildAnalyzerViewController(
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
   }
 
-  override fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode) {
+  override fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     // Update selection in the model.
     model.warningsPageModel.selectNode(warningTreeNode)

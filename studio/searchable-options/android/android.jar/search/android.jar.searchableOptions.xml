@@ -492,10 +492,6 @@
     <option name="home" path="ActionManager" hit="Home" />
     <option name="asset" path="ActionManager" hit="Image Asset" />
     <option name="image" path="ActionManager" hit="Image Asset" />
-    <option name="android" path="ActionManager" hit="Import Android Test Results..." />
-    <option name="import" path="ActionManager" hit="Import Android Test Results..." />
-    <option name="results" path="ActionManager" hit="Import Android Test Results..." />
-    <option name="test" path="ActionManager" hit="Import Android Test Results..." />
     <option name="import" path="ActionManager" hit="Import Module..." />
     <option name="module" path="ActionManager" hit="Import Module..." />
     <option name="adt" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
@@ -506,6 +502,21 @@
     <option name="project" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
     <option name="import" path="ActionManager" hit="Import Project..." />
     <option name="project" path="ActionManager" hit="Import Project..." />
+    <option name="file" path="ActionManager" hit="Import Tests from File..." />
+    <option name="from" path="ActionManager" hit="Import Tests from File..." />
+    <option name="import" path="ActionManager" hit="Import Tests from File..." />
+    <option name="tests" path="ActionManager" hit="Import Tests from File..." />
+    <option name="a" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="an" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="execution" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="file" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="from" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="import" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="of" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="results" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="test" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="the" path="ActionManager" hit="Import the results of a test execution from an XML file" />
+    <option name="xml" path="ActionManager" hit="Import the results of a test execution from an XML file" />
     <option name="annotations" path="ActionManager" hit="Infer Annotations..." />
     <option name="infer" path="ActionManager" hit="Infer Annotations..." />
     <option name="infer" path="ActionManager" hit="Infer Nullity..." />
@@ -601,9 +612,6 @@
     <option name="namespaces" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="resource" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="to" path="ActionManager" hit="Migrates to resource namespaces" />
-    <option name="device" path="ActionManager" hit="Modify Device Set..." />
-    <option name="modify" path="ActionManager" hit="Modify Device Set..." />
-    <option name="set" path="ActionManager" hit="Modify Device Set..." />
     <option name="modularize" path="ActionManager" hit="Modularize..." />
     <option name="module" path="ActionManager" hit="Module" />
     <option name="help" path="ActionManager" hit="Motion Layout Help Panel" />
@@ -619,8 +627,6 @@
     <option name="resources" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="their" path="ActionManager" hit="Moves classes and their associated resources to another module" />
     <option name="to" path="ActionManager" hit="Moves classes and their associated resources to another module" />
-    <option name="devices" path="ActionManager" hit="Multiple Devices" />
-    <option name="multiple" path="ActionManager" hit="Multiple Devices" />
     <option name="card" path="ActionManager" hit="Navigate to SD card folder" />
     <option name="folder" path="ActionManager" hit="Navigate to SD card folder" />
     <option name="navigate" path="ActionManager" hit="Navigate to SD card folder" />
@@ -665,6 +671,10 @@
     <option name="existing" path="ActionManager" hit="Open an Existing Project" />
     <option name="open" path="ActionManager" hit="Open an Existing Project" />
     <option name="project" path="ActionManager" hit="Open an Existing Project" />
+    <option name="open" path="ActionManager" hit="Open recent test session" />
+    <option name="recent" path="ActionManager" hit="Open recent test session" />
+    <option name="session" path="ActionManager" hit="Open recent test session" />
+    <option name="test" path="ActionManager" hit="Open recent test session" />
     <option name="allows" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="connecting" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="device" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
@@ -823,6 +833,9 @@
     <option name="variant" path="ActionManager" hit="Select Build Variant..." />
     <option name="device" path="ActionManager" hit="Select Device" />
     <option name="select" path="ActionManager" hit="Select Device" />
+    <option name="devices" path="ActionManager" hit="Select Multiple Devices..." />
+    <option name="multiple" path="ActionManager" hit="Select Multiple Devices..." />
+    <option name="select" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="an" path="ActionManager" hit="Select an Emulator boot mode" />
     <option name="boot" path="ActionManager" hit="Select an Emulator boot mode" />
     <option name="emulator" path="ActionManager" hit="Select an Emulator boot mode" />
@@ -890,6 +903,8 @@
     <option name="a" path="ActionManager" hit="Take a screenshot" />
     <option name="screenshot" path="ActionManager" hit="Take a screenshot" />
     <option name="take" path="ActionManager" hit="Take a screenshot" />
+    <option name="history" path="ActionManager" hit="Test History" />
+    <option name="test" path="ActionManager" hit="Test History" />
     <option name="device" path="ActionManager" hit="Toggle Device Orientation" />
     <option name="orientation" path="ActionManager" hit="Toggle Device Orientation" />
     <option name="toggle" path="ActionManager" hit="Toggle Device Orientation" />

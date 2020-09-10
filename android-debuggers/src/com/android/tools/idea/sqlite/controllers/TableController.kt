@@ -91,7 +91,8 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     if (databaseId !is SqliteDatabaseId.LiveSqliteDatabaseId) {
-      view.setLiveUpdatesState(false)
+      view.setLiveUpdatesButtonState(false)
+      view.setRefreshButtonState(false)
     }
 
     view.startTableLoading()

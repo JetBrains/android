@@ -268,19 +268,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     // The attach dialog contains the project's run configurations.
     // We also add null to the front of the list to represent "[Create New]" run configuration.
     // Note we can't use ImmutableList here because ImmutableList doesn't allow null elements.
-    List<RunConfiguration> existingRunConfigurations =
+    List<RunConfiguration> existingValidRunConfigurations =
       ContainerUtil.filter(
         RunManager.getInstance(myProject).getAllConfigurationsList(),
         AndroidProcessChooserDialog::isAndroidRunConfig);
     ArrayList<RunConfiguration> runConfigurations = new ArrayList<>();
     runConfigurations.add(null);
-    runConfigurations.addAll(existingRunConfigurations);
+    runConfigurations.addAll(existingValidRunConfigurations);
     myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel(runConfigurations));
     myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Create New]", RunConfiguration::getName));
 
     // The run configuration dropdown is initialized to the project's currently selected run configuration; if there is no run configuration,
     // then [Create New] remains as the default initial selection.
     RunConfiguration configuration = getCurrentRunConfiguration();
+    if (!existingValidRunConfigurations.contains(configuration)) {
+      configuration = null;
+    }
     myDebuggerRunConfigCombo.setSelectedItem(configuration);
 
     // Initialize the DebuggerType dropdown contents and the selection.

@@ -21,12 +21,14 @@ import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
 const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
+const val DAGGER_LAZY = "dagger.Lazy"
 const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
@@ -63,6 +66,7 @@ const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
 const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
 const val DAGGER_VIEW_MODEL_INJECT_ANNOTATION = "androidx.hilt.lifecycle.ViewModelInject"
 const val DAGGER_WORKER_INJECT_ANNOTATION = "androidx.hilt.work.WorkerInject"
+const val JAVAX_INJECT_PROVIDER = "javax.inject.Provider"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -153,7 +157,21 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
     .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
-  return getDaggerConsumers(type, qualifierInfo, scope)
+  var consumers = getDaggerConsumers(type, qualifierInfo, scope)
+
+  val lazyClass = JavaPsiFacade.getInstance(element.project).findClass(DAGGER_LAZY, scope)
+  if (lazyClass != null) {
+    val lazyType = PsiElementFactory.getInstance(element.project).createType(lazyClass, type)
+    consumers += getDaggerConsumers(lazyType, qualifierInfo, scope)
+  }
+
+  val javaxInjectProviderClass = JavaPsiFacade.getInstance(element.project).findClass(JAVAX_INJECT_PROVIDER, scope)
+  if (javaxInjectProviderClass != null) {
+    val javaxInjectProviderType = PsiElementFactory.getInstance(element.project).createType(javaxInjectProviderClass, type)
+    consumers += getDaggerConsumers(javaxInjectProviderType, qualifierInfo, scope)
+  }
+
+  return consumers
 }
 
 /**
@@ -296,7 +314,7 @@ internal val PsiElement?.isDaggerSubcomponentFactory get() = isClassOrObjectAnno
  * Returns null if it's impossible to extract type.
  */
 private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, QualifierInfo?>? {
-  val type: PsiType =
+  var type: PsiType =
     when (element) {
       is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
       is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
@@ -306,6 +324,12 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
       is KtParameter -> element.psiType
       else -> null
     } ?: return null
+
+  if (type is PsiClassType &&
+      type.resolve()?.let { it.qualifiedName == DAGGER_LAZY || it.qualifiedName == JAVAX_INJECT_PROVIDER } == true) {
+    // For dagger.Lazy<Type> or javax.inject.Provider<Type> assigns Type.
+    type = type.parameters.firstOrNull() ?: return null
+  }
 
   return Pair(type, element.getQualifierInfo())
 }
