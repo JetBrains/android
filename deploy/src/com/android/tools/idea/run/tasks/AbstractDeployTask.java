@@ -95,13 +95,16 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   protected final boolean myRerunOnSwapFailure;
+  protected final boolean myAlwaysInstallWithPm;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
-  public AbstractDeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure) {
+  public AbstractDeployTask(
+      @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
+    myAlwaysInstallWithPm = alwaysInstallWithPm;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -130,22 +133,20 @@ public abstract class AbstractDeployTask implements LaunchTask {
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
 
-        EnumSet<ChangeType> optimisticInstallSupport =
-                OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(
-                        StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(),
-                        EnumSet.noneOf(ChangeType.class));
-        DeployerOption option =
-                new DeployerOption.Builder()
-                        .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
-                        .setUseOptimisticResourceSwap(
-                                StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
-                        .setOptimisticInstallSupport(optimisticInstallSupport)
-                        .setUseStructuralRedefinition(
-                                StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
-                        .setUseVariableReinitialization(
-                                StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
-                        .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
-                        .build();
+    EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
+    if (!myAlwaysInstallWithPm) {
+      optimisticInstallSupport = OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(
+        StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(), EnumSet.noneOf(ChangeType.class));
+    }
+    DeployerOption option =
+      new DeployerOption.Builder()
+        .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
+        .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
+        .setOptimisticInstallSupport(optimisticInstallSupport)
+        .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
+        .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
+        .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
+        .build();
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();

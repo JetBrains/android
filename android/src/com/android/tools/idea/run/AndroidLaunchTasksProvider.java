@@ -183,13 +183,26 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
         break;
       case APPLY_CHANGES:
-        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun()));
+        tasks.add(new ApplyChangesTask(
+          myProject,
+          packages.build(),
+          isApplyChangesFallbackToRun(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
         break;
       case APPLY_CODE_CHANGES:
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
+        tasks.add(new ApplyCodeChangesTask(
+          myProject,
+          packages.build(),
+          isApplyCodeChangesFallbackToRun(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
         break;
       case DEPLOY:
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(device), myLaunchOptions.getInstallOnAllUsers()));
+        tasks.add(new DeployTask(
+          myProject,
+          packages.build(),
+          myLaunchOptions.getPmInstallOptions(device),
+          myLaunchOptions.getInstallOnAllUsers(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
