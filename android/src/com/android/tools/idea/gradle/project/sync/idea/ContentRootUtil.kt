@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeVariant
@@ -40,6 +39,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.io.File
 
 /**
  * Sets up all of the content entries for a given [DataNode] containing the [ModuleData]. We use the given
@@ -135,27 +135,18 @@ private fun IdeVariant.processGeneratedSources(
   androidModel: AndroidModuleModel,
   processor: (String, ExternalSystemSourceType) -> Unit
 ) {
+
+  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
+  fun File.processAs(type: ExternalSystemSourceType) = processor(this.absolutePath, type)
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { it.processAs(type) }
+
   // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
   // this far back.
-  GradleUtil.getGeneratedSourceFoldersToUse(mainArtifact, androidModel).forEach {
-    processor(it.absolutePath, SOURCE_GENERATED)
-  }
-  mainArtifact.generatedResourceFolders.forEach {
-    processor(it.absolutePath, RESOURCE_GENERATED)
-  }
-
-  testArtifacts.forEach { testArtifact ->
-    // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
-    // this far back.
-    GradleUtil.getGeneratedSourceFoldersToUse(testArtifact, androidModel).forEach {
-      processor(it.absolutePath, TEST_GENERATED)
-    }
-    if (testArtifact is IdeAndroidArtifact) {
-      testArtifact.generatedResourceFolders.forEach {
-        processor(it.absolutePath, TEST_RESOURCE_GENERATED)
-      }
-    }
-  }
+  mainArtifact.applicableGeneratedSourceFolders().processAs(SOURCE_GENERATED)
+  mainArtifact.generatedResourceFolders.processAs(RESOURCE_GENERATED)
+  unitTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
+  androidTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
+  androidTestArtifact?.generatedResourceFolders?.processAs(TEST_RESOURCE_GENERATED)
 }
 
 /**
