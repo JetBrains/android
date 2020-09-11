@@ -130,7 +130,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   )
 
   // Setup the dependencies of the test artifact.
-  selectedVariant.testArtifacts.forEach { testArtifact ->
+  listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
     setupAndroidDependenciesForArtifact(
       testArtifact,
       this,
