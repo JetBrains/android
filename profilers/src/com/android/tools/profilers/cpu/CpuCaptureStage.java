@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
@@ -46,6 +47,7 @@ import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
+import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
@@ -68,6 +70,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -501,15 +504,20 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
     TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
-      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(timeline, mainThreadId);
+      // CPU Core scheduling.
       final int coreId = cpuId;
-      LazyDataSeries<CpuThreadSliceInfo> dataSeries =
-        new LazyDataSeries<>(() -> systemTraceData.getCpuThreadSliceInfoStates(coreId));
-      kernelTooltip.setCpuSeries(cpuId, dataSeries);
-      cores.addTrackModel(
-        TrackModel.newBuilder(
-          new CpuCoreTrackModel(dataSeries, timeline.getViewRange(), mainThreadId), ProfilerTrackRendererType.CPU_CORE, "CPU " + cpuId)
-          .setDefaultTooltipModel(kernelTooltip));
+      LazyDataSeries<CpuThreadSliceInfo> coreSchedSeries = new LazyDataSeries<>(() -> systemTraceData.getCpuThreadSliceInfoStates(coreId));
+      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(timeline, mainThreadId);
+      kernelTooltip.setCpuSeries(cpuId, coreSchedSeries);
+      cores.addTrackModel(TrackModel.newBuilder(new CpuCoreTrackModel(coreSchedSeries, timeline.getViewRange(), mainThreadId),
+                                                ProfilerTrackRendererType.CPU_CORE, "CPU " + cpuId).setDefaultTooltipModel(kernelTooltip));
+
+      // CPU Core frequency.
+      String cpuFrequencyTitle = "CPU " + cpuId + " Frequency";
+      List<SeriesData<Long>> cpuFreqCounters = systemTraceData.getCpuCounters().get(cpuId).getOrDefault("cpufreq", Collections.emptyList());
+      // TODO(b/145154241): implement tooltip.
+      cores.addTrackModel(TrackModel.newBuilder(new CpuFrequencyTrackModel(cpuFreqCounters, timeline.getViewRange()),
+                                                ProfilerTrackRendererType.CPU_FREQUENCY, cpuFrequencyTitle));
     }
     return cores;
   }
