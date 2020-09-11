@@ -380,6 +380,7 @@ object AndroidAttributeFact {
       "ignoreGravity" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "imeOptions" -> return NelePropertyType.FLAGS
       "importantForAutofill" -> return NelePropertyType.FLAGS
+      "importantForContentCapture" -> return NelePropertyType.FLAGS
       "inAnimation" -> return NelePropertyType.ANIM
       "indeterminateBehavior" -> return NelePropertyType.ENUM
       "indeterminateTintMode" -> return NelePropertyType.ENUM
