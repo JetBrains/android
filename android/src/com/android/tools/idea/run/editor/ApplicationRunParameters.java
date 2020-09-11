@@ -63,6 +63,8 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private JComponent myDynamicFeaturesParametersComponent;
   private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;
+  private JBCheckBox myAlwaysInstallWithPmCheckbox;
+
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
@@ -121,6 +123,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
 
     myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
+    myAlwaysInstallWithPmCheckbox.setVisible(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
   }
 
   private void createUIComponents() {
@@ -214,6 +217,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
     myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
+    myAlwaysInstallWithPmCheckbox.setSelected(configuration.ALWAYS_INSTALL_WITH_PM);
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
@@ -257,6 +261,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
     configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
     configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
+    configuration.ALWAYS_INSTALL_WITH_PM = myAlwaysInstallWithPmCheckbox.isSelected();
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       LaunchOptionState state = configuration.getLaunchOptionState(option.getId());

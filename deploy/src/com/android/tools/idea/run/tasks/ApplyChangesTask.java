@@ -33,8 +33,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
 
   public ApplyChangesTask(@NotNull Project project,
                           @NotNull Map<String, List<File>> packages,
-                          boolean rerunOnSwapFailure) {
-    super(project, packages, rerunOnSwapFailure);
+                          boolean rerunOnSwapFailure,
+                          boolean alwaysInstallWithPm) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
   }
 
   @NotNull

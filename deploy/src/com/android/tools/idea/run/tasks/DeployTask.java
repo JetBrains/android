@@ -46,8 +46,9 @@ public class DeployTask extends AbstractDeployTask {
   public DeployTask(@NotNull Project project,
                     @NotNull Map<String, List<File>> packages,
                     String userInstallOptions,
-                    boolean installOnAllUsers) {
-    super(project, packages, false);
+                    boolean installOnAllUsers,
+                    boolean alwaysInstallWithPm) {
+    super(project, packages, false, alwaysInstallWithPm);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");

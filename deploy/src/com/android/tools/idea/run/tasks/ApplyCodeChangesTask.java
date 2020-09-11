@@ -41,8 +41,9 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param packages a map of application ids to apks representing the packages this task will deploy.
    * @param rerunOnSwapFailure rerun the app when swap fails
    */
-  public ApplyCodeChangesTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure) {
-    super(project, packages, rerunOnSwapFailure);
+  public ApplyCodeChangesTask(
+      @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
   }
 
   @NotNull
