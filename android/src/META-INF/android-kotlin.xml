@@ -37,7 +37,7 @@
         </intentionAction>
 
         <intentionAction>
-            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidget</className>
+            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidgetActionGroup</className>
             <category>Compose Android</category>
         </intentionAction>
 
