@@ -209,12 +209,4 @@
             line="51"/>
     </issue>
 
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/main/java/com/android/tools/adtui/TooltipComponent.java"
-            line="100"/>
-    </issue>
-
 </issues>
