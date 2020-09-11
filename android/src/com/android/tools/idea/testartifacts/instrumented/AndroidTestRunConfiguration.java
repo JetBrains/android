@@ -59,6 +59,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.testframework.TestRunnerBundle;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
@@ -175,7 +176,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     else if (TESTING_TYPE == TEST_METHOD) {
       return ProgramRunnerUtil.shortenName(METHOD_NAME, 2) + "()";
     }
-    return JUnitBundle.message("all.tests.scope.presentable.text");
+    return TestRunnerBundle.message("all.tests.scope.presentable.text");
   }
 
   @NotNull
