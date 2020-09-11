@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.adb.PackageNameProvider
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -138,7 +139,8 @@ interface DatabaseInspectorProjectService {
   @UiThread
   suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor
   )
 
   /**
@@ -215,6 +217,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   override val projectScope = AndroidCoroutineScope(project, uiThread)
 
+  private var packageName: String? = null
+
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
     createController(model, databaseRepository, offlineDatabaseManager)
@@ -257,7 +261,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @UiThread
   override suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor
   ) = withContext(uiThread) {
     withContext(workerThread) { downloadOfflineDatabases?.cancelAndJoin() }
     // close all databases when a new session starts
@@ -266,6 +271,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     ideServices = appInspectionIdeServices
     controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
+
+    packageName = withContext(workerThread) {
+      PackageNameProvider.getPackageName(project, processDescriptor.serial, processDescriptor.processName).await()
+    }
   }
 
   @UiThread
@@ -290,7 +299,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
         for (liveSqliteDatabaseId in databasesToDownload) {
           try {
-            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
+            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(
+              packageName ?: processDescriptor.processName,
+              processDescriptor,
+              liveSqliteDatabaseId
+            )
             openSqliteDatabase(databaseFileData).await()
           }
           catch (e: OfflineDatabaseException) {
