@@ -25,6 +25,7 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.actions.BootMode
 import com.android.tools.idea.emulator.actions.BootType
+import com.android.tools.idea.emulator.actions.QUICK_BOOT_SNAPSHOT_ID
 import com.android.tools.idea.emulator.actions.SnapshotInfo
 import com.android.tools.idea.emulator.actions.SnapshotManager
 import com.android.tools.idea.emulator.actions.createBootMode
@@ -98,7 +99,7 @@ import javax.swing.table.TableRowSorter
 /**
  * Dialog for managing emulator snapshots.
  */
-internal class ManageSnapshotsDialog(
+class ManageSnapshotsDialog(
   private val emulator: EmulatorController,
   private val emulatorView: EmulatorView?
 ) {
@@ -110,10 +111,11 @@ internal class ManageSnapshotsDialog(
   }
   private val runningOperationLabel = JBLabel().apply {
     isVisible = false
+    name = "runningOperationLabel"
   }
   private val snapshotImagePanel = ImagePanel()
   private val snapshotInfoPanel = htmlComponent(lineWrap = true)
-  private val selectionStateLabel = Label("No snapshots selected")
+  private val selectionStateLabel = Label("No snapshots selected").apply { name = "selectionStateLabel" }
   private val coldBootCheckBox = JBCheckBox("Start without using a snapshot (cold boot)").apply {
     addItemListener {
       if (isSelected != snapshotTableModel.isColdBoot) {
@@ -125,7 +127,7 @@ internal class ManageSnapshotsDialog(
   private val snapshotManager = SnapshotManager(emulator.emulatorId.avdFolder, emulator.emulatorId.avdId)
   private val backgroundExecutor = createBoundedApplicationPoolExecutor("ManageSnapshotsDialog", 1)
   private var dialogManager: DialogManager? = null
-  /** An invisible text field used to trigger clearing of the error messages. See [clearError]. */
+  /** An invisible text field used to trigger clearing of the error messages. See the [clearError] function. */
   private var validationText = JTextField()
 
   init {
@@ -187,12 +189,7 @@ internal class ManageSnapshotsDialog(
       val selectionModel = snapshotTable.selectionModel
       selectionModel.addListSelectionListener {
         clearError()
-        var count = 0
-        for (i in selectionModel.minSelectionIndex..selectionModel.maxSelectionIndex) {
-          if (selectionModel.isSelectedIndex(i)) {
-            count++
-          }
-        }
+        var count = selectionModel.selectionSize
         if (count == 1) {
           selectionStateLabel.isVisible = false
           snapshotImagePanel.isVisible = true
@@ -248,7 +245,7 @@ internal class ManageSnapshotsDialog(
 
   private fun createSnapshot() {
     clearError()
-    val snapshotName = composeSnapshotName()
+    val snapshotId = composeSnapshotId(snapshotTableModel.items)
     val completionTracker = object : EmptyStreamObserver<SnapshotPackage>() {
 
       init {
@@ -261,7 +258,7 @@ internal class ManageSnapshotsDialog(
       override fun onCompleted() {
         finished()
         backgroundExecutor.submit {
-          val snapshot = snapshotManager.readSnapshotInfo(snapshotName)
+          val snapshot = snapshotManager.readSnapshotInfo(snapshotId)
           EventQueue.invokeLater {
             if (snapshot == null) {
               showError()
@@ -293,7 +290,7 @@ internal class ManageSnapshotsDialog(
       }
     }
 
-    emulator.saveSnapshot(snapshotName, completionTracker)
+    emulator.saveSnapshot(snapshotId, completionTracker)
   }
 
   private fun loadSnapshot() {
@@ -357,12 +354,12 @@ internal class ManageSnapshotsDialog(
         val selectionState = SelectionState(snapshotTable)
         snapshotTableModel.removeRow(selectedIndex)
         snapshotTableModel.insertRow(selectedIndex, updatedSnapshot)
-        snapshotTableModel.setBootSnapshot(selectedIndex, dialog.useToBoot)
         selectionState.restoreSelection()
         backgroundExecutor.submit {
           snapshotManager.saveSnapshotProto(updatedSnapshot.snapshotFolder, updatedSnapshot.snapshot)
         }
       }
+      snapshotTableModel.setBootSnapshot(selectedIndex, dialog.useToBoot)
     }
   }
 
@@ -478,7 +475,8 @@ internal class ManageSnapshotsDialog(
     snapshots.sortWith(compareByDescending(SnapshotInfo::isQuickBoot))
     if (snapshots.firstOrNull()?.isQuickBoot != true) {
       // Add a fake QuickBoot snapshot if is not present.
-      snapshots.add(QUICK_BOOT_SNAPSHOT_MODEL_ROW, SnapshotInfo(snapshotManager.snapshotsFolder, Snapshot.getDefaultInstance(), 0L))
+      snapshots.add(QUICK_BOOT_SNAPSHOT_MODEL_ROW,
+                    SnapshotInfo(snapshotManager.snapshotsFolder.resolve(QUICK_BOOT_SNAPSHOT_ID), Snapshot.getDefaultInstance(), 0L))
     }
     val bootSnapshot = when (bootMode.bootType) {
       BootType.COLD -> null
@@ -628,6 +626,10 @@ internal class ManageSnapshotsDialog(
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
+    }
+
+    override fun isEnabled(): Boolean {
+      return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected
     }
   }
 
@@ -856,10 +858,31 @@ private fun formatSnapshotSize(size: Long): String {
   return if (size > 0) getHumanizedSize(size) else "-"
 }
 
-private fun composeSnapshotName(): String {
-  val suffix = TIMESTAMP_FORMAT.format(Date())
-  return "snap_${suffix}"
+private fun composeSnapshotId(existingSnapshots: Collection<SnapshotInfo>): String {
+  val timestamp = TIMESTAMP_FORMAT.format(Date())
+  for (counter in 0..existingSnapshots.size) {
+    val suffix = if (counter == 0) "" else "_${counter}"
+    val snapshotName = "snap_${timestamp}${suffix}"
+    if (existingSnapshots.find { it.snapshotId == snapshotName } == null) {
+      return snapshotName
+    }
+  }
+  throw AssertionError("Unable to create an unique snapshot ID")
 }
+
+private val ListSelectionModel.selectionSize: Int
+  get() {
+    var count = 0
+    for (i in minSelectionIndex..maxSelectionIndex) {
+      if (isSelectedIndex(i)) {
+        count++
+      }
+    }
+    return count
+  }
+
+private val ListSelectionModel.isSingleItemSelected: Boolean
+  get() = minSelectionIndex >= 0 && minSelectionIndex == maxSelectionIndex
 
 private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
 
