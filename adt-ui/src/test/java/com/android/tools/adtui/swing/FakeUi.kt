@@ -16,7 +16,7 @@
 @file:JvmName("FakeUiUtil")
 package com.android.tools.adtui.swing
 
-import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -81,14 +81,21 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   /**
-   * Renders the component and returns the image reflecting its appearance.
+   * Renders the root component and returns the image reflecting its appearance.
    */
   fun render(): BufferedImage {
+    return render(root)
+  }
+
+  /**
+   * Renders the given component and returns the image reflecting its appearance.
+   */
+  public fun render(component: Component): BufferedImage {
     val image =
-        ImageUtils.createDipImage((root.width * screenScale).toInt(), (root.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+        createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
-    root.printAll(graphics)
+    component.printAll(graphics)
     graphics.dispose()
     return image
   }
@@ -134,7 +141,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   @Throws(InterruptedException::class)
   fun clickOn(component: Component) {
     val location = getPosition(component)
-    mouse.click(location.x, location.y)
+    mouse.click(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }

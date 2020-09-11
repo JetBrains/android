@@ -200,6 +200,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     throw TimeoutException()
   }
 
+  /**
+   * Clears the gRPC call log.
+   */
+  @UiThread
+  fun clearGrpcCallLog() {
+    grpcCallLog.clear()
+  }
+
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
@@ -258,6 +266,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     val snapshotMessage = Snapshot.newBuilder()
       .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
+      .setCreationTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build()
     val snapshotFile = snapshotFolder.resolve("snapshot.pb")
     Files.newOutputStream(snapshotFile, CREATE).use { stream ->
