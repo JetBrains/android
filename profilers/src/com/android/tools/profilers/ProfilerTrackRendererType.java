@@ -52,6 +52,10 @@ public enum ProfilerTrackRendererType {
    */
   CPU_CORE,
   /**
+   * For CPU per-core frequency.
+   */
+  CPU_FREQUENCY,
+  /**
    * For RSS (Resident Set Size) memory counters.
    */
   RSS_MEMORY,
