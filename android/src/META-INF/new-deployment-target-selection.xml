@@ -25,7 +25,7 @@
             text="Run on Multiple Devices" icon="AllIcons.Actions.Execute"/>
 
     <action id="SelectMultipleDevices" class="com.android.tools.idea.run.deployment.SelectMultipleDevicesAction"
-            text="Select Multiple Devices..."/>
+            text="Select Multiple Devices..." icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
 
     <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
             text="Select Device">
