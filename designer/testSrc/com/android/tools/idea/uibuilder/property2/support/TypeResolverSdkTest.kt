@@ -111,7 +111,7 @@ class TypeResolverSdkTest {
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
-  @Test
+  // @Test b/168443752
   fun testConstraintLayoutViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)

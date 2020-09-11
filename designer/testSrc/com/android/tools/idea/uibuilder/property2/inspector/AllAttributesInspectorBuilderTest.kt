@@ -43,7 +43,7 @@ class AllAttributesInspectorBuilderTest {
   @JvmField @Rule
   val edtRule = EdtRule()
 
-  @Test
+  // @Test b/168443752
   fun testAllAttributes() {
     addManifest(projectRule.fixture)
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
