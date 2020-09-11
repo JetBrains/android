@@ -146,6 +146,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
     ],
 )
 
@@ -221,5 +222,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
     ],
 )
