@@ -75,9 +75,12 @@ import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
+import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions;
+import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
@@ -808,31 +811,29 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
     // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
     // to decide which models to request from Gradle.
-    Project project = myProjectFinder.findProject(resolverCtx);
-    SelectedVariants selectedVariants = null;
-    boolean isSingleVariantSync = false;
-    Collection<String> cachedLibraries = emptySet();
-    String moduleWithVariantSwitched = null;
+    @Nullable Project project = myProjectFinder.findProject(resolverCtx);
 
-    if (project != null) {
-      isSingleVariantSync = shouldOnlySyncSingleVariant(project);
-      if (isSingleVariantSync) {
-        SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
-        selectedVariants = variantCollector.collectSelectedVariants();
-        moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
-        project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
-      }
-      cachedLibraries = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
+    AdditionalClassifierArtifactsActionOptions additionalClassifierArtifactsAction =
+      new AdditionalClassifierArtifactsActionOptions(
+        (project != null) ? LibraryFilePaths.getInstance(project).retrieveCachedLibs() : emptySet(),
+        StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
+      );
+    SyncActionOptions syncOptions = null;
+    boolean isSingleVariantSync = project != null && shouldOnlySyncSingleVariant(project);
+    if (isSingleVariantSync) {
+      SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
+      SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
+      String moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
+      project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
+      syncOptions = new SingleVariantSyncActionOptions(
+        selectedVariants,
+        moduleWithVariantSwitched,
+        additionalClassifierArtifactsAction
+      );
+    } else {
+      syncOptions = new FullSyncActionOptions(additionalClassifierArtifactsAction);
     }
-
-    SyncActionOptions options = new SyncActionOptions(
-      selectedVariants,
-      moduleWithVariantSwitched,
-      isSingleVariantSync,
-      cachedLibraries,
-      StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
-    );
-    return new AndroidExtraModelProvider(options);
+    return new AndroidExtraModelProvider(syncOptions);
   }
 
   private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
