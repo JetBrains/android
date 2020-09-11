@@ -98,7 +98,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       init {
         databaseInspectorProjectService.projectScope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices)
+          databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices, processDescriptor)
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
