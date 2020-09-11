@@ -20,7 +20,6 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -55,12 +54,11 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null) {
   // 1 - Extract all of the information (models) we need from the nodes
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
-  val nativeModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.NDK_MODEL)?.data
   val selectedVariant = variant ?: androidModel.selectedVariant
 
   // 2 - Compute all of the content roots that this module requires from the models we obtained above.
   val existingContentRoots = findAll(this, ProjectKeys.CONTENT_ROOT)
-  val contentRoots = collectContentRootData(selectedVariant, androidModel, nativeModel, existingContentRoots)
+  val contentRoots = collectContentRootData(selectedVariant, androidModel, existingContentRoots)
 
   // 3 - Add the ContentRootData nodes to the module.
   contentRoots.forEach { contentRootData ->
@@ -80,7 +78,6 @@ fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null)
 private fun collectContentRootData(
   variant: IdeVariant,
   androidModel: AndroidModuleModel,
-  ndkModel: NdkModuleModel?,
   existingContentRoots: Collection<DataNode<ContentRootData>>?
 ): Collection<ContentRootData> {
   val moduleRootPath = androidModel.rootDirPath.absolutePath
