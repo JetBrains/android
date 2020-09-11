@@ -318,14 +318,6 @@ private fun setupAndroidDependenciesForArtifact(
       sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     }
 
-    // It may be possible that we have local sources not obtained by Gradle. We look for those here.
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-sources.jar", true)?.also {
-      libraryData.addPath(SOURCE, it.absolutePath)
-    }
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-javadoc.jar", true)?.also {
-      libraryData.addPath(DOC, it.absolutePath)
-    }
-
     // Add external annotations.
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!

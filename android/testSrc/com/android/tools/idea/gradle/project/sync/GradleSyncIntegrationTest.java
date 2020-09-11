@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -59,7 +60,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -107,6 +107,9 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
@@ -392,36 +395,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
                      "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
-  }
-
-  public void testSyncWithAARDependencyAddsSources() throws Exception {
-    Project project = getProject();
-
-    loadProject(SIMPLE_APPLICATION);
-
-    Module appModule = getModule("app");
-
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-      project, () -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-
-        buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
-
-        String newDependency = "com.foo.bar:bar:0.1@aar";
-        buildModel.dependencies().addArtifact(COMPILE, newDependency);
-        buildModel.applyChanges();
-      }));
-
-    requestSyncAndWait();
-
-    // Verify that the library has sources.
-    ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: com.foo.bar:bar:0.1@aar";
-    Library library = libraries.findMatchingLibrary(libraryNameRegex);
-
-    assertNotNull("Library com.foo.bar:bar:0.1 is missing", library);
-    VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).asList().hasSize(1);
   }
 
   // Verify that custom properties on local.properties are preserved after sync (b/70670394)
