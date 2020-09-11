@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.idea.adb.AdbFileProvider
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -35,21 +38,25 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
+import java.io.File
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
@@ -67,6 +74,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
+
+    registerMockAdbService()
 
     offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
 
@@ -146,7 +155,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
 
     runDispatching {
-      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices, processDescriptor)
     }
 
     // Act
@@ -230,7 +239,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     // Act
     runDispatching {
-      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+      databaseInspectorProjectService.startAppInspectionSession(clientCommandsChannel, appInspectionServices, processDescriptor)
     }
 
     // Assert
@@ -277,7 +286,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId1) }
+    runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1) }
     verifyNoMoreInteractions(offlineDatabaseManager)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
@@ -309,5 +318,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       "Error opening database from '${databaseFileData.mainFile.path}'",
       error.cause
     )
+  }
+
+  private fun registerMockAdbService() {
+    val mockAdbService = mock(AdbService::class.java)
+    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
+    val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
+    `when`(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
+    `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
+    AdbFileProvider { createTempFile() }.storeInProject(project)
   }
 }
