@@ -9,6 +9,8 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-ide-customization" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-i18n" level="project" />
     <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />

@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
@@ -24,11 +25,13 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
@@ -307,6 +310,14 @@ class AndroidProjectRule private constructor(
         facets.clear()
       }
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
+      if (withAndroidSdk) {
+        val sdks = AndroidSdks.getInstance().allAndroidSdks
+        for (sdk in sdks) {
+          WriteAction.runAndWait<RuntimeException> {
+            ProjectJdkTable.getInstance().removeJdk(sdk!!)
+          }
+        }
+      }
     }
     fixture.tearDown()
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()

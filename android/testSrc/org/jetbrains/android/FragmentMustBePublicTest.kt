@@ -25,6 +25,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
+import com.intellij.testFramework.LightProjectDescriptor
 import com.siyeh.ig.LightJavaInspectionTestCase
 import org.intellij.lang.annotations.Language
 
@@ -33,6 +34,10 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
 
   override fun getInspection(): LocalInspectionTool? {
     return myVisibilityInspection!!.sharedLocalInspectionTool
+  }
+
+  override fun getProjectDescriptor(): LightProjectDescriptor {
+    return LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor();
   }
 
   override fun setUp() {
