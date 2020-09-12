@@ -16,10 +16,22 @@
 package com.android.tools.idea.common.editor.navigation
 
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.fileEditor.HeavyFileEditorManagerTestCase
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.testFramework.EditorTestUtil
+import com.intellij.testFramework.builders.ModuleFixtureBuilder
+import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
+import com.intellij.testFramework.registerComponentInstance
 
-class SourceCodeNavigationTest : HeavyFileEditorManagerTestCase() {
+class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder<*>>() {
+
+  override fun setUp() {
+    super.setUp()
+    val project = project
+    val manager = FileEditorManagerImpl(project)
+    project.registerComponentInstance(FileEditorManager::class.java, manager, testRootDisposable)
+  }
+
   fun testNavigationWithinFile() {
     myFixture.configureByText("${getTestName(false)}.java", """
       class AA {}
