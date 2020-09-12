@@ -48,13 +48,15 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-      project.verifyModelsAttached()
-      var completed = false
-      project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
-        completed = true
-      })
-      assertThat(completed).isTrue()
+      verifySyncSkipped(project)
+    }
+  }
+
+  fun testReopenKaptProject() {
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    openPreparedProject("project") { }
+    openPreparedProject("project") { project ->
+      verifySyncSkipped(project)
     }
   }
 
@@ -86,13 +88,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-      project.verifyModelsAttached()
-      var completed = false
-      project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
-        completed = true
-      })
-      assertThat(completed).isTrue()
+      verifySyncSkipped(project)
     }
   }
 
@@ -160,6 +156,16 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     runWriteAction {
       jdkTable.addJdk(jdk!!)
     }
+  }
+
+  private fun verifySyncSkipped(project: Project) {
+    assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
+    project.verifyModelsAttached()
+    var completed = false
+    project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
+      completed = true
+    })
+    assertThat(completed).isTrue()
   }
 }
 
