@@ -142,6 +142,7 @@ import com.android.SdkConstants.MATERIAL_BUTTON
 import com.android.SdkConstants.TAB_LAYOUT
 import com.android.SdkConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -164,7 +165,7 @@ class ViewInspectorBuilderTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/designer/testData/property/"
+    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer/testData/property/").path
     addManifest(projectRule.fixture)
   }
 
