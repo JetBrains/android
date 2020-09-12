@@ -246,7 +246,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
       }
     }
 
-    fun addCounters(counters: TraceProcessor.CountersResult) {
+    fun addProcessCounters(counters: TraceProcessor.ProcessCountersResult) {
       processToCounters[counters.processId.toInt()] = counters.counterList.map { counter ->
         CounterModel(counter.name,
                      counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }

@@ -200,7 +200,7 @@ class TraceProcessorModelTest {
     val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
     processProtoBuilder.addProcess(1, "Process1").addThread(1, "MainThreadProcess1")
 
-    val counterProtoBuilder = TraceProcessor.CountersResult.newBuilder().setProcessId(1)
+    val counterProtoBuilder = TraceProcessor.ProcessCountersResult.newBuilder().setProcessId(1)
     val p1CounterA = counterProtoBuilder.addCounterBuilder().setName("CounterA")
     p1CounterA.addValueBuilder().setTimestampNanoseconds(1000).setValue(0.0)
     p1CounterA.addValueBuilder().setTimestampNanoseconds(2000).setValue(1.0)
@@ -213,7 +213,7 @@ class TraceProcessorModelTest {
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addProcessMetadata(processProtoBuilder.build())
-    modelBuilder.addCounters(counterProtoBuilder.build())
+    modelBuilder.addProcessCounters(counterProtoBuilder.build())
     val model = modelBuilder.build()
 
     val process = model.getProcessById(1)!!
