@@ -22,6 +22,11 @@ public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCo
   @Override
   @NotNull
   protected LightProjectDescriptor getProjectDescriptor() {
+    return getAdtProjectDescriptor();
+  }
+
+  @NotNull
+  public static ProjectDescriptor getAdtProjectDescriptor() {
     return new ProjectDescriptor(LanguageLevel.HIGHEST) {
       @Override
       public Sdk getSdk() {
