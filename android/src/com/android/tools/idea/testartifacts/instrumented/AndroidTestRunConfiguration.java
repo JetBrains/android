@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.instrumented.testsuite.view.OptInBannerViewKt.createConsoleViewWithOptInBanner;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -319,12 +320,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
           && (executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID)
               || executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID))) {
-        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(), executor.getId(),
-                                               this);
+        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(),
+                                               executor.getToolWindowId(), this);
         consoleView.attachToProcess(handler);
       } else {
         AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-        consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+        consoleView = createConsoleViewWithOptInBanner(
+          SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties));
         Disposer.register(parent, consoleView);
       }
       return consoleView;
