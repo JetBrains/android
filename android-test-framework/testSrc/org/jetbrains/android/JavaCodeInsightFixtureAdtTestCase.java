@@ -26,9 +26,12 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 public abstract class JavaCodeInsightFixtureAdtTestCase extends JavaCodeInsightFixtureTestCase {
 
   @Override
-  protected void tuneFixture(
-    JavaModuleFixtureBuilder builder) throws Exception {
+  protected void tuneFixture(JavaModuleFixtureBuilder builder) throws Exception {
     super.tuneFixture(builder);
-    builder.addJdk(TestUtils.getWorkspaceFile("prebuilts/studio/jdk/mock-jdk17").getAbsolutePath());
+    addJdk(builder);
+  }
+
+  public static void addJdk(JavaModuleFixtureBuilder<?> builder) {
+    builder.addJdk(TestUtils.getMockJdk().getAbsolutePath());
   }
 }

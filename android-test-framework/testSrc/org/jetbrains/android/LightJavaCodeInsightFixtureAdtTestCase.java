@@ -26,12 +26,13 @@ public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCo
   }
 
   @NotNull
-  public static ProjectDescriptor getAdtProjectDescriptor() {
+  public static LightProjectDescriptor getAdtProjectDescriptor() {
     return new ProjectDescriptor(LanguageLevel.HIGHEST) {
       @Override
       public Sdk getSdk() {
-        String path = TestUtils.getWorkspaceFile("prebuilts/studio/jdk/mock-jdk17").getAbsolutePath();
-        return IdeaTestUtil.createMockJdk("java 1.7", path);      }
+        String path = TestUtils.getMockJdk().getAbsolutePath();
+        return IdeaTestUtil.createMockJdk("java 1.7", path);
+      }
     };
   }
 
