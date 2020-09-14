@@ -77,6 +77,7 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
@@ -84,11 +85,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.Rectangle;
 import java.util.Collections;
@@ -130,11 +129,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
   private final DesignSurfaceProgressIndicator myProgressIndicator;
-  // Protects all accesses to the rendering queue reference
-  private final Object myRenderingQueueLock = new Object();
-  @GuardedBy("myRenderingQueueLock")
-  private MergingUpdateQueue myRenderingQueue;
-  private static final int RENDER_DELAY_MS = 10;
+  private final RenderingQueue myRenderingQueue;
   @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
@@ -212,12 +207,6 @@ public class LayoutlibSceneManager extends SceneManager {
   private float quality = 1f;
 
   /**
-   * {@link Consumer} called when setting up the Rendering {@link MergingUpdateQueue} to do additional setup. This can be used for
-   * additional setup required for testing.
-   */
-  @NotNull private final Consumer<MergingUpdateQueue> myRenderingQueueSetup;
-
-  /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
    * re-inflate the model.
    */
@@ -272,8 +261,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle
-   *                                   render requests.
+   * @param renderingQueueFactory      a factory to create a {@link RenderingQueue}.
    * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
    * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
@@ -282,14 +270,14 @@ public class LayoutlibSceneManager extends SceneManager {
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
-                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
+                                  @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
     myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
-    myRenderingQueueSetup = renderingQueueSetup;
+    myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
     updateTrackingConfiguration();
 
@@ -340,7 +328,7 @@ public class LayoutlibSceneManager extends SceneManager {
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
-      queue -> {},
+      disposable -> new MergingRenderingQueue(disposable),
       sceneComponentProvider,
       sceneUpdateListener,
       LayoutScannerConfiguration.getDISABLED());
@@ -358,7 +346,7 @@ public class LayoutlibSceneManager extends SceneManager {
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
-      queue -> {},
+      disposable -> new MergingRenderingQueue(disposable),
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
       LayoutScannerConfiguration.getDISABLED());
@@ -375,7 +363,7 @@ public class LayoutlibSceneManager extends SceneManager {
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
-      queue -> {},
+      disposable -> new MergingRenderingQueue(disposable),
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
       config);
@@ -639,7 +627,7 @@ public class LayoutlibSceneManager extends SceneManager {
       myIsCurrentlyRendering = true;
     }
 
-    getRenderingQueue().queue(createRenderUpdate(trigger));
+    myRenderingQueue.queue(createRenderUpdate(trigger));
 
     return callback;
   }
@@ -721,7 +709,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     myProgressIndicator.start();
 
-    getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
+    myRenderingQueue.queue(new Update("model.update", HIGH_PRIORITY) {
       @Override
       public void run() {
         NlModel model = getModel();
@@ -745,20 +733,6 @@ public class LayoutlibSceneManager extends SceneManager {
         return equals(update);
       }
     });
-  }
-
-  @NotNull
-  private MergingUpdateQueue getRenderingQueue() {
-    synchronized (myRenderingQueueLock) {
-      if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
-                                                  Alarm.ThreadToUse.POOLED_THREAD);
-        myRenderingQueue.setRestartTimerOnAdd(true);
-        // Run any additional setup for the rendering queue
-        myRenderingQueueSetup.accept(myRenderingQueue);
-      }
-      return myRenderingQueue;
-    }
   }
 
   /**
@@ -1631,11 +1605,7 @@ public class LayoutlibSceneManager extends SceneManager {
   public boolean deactivate(@NotNull Object source) {
     boolean deactivated = super.deactivate(source);
     if (deactivated) {
-      synchronized (myRenderingQueueLock) {
-        if (myRenderingQueue != null) {
-          myRenderingQueue.cancelAllUpdates();
-        }
-      }
+      myRenderingQueue.deactivate();
       completeRender();
       disposeRenderTask();
     }
