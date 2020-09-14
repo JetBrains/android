@@ -79,7 +79,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -88,7 +87,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.TimerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -112,7 +110,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,9 +129,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
-  private final Object myProgressLock = new Object();
-  @GuardedBy("myProgressLock")
-  private AndroidPreviewProgressIndicator myCurrentIndicator;
+  private final DesignSurfaceProgressIndicator myProgressIndicator;
   // Protects all accesses to the rendering queue reference
   private final Object myRenderingQueueLock = new Object();
   @GuardedBy("myRenderingQueueLock")
@@ -292,6 +287,7 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
+    myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
@@ -446,7 +442,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       myRenderListeners.clear();
 
-      stopProgressIndicator();
+      myProgressIndicator.stop();
     }
     finally {
       super.dispose();
@@ -484,16 +480,6 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderResultLock.writeLock().unlock();
     }
   }
-
-  private void stopProgressIndicator() {
-    synchronized (myProgressLock) {
-      if (myCurrentIndicator != null) {
-        myCurrentIndicator.stop();
-        myCurrentIndicator = null;
-      }
-    }
-  }
-
 
   @NotNull
   @Override
@@ -732,12 +718,8 @@ public class LayoutlibSceneManager extends SceneManager {
     if (isDisposed.get()) {
       return;
     }
-    synchronized (myProgressLock) {
-      if (myCurrentIndicator == null) {
-        myCurrentIndicator = new AndroidPreviewProgressIndicator();
-        myCurrentIndicator.start();
-      }
-    }
+
+    myProgressIndicator.start();
 
     getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
       @Override
@@ -750,10 +732,10 @@ public class LayoutlibSceneManager extends SceneManager {
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             updateModel()
-              .whenComplete((result, ex) -> stopProgressIndicator());
+              .whenComplete((result, ex) -> myProgressIndicator.stop());
           }
           else {
-            stopProgressIndicator();
+            myProgressIndicator.stop();
           }
         });
       }
@@ -1339,34 +1321,6 @@ public class LayoutlibSceneManager extends SceneManager {
     myPreviousVersion = configuration.getTarget() != null ? configuration.getTarget().getVersionName() : null;
     myPreviousLocale = configuration.getLocale();
     myPreviousTheme = configuration.getTheme();
-  }
-
-  private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
-    private final Object myLock = new Object();
-
-    @Override
-    public void start() {
-      super.start();
-      UIUtil.invokeLaterIfNeeded(() -> {
-        final Timer timer = TimerUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
-          synchronized (myLock) {
-            if (isRunning()) {
-              getDesignSurface().registerIndicator(this);
-            }
-          }
-        });
-        timer.setRepeats(false);
-        timer.start();
-      });
-    }
-
-    @Override
-    public void stop() {
-      synchronized (myLock) {
-        super.stop();
-        ApplicationManager.getApplication().invokeLater(() -> getDesignSurface().unregisterIndicator(this));
-      }
-    }
   }
 
   /**
