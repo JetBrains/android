@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.releaseNotesUrl;
 import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.DO_NOT_ASK_AGAIN;
@@ -111,19 +112,21 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessagePane);
     String msg = "";
+    String url = releaseNotesUrl(recommended);
+
     if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
       msg += "<p>To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
              "that you upgrade the Android Gradle Plugin in this project (" + myProject.getName() +
              ") from the current version " + current + " to version " +
              recommended + ". " +
-             "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a></p>";
+             "<a href='" + url + "'>Release notes</a></p>";
     }
     else {
       msg += "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
              "that you update the Android Gradle plugin in this project (" + myProject.getName() +
              ") from the current version " + current
              + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
-             "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a>";
+             "<a href='" + url + "'>Release notes</a>";
 
       if (current.compareTo("3.2.0") < 0) {
         msg += "<br/><br/>" +

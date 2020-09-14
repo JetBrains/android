@@ -248,7 +248,7 @@ fun shouldForcePluginUpgrade(
   project: Project?,
   current: GradleVersion?,
   recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  ) : Boolean {
+) : Boolean {
   // We don't care about forcing upgrades when running unit tests.
   if (ApplicationManager.getApplication().isUnitTestMode) return false
   // Or when the skip upgrades property is set.
@@ -368,4 +368,9 @@ private fun Project.findPluginInfo() : AndroidPluginInfo? {
     return null
   }
   return pluginInfo
+}
+
+internal fun releaseNotesUrl(v: GradleVersion): String = when {
+  v.isPreview -> "https://developer.android.com/studio/preview/features#android_gradle_plugin_${v.major}${v.minor}"
+  else -> "https://developer.android.com/studio/releases/gradle-plugin#${v.major}-${v.minor}-0"
 }

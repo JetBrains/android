@@ -36,6 +36,7 @@ import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.releaseNotesUrl;
 import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
@@ -84,6 +85,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     setUpAsHtmlLabel(myMessagePane);
 
     String pluginVersion = LatestKnownPluginVersionProvider.INSTANCE.get();
+    String url = releaseNotesUrl(GradleVersion.parse(pluginVersion));
     myRecommendedPluginVersion = pluginVersion;
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     if (AGP_UPGRADE_ASSISTANT.get()) {
@@ -91,15 +93,14 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
                   "<p>To continue importing this project (" + myProject.getName() +
                   "), Android Studio will upgrade the project's build files to use version " +
                   pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
-                  "from the <a href='https://developer.android.com/studio/releases/gradle-plugin.html'>release notes</a>).</p>";
+                  "from the <a href='"+ url + "'>release notes</a>).</p>";
     }
     else {
       myMessage = "<b>This project is using an incompatible version of the " + AndroidPluginInfo.DESCRIPTION + ".</b><br/><br/>" +
                   "To continue opening this project (" + myProject.getName() +
                   "), the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                   "You can learn more about this version of the plugin from the " +
-                  "<a href='https://developer.android.com/studio/releases/gradle-plugin.html" +
-                  "'>release notes</a>.<br/><br/>";
+                  "<a href='" + url + "'>release notes</a>.<br/><br/>";
     }
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
