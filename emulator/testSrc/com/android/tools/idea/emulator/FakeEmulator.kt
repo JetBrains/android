@@ -29,11 +29,14 @@ import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
+import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
@@ -123,7 +126,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val embeddedFlags = if (standalone) {
       ""
     } else {
-      """ "-no-window" "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
+      """ ${getEmulatorHiddenWindowFlag()} "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
     }
 
     registration = """
@@ -212,6 +215,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
         .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
+        .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
         .build()
   }
 
@@ -448,6 +452,29 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     private fun sendDefaultSnapshotPackage(responseObserver: StreamObserver<SnapshotPackage>) {
       sendResponse(responseObserver, SnapshotPackage.getDefaultInstance())
+    }
+  }
+
+  private inner class UiControllerService(
+    private val executor: ExecutorService
+  ) : UiControllerGrpc.UiControllerImplBase() {
+
+    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun setUiTheme(themingStyle: ThemingStyle, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
     }
   }
 

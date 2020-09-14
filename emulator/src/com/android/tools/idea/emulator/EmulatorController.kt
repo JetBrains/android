@@ -27,6 +27,8 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
@@ -64,6 +66,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private var channel: ManagedChannel? = null
   @Volatile private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub? = null
   @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
+  @Volatile private var uiControllerStub: UiControllerGrpc.UiControllerStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile internal var skinDefinition: SkinDefinition? = null
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
@@ -128,6 +131,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       snapshotServiceStub = stub
     }
 
+  private var uiController: UiControllerGrpc.UiControllerStub
+    get() {
+      return uiControllerStub ?: throwNotYetConnected()
+    }
+    private inline set(stub) {
+      uiControllerStub = stub
+    }
+
   init {
     Disposer.register(parentDisposable, this)
   }
@@ -186,11 +197,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (token == null) {
       emulatorController = EmulatorControllerGrpc.newStub(channel)
       snapshotService = SnapshotServiceGrpc.newStub(channel)
+      uiController = UiControllerGrpc.newStub(channel)
     }
     else {
       val credentials = TokenCallCredentials(token)
       emulatorController = EmulatorControllerGrpc.newStub(channel).withCallCredentials(credentials)
       snapshotService = SnapshotServiceGrpc.newStub(channel).withCallCredentials(credentials)
+      uiController = UiControllerGrpc.newStub(channel).withCallCredentials(credentials)
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
@@ -327,33 +340,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVmModel(${shortDebugString(vmState)})")
+      LOG.info("setVmState(${shortDebugString(vmState)})")
     }
     emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
-  }
-
-  private fun sendKeepAlive() {
-    val responseObserver = object : EmptyStreamObserver<VmRunState>() {
-      override fun onNext(response: VmRunState) {
-        connectionState = ConnectionState.CONNECTED
-        if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
-          sendShutdown()
-        }
-        else {
-          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
-        }
-      }
-
-      override fun onError(t: Throwable) {
-        connectionState = ConnectionState.DISCONNECTED
-      }
-    }
-
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getVmState()")
-    }
-    emulatorController.withDeadlineAfter(3, TimeUnit.SECONDS)
-        .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
@@ -394,6 +383,70 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("pushSnapshot()")
     }
     return snapshotService.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
+  }
+
+  /**
+   * Shows the extended controls of the emulator.
+   *
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun showExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("showExtendedControls()")
+    }
+    uiController.showExtendedControls(Empty.getDefaultInstance(),
+                                      DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
+  }
+
+  /**
+   * Closes the extended controls of the emulator.
+   *
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun closeExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("closeExtendedControls()")
+    }
+    uiController.closeExtendedControls(Empty.getDefaultInstance(),
+                                       DelegatingStreamObserver(streamObserver, UiControllerGrpc.getCloseExtendedControlsMethod()))
+  }
+
+  /**
+   * Sets the UI style for the extended controls of the emulator.
+   *
+   * @param style the style to set
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setUiTheme(${shortDebugString(themingStyle)})")
+    }
+    uiController.setUiTheme(themingStyle, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getSetUiThemeMethod()))
+  }
+
+  private fun sendKeepAlive() {
+    val responseObserver = object : EmptyStreamObserver<VmRunState>() {
+      override fun onNext(response: VmRunState) {
+        connectionState = ConnectionState.CONNECTED
+        if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
+          sendShutdown()
+        }
+        else {
+          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+        }
+      }
+
+      override fun onError(t: Throwable) {
+        connectionState = ConnectionState.DISCONNECTED
+      }
+    }
+
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getVmState()")
+    }
+    emulatorController.withDeadlineAfter(3, TimeUnit.SECONDS)
+      .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   private fun throwNotYetConnected(): Nothing {
