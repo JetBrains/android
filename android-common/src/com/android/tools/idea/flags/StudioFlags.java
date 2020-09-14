@@ -550,9 +550,6 @@ public final class StudioFlags {
     GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
     "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
     true);
-  public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
-    GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
-    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
