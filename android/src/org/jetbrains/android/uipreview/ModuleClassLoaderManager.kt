@@ -18,12 +18,18 @@ package org.jetbrains.android.uipreview
 import com.android.layoutlib.reflection.TrackingThreadLocal
 import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.classloading.combine
+import com.android.tools.idea.rendering.classloading.multiTransformOf
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
+import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
+import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
+import org.jetbrains.org.objectweb.asm.ClassVisitor
 import java.util.Collections
 import java.util.WeakHashMap
+import java.util.function.Function.identity
 
 private val DUMMY_HOLDER = Any()
 /**
@@ -66,7 +72,7 @@ class ModuleClassLoaderManager {
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
     }
 
-    holders.computeIfAbsent(moduleClassLoader) { createHoldersSet() }.apply { add (holder) }
+    holders.computeIfAbsent(moduleClassLoader) { createHoldersSet() }.apply { add(holder) }
     return moduleClassLoader
   }
 
@@ -74,8 +80,16 @@ class ModuleClassLoaderManager {
    * Return a [ModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
    * [ModuleClassLoader] is not shared and the caller has full ownership of it.
    */
+  @JvmOverloads
   @Synchronized
-  fun getPrivate(parent: ClassLoader?, module: Module, holder: Any) = ModuleClassLoader(parent, module).apply {
+  fun getPrivate(parent: ClassLoader?,
+                 module: Module,
+                 holder: Any,
+                 additionalProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity(),
+                 additionalNonProjectTransformation: java.util.function.Function<ClassVisitor, ClassVisitor> = identity()) =
+    ModuleClassLoader(parent, module,
+                      combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation),
+                      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)).apply {
     holders[this] = createHoldersSet().apply { add(holder) }
   }
 

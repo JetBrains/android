@@ -65,6 +65,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
@@ -103,6 +104,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.ModuleClassLoader
 import java.awt.BorderLayout
 import java.awt.Color
 import java.time.Duration
@@ -160,6 +162,7 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            showDecorations: Boolean,
                                            isInteractive: Boolean,
                                            usePrivateClassLoader: Boolean,
+                                           isLiveLiteralsEnabled: Boolean,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
     val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
@@ -167,7 +170,12 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     interactive = isInteractive
-    isUsePrivateClassLoader = usePrivateClassLoader
+    isUsePrivateClassLoader = isLiveLiteralsEnabled || usePrivateClassLoader
+    if (isLiveLiteralsEnabled) {
+      setProjectClassesTransform {
+        LiveLiteralsTransform(it) { _, _ -> true }
+      }
+    }
     setQuality(0.7f)
     setShowDecorations(showDecorations)
     if (reinflate) {
@@ -708,6 +716,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
                                          usePrivateClassLoader = usePrivateClassLoader(),
+                                         isLiveLiteralsEnabled = false,
                                          forceReinflate = forceReinflate)
           reusedModel
         }
@@ -731,6 +740,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureLayoutlibSceneManager(surface.addModelWithoutRender(newModel) as LayoutlibSceneManager,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
+                                         isLiveLiteralsEnabled = false,
                                          usePrivateClassLoader = usePrivateClassLoader())
           newModel
         }
@@ -851,6 +861,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                                showDecorations = previewElement.displaySettings.showDecoration,
                                                isInteractive = interactiveMode.isStartingOrReady(),
                                                usePrivateClassLoader = usePrivateClassLoader(),
+                                               isLiveLiteralsEnabled = false,
                                                forceReinflate = false)
                   .requestComposeRender()
                   .await()
