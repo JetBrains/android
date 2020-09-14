@@ -178,4 +178,9 @@ class RetentionViewTest {
     }
     assertThat(retentionView.isSystemImageCompatible(hardwareIni, "invalid")).isFalse()
   }
+
+  @Test
+  fun checkBackgroundColor() {
+    assertThat(retentionView.myInfoText.isOpaque).isFalse()
+  }
 }
