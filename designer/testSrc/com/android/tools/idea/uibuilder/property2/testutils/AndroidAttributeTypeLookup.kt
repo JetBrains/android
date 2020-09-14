@@ -258,9 +258,28 @@ object AndroidAttributeFact {
       // ConstraintLayout additions
       "barrierAllowsGoneWidgets" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "barrierDirection" -> return NelePropertyType.ENUM
+      "barrierMargin" -> return NelePropertyType.DIMENSION
       "chainUseRtl" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "constraintSet" -> return NelePropertyType.ID
       "constraint_referenced_ids" -> return NelePropertyType.STRING
+      "flow_firstHorizontalBias" -> return NelePropertyType.FLOAT
+      "flow_firstHorizontalStyle" -> return NelePropertyType.ENUM
+      "flow_firstVerticalBias" -> return NelePropertyType.FLOAT
+      "flow_firstVerticalStyle" -> return NelePropertyType.ENUM
+      "flow_horizontalAlign" -> return NelePropertyType.FLOAT  // This should be ENUM, see b/168495397
+      "flow_horizontalBias" -> return NelePropertyType.FLOAT
+      "flow_horizontalGap" -> return NelePropertyType.DIMENSION
+      "flow_horizontalStyle" -> return NelePropertyType.ENUM
+      "flow_lastHorizontalBias" -> return NelePropertyType.FLOAT
+      "flow_lastHorizontalStyle" -> return NelePropertyType.ENUM
+      "flow_lastVerticalBias" -> return NelePropertyType.FLOAT
+      "flow_lastVerticalStyle" -> return NelePropertyType.ENUM
+      "flow_maxElementsWrap" -> return NelePropertyType.INTEGER
+      "flow_verticalAlign" -> return NelePropertyType.ENUM
+      "flow_verticalBias" -> return NelePropertyType.FLOAT
+      "flow_verticalGap" -> return NelePropertyType.DIMENSION
+      "flow_verticalStyle" -> return NelePropertyType.ENUM
+      "flow_wrapMode" -> return NelePropertyType.ENUM
       "layout_constrainedHeight" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "layout_constrainedWidth" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "layout_constraintBaseline_creator" -> return NelePropertyType.INTEGER
@@ -292,6 +311,7 @@ object AndroidAttributeFact {
       "layout_constraintRight_toRightOf" -> return NelePropertyType.ID
       "layout_constraintStart_toEndOf" -> return NelePropertyType.ID
       "layout_constraintStart_toStartOf" -> return NelePropertyType.ID
+      "layout_constraintTag" -> return NelePropertyType.STRING
       "layout_constraintTop_creator" -> return NelePropertyType.INTEGER
       "layout_constraintTop_toBottomOf" -> return NelePropertyType.ID
       "layout_constraintTop_toTopOf" -> return NelePropertyType.ID
@@ -302,6 +322,7 @@ object AndroidAttributeFact {
       "layout_constraintWidth_max" -> return NelePropertyType.DIMENSION
       "layout_constraintWidth_min" -> return NelePropertyType.DIMENSION
       "layout_constraintWidth_percent" -> return NelePropertyType.FRACTION
+      "layoutDescription" -> return NelePropertyType.XML
       "layout_editor_absoluteX" -> return NelePropertyType.DIMENSION
       "layout_editor_absoluteY" -> return NelePropertyType.DIMENSION
       "layout_goneMarginBottom" -> return NelePropertyType.DIMENSION
