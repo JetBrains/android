@@ -82,16 +82,10 @@ open class GradleFileModelTestCase {
 
   @Before
   fun setUp() {
-    StudioFlags.KOTLIN_DSL_PARSING.override(true)
     runWriteAction {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
       assertTrue(buildFile.isWritable)
     }
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.KOTLIN_DSL_PARSING.clearOverride()
   }
 
   protected fun writeToBuildFile(fileName: GradleFileModelTestCase.TestFileName) {
