@@ -47,6 +47,7 @@ import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
+import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
@@ -515,9 +516,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
       // CPU Core frequency.
       String cpuFrequencyTitle = "CPU " + cpuId + " Frequency";
       List<SeriesData<Long>> cpuFreqCounters = systemTraceData.getCpuCounters().get(cpuId).getOrDefault("cpufreq", Collections.emptyList());
-      // TODO(b/145154241): implement tooltip.
-      cores.addTrackModel(TrackModel.newBuilder(new CpuFrequencyTrackModel(cpuFreqCounters, timeline.getViewRange()),
-                                                ProfilerTrackRendererType.CPU_FREQUENCY, cpuFrequencyTitle));
+      CpuFrequencyTrackModel cpuFreqTrackModel = new CpuFrequencyTrackModel(cpuFreqCounters, timeline.getViewRange());
+      CpuFrequencyTooltip cpuFreqTooltip = new CpuFrequencyTooltip(timeline, cpuId, cpuFreqTrackModel.getCpuFrequencySeries());
+      cores.addTrackModel(TrackModel.newBuilder(cpuFreqTrackModel, ProfilerTrackRendererType.CPU_FREQUENCY, cpuFrequencyTitle)
+                            .setDefaultTooltipModel(cpuFreqTooltip));
     }
     return cores;
   }
