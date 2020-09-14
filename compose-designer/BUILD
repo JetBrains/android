@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/adt/idea/compose-designer:lib/ui-animation-tooling-internal",
+        "//tools/idea/.idea/libraries:ASM",
     ],
 )
 

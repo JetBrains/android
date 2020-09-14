@@ -79,6 +79,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/idea/.idea/libraries:jaxb-api",
         "//tools/idea/.idea/libraries:Trove4j",
+        "//tools/idea/.idea/libraries:ASM",
     ],
 )
 
