@@ -624,6 +624,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "new.snapshot.ui", "Enable new snapshot UI",
     "Enables the new snapshot management UI",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
+    EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
+    "Enables the extended controls in the Embedded Emulator",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",

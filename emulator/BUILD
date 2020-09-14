@@ -132,6 +132,8 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:truth",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 

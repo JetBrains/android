@@ -19,6 +19,7 @@ import com.android.emulator.control.EmulatorStatus
 import com.android.prefs.AndroidLocation
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getSdk
+import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
@@ -45,7 +46,7 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-val COMMAND_PARAMETERS_EMBEDDED = listOf("-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300")
+val COMMAND_PARAMETERS_EMBEDDED = listOf(getEmulatorHiddenWindowFlag(), "-grpc-use-token", "-idle-grpc-timeout", "300")
 
 /**
  * Test rule for launching a real Android emulator.

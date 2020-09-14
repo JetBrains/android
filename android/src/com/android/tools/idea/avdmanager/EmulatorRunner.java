@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
+import static com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.isFoldable;
 
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -83,7 +84,8 @@ public class EmulatorRunner {
 
   @NotNull
   private static LaunchType getLaunchType(@NotNull GeneralCommandLine commandLine) {
-    return commandLine.getParametersList().getParameters().contains("-no-window") ? LaunchType.IN_TOOL_WINDOW : LaunchType.STANDALONE;
+    return commandLine.getParametersList().getParameters().contains(getEmulatorHiddenWindowFlag()) ?
+           LaunchType.IN_TOOL_WINDOW : LaunchType.STANDALONE;
   }
 
   @NotNull

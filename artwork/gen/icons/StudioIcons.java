@@ -170,6 +170,7 @@ public class StudioIcons {
   public static class Emulator {
     public static final Icon BACK = load("/studio/icons/emulator/back.svg"); // 16x16
     public static final Icon HOME = load("/studio/icons/emulator/home.svg"); // 16x16
+    public static final Icon MORE = load("/studio/icons/emulator/more.svg"); // 16x16
     public static final Icon OVERVIEW = load("/studio/icons/emulator/overview.svg"); // 16x16
     public static final Icon POWER = load("/studio/icons/emulator/power.svg"); // 16x16
     public static final Icon ROTATE_LEFT = load("/studio/icons/emulator/rotate-left.svg"); // 16x16
