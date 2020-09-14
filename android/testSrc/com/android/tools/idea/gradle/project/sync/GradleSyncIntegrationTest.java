@@ -49,10 +49,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -724,8 +724,7 @@ b/154962759 */
     assertFalse(rootModel.isKaptEnabled());
   }
 
-  // b/161618318
-  public void /*test*/ExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
     loadSimpleApplication();
     SyncViewManager viewManager = mock(SyncViewManager.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
@@ -734,10 +733,12 @@ b/154962759 */
     requestSyncAndGetExpectedFailure();
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(3)).onEvent(any(), eventCaptor.capture());
+    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to wait
+    verify(viewManager, after(1000).atLeast(0)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
+    // There should be at least two events
+    assertThat(events.size()).isAtLeast(2);
     // The first event should be a StartBuildEvent
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
     // And the last event should be a FinishBuildEvent. There may be other progress events in between.
