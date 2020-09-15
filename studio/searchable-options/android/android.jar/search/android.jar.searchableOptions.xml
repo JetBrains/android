@@ -1130,14 +1130,6 @@
     <option name="running" hit="Make project automatically (only works while not running / debugging)" />
     <option name="while" hit="Make project automatically (only works while not running / debugging)" />
     <option name="works" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="before" hit="Sync project with Gradle before building, if needed" />
-    <option name="building" hit="Sync project with Gradle before building, if needed" />
-    <option name="gradle" hit="Sync project with Gradle before building, if needed" />
-    <option name="if" hit="Sync project with Gradle before building, if needed" />
-    <option name="needed" hit="Sync project with Gradle before building, if needed" />
-    <option name="project" hit="Sync project with Gradle before building, if needed" />
-    <option name="sync" hit="Sync project with Gradle before building, if needed" />
-    <option name="with" hit="Sync project with Gradle before building, if needed" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
