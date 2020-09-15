@@ -69,6 +69,11 @@ interface AndroidTestResults {
   fun getLogcat(device: AndroidDevice): String
 
   /**
+   * Returns the start time of the test on a given device.
+   */
+  fun getStartTime(device: AndroidDevice): Long?
+
+  /**
    * Returns an elapsed time of a test case execution of a given device.
    */
   fun getDuration(device: AndroidDevice): Duration?

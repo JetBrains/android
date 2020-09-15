@@ -25,6 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.Timestamp
 import com.google.testing.platform.plugin.android.info.host.proto.AndroidTestDeviceInfoProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
@@ -147,7 +148,10 @@ class UtpTestResultAdapter(private val protoFile: File) {
                                        TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED
                                        TestStatusProto.TestStatus.FAILED -> AndroidTestCaseResult.FAILED
                                        else -> AndroidTestCaseResult.SKIPPED
-                                     })
+                                     },
+                                     startTimestampMillis = testCaseProto.startTime.millis(),
+                                     endTimestampMillis = testCaseProto.endTime.millis()
+      )
       if (testResultProto.testStatus == TestStatusProto.TestStatus.FAILED) {
         testSuite.result = AndroidTestSuiteResult.FAILED
       }
@@ -208,4 +212,8 @@ private fun resolveFile(dir: File, filename: String?): File? {
     return file3
   }
   return null
+}
+
+private fun Timestamp.millis(): Long {
+  return seconds * 1000L + nanos / 1000000L
 }

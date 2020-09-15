@@ -1005,6 +1005,11 @@ private class AndroidTestResultsRow(override val methodName: String,
    */
   override fun getLogcat(device: AndroidDevice): String = myTestCases[device.id]?.logcat ?: ""
 
+  /**
+   * Returns the start time of the test on a given device.
+   */
+  override fun getStartTime(device: AndroidDevice): Long? = myTestCases[device.id]?.startTimestampMillis
+
   override fun getDuration(device: AndroidDevice): Duration? {
     val start = myTestCases[device.id]?.startTimestampMillis ?: return null
     val end = myTestCases[device.id]?.endTimestampMillis ?: System.currentTimeMillis()
@@ -1154,6 +1159,21 @@ private class AggregationRow(override val packageName: String = "",
       }
     }?:""
   }
+
+  override fun getStartTime(device: AndroidDevice): Long? {
+    return allChildren.fold(null as Long?) { acc, result ->
+      (result as? AndroidTestResults)?.getStartTime(device).also {
+        if (acc == null) {
+          return@fold it
+        }
+        if (it != null && it != 0L) {
+          return@fold minOf(it, acc)
+        }
+        return@fold acc
+      }
+    }
+  }
+
   override fun getDuration(device: AndroidDevice): Duration? {
     return  allChildren.fold(null as Duration?) { acc, result ->
       val childDuration = (result as? AndroidTestResults)?.getDuration(device) ?: return@fold acc

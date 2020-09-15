@@ -125,6 +125,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getResultStats() = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getStartTime(device: AndroidDevice): Long? = null
       override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
