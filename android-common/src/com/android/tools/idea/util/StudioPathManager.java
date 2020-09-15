@@ -3,6 +3,7 @@ package com.android.tools.idea.util;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.PathUtil;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -104,6 +105,11 @@ public class StudioPathManager {
    * @return the source root directory, assuming that unbundled SDK is being used.
    */
   private static String getSourcesRootUnbundled() {
-    return Paths.get(PathManager.getHomePath(), ROOT_FROM_UNBUNDLED_SDK).normalize().toString();
+    String relative = ROOT_FROM_UNBUNDLED_SDK;
+    if (SystemInfo.isMac) {
+      // On Mac, idea home points to the "Contents" directory
+      relative += "../";
+    }
+    return Paths.get(PathManager.getHomePath(), relative).normalize().toString();
   }
 }
