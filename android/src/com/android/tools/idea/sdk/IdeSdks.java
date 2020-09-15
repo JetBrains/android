@@ -21,8 +21,9 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
@@ -92,7 +93,7 @@ import org.jetbrains.annotations.TestOnly;
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
-  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_1_8;
+  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
 
@@ -1011,10 +1012,33 @@ public class IdeSdks {
         possiblePath = macPath;
       }
     }
-    if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() || isJdkSameVersion(possiblePath, getRunningVersionOrDefault())) {
-      return possiblePath;
+    if (possiblePath != null) {
+      if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() || isJdkSameVersion(possiblePath, getRunningVersionOrDefault())) {
+        return possiblePath;
+      }
+      else {
+        LOG.warn("Trying to use JDK with different version: " + possiblePath);
+      }
+    }
+    else {
+      showValidateDetails(file);
+      if (SystemInfo.isMac) {
+        showValidateDetails(new File(file, MAC_JDK_CONTENT_PATH));
+      }
     }
     return null;
+  }
+
+  private void showValidateDetails(@NotNull File homePath) {
+    LOG.warn("Could not validate JDK at " + homePath + ":");
+    LOG.warn("  File exists: " + homePath.exists());
+    LOG.warn("  Javac: " + (new File(homePath, "bin/javac").isFile() || new File(homePath, "bin/javac.exe").isFile()));
+    LOG.warn("  JDK: " + new File(homePath, "jre/lib/rt.jar").exists());
+    LOG.warn("  JRE: " + new File(homePath, "lib/rt.jar").exists());
+    LOG.warn("  Jigsaw JDK/JRE: " + isModularRuntime(homePath));
+    LOG.warn("  Apple JDK: " + new File(homePath, "../Classes/classes.jar").exists());
+    LOG.warn("  IBM JDK: " + new File(homePath, "jre/lib/vm.jar").exists());
+    LOG.warn("  Custom build: " + new File(homePath, "classes").isDirectory());
   }
 
   /**
