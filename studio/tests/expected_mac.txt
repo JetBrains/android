@@ -1548,6 +1548,7 @@ Android Studio.app/Contents/plugins/android/lib/layoutlib/data/icu/icudt66l.dat
 Android Studio.app/Contents/plugins/android/lib/layoutlib/data/layoutlib-extensions.jar
 Android Studio.app/Contents/plugins/android/lib/layoutlib/data/mac/lib64/libandroid_runtime.dylib
 Android Studio.app/Contents/plugins/android/lib/libjava_version.jar
+Android Studio.app/Contents/plugins/android/lib/libunb.android-core-proto.jar
 Android Studio.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio.app/Contents/plugins/android/lib/manifest-merger.jar
 Android Studio.app/Contents/plugins/android/lib/moshi-1.6.0.jar

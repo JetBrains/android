@@ -1565,6 +1565,7 @@ android-studio/plugins/android/lib/layoutlib/data/win/lib64/libandroid_runtime.d
 android-studio/plugins/android/lib/layoutlib/data/win/lib64/libicuuc-host.dll
 android-studio/plugins/android/lib/layoutlib/data/win/lib64/libicuuc_stubdata.dll
 android-studio/plugins/android/lib/libjava_version.jar
+android-studio/plugins/android/lib/libunb.android-core-proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
 android-studio/plugins/android/lib/moshi-1.6.0.jar
