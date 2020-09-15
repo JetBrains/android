@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.ui.designer.overlays;
 
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.util.ui.ImageUtil;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.imageio.ImageIO;
 
 /**
  * A class containing the overlay configuration as well as helper methods for handling the overlays
@@ -51,7 +46,6 @@ public final class OverlayConfiguration {
    */
   public OverlayConfiguration() {
     loadOverlayList();
-    loadPlaceholderOverlay();
   }
 
   /**
@@ -184,25 +178,10 @@ public final class OverlayConfiguration {
   }
 
   /**
-   * Returns if an overlay is being displayed/ cached
+   *  Returns whether an overlay is displayed/ cache
    */
   public boolean isOverlayPresent() {
-    return myOverlayImage != null;
-  }
-
-  /**
-   * Loads the placeholder overlay from resources
-   */
-  private static void loadPlaceholderOverlay() {
-    try {
-      //TODO: have fitting placeholders for the different device types.
-      PLACEHOLDER_OVERLAY.setOverlayImage(ImageIO.read(EditorDesignSurface.class.getResource("/overlay/placeholder.png")));
-    }
-    catch (Exception e) {
-      //TODO: Handle this exception better
-      PLACEHOLDER_OVERLAY.setOverlayImage(ImageUtil.createImage(1,1,1));
-      Logger.getInstance(OverlayConfiguration.class).warn(e);
-    }
+    return myOverlayImage != null || isPlaceholderVisible();
   }
 
   /**
