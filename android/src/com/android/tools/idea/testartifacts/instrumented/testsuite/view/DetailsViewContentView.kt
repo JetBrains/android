@@ -152,6 +152,10 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     refreshTestResultLabel()
   }
 
+  fun setAndroidTestCaseStartTime(time: Long?) {
+    myRetentionView.setStartTime(time)
+  }
+
   fun setLogcat(logcat: String) {
     myLogcat = logcat
     refreshLogsView()

@@ -422,6 +422,71 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun startTime() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+
+    val startTime0 = 100L
+    val startTime1 = 101L
+    val startTime2 = 102L
+    table.addDevice(device1)
+    table.addTestCase(device1,
+                      AndroidTestCase("testid3", "method1", "class2", "package1",
+                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
+                                      result = AndroidTestCaseResult.FAILED))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid1", "method1", "class1", "package1",
+                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
+                                      result = AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid2", "method2", "class1", "package1",
+                                      startTimestampMillis = startTime2, endTimestampMillis = 100,
+                                      result = AndroidTestCaseResult.PASSED))
+
+    assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isEqualTo(startTime0)
+  }
+
+  @Test
+  fun startTimeWithNull() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+
+    val startTime0 = 100L
+    val startTime1: Long? = null
+    table.addDevice(device1)
+    table.addTestCase(device1,
+                      AndroidTestCase("testid3", "method1", "class2", "package1",
+                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
+                                      result = AndroidTestCaseResult.FAILED))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid1", "method1", "class1", "package1",
+                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
+                                      result = AndroidTestCaseResult.SKIPPED))
+
+    assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isEqualTo(startTime0)
+  }
+
+  @Test
+  fun startTimeAllNull() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+
+    val startTime0: Long? = null
+    val startTime1: Long? = null
+    table.addDevice(device1)
+    table.addTestCase(device1,
+                      AndroidTestCase("testid3", "method1", "class2", "package1",
+                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
+                                      result = AndroidTestCaseResult.FAILED))
+    table.addTestCase(device1,
+                      AndroidTestCase("testid1", "method1", "class1", "package1",
+                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
+                                      result = AndroidTestCaseResult.SKIPPED))
+
+    assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isNull()
+  }
+
+  @Test
   fun sortRows() {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
     val device1 = device("deviceId1", "deviceName1")
@@ -701,6 +766,7 @@ class AndroidTestResultsTableViewTest {
       override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getStartTime(device: AndroidDevice): Long? = null
       override fun getDuration(device: AndroidDevice): Duration? = null
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""

@@ -49,8 +49,6 @@ import org.apache.commons.compress.utils.FileNameUtils
 import org.apache.commons.lang.StringEscapeUtils
 import org.ini4j.Config
 import org.ini4j.Ini
-import java.awt.Color
-import java.awt.Component
 import java.awt.Desktop
 import java.awt.Image
 import java.awt.event.ComponentAdapter
@@ -62,6 +60,10 @@ import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
+import java.text.DateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -190,6 +192,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     false
   }
 
+  private var testStartTime: Long? = null
   /**
    * Returns the root panel.
    */
@@ -324,13 +327,24 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     var text = ""
     text += "<html>"
     text += "<b>Test details</b><br>"
-    val device = myRetentionPanel.androidDevice
+    if (testStartTime != null && testStartTime != 0L) {
+      text += "Test failed: ${testStartTime?.formatTime()?.escapeHtml()}<br>"
+    }
     val snapshotFile = myRetentionPanel.getSnapshotFile()
     if (snapshotFile != null) {
       text += "<br><b>Test snapshot</b><br>"
-      text += "${StringEscapeUtils.escapeHtml(snapshotFile.name)}<br>"
+      text += "${snapshotFile.name.escapeHtml()}<br>"
       text += "size: ${snapshotFile.length() / 1024 / 1024} MB<br>"
-      text += "<a href=\"file:///${StringEscapeUtils.escapeHtml(snapshotFile.parent)}\">View file</a><br>"
+      if (snapshotFile.parent != null) {
+        text += "<a href=\"file:///${snapshotFile.parent.escapeHtml()}\">View file</a><br>"
+      }
+      try {
+        val attribs = Files.readAttributes(snapshotFile.toPath(), BasicFileAttributes::class.java)
+        val formatted: String = attribs.creationTime().toMillis().formatTime()
+        text += "Created: ${formatted.escapeHtml()}<br>"
+      } catch (ex: Exception) {
+        // No-op
+      }
     }
     text += "</html>"
     myInfoText.text = text
@@ -338,6 +352,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   fun setAndroidDevice(device: AndroidDevice?) {
     myRetentionPanel.androidDevice = device
+  }
+
+  fun setStartTime(time: Long?) {
+    testStartTime = time
     updateInfoText()
   }
 
@@ -346,3 +364,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       RetentionView::class.java)
   }
 }
+
+private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(this))
+
+private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
