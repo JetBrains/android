@@ -70,11 +70,6 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
   }
 
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
   public void testWithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 

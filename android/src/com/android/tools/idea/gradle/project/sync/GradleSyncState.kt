@@ -19,12 +19,11 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
@@ -71,10 +70,10 @@ import kotlin.concurrent.withLock
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
-data class ProjectSyncTrigger(val projectRoot: String, val trigger: GradleSyncStats.Trigger)
+data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger, val fullSync: Boolean)
 
 @JvmField
-val PROJECT_SYNC_TRIGGER = Key.create<ProjectSyncTrigger>("PROJECT_SYNC_TRIGGER")
+val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST")
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -109,11 +108,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     @JvmStatic
     fun getInstance(project: Project): GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
-
-    @JvmStatic
-    fun isSingleVariantSync(): Boolean {
-      return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() || GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC
-    }
   }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
@@ -161,7 +155,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Triggered at the start of a sync.
    */
-  private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
+  private fun syncStarted(trigger: GradleSyncStats.Trigger, fullSync: Boolean): Boolean {
     lock.withLock {
       if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
@@ -171,10 +165,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       state = LastSyncState.IN_PROGRESS
     }
 
-    val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
+    val syncType = if (fullSync) "full-variants" else "single-variant"
     LOG.info("Started $syncType ($trigger) sync with Gradle for project '${project.name}'.")
 
-    eventLogger.syncStarted(getSyncType(), trigger)
+    eventLogger.syncStarted(getSyncType(fullSync), trigger)
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
@@ -276,6 +270,8 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       externalSystemTaskId = null
     }
 
+    project.putUserData(GradleSyncExecutor.FULL_SYNC_KEY, null)
+
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
       ApplicationManager.getApplication().invokeAndWait { warnIfNotJdkHome() }
@@ -350,9 +346,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
-  private fun getSyncType(): GradleSyncStats.GradleSyncType = when {
-    isSingleVariantSync() -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
-    else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
+  private fun getSyncType(fullSync: Boolean): GradleSyncStats.GradleSyncType = when(fullSync) {
+    true -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
+    else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
   }
 
   /**
@@ -431,13 +427,14 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
       val trigger =
-        project.getUserData(PROJECT_SYNC_TRIGGER)
+        project.getUserData(PROJECT_SYNC_REQUEST)
           ?.takeIf { it.projectRoot == workingDir }
-          ?.trigger
       if (trigger != null) {
-        project.putUserData(PROJECT_SYNC_TRIGGER, null)
+        project.putUserData(PROJECT_SYNC_REQUEST, null)
       }
-      if (!GradleSyncState.getInstance(project).syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)) {
+      if (!GradleSyncState.getInstance(project)
+          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.fullSync ?: false)
+      ) {
         stopTrackingTask(project, id)
         return
       }

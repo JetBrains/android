@@ -63,11 +63,6 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
   }
 
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
   private void loadProjectWithOlderPlugin(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null, myGradleVersion, myPluginVersion);
   }

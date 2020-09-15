@@ -42,8 +42,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
-  override fun useSingleVariantSyncInfrastructure(): Boolean = true
-
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }

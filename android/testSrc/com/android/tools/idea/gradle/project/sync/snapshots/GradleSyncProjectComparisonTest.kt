@@ -102,22 +102,9 @@ bazel test \
 //tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots
  ```
  */
-abstract class GradleSyncProjectComparisonTest(
-  private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-  override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
+abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
 
-  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase() {
-    // TODO(b/135453395): Re-enable after variant switching from cache is fixed.
-    override fun testSwitchingVariantsWithReopenAndResync_simpleApplication() = Unit
-  }
-
-  class SingleVariantGradleSyncProjectComparisonTest :
-    GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
-  }
-
-  abstract class GradleSyncProjectComparisonTestCase(singleVariantSync: Boolean = false
-  ) : GradleSyncProjectComparisonTest(singleVariantSync) {
+  class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
     fun testImportNoSync() {
       prepareProjectForImport(SIMPLE_APPLICATION)
       val request = GradleProjectImporter.Request(project)
@@ -447,7 +434,7 @@ abstract class GradleSyncProjectComparisonTest(
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
-    ".single_variant".takeIf { singleVariantSync },
+    ".single_variant", // TODO(b/168452472): Rename snapshots and remove.
     ""
   )
 
