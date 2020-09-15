@@ -36,7 +36,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -293,9 +292,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
-    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
-        (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
-         !isPostBuildModelsSupported(context, configuration))) {
+    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO && !isPostBuildModelsSupported(context, configuration)) {
       return SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED;
     }
 
