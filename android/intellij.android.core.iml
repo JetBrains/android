@@ -202,5 +202,6 @@
     <orderEntry type="library" scope="PROVIDED" name="jaxb-runtime" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="library" name="javax.activation" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>

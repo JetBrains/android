@@ -27,5 +27,6 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>
