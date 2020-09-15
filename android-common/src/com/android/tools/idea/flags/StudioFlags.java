@@ -89,7 +89,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
     NPW, "new.module.with.side.bar", "New Module with sidebar",
     "Shows latest UX implementation of New Module with a left side bar",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
