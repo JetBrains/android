@@ -46,7 +46,7 @@ class SafeArgNavigationTest {
               android:name="test.safeargs.Fragment1"
               android:label="Fragment1">
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="string" />
           </fragment>
           <fragment
@@ -54,7 +54,7 @@ class SafeArgNavigationTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2">
           <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="string" />
           </fragment>
         </navigation>
@@ -93,11 +93,11 @@ class SafeArgNavigationTest {
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
 
       // check getter method
-      if (it.name == "getArg1") {
+      if (it.name == "getArgOne") {
         assertThat(it.navigationElement.text).isEqualTo(
           """
           <argument
-                  android:name="arg1"
+                  android:name="arg_one"
                   app:argType="string" />
           """.trimIndent())
       }
@@ -113,11 +113,11 @@ class SafeArgNavigationTest {
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
 
       // check getter method
-      if (it.name == "getArg2") {
+      if (it.name == "getArgTwo") {
         assertThat(it.navigationElement.text).isEqualTo(
           """
           <argument
-                  android:name="arg2"
+                  android:name="arg_two"
                   app:argType="string" />
           """.trimIndent())
       }
@@ -143,7 +143,7 @@ class SafeArgNavigationTest {
               android:name="test.safeargs.Fragment1"
               android:label="Fragment1">
             <argument
-                android:name="arg"
+                android:name="arg_one"
                 app:argType="string" />
           </fragment>
           <fragment
@@ -183,11 +183,11 @@ class SafeArgNavigationTest {
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
 
       // check getter and setter method
-      if (it.name == "getArg" || it.name == "setArg") {
+      if (it.name == "getArgOne" || it.name == "setArgOne") {
         assertThat(it.navigationElement.text).isEqualTo(
           """
           <argument
-                  android:name="arg"
+                  android:name="arg_one"
                   app:argType="string" />
           """.trimIndent())
       }
@@ -332,7 +332,7 @@ class SafeArgNavigationTest {
                   app:argType="string"
                   android:defaultValue="defaultString" />
                 <argument
-                  android:name="argInAction"
+                  android:name="arg_in_action"
                   app:argType="string" />
             </action>
           </fragment>
@@ -345,7 +345,7 @@ class SafeArgNavigationTest {
               android:name="arg"
               app:argType="string" />
             <argument
-                android:name="argInDestination"
+                android:name="arg_in_destination"
                 app:argType="string" />
           </fragment>
         </navigation>
@@ -376,7 +376,7 @@ class SafeArgNavigationTest {
                     app:argType="string"
                     android:defaultValue="defaultString" />
                   <argument
-                    android:name="argInAction"
+                    android:name="arg_in_action"
                     app:argType="string" />
               </action>
         """.trimIndent())
@@ -403,7 +403,7 @@ class SafeArgNavigationTest {
           assertThat(it.navigationElement.text).isEqualTo(
             """
               <argument
-                        android:name="argInAction"
+                        android:name="arg_in_action"
                         app:argType="string" />
             """.trimIndent())
         }
@@ -411,7 +411,7 @@ class SafeArgNavigationTest {
           assertThat(it.navigationElement.text).isEqualTo(
             """
               <argument
-                      android:name="argInDestination"
+                      android:name="arg_in_destination"
                       app:argType="string" />
             """.trimIndent())
         }

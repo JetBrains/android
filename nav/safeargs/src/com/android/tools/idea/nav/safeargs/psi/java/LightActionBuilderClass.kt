@@ -84,12 +84,12 @@ class LightActionBuilderClass(
     return action.arguments.flatMap { arg ->
       // Create a getter and setter per argument
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod(name = "set${arg.name.usLocaleCapitalize()}",
+      val setter = createMethod(name = "set${arg.name.toUpperCamelCase()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
-        .addParameter(arg.name, argType)
+        .addParameter(arg.name.toCamelCase(), argType)
 
-      val getter = createMethod(name = "get${arg.name.usLocaleCapitalize()}",
+      val getter = createMethod(name = "get${arg.name.toUpperCamelCase()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(argType, arg.isNonNull()))
 
@@ -102,7 +102,7 @@ class LightActionBuilderClass(
       action.arguments.forEach { arg ->
         if (arg.defaultValue == null) {
           val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-          this.addParameter(arg.name, argType)
+          this.addParameter(arg.name.toCamelCase(), argType)
         }
       }
       this.setModifiers(PsiModifier.PRIVATE)

@@ -54,13 +54,13 @@ class ArgsClassKtDescriptorsTest {
               android:name="test.safeargs.Fragment1"
               android:label="Fragment1">
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="string" />
             <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="integer[]" />
             <argument
-                android:name="arg3"
+                android:name="arg_three"
                 app:argType=".Fragment1" />
           </fragment>
         </navigation>
@@ -92,7 +92,7 @@ class ArgsClassKtDescriptorsTest {
       .first()
 
     assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
-      "Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray, arg3: test.safeargs.Fragment1)"
+      "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
     )
 
     assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
@@ -100,9 +100,9 @@ class ArgsClassKtDescriptorsTest {
     )
 
     assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
-      "val arg1: kotlin.String",
-      "val arg2: kotlin.IntArray",
-      "val arg3: test.safeargs.Fragment1"
+      "val argOne: kotlin.String",
+      "val argTwo: kotlin.IntArray",
+      "val argThree: test.safeargs.Fragment1"
     )
 
     assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
@@ -110,7 +110,7 @@ class ArgsClassKtDescriptorsTest {
       "component1(): kotlin.String",
       "component2(): kotlin.IntArray",
       "component3(): test.safeargs.Fragment1",
-      "copy(arg1: kotlin.String, arg2: kotlin.IntArray, arg3: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
+      "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
       // normal functions
       "toBundle(): android.os.Bundle"
     )
