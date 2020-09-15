@@ -654,6 +654,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
+    val isFirstRender = !hasRenderedAtLeastOnce.get()
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.toMutableList()
     val previewElementsList = previewElementProvider.previewElements.toList()
@@ -802,8 +803,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LOG.warn("Some preview elements have failed")
     }
 
-    withContext(uiThread) {
-      surface.zoomToFit()
+    // We zoom to fit to have better initial zoom level when first build is completed
+    if (isFirstRender) {
+      withContext(uiThread) {
+        surface.zoomToFit()
+      }
     }
   }
 
