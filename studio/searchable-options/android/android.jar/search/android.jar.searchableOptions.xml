@@ -1311,11 +1311,6 @@
     <option name="layout" hit="Layout Editor" />
     <option name="inspector" hit="Layout Inspector" />
     <option name="layout" hit="Layout Inspector" />
-    <option name="active" hit="Only sync the active variant" />
-    <option name="only" hit="Only sync the active variant" />
-    <option name="sync" hit="Only sync the active variant" />
-    <option name="the" hit="Only sync the active variant" />
-    <option name="variant" hit="Only sync the active variant" />
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />
