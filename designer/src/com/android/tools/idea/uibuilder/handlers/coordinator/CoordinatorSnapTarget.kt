@@ -85,7 +85,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
     return !myComponent.isSelected && !myComponent.isDragging;
   }
 
-  fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x in myLeft..myRight && y in myTop..myBottom)
+  fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x.toFloat() in myLeft..myRight) && (y.toFloat() in myTop..myBottom)
 
   fun snap(attributes: NlAttributesHolder) {
     val value = when (myType) {
