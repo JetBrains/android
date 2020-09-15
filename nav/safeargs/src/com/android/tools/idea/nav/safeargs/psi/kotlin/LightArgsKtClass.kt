@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
@@ -97,7 +98,7 @@ class LightArgsKtClass(
       destination.arguments
         .asSequence()
         .map { arg ->
-          val pName = Name.identifier(arg.name)
+          val pName = Name.identifier(arg.name.toCamelCase())
           val pType = this.builtIns.getKotlinType(arg.type, arg.defaultValue, containingDeclaration.module, arg.isNonNull())
           val hasDefaultValue = arg.defaultValue != null
           ValueParameterDescriptorImpl(constructor, null, index++, Annotations.EMPTY, pName, pType, hasDefaultValue,
@@ -175,18 +176,20 @@ class LightArgsKtClass(
       )
 
       var index = 1
-      val componentFunctions = argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
+      val componentFunctions = destination.arguments
         .asSequence()
-        .map { parameter ->
+        .map { arg ->
           val methodName = "component" + index++
+          val returnType = argsClassDescriptor.builtIns
+            .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
-          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, parameter.name.asString())?.let {
+          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
             XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
           } ?: argsClassDescriptor.source
 
           argsClassDescriptor.createMethod(
             name = methodName,
-            returnType = parameter.type,
+            returnType = returnType,
             dispatchReceiver = argsClassDescriptor,
             isOperator = true,
             sourceElement = resolvedSourceElement
@@ -201,12 +204,12 @@ class LightArgsKtClass(
       destination.arguments
         .asSequence()
         .map { arg ->
-          val pName = arg.name
+          val pName = arg.name.toCamelCase()
           val pType = argsClassDescriptor.builtIns
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, KotlinIcons.FIELD_VAL, pName))
+            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, KotlinIcons.FIELD_VAL, arg.name))
           } ?: argsClassDescriptor.source
           argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
         }

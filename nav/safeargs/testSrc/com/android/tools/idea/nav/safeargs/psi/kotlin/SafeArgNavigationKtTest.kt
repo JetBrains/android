@@ -59,7 +59,7 @@ class SafeArgNavigationKtTest {
               android:name="test.safeargs.Fragment1"
               android:label="Fragment1">
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="string" />
           </fragment>
           <fragment
@@ -67,7 +67,7 @@ class SafeArgNavigationKtTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2">
           <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="string" />
           </fragment>
         </navigation>
@@ -117,7 +117,7 @@ class SafeArgNavigationKtTest {
               assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                 """
                 <argument
-                        android:name="arg1"
+                        android:name="arg_one"
                         app:argType="string" />
                 """.trimIndent())
             }
@@ -128,7 +128,7 @@ class SafeArgNavigationKtTest {
                 assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                   """
                 <argument
-                        android:name="arg1"
+                        android:name="arg_one"
                         app:argType="string" />
                 """.trimIndent())
               }
@@ -159,7 +159,7 @@ class SafeArgNavigationKtTest {
               assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                 """
                 <argument
-                        android:name="arg2"
+                        android:name="arg_two"
                         app:argType="string" />
                 """.trimIndent())
             }
@@ -171,7 +171,7 @@ class SafeArgNavigationKtTest {
                 assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                   """
                 <argument
-                        android:name="arg2"
+                        android:name="arg_two"
                         app:argType="string" />
                 """.trimIndent())
               }

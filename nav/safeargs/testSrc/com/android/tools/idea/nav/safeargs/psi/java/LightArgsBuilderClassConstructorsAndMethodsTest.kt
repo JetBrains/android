@@ -69,17 +69,17 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
               android:name="test.safeargs.Fragment"
               android:label="Fragment">
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="${typeMapping.before}" />
             <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="${typeMapping.before}"
                 android:defaultValue="someDefaultValue"/>
             <argument
-                android:name="arg3"
+                android:name="arg_three"
                 app:argType="${typeMapping.before}[]" />
             <argument
-                android:name="arg4"
+                android:name="arg_four"
                 app:argType="${typeMapping.before}[]"
                 app:nullable="true"
                 android:defaultValue="@null"/>
@@ -110,8 +110,8 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
         name = "Builder",
         returnType = PsiType.NULL.name,
         parameters = listOf(
-          Parameter("arg1", typeMapping.after),
-          Parameter("arg3", "${typeMapping.after}[]")
+          Parameter("argOne", typeMapping.after),
+          Parameter("argThree", "${typeMapping.after}[]")
         )
       )
     }
@@ -122,54 +122,54 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
       assertThat(methods.size).isEqualTo(9)
 
       methods[0].checkSignaturesAndReturnType(
-        name = "setArg1",
+        name = "setArgOne",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg1", typeMapping.after)
+          Parameter("argOne", typeMapping.after)
         )
       )
 
       methods[1].checkSignaturesAndReturnType(
-        name = "getArg1",
+        name = "getArgOne",
         returnType = typeMapping.after
       )
 
       methods[2].checkSignaturesAndReturnType(
-        name = "setArg2",
+        name = "setArgTwo",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg2", typeMapping.after)
+          Parameter("argTwo", typeMapping.after)
         )
       )
 
       methods[3].checkSignaturesAndReturnType(
-        name = "getArg2",
+        name = "getArgTwo",
         returnType = typeMapping.after
       )
 
       methods[4].checkSignaturesAndReturnType(
-        name = "setArg3",
+        name = "setArgThree",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg2", "${typeMapping.after}[]")
+          Parameter("argThree", "${typeMapping.after}[]")
         )
       )
 
       methods[5].checkSignaturesAndReturnType(
-        name = "getArg3",
+        name = "getArgThree",
         returnType = "${typeMapping.after}[]"
       )
 
       methods[6].checkSignaturesAndReturnType(
-        name = "setArg4",
+        name = "setArgFour",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg2", "${typeMapping.after}[]")
+          Parameter("argFour", "${typeMapping.after}[]")
         )
       )
 
       methods[7].checkSignaturesAndReturnType(
-        name = "getArg4",
+        name = "getArgFour",
         isReturnTypeNullable = true,
         returnType = "${typeMapping.after}[]"
       )

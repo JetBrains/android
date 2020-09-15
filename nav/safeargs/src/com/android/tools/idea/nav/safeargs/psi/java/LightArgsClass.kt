@@ -105,7 +105,7 @@ class LightArgsClass(facet: AndroidFacet,
 
     val getters: Array<PsiMethod> = destination.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      createMethod(name = "get${arg.name.usLocaleCapitalize()}",
+      createMethod(name = "get${arg.name.toUpperCamelCase()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
                    returnType = annotateNullability(psiType, arg.isNonNull()))
     }.toTypedArray()
