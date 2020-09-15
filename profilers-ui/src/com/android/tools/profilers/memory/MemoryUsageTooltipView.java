@@ -35,7 +35,7 @@ class MemoryUsageTooltipView extends TooltipView {
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    MemoryProfilerStage.MemoryStageLegends legends = myTooltip.getLegends();
+    MemoryStageLegends legends = myTooltip.getLegends();
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
 
