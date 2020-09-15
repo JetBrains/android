@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -67,7 +68,8 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
     assert myProject != null;
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel == null) {
+      if (ndkModuleModel == null || ndkModuleModel.getNdkModel() instanceof V2NdkModel) {
+        // Skip External Build Files node for V2 sync.
         continue;
       }
       for (File file : ndkModuleModel.getBuildFiles()) {
