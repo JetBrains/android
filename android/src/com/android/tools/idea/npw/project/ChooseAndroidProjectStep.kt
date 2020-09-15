@@ -190,7 +190,10 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     }
 
     FormScalingUtil.scaleComponentTree(this.javaClass, loadingPanel)
-    loadingPanel.stopLoading()
+    loadingPanel.apply {
+      revalidate() // We may have called add(component) after being displayed
+      stopLoading()
+    }
   }
 
   override fun onProceeding() {
