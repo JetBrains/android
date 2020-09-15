@@ -528,12 +528,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
-    memoizedElementsProvider.previewElements.find { element ->
-      element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
-    }?.let { selectedPreviewElement ->
-      surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
-    }?.let {
-      surface.scrollToVisible(it)
+
+    launch(uiThread) {
+      val filePreviewElements = withContext(workerThread) {
+        memoizedElementsProvider.previewElements
+      }
+
+      filePreviewElements.find { element ->
+        element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+      }?.let { selectedPreviewElement ->
+        surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
+      }?.let {
+        surface.scrollToVisible(it)
+      }
     }
   }
 
