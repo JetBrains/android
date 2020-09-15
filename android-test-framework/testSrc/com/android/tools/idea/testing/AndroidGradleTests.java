@@ -625,7 +625,8 @@ public class AndroidGradleTests {
     String relativePath = toSystemDependentName(jdkDevPath);
     File jdkRootPath = new File(toCanonicalPath(relativePath));
     if (SystemInfo.isWindows) {
-      jdkRootPath = new File(jdkRootPath, "win");
+      // For JDK8 we have 32 and 64 bits versions on Windows
+      jdkRootPath = new File(jdkRootPath, "win64");
     }
     else if (SystemInfo.isLinux) {
       jdkRootPath = new File(jdkRootPath, "linux");
