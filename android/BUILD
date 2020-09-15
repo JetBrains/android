@@ -1123,6 +1123,13 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
+java_proto_library(
+    name = "unb.android-core-proto",
+    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    protoc_version = "3.0.0",
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "intellij.android.core",
