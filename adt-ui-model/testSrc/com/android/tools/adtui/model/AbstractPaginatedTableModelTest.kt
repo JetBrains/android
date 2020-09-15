@@ -33,6 +33,19 @@ class AbstractPaginatedTableModelTest {
   }
 
   @Test
+  fun rowCount() {
+    val divisibleByPage = PaginatedListModel(2, mutableListOf(1, 2, 3, 4))
+    assertThat(divisibleByPage.rowCount).isEqualTo(2)
+    divisibleByPage.goToLastPage()
+    assertThat(divisibleByPage.rowCount).isEqualTo(2)
+
+    val indivisibleByPage = PaginatedListModel(3, mutableListOf(1, 2, 3, 4))
+    assertThat(indivisibleByPage.rowCount).isEqualTo(3)
+    indivisibleByPage.goToLastPage()
+    assertThat(indivisibleByPage.rowCount).isEqualTo(1)
+  }
+
+  @Test
   fun pageNavigation() {
     val model = PaginatedListModel(1, mutableListOf(1, 2, 3))
     assertThat(model.isOnFirstPage).isTrue()
@@ -66,6 +79,27 @@ class AbstractPaginatedTableModelTest {
   fun tableWithEmptyDataShouldHaveZeroRows() {
     val model = PaginatedListModel(10, mutableListOf())
     assertThat(model.rowCount).isEqualTo(0)
+  }
+
+  @Test
+  fun pageSizeCanBeChanged() {
+    val model = PaginatedListModel(3, (1..6).toMutableList())
+
+    // Changing page size should change visible rows.
+    model.updatePageSize(4)
+    assertThat(model.rowCount).isEqualTo(4)
+
+    // Changing page size should reset the current page index.
+    model.goToNextPage()
+    model.updatePageSize(3)
+    assertThat(model.rowCount).isEqualTo(3)
+    assertThat(model.pageIndex).isEqualTo(0)
+
+    // Keeping the same page size should not reset the page index.
+    model.goToLastPage()
+    model.updatePageSize(3)
+    assertThat(model.rowCount).isEqualTo(3)
+    assertThat(model.pageIndex).isEqualTo(1)
   }
 }
 
