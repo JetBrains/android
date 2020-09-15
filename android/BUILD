@@ -1151,6 +1151,7 @@ iml_module(
         "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/adt/idea/android/lib:unb.pepk",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
@@ -1230,6 +1231,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
     ],
 )
 
@@ -1313,13 +1315,13 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
