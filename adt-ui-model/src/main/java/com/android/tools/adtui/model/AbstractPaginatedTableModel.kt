@@ -25,15 +25,20 @@ import kotlin.math.max
  *
  * The model extends [AbstractTableModel] to expose only [pageSize] rows from the data set are displayed in a table.
  *
- * @param pageSize page size of the model. Must be a positive number.
+ * @param initialPageSize initial page size of the model. Must be a positive number.
+ * @property pageSize maximum number of rows to be displayed. Can be changed by calling [updatePageSize], which causes table data to change.
+ * @property pageIndex current page index (0 based) from the entire data set. Can be changed by calling methods like [goToNextPage].
  * @property pageCount number of total pages based on the given [pageSize]. At least 1 even if the data set is empty.
  */
-abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableModel() {
+abstract class AbstractPaginatedTableModel(initialPageSize: Int) : AbstractTableModel() {
   init {
-    require(pageSize > 0) { "Page size must be positive, was $pageSize" }
+    require(initialPageSize > 0) { "Page size must be positive, was $initialPageSize" }
   }
 
   var pageIndex = 0
+    private set
+
+  var pageSize = initialPageSize
     private set
 
   val pageCount get() = max(1, ceil(getDataSize().toDouble() / pageSize).toInt())
@@ -67,7 +72,7 @@ abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableMod
   abstract fun sortData(sortKeys: List<RowSorter.SortKey>)
 
   override fun getRowCount(): Int {
-    return if (isOnLastPage) getDataSize().rem(pageSize) else pageSize
+    return if (isOnLastPage) getDataSize() - pageSize * (pageCount - 1) else pageSize
   }
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
@@ -99,6 +104,15 @@ abstract class AbstractPaginatedTableModel(val pageSize: Int) : AbstractTableMod
   fun goToNextPage() {
     if (!isOnLastPage) {
       ++pageIndex
+      fireTableDataChanged()
+    }
+  }
+
+  fun updatePageSize(newPageSize: Int) {
+    if (newPageSize != pageSize) {
+      pageSize = newPageSize
+      // Page size has changed so reset the page index.
+      pageIndex = 0
       fireTableDataChanged()
     }
   }

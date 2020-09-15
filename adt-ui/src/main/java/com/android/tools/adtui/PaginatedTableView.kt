@@ -17,6 +17,7 @@ package com.android.tools.adtui
 
 import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.colorpicker.CommonButton
 import com.intellij.ui.components.JBScrollPane
@@ -57,6 +58,9 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
 
   @VisibleForTesting
   val pageInfoLabel = JLabel()
+
+  @VisibleForTesting
+  val pageSizeComboBox = ComboBox<Int>(PAGE_SIZE_VALUES)
 
   init {
     table = JBTable(tableModel).apply {
@@ -121,12 +125,21 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
         tableModel.goToNextPage()
       }
     }
+    pageSizeComboBox.apply {
+      isEnabled = true
+      isEditable = true
+      selectedItem = tableModel.pageSize
+      addActionListener {
+        tableModel.updatePageSize(item)
+      }
+    }
     val toolbar = JPanel(BorderLayout()).apply {
       border = JBUI.Borders.emptyLeft(8)
       add(pageInfoLabel, BorderLayout.LINE_START)
       add(JPanel(FlowLayout(FlowLayout.LEFT)).apply {
         add(firstPageButton)
         add(prevPageButton)
+        add(pageSizeComboBox)
         add(nextPageButton)
         add(lastPageButton)
       }, BorderLayout.LINE_END)
@@ -141,5 +154,6 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
     val LAST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_END
     val PREV_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK
     val NEXT_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.NEXT_TICK
+    val PAGE_SIZE_VALUES = arrayOf(10, 20, 30, 40, 50)
   }
 }

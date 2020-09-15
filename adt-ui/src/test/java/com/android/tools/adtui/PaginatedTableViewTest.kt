@@ -86,4 +86,20 @@ class PaginatedTableViewTest {
     assertThat(tableView.nextPageButton.isEnabled).isFalse()
     assertThat(tableView.lastPageButton.isEnabled).isFalse()
   }
+
+  @Test
+  fun updatePageSize() {
+    val tableView = PaginatedTableView(PaginatedListModel(10, (1..50).toMutableList()))
+
+    // Combo box is pre-selected.
+    assertThat(tableView.pageSizeComboBox.selectedIndex).isEqualTo(0)
+
+    // Change page size by selecting a different item.
+    tableView.pageSizeComboBox.selectedIndex = 1
+    assertThat(tableView.tableModel.pageSize).isEqualTo(20)
+
+    // Change page size by setting a value directly.
+    tableView.pageSizeComboBox.item = 100
+    assertThat(tableView.tableModel.pageSize).isEqualTo(100)
+  }
 }
