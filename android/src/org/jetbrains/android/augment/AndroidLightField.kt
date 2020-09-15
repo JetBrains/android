@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.augment
 
 import com.android.ide.common.rendering.api.ResourceReference
@@ -6,15 +7,7 @@ import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiExpression
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiType
-import com.intellij.psi.PsiTypeElement
-import com.intellij.psi.PsiVariable
+import com.intellij.psi.*
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.PsiClassImplUtil
 import com.intellij.psi.impl.PsiVariableEx
@@ -22,6 +15,7 @@ import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.javadoc.PsiDocComment
+import com.intellij.ui.IconManager
 import com.intellij.util.PlatformIcons
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
@@ -80,7 +74,7 @@ open class AndroidLightField(
   }
 
   public override fun getElementIcon(flags: Int): Icon? {
-    val baseIcon = ElementPresentationUtil.createLayeredIcon(PlatformIcons.FIELD_ICON, this, false)
+    val baseIcon = IconManager.getInstance().createLayeredIcon(this, PlatformIcons.FIELD_ICON, ElementPresentationUtil.getFlags(this, false))
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon)
   }
 }
