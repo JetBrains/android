@@ -30,8 +30,7 @@ import javax.swing.Icon
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
     EclipseImportModuleGalleryEntry(),
-    GradleImportModuleGalleryEntry(),
-    ArchiveImportModuleGalleryEntry()
+    GradleImportModuleGalleryEntry()
   )
   private class EclipseImportModuleGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) AllIcons.Providers.Eclipse else AndroidIcons.Wizards.EclipseModule
@@ -47,13 +46,5 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.import.gradle.description")
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
       SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
-  }
-
-  private class ArchiveImportModuleGalleryEntry : ModuleGalleryEntry {
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) AllIcons.Nodes.PpJar else AndroidIcons.Wizards.AndroidModule
-    override val name: String = message("android.wizard.module.import.archive.title")
-    override val description: String = message("android.wizard.module.import.archive.description")
-    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
-      ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(project, projectSyncInvoker))
   }
 }

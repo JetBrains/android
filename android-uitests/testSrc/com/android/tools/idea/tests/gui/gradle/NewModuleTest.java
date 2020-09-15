@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
 import static com.android.tools.idea.wizard.template.impl.activities.blankWearActivity.BlankWearActivityTemplateKt.getBlankWearActivityTemplate;
@@ -26,12 +25,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.flags.junit.RestoreFlagRule;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.android.tools.idea.wizard.template.CppStandardType;
-import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import org.junit.Before;
@@ -54,32 +51,6 @@ public class NewModuleTest {
   public void setup() {
     StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.override(true);
     StudioFlags.NPW_NEW_NATIVE_MODULE.override(true);
-  }
-
-  @Test
-  public void createNewModuleFromJar() throws IOException {
-    String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
-
-    guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToModuleFromJar()
-      .setFileName(jarFile)
-      .setSubprojectName("localJarLib")
-      .wizard()
-      .clickFinishAndWaitForSyncToFinish()
-      .getEditor()
-      .open("app/build.gradle")
-      .moveBetween("dependencies {", "")
-      .invokeAction(LINE_END)
-      .enterText("\ncompile project(':localJarLib')")
-      .getIdeFrame()
-      .requestProjectSyncAndWaitForSyncToFinish()
-      .getEditor()
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .moveBetween("setContentView(R.layout.activity_my);", "")
-      .invokeAction(LINE_END)
-      .enterText("\nnew com.example.android.multiproject.person.Person(\"Me\");\n")
-      .waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
   @Test
