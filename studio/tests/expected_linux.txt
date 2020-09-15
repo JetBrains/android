@@ -2520,6 +2520,7 @@ android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libandroid_runtime
 android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libbinder.so
 android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libhidlbase.so
 android-studio/plugins/android/lib/libjava_version.jar
+android-studio/plugins/android/lib/libunb.android-core-proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
 android-studio/plugins/android/lib/moshi-1.6.0.jar
