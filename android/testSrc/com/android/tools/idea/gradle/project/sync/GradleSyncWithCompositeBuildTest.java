@@ -60,11 +60,6 @@ import java.util.List;
  */
 public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestCase {
 
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
   public void testModulesCreatedForIncludedProjects() throws Exception {
     loadProject(COMPOSITE_BUILD);
     List<Module> modules = new ArrayList<>();

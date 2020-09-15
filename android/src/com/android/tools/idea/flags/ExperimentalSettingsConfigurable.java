@@ -64,7 +64,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
-  private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myLayoutInspectorCheckbox;
   private JCheckBox myAtfCheckBox;
@@ -139,7 +138,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public boolean isModified() {
     return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-           mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
            mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
            mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
@@ -157,7 +155,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
-    mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
@@ -201,15 +198,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @TestOnly
   void setUseL2DependenciesInSync(boolean value) {
     myUseL2DependenciesCheckBox.setSelected(value);
-  }
-
-  boolean isUseSingleVariantSync() {
-    return myUseSingleVariantSyncCheckbox.isSelected();
-  }
-
-  @TestOnly
-  void setUseSingleVariantSync(boolean value) {
-    myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
   boolean skipGradleTasksList() {
@@ -338,7 +326,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
-    myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());

@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -164,11 +165,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
@@ -378,26 +374,22 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    loadProject(DEPENDENT_MODULES);
-
+    prepareProjectForImport(DEPENDENT_MODULES, null, null, null);
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
     File appBuildFile = getBuildFilePath("app");
     appendToFile(appBuildFile, "\nandroid.buildTypes { qa { } }\n");
+    importProject();
+    prepareProjectForTest(getProject(), "app");
 
-    try {
-      requestSyncAndWait();
-    }
-    catch (AssertionError expected) {
-      // Sync issues are expected.
-    }
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicQa");
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
       .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
                    m.getMessage().contains(
-                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+                     "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
   }

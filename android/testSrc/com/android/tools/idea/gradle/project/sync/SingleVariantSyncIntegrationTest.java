@@ -32,11 +32,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTest {
 
   @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
-  }
-
-  @Override
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);

@@ -818,8 +818,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         (project != null) ? LibraryFilePaths.getInstance(project).retrieveCachedLibs() : emptySet(),
         StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
       );
-    SyncActionOptions syncOptions = null;
-    boolean isSingleVariantSync = project != null && shouldOnlySyncSingleVariant(project);
+    SyncActionOptions syncOptions;
+    boolean isSingleVariantSync = project != null && !shouldSyncAllVariants(project);
     if (isSingleVariantSync) {
       SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
       SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
@@ -836,9 +836,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     return new AndroidExtraModelProvider(syncOptions);
   }
 
-  private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
-    Boolean shouldOnlySyncSingleVariant = project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY);
-    return shouldOnlySyncSingleVariant != null && shouldOnlySyncSingleVariant;
+  private static boolean shouldSyncAllVariants(@NotNull Project project) {
+    Boolean shouldSyncAllVariants = project.getUserData(GradleSyncExecutor.FULL_SYNC_KEY);
+    return shouldSyncAllVariants != null && shouldSyncAllVariants;
   }
 
   private void displayInternalWarningIfForcedUpgradesAreDisabled() {
