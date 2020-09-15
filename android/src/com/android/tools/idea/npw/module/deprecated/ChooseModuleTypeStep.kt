@@ -100,7 +100,6 @@ private fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): L
     message("android.wizard.module.new.things"),
     message("android.wizard.module.import.gradle.title"),
     message("android.wizard.module.import.eclipse.title"),
-    message("android.wizard.module.import.archive.title"),
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.benchmark.module.app"),

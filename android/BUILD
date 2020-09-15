@@ -333,10 +333,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
-        "ArchiveToGradleModuleModelTest": {
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
-        },
         "other": {
             "shard_count": 10,
             # TODO(b/167611852) remove after reducing its run time.
@@ -1387,10 +1383,6 @@ iml_module(
         "rendering": {
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
-        },
-        "ArchiveToGradleModuleModelTest": {
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
         },
         "other": {
             "shard_count": 10,
