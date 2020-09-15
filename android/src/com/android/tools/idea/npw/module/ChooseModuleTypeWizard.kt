@@ -25,8 +25,6 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
-import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -205,11 +203,6 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
   return moduleTypeProviders.partition { it.name in orderedNames }.run {
     first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name }
   }
-}
-
-fun createWithDefaultGallery(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): ModelWizardStep<out WizardModel>  {
-  val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
-  return DeprecatedChooseModuleTypeStep(project, moduleParent, moduleDescriptions, projectSyncInvoker)
 }
 
 fun showDefaultWizard(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) {
