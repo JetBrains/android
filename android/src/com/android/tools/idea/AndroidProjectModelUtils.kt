@@ -31,7 +31,6 @@ import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.FilenameConstants
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.diagnostic.PerformanceWatcher
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -45,7 +44,6 @@ import java.io.File
  * TODO: ExternalLibrary.address is unique within an [AndroidSubmodule], not necessarily within a [Project]
  */
 fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
-  val snapshot = PerformanceWatcher.takeSnapshot()
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
@@ -54,9 +52,6 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary
     .fold(HashMap<String, ExternalLibrary>()) { inProject, inModule ->
       inProject.putAll(inModule)
       inProject
-    }
-    .also {
-      snapshot.logResponsivenessSinceCreation("Searching for external libraries with Android resources. Found ${it.size} libraries.")
     }
 }
 
