@@ -34,7 +34,7 @@ class RssMemoryTooltipViewTest {
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
     timeline.tooltipRange.set(0.0, 0.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.descriptionLabel.text).startsWith("mem.rss:")
+    assertThat(tooltipView.descriptionLabel.text).startsWith("<html>mem.rss:")
     assertThat(tooltipView.valueLabel.text).isEqualTo("Value: 0.0 B")
 
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0)

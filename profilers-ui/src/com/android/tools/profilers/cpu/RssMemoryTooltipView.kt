@@ -37,14 +37,14 @@ class RssMemoryTooltipView(parent: JComponent, val tooltip: RssMemoryTooltip) : 
   }
 
   private fun updateView() {
-    descriptionLabel.text = "${tooltip.counterName}: ${getDescriptionText(tooltip.counterName)}"
+    descriptionLabel.text = "<html>${tooltip.counterName}: ${getDescriptionText(tooltip.counterName)}</html>"
     val rssValueText = NumberFormatter.formatFileSize(tooltip.activeValueBytes)
     valueLabel.text = "Value: $rssValueText"
   }
 
   private fun getDescriptionText(counterName: String) =
     when (counterName) {
-      "mem.rss" -> "Resident set size. Sum of mem.rss.anon, mem.rss.file, and mem.rss.shmem."
+      "mem.rss" -> "Resident set size. <br>Sum of anonymous, file, and shared memory."
       "mem.rss.anon" -> "Size of resident anonymous memory."
       "mem.rss.file" -> "Size of resident file mappings."
       "mem.rss.shmem" -> "Size of resident shared memory."
