@@ -483,7 +483,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+    verify(mockTrackerService).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
   }
 
   fun testRunSqliteStatementOnMultipleDBAnalytics() {
@@ -507,7 +510,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     spyPopupChooserBuilder.callback?.consume(sqliteDatabaseId1)
 
     // Assert
-    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+    verify(mockTrackerService).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
   }
 
   fun testRunFromGutterIconOpensToolWindowDirectly() {
