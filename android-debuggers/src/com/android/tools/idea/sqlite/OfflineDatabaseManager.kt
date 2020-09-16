@@ -39,7 +39,6 @@ interface OfflineDatabaseManager {
    * @throws FileNotFoundException if the database file is not found.
    */
   suspend fun loadDatabaseFileData(
-    packageName: String,
     processDescriptor: ProcessDescriptor,
     databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
   ): DatabaseFileData
@@ -56,11 +55,10 @@ class OfflineDatabaseManagerImpl(
 ) : OfflineDatabaseManager {
 
   override suspend fun loadDatabaseFileData(
-    packageName: String,
     processDescriptor: ProcessDescriptor,
     databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
   ): DatabaseFileData {
-    if (!isFileDownloadAllowed(packageName)) {
+    if (!isFileDownloadAllowed(processDescriptor)) {
       throw OfflineDatabaseException(
         """For security reasons offline mode is disabled when 
         the process being inspected does not correspond to the project open in studio 
@@ -101,10 +99,10 @@ class OfflineDatabaseManagerImpl(
    * 1. the file belongs to an app different from the one open in the studio project
    * 2. the project comes from a prebuilt apk
    */
-  private fun isFileDownloadAllowed(packageName: String): Boolean {
+  private fun isFileDownloadAllowed(processDescriptor: ProcessDescriptor): Boolean {
     val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
       project,
-      packageName,
+      processDescriptor.processName,
       GlobalSearchScope.projectScope(project)
     )
 
