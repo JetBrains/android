@@ -21,6 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.html.HtmlEscapers
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -196,7 +197,7 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
           Locale.US,
           "<html><font color='%s'>Passed</font> on %s</html>",
           ColorUtil.toHtmlColor(statusColor),
-          device.getName())
+          device.getName().htmlEscape())
         AndroidTestCaseResult.FAILED -> {
           val errorMessage =
             Arrays.stream(StringUtil.splitByLines(myErrorStackTrace))
@@ -207,27 +208,27 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
               Locale.US,
               "<html><font color='%s'>Failed</font> on %s</html>",
               ColorUtil.toHtmlColor(statusColor),
-              device.getName())
+              device.getName().htmlEscape())
           }
           else {
             myTestResultLabel.text = String.format(
               Locale.US,
               "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
-              errorMessage,
+              errorMessage.htmlEscape(),
               ColorUtil.toHtmlColor(statusColor),
-              device.getName())
+              device.getName().htmlEscape())
           }
         }
         AndroidTestCaseResult.SKIPPED -> myTestResultLabel.text = String.format(
           Locale.US,
           "<html><font color='%s'>Skipped</font> on %s</html>",
           ColorUtil.toHtmlColor(statusColor),
-          device.getName())
+          device.getName().htmlEscape())
         AndroidTestCaseResult.CANCELLED -> myTestResultLabel.text = String.format(
           Locale.US,
           "<html><font color='%s'>Cancelled</font> on %s</html>",
           ColorUtil.toHtmlColor(statusColor),
-          device.getName())
+          device.getName().htmlEscape())
         else -> {
           myTestResultLabel.text = ""
           Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))
@@ -251,3 +252,5 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
   }
 }
+
+private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)
