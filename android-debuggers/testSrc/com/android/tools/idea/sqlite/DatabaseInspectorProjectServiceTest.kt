@@ -27,7 +27,6 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
@@ -69,8 +68,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var processDescriptor: ProcessDescriptor
   private lateinit var offlineDatabaseManager: OfflineDatabaseManager
 
-  private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
-
   private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher())
@@ -79,9 +76,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     super.setUp()
 
     registerMockAdbService()
-
-    trackerService = FakeDatabaseInspectorAnalyticsTracker()
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
     offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
 
@@ -114,8 +108,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   }
 
   override fun tearDown() {
-    runDispatching { repository.clear() }
-
     try {
       sqliteUtil.tearDown()
     }
@@ -327,51 +319,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       error.cause
     )
   }
-
-  // TODO enable test, it's failing on windows
-  //fun testOfflineModeMetrics() {
-  //  // Prepare
-  //  val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-  //  DatabaseInspectorFlagController.enableOfflineMode(true)
-  //
-  //  val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 0) as SqliteDatabaseId.LiveSqliteDatabaseId
-  //  val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
-  //
-  //  runDispatching {
-  //    `when`(offlineDatabaseManager.loadDatabaseFileData(processDescriptor, databaseId1)).thenReturn(DatabaseFileData(sqliteFile1))
-  //    `when`(offlineDatabaseManager.loadDatabaseFileData(processDescriptor, databaseId2)).thenThrow(OfflineDatabaseException("err"))
-  //  }
-  //
-  //  val connection = LiveDatabaseConnection(
-  //    testRootDisposable,
-  //    DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
-  //    0,
-  //    EdtExecutorService.getInstance()
-  //  )
-  //
-  //  pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
-  //  pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
-  //
-  //  // Act
-  //  runDispatching(edtExecutor.asCoroutineDispatcher()) {
-  //    databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
-  //  }
-  //
-  //  // Assert
-  //  runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId1) }
-  //  runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId2) }
-  //  verifyNoMoreInteractions(offlineDatabaseManager)
-  //
-  //  val offlineModeMetadata = trackerService.metadata
-  //
-  //  assertNotNull(offlineModeMetadata)
-  //  assertEquals(sqliteFile1.length, offlineModeMetadata!!.totalDownloadSizeBytes)
-  //  assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
-  //
-  //  assertTrue(trackerService.offlineDownloadFailed!!)
-  //
-  //  DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  //}
 
   private fun registerMockAdbService() {
     val mockAdbService = mock(AdbService::class.java)
