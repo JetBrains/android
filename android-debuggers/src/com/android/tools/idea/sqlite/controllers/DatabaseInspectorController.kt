@@ -459,13 +459,7 @@ class DatabaseInspectorControllerImpl(
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
     override fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable) {
-      val connectivityState = when (databaseId) {
-        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
-      }
-
       databaseInspectorAnalyticsTracker.trackStatementExecuted(
-        connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
       )
       openTableTab(databaseId, table)
