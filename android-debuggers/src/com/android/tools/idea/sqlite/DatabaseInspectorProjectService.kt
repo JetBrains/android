@@ -36,7 +36,9 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
+import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
@@ -55,6 +57,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
 /**
@@ -217,6 +220,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   override val projectScope = AndroidCoroutineScope(project, uiThread)
 
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
   private var packageName: String? = null
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
@@ -293,6 +298,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     downloadOfflineDatabases = projectScope.launch {
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
+        val stopwatch = Stopwatch.createStarted()
+        var totalSizeDownloaded = 0L
         val databasesToDownload = openDatabases
           .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
           .filter { !it.isInMemoryDatabase() }
@@ -305,11 +312,20 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
               liveSqliteDatabaseId
             )
             openSqliteDatabase(databaseFileData).await()
+            totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { it.length }.sum()
           }
           catch (e: OfflineDatabaseException) {
+            databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
           }
         }
+        stopwatch.stop()
+        val offlineMetadata = AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
+          .newBuilder()
+          .setTotalDownloadSizeBytes(totalSizeDownloaded)
+          .setTotalDownloadTimeMs(stopwatch.elapsed(TimeUnit.MILLISECONDS).toInt())
+          .build()
+        databaseInspectorAnalyticsTracker.trackOfflineModeEntered(offlineMetadata)
       }
     }
   }
