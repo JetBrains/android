@@ -34,6 +34,9 @@ import java.util.function.Consumer
 class DesignerUsageTrackerManager<T, K: Disposable>(private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
                                      private val nopTracker: T) {
 
+  constructor(factory: (Executor, Consumer<AndroidStudioEvent.Builder>) -> T, nopTracker: T)
+    : this({ executor, _, eventLogger -> factory(executor, eventLogger) }, nopTracker)
+
   private val sTrackersCache = CacheBuilder.newBuilder()
     .weakKeys()
     .expireAfterAccess(5, TimeUnit.MINUTES)
