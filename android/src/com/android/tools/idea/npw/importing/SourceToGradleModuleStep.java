@@ -55,6 +55,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +89,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private JBScrollPane myModulesScroller;
   private ModulesTable myModulesPanel;
   private JLabel myRequiredModulesLabel;
+  private JBLabel mySourceDirTitle;
 
   // TODO(qumeric): Improve logic so these don't need to all be set to null in applyValidationResult
   @Nullable private VirtualFile myVFile;
@@ -121,6 +123,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       myValidatorPanel.setBorder(SMALL.border);
     }
     else {
+      mySourceDirTitle.setVisible(false);
       myRootPanel = wrapWithVScroll(myValidatorPanel);
     }
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
