@@ -224,7 +224,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       IDevice device = launchContext.getDevice();
       LaunchStatus launchStatus = launchContext.getLaunchStatus();
 
-      NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", launchContext.getExecutor().getId());
+      String groupId = "LaunchTaskRunner for " + launchContext.getExecutor().getId();
+      NotificationGroup notificationGroup = NotificationGroup.findRegisteredGroup(groupId);
+      if (notificationGroup == null) {
+        notificationGroup = NotificationGroup.toolWindowGroup(groupId, launchContext.getExecutor().getId());
+      }
       for (LaunchTask task : launchTasks) {
         if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
           throw new CancellationException();
