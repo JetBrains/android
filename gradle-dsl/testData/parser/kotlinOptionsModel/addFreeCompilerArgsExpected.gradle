@@ -1,6 +1,5 @@
 android {
   kotlinOptions {
-    jvmTarget = "1.6"
     freeCompilerArgs = ['-XX:1']
   }
 }

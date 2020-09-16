@@ -32,6 +32,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     val kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_6, kotlinOptions.jvmTarget().toLanguageLevel())
     assertEquals("useIR", false, kotlinOptions.useIR().toBoolean())
+    verifyListProperty("freeCompilerArgs", kotlinOptions.freeCompilerArgs(), listOf("-XXLanguage:+InlineClasses"))
   }
 
   @Test
@@ -63,6 +64,18 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun `add freeCompilerArgs`() {
+    writeToBuildFile(TestFile.ADD)
+
+    val buildModel = gradleBuildModel
+    val kotlinOptions = buildModel.android().kotlinOptions()
+    kotlinOptions.freeCompilerArgs().addListValue().setValue("-XX:1")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_FREE_COMPILER_ARGS_EXPECTED)
+  }
+
+
+  @Test
   fun remove() {
     writeToBuildFile(TestFile.REMOVE)
 
@@ -70,6 +83,8 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     var kotlinOptions = android.kotlinOptions()
     kotlinOptions.jvmTarget().delete()
+    kotlinOptions.useIR().delete()
+    kotlinOptions.freeCompilerArgs().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.REMOVE_EXPECTED)
     android = buildModel.android()
@@ -77,6 +92,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     checkForInvalidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
     assertMissingProperty(kotlinOptions.jvmTarget())
     assertMissingProperty(kotlinOptions.useIR())
+    assertMissingProperty(kotlinOptions.freeCompilerArgs())
   }
 
   @Test
@@ -87,20 +103,24 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     var kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_6, kotlinOptions.jvmTarget().toLanguageLevel())
+    verifyListProperty("freeCompilerArgs", kotlinOptions.freeCompilerArgs(), listOf("-XX:1"))
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_9)
     kotlinOptions.useIR().setValue(true)
+    kotlinOptions.freeCompilerArgs().addListValue().setValue("-XX:2")
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.MODIFY_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_9, kotlinOptions.jvmTarget().toLanguageLevel())
     assertEquals("useIR", true, kotlinOptions.useIR().toBoolean())
+    verifyListProperty("freeCompilerArgs", kotlinOptions.freeCompilerArgs(), listOf("-XX:1", "-XX:2"))
   }
 
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ADD("add"),
     ADD_EXPECTED("addExpected"),
+    ADD_FREE_COMPILER_ARGS_EXPECTED("addFreeCompilerArgsExpected"),
     BLOCK("block"),
     ADD_UNKNOWN_TARGET("addUnknownTarget"),
     MODIFY("modify"),
