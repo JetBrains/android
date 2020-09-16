@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
-import com.intellij.util.Producer;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -36,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Rectangle2D;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +117,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
 
   private int myDragBarHeight = DEFAULT_DRAG_BAR_HEIGHT;
 
-  @NotNull private Producer<Boolean> myRangeOcclusionTest = () -> false;
+  @NotNull private BooleanSupplier myRangeOcclusionTest = () -> false;
 
   public RangeSelectionComponent(@NotNull RangeSelectionModel model) {
     this(model, false);
@@ -137,7 +137,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
   /**
    * @param rangeOcclusionTest A test of the current state whether the mouse is on top of an item occluding the range
    */
-  public void setRangeOcclusionTest(@NotNull Producer<Boolean> rangeOcclusionTest) {
+  public void setRangeOcclusionTest(@NotNull BooleanSupplier rangeOcclusionTest) {
     myRangeOcclusionTest = rangeOcclusionTest;
   }
 
@@ -355,7 +355,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
   }
 
   private void updateCursor(Mode newMode, int newX) {
-    if (myRangeOcclusionTest.produce()) {
+    if (myRangeOcclusionTest.getAsBoolean()) {
       setCursor(Cursor.getDefaultCursor());
       return;
     }
