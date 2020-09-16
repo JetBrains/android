@@ -22,14 +22,14 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.TestApplicationManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -193,6 +193,16 @@ public class IdeaTestSuiteBase {
   /** @return true if the current Bazel test uses unbundled SDK. */
   private static boolean isUnbundledBazelTestTarget() {
     String classPath = System.getProperty("java.class.path", "");
+    if (classPath.endsWith("classpath.jar")) {
+      // Looks like using JAR Manifest for classpath.
+      try(JarFile jarFile = new JarFile(classPath)) {
+        Manifest mf = jarFile.getManifest();
+        classPath = mf.getMainAttributes().getValue("Class-Path");
+      } catch (IOException|IllegalArgumentException e) {
+        return false;
+      }
+    }
+
     return classPath.contains("prebuilts/studio/intellij-sdk/") ||
            classPath.contains("prebuilts\\studio\\intellij-sdk\\");
   }
