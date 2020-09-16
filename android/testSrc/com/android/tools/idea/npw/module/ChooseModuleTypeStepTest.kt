@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -56,6 +57,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
       "Import Eclipse ADT Project", "Java or Kotlin Library", "Benchmark Module")
+      .filterNot { StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && (it == "Import Gradle Project" || it == "Import Eclipse ADT Project")}
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

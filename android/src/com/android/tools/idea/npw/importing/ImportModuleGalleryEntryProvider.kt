@@ -28,10 +28,12 @@ import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
-    EclipseImportModuleGalleryEntry(),
-    GradleImportModuleGalleryEntry()
-  )
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) emptyList() else
+      listOf(
+        EclipseImportModuleGalleryEntry(),
+        GradleImportModuleGalleryEntry()
+      )
   private class EclipseImportModuleGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) AllIcons.Providers.Eclipse else AndroidIcons.Wizards.EclipseModule
     override val name: String = message("android.wizard.module.import.eclipse.title")
