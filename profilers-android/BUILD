@@ -100,6 +100,7 @@ iml_module(
 
 kotlin_test(
     name = "intellij.android.profilersAndroid.performance",
+    timeout = "long",
     srcs = glob([
         "testSrc/com/android/tools/idea/profilers/performance/**/*.kt",
         "testSrc/com/android/tools/idea/profilers/performance/**/*.java",
