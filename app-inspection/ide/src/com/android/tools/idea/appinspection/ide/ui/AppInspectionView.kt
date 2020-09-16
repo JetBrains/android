@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchExc
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
@@ -215,8 +215,8 @@ class AppInspectionView(
       .map { provider ->
         scope.launch {
           try {
-            val client = apiServices.launcher.launchInspector(
-              AppInspectorLauncher.LaunchParameters(
+            val client = apiServices.launchInspector(
+              LaunchParameters(
                 currentProcess,
                 provider.inspectorId,
                 provider.inspectorLaunchParams.inspectorAgentJar,

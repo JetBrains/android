@@ -16,23 +16,23 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
  */
-internal interface AppInspectionTarget {
+abstract class AppInspectionTarget {
   /**
    * Launches an inspector in the connected process using the provided [params], returning an
    * [AppInspectorMessenger] that can be used to communicate with it.
    */
   @WorkerThread
-  suspend fun launchInspector(params: AppInspectorLauncher.LaunchParameters): AppInspectorMessenger
+  internal abstract suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 
   /**
    * Disposes all of the clients that were launched on this target.
    */
   @WorkerThread
-  suspend fun dispose()
+  internal abstract suspend fun dispose()
 }

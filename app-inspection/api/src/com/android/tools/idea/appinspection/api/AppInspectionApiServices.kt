@@ -16,11 +16,13 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
-import com.android.tools.idea.appinspection.internal.DefaultAppInspectorLauncher
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
@@ -34,10 +36,9 @@ typealias JarCopierCreator = (Common.Device) -> AppInspectionJarCopier?
  * The API surface that is exposed to the AppInspection IDE/UI module. It provides a set of tools that allows the frontend to discover
  * potentially interesting processes and launch inspectors on them.
  *
- * It provides 3 main utilities:
+ * It provides the following main utilities:
  * 1) Subscription to listening of processes in the transport pipeline via [processNotifier].
- * 2) Launching of an inspector on a process via [launcher].
- * 3) A set of functions to support IDE use cases. Currently, only [disposeClients].
+ * 2) A set of functions to support IDE use cases, for example disposing clients of a particular project, and launching an inspector.
  */
 interface AppInspectionApiServices {
   /**
@@ -46,19 +47,25 @@ interface AppInspectionApiServices {
   val processNotifier: ProcessNotifier
 
   /**
-   * Use this to launch a new inspector.
-   */
-  val launcher: AppInspectorLauncher
-
-  /**
    * Disposes all of the currently active inspector clients in [project].
    */
   suspend fun disposeClients(project: String)
 
   /**
-   * A coroutine scope used to launch jobs. This scope is tied to the disposable of the App Inspection IDE service.
+   * Attaches to a running app if not already attached. This has the side effect of setting up transport and app inspection services in the
+   * app's process space, and readying the pipeline for communication.
+   *
+   * Returns an [AppInspectionTarget] which can be used to communicate with the process level service and launch inspectors.
    */
-  val scope: CoroutineScope
+  suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget
+
+  /**
+   * Launches an inspector for an app on the device. All launch information are captured in [params].
+   *
+   * This has the side effect of setting up transport and app inspection services in the app's process space, similar to calling
+   * [attachToProcess].
+   */
+  suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 
   companion object {
     fun createDefaultAppInspectionApiServices(
@@ -69,10 +76,9 @@ interface AppInspectionApiServices {
       createJarCopier: JarCopierCreator
     ): AppInspectionApiServices {
       val targetManager = AppInspectionTargetManager(client, scope, dispatcher)
-      val processNotifier: ProcessNotifier = AppInspectionProcessDiscovery(dispatcher, streamManager)
+      val processNotifier = AppInspectionProcessDiscovery(dispatcher, streamManager)
       processNotifier.addProcessListener(dispatcher.asExecutor(), targetManager)
-      val launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery, createJarCopier)
-      return DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
+      return DefaultAppInspectionApiServices(targetManager, createJarCopier, processNotifier)
     }
   }
 }
