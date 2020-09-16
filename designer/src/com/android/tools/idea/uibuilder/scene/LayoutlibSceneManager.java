@@ -455,6 +455,20 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  private void updateRenderTask(@Nullable RenderTask newTask) {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask != null && !myRenderTask.isDisposed()) {
+        try {
+          myRenderTask.dispose();
+        } catch (Throwable t) {
+          Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+        }
+      }
+      myTaskStartTimeNanos = System.nanoTime();
+      myRenderTask = newTask;
+    }
+  }
+
   private void disposeRenderTask() {
     RenderTask renderTask;
     synchronized (myRenderingTaskLock) {
@@ -987,72 +1001,56 @@ public class LayoutlibSceneManager extends SceneManager {
               newTask.dispose();
             }
             else {
-              // Update myRenderTask with the new task
-              synchronized (myRenderingTaskLock) {
-                if (myRenderTask != null && !myRenderTask.isDisposed()) {
-                  try {
-                    myRenderTask.dispose();
-                  } catch (Throwable t) {
-                    Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-                  }
-                }
-                myTaskStartTimeNanos = System.nanoTime();
-                myRenderTask = newTask;
-              }
+              updateRenderTask(newTask);
             }
           })
             .handle((result, exception) -> {
               if (result != null) {
-                CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, System.currentTimeMillis() - startInflateTimeMs, true);
-                return result;
+                return result.createWithDuration(System.currentTimeMillis() - startInflateTimeMs);
               } else {
                 return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
               }
-            })
-            .thenApply(result -> {
-              if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
-                return result;
-              }
-
-              updateHierarchy(result);
-              myRenderResultLock.writeLock().lock();
-              try {
-                updateCachedRenderResult(result);
-              }
-              finally {
-                myRenderResultLock.writeLock().unlock();
-              }
-
-              return result;
             });
         }
         else {
-          synchronized (myRenderingTaskLock) {
-            if (myRenderTask != null && !myRenderTask.isDisposed()) {
-              try {
-                myRenderTask.dispose();
-              } catch (Throwable t) {
-                Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-              }
-              myRenderTask = null;
-            }
-          }
-          RenderResult result = RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger);
-          myRenderResultLock.writeLock().lock();
-          try {
-            updateCachedRenderResult(result);
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
+          updateRenderTask(null);
 
-          return CompletableFuture.completedFuture(result);
+          return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
+      })
+      .thenApply(result -> {
+        // Could be simplified even more in the future (just updates the RenderResult)
+        myRenderResultLock.writeLock().lock();
+        try {
+          updateCachedRenderResult(result);
+        }
+        finally {
+          myRenderResultLock.writeLock().unlock();
+        }
+
+        return result;
+      })
+      .thenApply(result -> {
+        // Updates hierarchy if applicable or noop
+        if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
+          return result;
+        }
+
+        updateHierarchy(result);
+
+        return result;
+      })
+      .thenApply(result -> {
+        // Reports metrics if applicable or noop
+        if (result.getRenderResult().isSuccess()) {
+          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, result.getRenderDuration(), true);
+        }
+        return result;
       });
   }
 
   @GuardedBy("myRenderResultLock")
-  private void updateCachedRenderResult(RenderResult result) {
+  private void updateCachedRenderResult(@NotNull RenderResult result) {
     if (myRenderResult != null && myRenderResult != result) {
       myRenderResult.dispose();
     }
@@ -1289,6 +1287,11 @@ public class LayoutlibSceneManager extends SceneManager {
             }
             if (result != null) {
               myRenderTimeMs = System.currentTimeMillis() - startRenderTimeMs;
+              return result.createWithDuration(myRenderTimeMs);
+            }
+            return null;
+          }).thenApply(result -> {
+            if (result != null) {
               CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, myRenderTimeMs, false);
             }
             return result;
