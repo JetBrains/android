@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
+import com.android.tools.idea.run.AndroidProgramRunner
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.google.common.truth.Truth
-import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
-import com.intellij.execution.ExecutionTargetProvider
 import com.intellij.execution.RunManager
-import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
-import kotlin.test.assertEquals
+import com.intellij.testFramework.runInEdtAndWait
+import javax.swing.Icon
 
 fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest() {
   val project = project
@@ -41,26 +41,44 @@ fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest() {
 
   // Set up ExecutionTarget infrastructure.
   ApplicationManager.getApplication().invokeAndWait {
-    val provider = ExecutionTargetProvider.EXTENSION_NAME.extensionList.find { it is DeviceAndSnapshotExecutionTargetProvider }
-    val settings = RunManagerEx.getInstanceEx(this.project).selectedConfiguration
-    val configuration: RunConfiguration = settings!!.configuration
-    val targets: List<ExecutionTarget> = provider!!.getTargets(this.project, configuration)
-    assertEquals(1, targets.size)
-    ExecutionTargetManager.getInstance(this.project).activeTarget = targets[0]
+    val target = object: AndroidExecutionTarget(){
+      override fun getId(): String = "target"
+      override fun getDisplayName(): String = "target"
+      override fun getIcon(): Icon? = null
+      override fun isApplicationRunning(packageName: String): Boolean = false
+      override fun getAvailableDeviceCount(): Int = 1
+      override fun getRunningDevices(): Collection<IDevice> = emptyList()
+      override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest
+    }
+    ExecutionTargetManager.getInstance(this.project).activeTarget = target
   }
 
-  Truth.assertThat(
-    MakeBeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
-      .executeTask(
-        DataContext.EMPTY_CONTEXT,
-        this,
-        ExecutionEnvironment(
-          DefaultRunExecutor.getRunExecutorInstance(),
-          ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, this)!!,
-          runnerAndConfigurationSettings,
-          project
-        ),
-        makeBeforeRunTask
-      )
-  ).isTrue()
+  val programRunner = object: AndroidProgramRunner() {
+    override fun getRunnerId(): String = "runner_id"
+    override fun canRunWithMultipleDevices(executorId: String): Boolean = false
+  }
+
+  val executionEnvironment = ExecutionEnvironment(
+    DefaultRunExecutor.getRunExecutorInstance(),
+    programRunner,
+    runnerAndConfigurationSettings,
+    project
+  )
+  try {
+    Truth.assertThat(
+      MakeBeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
+        .executeTask(
+          DataContext.EMPTY_CONTEXT,
+          this,
+          executionEnvironment,
+          makeBeforeRunTask
+        )
+    ).isTrue()
+  }
+  finally {
+    runInEdtAndWait {
+      AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+    }
+  }
 }
+
