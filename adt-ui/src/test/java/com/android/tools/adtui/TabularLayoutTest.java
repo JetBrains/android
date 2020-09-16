@@ -46,6 +46,9 @@ public final class TabularLayoutTest {
     }
     catch (IllegalArgumentException ignored) {
     }
+    //handle Kotlin 1.4 behavior
+    catch (NullPointerException ignored) {
+    }
   }
 
 
