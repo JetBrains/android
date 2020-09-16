@@ -2062,6 +2062,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockTrackerService).trackStatementExecutionCanceled(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
       AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
     )
   }

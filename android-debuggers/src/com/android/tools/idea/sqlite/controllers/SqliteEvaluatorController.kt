@@ -236,10 +236,18 @@ class SqliteEvaluatorController(
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateCurrentStatement() {
+      val databaseId = currentEvaluationParams.databaseId!!
+
+      val connectivityState = when (databaseId) {
+        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+      }
+
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+        connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
-      executeSqlStatement(currentEvaluationParams.databaseId!!, createSqliteStatement(project, currentEvaluationParams.statementText))
+      executeSqlStatement(databaseId, createSqliteStatement(project, currentEvaluationParams.statementText))
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
