@@ -29,8 +29,13 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.awt.Dimension
+import java.time.Duration
 
-class BuildAttributionUiAnalytics(private val project: Project) {
+class BuildAttributionUiAnalytics(
+  private val project: Project,
+  private val uiSizeProvider: () -> Dimension?
+) {
 
   enum class TabOpenEventSource {
     WNA_BUTTON,
@@ -115,12 +120,16 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   fun pageChange(
     currentPage: BuildAttributionUiEvent.Page,
     targetPage: BuildAttributionUiEvent.Page,
-    eventType: BuildAttributionUiEvent.EventType
+    eventType: BuildAttributionUiEvent.EventType,
+    duration: Duration
   ) {
-    doLog(newUiEventBuilder()
-            .setEventType(eventType)
-            .setCurrentPage(currentPage)
-            .setTargetPage(targetPage))
+    doLog(
+      newUiEventBuilder()
+        .setEventType(eventType)
+        .setCurrentPage(currentPage)
+        .setTargetPage(targetPage)
+        .setEventProcessingTimeMs(duration.toMillis())
+    )
     this.currentPage = targetPage
   }
 
@@ -137,26 +146,39 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   fun helpLinkClicked(
     currentPageId: BuildAttributionUiEvent.Page,
     target: BuildAnalyzerBrowserLinks
-  ) = doLog(newUiEventBuilder()
-              .setCurrentPage(currentPageId)
-              .setLinkTarget(target.analyticsValue)
-              .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
+  ) = doLog(
+    newUiEventBuilder()
+      .setCurrentPage(currentPageId)
+      .setLinkTarget(target.analyticsValue)
+      .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
   fun memorySettingsOpened() = doLog(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
   )
 
-  fun warningsFilterApplied(filter: WarningsFilter) = doLog(
-    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED).addAllAppliedFilters(warningsFilterState(filter))
+  fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
+      .addAllAppliedFilters(warningsFilterState(filter))
+      .setEventProcessingTimeMs(duration.toMillis())
   )
 
-  fun tasksFilterApplied(filter: TasksFilter) = doLog(
-    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED).addAllAppliedFilters(tasksFilterState(filter))
+  fun tasksFilterApplied(filter: TasksFilter, duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
+      .addAllAppliedFilters(tasksFilterState(filter))
+      .setEventProcessingTimeMs(duration.toMillis())
   )
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)
-    return BuildAttributionUiEvent.newBuilder().setBuildAttributionReportSessionId(buildAttributionReportSessionId)
+    return BuildAttributionUiEvent.newBuilder().also { builder ->
+      builder.buildAttributionReportSessionId = buildAttributionReportSessionId
+      uiSizeProvider()?.let {
+        builder.width = it.width.toLong()
+        builder.height = it.height.toLong()
+      }
+    }
   }
 
   private fun registerPage(pageId: AnalyticsPageId): BuildAttributionUiEvent.Page {
