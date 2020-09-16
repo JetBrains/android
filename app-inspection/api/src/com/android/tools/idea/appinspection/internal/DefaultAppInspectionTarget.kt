@@ -27,8 +27,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIn
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
@@ -160,6 +163,26 @@ internal class DefaultAppInspectionTarget(
     scope.cancel()
     messengers.clear()
   }
+
+  override suspend fun getLibraryVersions(targets: List<TargetLibrary>): List<LibraryVersionResponse> {
+    val libraryVersions = targets.map {
+      AppInspection.VersionParams.newBuilder().setMinVersion(it.minVersion).setVersionFileName(it.versionFileName).build()
+    }
+    val getLibraryVersionsCommand = AppInspection.GetLibraryVersionsCommand.newBuilder().addAllTargetVersions(libraryVersions).build()
+    val commandId = AppInspectionTransport.generateNextCommandId()
+    val appInspectionCommand = AppInspectionCommand.newBuilder().setCommandId(commandId).setGetLibraryVersionsCommand(
+      getLibraryVersionsCommand).build()
+    val streamQuery = StreamEventQuery(
+      eventKind = APP_INSPECTION_RESPONSE,
+      filter = { it.appInspectionResponse.commandId == commandId }
+    )
+    val response = transport.executeCommand(appInspectionCommand, streamQuery)
+    // The API call should always return a list of the same size.
+    assert(targets.size == response.appInspectionResponse.libraryVersionsResponse.responsesCount)
+    return response.appInspectionResponse.libraryVersionsResponse.responsesList.mapIndexed { i, result ->
+      result.toLibraryVersionResponse(targets[i])
+    }
+  }
 }
 
 @VisibleForTesting
@@ -182,4 +205,15 @@ private fun AppInspection.AppInspectionResponse.getException(inspectorId: String
     AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> AppInspectionLibraryMissingException(message)
     else -> AppInspectionLaunchException(message)
   }
+}
+
+@VisibleForTesting
+internal fun AppInspection.LibraryVersionResponse.toLibraryVersionResponse(targetLibrary: TargetLibrary): LibraryVersionResponse {
+  val responseStatus = when (status) {
+    AppInspection.LibraryVersionResponse.Status.COMPATIBLE -> LibraryVersionResponse.Status.COMPATIBLE
+    AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE -> LibraryVersionResponse.Status.INCOMPATIBLE
+    AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING -> LibraryVersionResponse.Status.LIBRARY_MISSING
+    else -> LibraryVersionResponse.Status.ERROR
+  }
+  return LibraryVersionResponse(targetLibrary, responseStatus, errorMessage)
 }

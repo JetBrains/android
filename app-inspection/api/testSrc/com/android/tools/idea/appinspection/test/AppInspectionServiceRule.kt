@@ -102,6 +102,7 @@ class AppInspectionServiceRule(
     targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
     processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
     apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
+    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
 
   override fun after(description: Description) = runBlocking {
@@ -121,7 +122,6 @@ class AppInspectionServiceRule(
     project: String = TEST_PROJECT,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer)
   ): AppInspectionTarget {
-    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also {
       timer.currentTimeNs += 1

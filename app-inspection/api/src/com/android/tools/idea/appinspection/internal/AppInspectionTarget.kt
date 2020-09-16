@@ -18,6 +18,8 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -35,4 +37,12 @@ abstract class AppInspectionTarget {
    */
   @WorkerThread
   internal abstract suspend fun dispose()
+
+  /**
+   * For each of the provided target, check its version compatibility and returns the result in [LibraryVersionResponse].
+   *
+   * The version check result can be in several different states. See [LibraryVersionResponse.Status] for details.
+   */
+  @WorkerThread
+  abstract suspend fun getLibraryVersions(targets: List<TargetLibrary>): List<LibraryVersionResponse>
 }

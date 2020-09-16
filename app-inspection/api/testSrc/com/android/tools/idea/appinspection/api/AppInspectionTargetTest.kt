@@ -17,18 +17,27 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryArtifact
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
+import com.android.tools.idea.appinspection.internal.toLibraryVersionResponse
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeLaunchParameters
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TEST_PROJECT
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -38,7 +47,7 @@ import org.junit.rules.RuleChain
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService, transportService)!!
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
@@ -183,5 +192,89 @@ class AppInspectionTargetTest {
     client1.awaitForDisposal()
 
     client2Launched.join()
+  }
+
+  // Verifies the marshalling and unmarshalling of GetLibraryVersion's params.
+  @Test
+  fun getLibraryVersions() = runBlocking<Unit> {
+    val process = createFakeProcessDescriptor().toTransportImpl()
+
+    // The fake response to be manually sent.
+    val fakeLibraryVersionsResponse = listOf(
+      AppInspection.LibraryVersionResponse.newBuilder()
+        .setStatus(AppInspection.LibraryVersionResponse.Status.COMPATIBLE)
+        .setVersionFileName("1st_file.version")
+        .build(),
+      AppInspection.LibraryVersionResponse.newBuilder()
+        .setStatus(AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE)
+        .setVersionFileName("2nd_file.version")
+        .setErrorMessage("incompatible")
+        .build(),
+      AppInspection.LibraryVersionResponse.newBuilder()
+        .setStatus(AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING)
+        .setVersionFileName("3rd_file.version")
+        .setErrorMessage("missing")
+        .build(),
+      AppInspection.LibraryVersionResponse.newBuilder()
+        .setStatus(AppInspection.LibraryVersionResponse.Status.SERVICE_ERROR)
+        .setVersionFileName("4th_file.version")
+        .setErrorMessage("error")
+        .build()
+    )
+
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      object : CommandHandler(timer) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+          if (command.appInspectionCommand.hasGetLibraryVersionsCommand()) {
+            // Reply with fake response.
+            events.add(
+              Common.Event.newBuilder()
+                .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
+                .setPid(process.process.pid)
+                .setTimestamp(timer.currentTimeNs)
+                .setCommandId(command.commandId)
+                .setIsEnded(true)
+                .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
+                                            .setCommandId(command.appInspectionCommand.commandId)
+                                            .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
+                                            .setLibraryVersionsResponse(
+                                              AppInspection.GetLibraryVersionsResponse.newBuilder().addAllResponses(
+                                                fakeLibraryVersionsResponse
+                                              )
+                                            )
+                                            .build())
+                .build()
+            )
+          }
+        }
+      })
+
+    // These are the version files we are interested in targeting.
+    val targets = listOf(
+      TargetLibrary(LibraryArtifact("1st", "file"), "1.0.0"),
+      TargetLibrary(LibraryArtifact("2nd", "file"), "1.0.0"),
+      TargetLibrary(LibraryArtifact("3rd", "file"), "1.0.0"),
+      TargetLibrary(LibraryArtifact("4th", "file"), "1.0.0")
+    )
+
+    // Add the fake process to transport so we can attach to it via apiServices.attachToProcess
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    val processReadyDeferred = CompletableDeferred<Unit>()
+    appInspectionRule.apiServices.processNotifier.addProcessListener(MoreExecutors.directExecutor(), object : ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+        processReadyDeferred.complete(Unit)
+      }
+
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      }
+    })
+    processReadyDeferred.await()
+
+    // Verify response.
+    val responses = appInspectionRule.apiServices.attachToProcess(process, TEST_PROJECT).getLibraryVersions(targets)
+    assertThat(responses).containsExactlyElementsIn(
+      fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryVersionResponse(targets[i]) })
   }
 }
