@@ -76,18 +76,6 @@ class RetentionViewTest {
   @Before
   fun setUp() {
     sdkPath = temporaryFolderRule.newFolder()
-    val systemImageFolder = sdkPath.resolve("system-images")
-      .resolve("android-29")
-      .resolve("google_apis_playstore")
-      .resolve("x86_64")
-    assertThat(systemImageFolder.mkdirs()).isTrue()
-    val buildPropUrl = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropUrl).isNotNull()
-    val buildPropFile = systemImageFolder.resolve(SDK_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropFile.createNewFile()).isTrue()
-    with(FileOutputStream(buildPropFile)) {
-      IOUtils.copy(buildPropUrl.openStream(), this)
-    }
 
     val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
     p.setRevision(Revision.parseRevision(FAKE_EMULATOR_REVISION))
@@ -131,7 +119,38 @@ class RetentionViewTest {
   }
 
   @Test
+  fun loadBadSnapshotPb() {
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR_GZ)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    retentionView.setSnapshotFile(snapshotFile)
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf broken")).isTrue()
+  }
+
+  fun setupSystemFolder() {
+    val systemImageFolder = sdkPath.resolve("system-images")
+      .resolve("android-29")
+      .resolve("google_apis_playstore")
+      .resolve("x86_64")
+    assertThat(systemImageFolder.mkdirs()).isTrue()
+    val buildPropUrl = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP)
+    assertThat(buildPropUrl).isNotNull()
+    val buildPropFile = systemImageFolder.resolve(SDK_SYSTEM_IMAGE_BUILD_PROP)
+    assertThat(buildPropFile.createNewFile()).isTrue()
+    with(FileOutputStream(buildPropFile)) {
+      IOUtils.copy(buildPropUrl.openStream(), this)
+    }
+  }
+
+  @Test
   fun loadSnapshotWithPb() {
+    setupSystemFolder()
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -145,6 +164,21 @@ class RetentionViewTest {
   }
 
   @Test
+  fun loadSnapshotPbWithoutSystem() {
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    retentionView.setSnapshotFile(snapshotFile)
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Failed to find system image build property")).isTrue()
+  }
+
+  @Test
   fun loadNullScreenshot() {
     retentionView.setSnapshotFile(null)
     assertThat(retentionView.image).isNull()
@@ -152,6 +186,7 @@ class RetentionViewTest {
 
   @Test
   fun checkSystemImageVersion() {
+    setupSystemFolder()
     val hardwareIni =  Ini().also {
       it.add(INI_GLOBAL_SECTION_NAME)
       it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
@@ -159,24 +194,31 @@ class RetentionViewTest {
       it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
     }
     // The system image version must match the one from ${RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP}
-    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys")).isTrue()
+    assertThat(isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).compatible).isTrue()
   }
 
   @Test
   fun checkSystemImageVersionEmptyIni() {
-    val hardwareIni =  Ini()
-    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys")).isFalse()
+    val hardwareIni = Ini()
+    isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).also {
+      assertThat(it.compatible).isFalse()
+      assertThat(it.reason).isNotNull()
+    }
   }
 
   @Test
   fun checkBadSystemImageVersion() {
+    setupSystemFolder()
     val hardwareIni =  Ini().also {
       it.add(INI_GLOBAL_SECTION_NAME)
       it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
                                        "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
       it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
     }
-    assertThat(retentionView.isSystemImageCompatible(hardwareIni, "invalid")).isFalse()
+    isSystemImageCompatible(hardwareIni, "invalid", androidSdkHandler).also {
+      assertThat(it.compatible).isFalse()
+      assertThat(it.reason!!.contains("System image version mismatch")).isTrue()
+    }
   }
 
   @Test
