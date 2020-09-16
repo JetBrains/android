@@ -103,7 +103,10 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  private val uiAnalytics = BuildAttributionUiAnalytics(project)
+  private val uiAnalytics = BuildAttributionUiAnalytics(
+    project,
+    uiSizeProvider = { buildAttributionView?.component?.size }
+  )
 
   private lateinit var reportUiData: BuildAttributionReportUiData
 

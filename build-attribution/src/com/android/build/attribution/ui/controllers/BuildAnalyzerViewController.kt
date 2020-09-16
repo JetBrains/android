@@ -27,9 +27,11 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
+import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import java.time.Duration
 
 class BuildAnalyzerViewController(
   val model: BuildAnalyzerViewModel,
@@ -44,58 +46,62 @@ class BuildAnalyzerViewController(
 
   override fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.selectedData = newSelectedData
+    val duration = runAndMeasureDuration { model.selectedData = newSelectedData }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED, duration)
   }
 
   override fun changeViewToTasksLinkClicked(targetGrouping: Grouping) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-    model.tasksPageModel.selectGrouping(targetGrouping)
+    val duration = runAndMeasureDuration {
+      model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
+      model.tasksPageModel.selectGrouping(targetGrouping)
+    }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
   }
 
   override fun changeViewToWarningsLinkClicked() {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+    val duration = runAndMeasureDuration { model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
   }
 
   override fun tasksGroupingSelectionUpdated(grouping: Grouping) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.tasksPageModel.selectGrouping(grouping)
+    val duration = runAndMeasureDuration { model.tasksPageModel.selectGrouping(grouping) }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED, duration)
   }
 
   override fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.tasksPageModel.selectNode(tasksTreeNode)
+    val duration = runAndMeasureDuration { model.tasksPageModel.selectNode(tasksTreeNode) }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK, duration)
   }
 
   override fun tasksDetailsLinkClicked(taskPageId: TasksPageId) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    // Make sure tasks page open.
-    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-    // Update selection in the tasks page model.
-    model.tasksPageModel.selectPageById(taskPageId)
+    val duration = runAndMeasureDuration {
+      // Make sure tasks page open.
+      model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
+      // Update selection in the tasks page model.
+      model.tasksPageModel.selectPageById(taskPageId)
+    }
     // Track page change in analytics.
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
   }
 
   override fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     // Update selection in the model.
-    model.warningsPageModel.selectNode(warningTreeNode)
+    val duration = runAndMeasureDuration { model.warningsPageModel.selectNode(warningTreeNode) }
     // Track page change in analytics.
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK, duration)
   }
 
   override fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks) {
@@ -115,19 +121,25 @@ class BuildAnalyzerViewController(
   }
 
   override fun applyTasksFilter(filter: TasksFilter) {
-    model.tasksPageModel.applyFilter(filter)
-    analytics.tasksFilterApplied(filter)
+    val duration = runAndMeasureDuration { model.tasksPageModel.applyFilter(filter) }
+    analytics.tasksFilterApplied(filter, duration)
   }
 
   override fun applyWarningsFilter(filter: WarningsFilter) {
-    model.warningsPageModel.filter = filter
-    analytics.warningsFilterApplied(filter)
+    val duration = runAndMeasureDuration { model.warningsPageModel.filter = filter }
+    analytics.warningsFilterApplied(filter, duration)
   }
 
   override fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
-    model.warningsPageModel.groupByPlugin = groupByPlugin
+    val duration = runAndMeasureDuration { model.warningsPageModel.groupByPlugin = groupByPlugin }
     val newAnalyticsPage = analytics.getStateFromModel(model)
-    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED, duration)
+  }
+
+  private fun runAndMeasureDuration(action: () -> Unit): Duration {
+    val watch = Stopwatch.createStarted()
+    action()
+    return watch.elapsed()
   }
 }
