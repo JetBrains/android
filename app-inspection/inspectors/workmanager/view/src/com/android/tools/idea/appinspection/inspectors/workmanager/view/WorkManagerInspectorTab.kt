@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -25,11 +26,13 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkMan
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
@@ -42,6 +45,7 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -132,7 +136,10 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     }
   }
 
-  private inner class SelectTagAction :
+  /**
+   * DropDownAction that shows tags from available works.
+   */
+  private inner class TagsDropDownAction :
     DropDownAction(WorkManagerInspectorBundle.message("action.tag.all"),
                    WorkManagerInspectorBundle.message("action.tag.tooltip"),
                    null) {
@@ -144,11 +151,11 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
       }
     }
 
-    override fun updateActions(context: DataContext): Boolean {
+    public override fun updateActions(context: DataContext): Boolean {
       removeAll()
-      add(TagFilterAction(null))
+      add(FilterWithTagToggleAction(null))
       client.getAllTags().forEach { tag ->
-        add(TagFilterAction(tag))
+        add(FilterWithTagToggleAction(tag))
       }
       return true
     }
@@ -156,7 +163,10 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     override fun displayTextInToolbar() = true
   }
 
-  private inner class TagFilterAction(private val tag: String?)
+  /**
+   * ToggleAction that filters works with a specific [tag].
+   */
+  private inner class FilterWithTagToggleAction(private val tag: String?)
     : ToggleAction(tag ?: "All tags") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return tag == client.filterTag
@@ -193,7 +203,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     val group = DefaultActionGroup().apply {
       add(CancelAction())
       addSeparator()
-      add(SelectTagAction())
+      add(TagsDropDownAction())
     }
     val toolbar = ActionManager.getInstance().createActionToolbar("WorkManagerInspector", group, true)
     return toolbar.component
@@ -330,6 +340,17 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
     panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
     return panel
+  }
+
+  /**
+   * @return a list of actions from the drop down menu that filter works with a tag.
+   */
+  @TestOnly
+  fun getFilterActionList(): List<ToggleAction> {
+    val toolbar = TreeWalker(component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
+    val selectFilterAction = toolbar.actions[2] as TagsDropDownAction
+    selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
+    return selectFilterAction.getChildren(null).map { it as ToggleAction }
   }
 }
 
