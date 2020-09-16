@@ -20,6 +20,7 @@ import com.android.tools.idea.profilers.performance.CpuProfilerAtraceCaptureTest
 import com.android.tools.idea.profilers.performance.CpuProfilerEmptyCaptureTest;
 import com.android.tools.idea.profilers.performance.CpuProfilerPerfettoCaptureTest;
 import com.android.tools.idea.profilers.performance.CpuProfilerPerfettoWithTrebuchetCaptureTest;
+import com.android.tools.idea.profilers.performance.MemoryClassifierViewFindSuperSetNodeTest;
 import com.android.tools.idea.profilers.performance.MemoryProfilerHeapDumpTest;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
   CpuProfilerPerfettoCaptureTest.class,
   CpuProfilerPerfettoWithTrebuchetCaptureTest.class,
   MemoryProfilerHeapDumpTest.class, // b/152344964
+  MemoryClassifierViewFindSuperSetNodeTest.class,
 })
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
 }
