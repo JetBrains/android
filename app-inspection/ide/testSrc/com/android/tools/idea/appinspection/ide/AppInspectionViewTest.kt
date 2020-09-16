@@ -24,7 +24,8 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryArtifact
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -54,7 +55,7 @@ class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspe
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
   INSPECTOR_ID_2,
   LibraryInspectorLaunchParams(TEST_JAR,
-                               AppInspectorLauncher.TargetLibrary(AppInspectorLauncher.LibraryArtifact("groupId", "artifactId"), "0.0.0")))
+                               TargetLibrary(LibraryArtifact("groupId", "artifactId"), "0.0.0")))
 
 class AppInspectionViewTest {
   private val timer = FakeTimer()

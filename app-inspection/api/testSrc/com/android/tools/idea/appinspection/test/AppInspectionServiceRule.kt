@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
@@ -29,7 +28,6 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
-import com.android.tools.idea.appinspection.internal.DefaultAppInspectorLauncher
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.NamedExternalResource
@@ -70,7 +68,6 @@ class AppInspectionServiceRule(
   lateinit var transport: AppInspectionTransport
   lateinit var jarCopier: AppInspectionTestUtils.TestTransportJarCopier
   internal lateinit var targetManager: AppInspectionTargetManager
-  lateinit var launcher: AppInspectorLauncher
   lateinit var processNotifier: ProcessNotifier
   lateinit var apiServices: AppInspectionApiServices
 
@@ -104,8 +101,7 @@ class AppInspectionServiceRule(
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
     processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
-    launcher = DefaultAppInspectorLauncher(targetManager, processNotifier as AppInspectionProcessDiscovery) { jarCopier }
-    apiServices = DefaultAppInspectionApiServices(targetManager, processNotifier, launcher, scope)
+    apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
   }
 
   override fun after(description: Description) = runBlocking {

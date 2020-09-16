@@ -17,8 +17,9 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryArtifact
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -42,9 +43,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
     AppInspectorJar("workmanager-inspection.jar",
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
                     releaseDirectory = "plugins/android/resources/app-inspection/"),
-    AppInspectorLauncher.TargetLibrary(
-      AppInspectorLauncher.LibraryArtifact("androidx.work", "work-runtime"),
-      "2.5.0-alpha01")
+    TargetLibrary(LibraryArtifact("androidx.work", "work-runtime"), "2.5.0-alpha01")
   )
 
   override fun isApplicable(): Boolean {

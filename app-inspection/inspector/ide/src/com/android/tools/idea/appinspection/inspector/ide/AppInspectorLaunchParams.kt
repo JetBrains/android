@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
 
 /**
  * Contains general information that is required to launch an inspector on device.
@@ -35,5 +35,5 @@ class LibraryInspectorLaunchParams(
   /**
    * Information about the library this inspector is targeting, including the minimum version this inspector is compatible with.
    */
-  val targetLibrary: AppInspectorLauncher.TargetLibrary
+  val targetLibrary: TargetLibrary
 ) : AppInspectorLaunchParams()

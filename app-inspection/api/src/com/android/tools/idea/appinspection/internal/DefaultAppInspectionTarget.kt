@@ -24,9 +24,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchExc
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
@@ -79,7 +79,7 @@ internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
   parentScope: CoroutineScope
-) : AppInspectionTarget {
+) : AppInspectionTarget() {
   private val scope = parentScope.createChildScope(true)
 
   private val messengers = ConcurrentHashMap<String, Deferred<AppInspectorMessenger>>()
@@ -91,7 +91,7 @@ internal class DefaultAppInspectionTarget(
   internal val inspectorDisposableJobs = ConcurrentHashMap<String, Job>()
 
   override suspend fun launchInspector(
-    params: AppInspectorLauncher.LaunchParameters
+    params: LaunchParameters
   ): AppInspectorMessenger {
     val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
       scope.async {
