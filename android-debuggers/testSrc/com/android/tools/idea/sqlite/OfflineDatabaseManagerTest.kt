@@ -93,7 +93,7 @@ class OfflineDatabaseManagerTest : LightPlatformTestCase() {
     )
 
     // Act
-    val offlineDatabaseData = runDispatching { offlineDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId) }
+    val offlineDatabaseData = runDispatching { offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveDatabaseId) }
 
     // Assert
     verify(deviceFileDownloaderService).downloadFiles(
@@ -128,7 +128,7 @@ class OfflineDatabaseManagerTest : LightPlatformTestCase() {
     // Act
     runDispatching {
       try {
-        offlineDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
+        offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveDatabaseId)
         fail()
       }
       catch (e: OfflineDatabaseException) { }
@@ -159,7 +159,7 @@ class OfflineDatabaseManagerTest : LightPlatformTestCase() {
     // Act
     runDispatching {
       try {
-        offlineDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
+        offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveDatabaseId)
         fail()
       }
       catch (e: OfflineDatabaseException) { }
