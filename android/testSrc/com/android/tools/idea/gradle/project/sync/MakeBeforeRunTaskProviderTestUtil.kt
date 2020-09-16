@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.AndroidProgramRunner
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.google.common.truth.Truth
@@ -31,9 +35,10 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndWait
+import org.mockito.Mockito
 import javax.swing.Icon
 
-fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest() {
+fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures? = null) {
   val project = project
   val makeBeforeRunTask = beforeRunTasks.filterIsInstance<MakeBeforeRunTask>().single()
   val factory = factory!!
@@ -64,6 +69,7 @@ fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest() {
     runnerAndConfigurationSettings,
     project
   )
+  deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
   try {
     Truth.assertThat(
       MakeBeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
@@ -82,3 +88,19 @@ fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest() {
   }
 }
 
+fun mockDeviceFor(androidVersion: Int, abis: List<Abi>): IDevice {
+  val device = MockitoKt.mock<IDevice>()
+  Mockito.`when`(device.abis).thenReturn(abis.map { it.toString() })
+  Mockito.`when`(device.version).thenReturn(AndroidVersion(androidVersion))
+  return device
+}
+
+fun withSimulatedSyncError(errorMessage: String, block: () -> Unit) {
+  SimulatedSyncErrors.registerSyncErrorToSimulate(errorMessage)
+  try {
+    block()
+  }
+  finally {
+    SimulatedSyncErrors.clear() // May leak to tests running afterwards.
+  }
+}
