@@ -22,6 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.html.HtmlEscapers
 import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
@@ -181,15 +182,15 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
         if (StringUtil.isNotEmpty(testDurationText)) {
           myDeviceLabel.text = String.format(Locale.US,
                                              "<html>%s<br><font color='#%s'>API %d - %s</font></html>",
-                                             value.getName(),
+                                             value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
                                              value.version.apiLevel,
-                                             testDurationText)
+                                             testDurationText.htmlEscape())
         }
         else {
           myDeviceLabel.text = String.format(Locale.US,
                                              "<html>%s<br><font color='#%s'>API %d</font></html>",
-                                             value.getName(),
+                                             value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
                                              value.version.apiLevel)
         }
@@ -223,3 +224,5 @@ private fun getIconForDeviceType(deviceType: AndroidDeviceType): Icon? {
     AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
   }
 }
+
+private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)
