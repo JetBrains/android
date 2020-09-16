@@ -22,7 +22,6 @@ import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
 import com.android.tools.idea.emulator.actions.dialogs.ManageSnapshotsDialog
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -38,14 +37,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JTextField
 import javax.swing.JTextPane
+import javax.swing.table.DefaultTableCellRenderer
 
 /**
  * Tests for [ManageSnapshotsDialog].
@@ -87,13 +87,7 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  fun test1() {
-    val defaultBootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
-    assertThat(SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()).isEqualTo(defaultBootMode)
-
-    val configIni = emulator.avdFolder.resolve("config.ini")
-    val oldSize = Files.size(configIni)
-
+  fun testDialog() {
     val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
     val dialogWrapper = dialogPanel.createWrapper(projectRule.project)
 
@@ -226,6 +220,10 @@ class ManageSnapshotsDialogTest {
       assertThat(isUseToBoot(table, 0)).isTrue() // The QuickBoot snapshot is used to boot.
       assertThat(isUseToBoot(table, 1)).isFalse()
 
+      // Check that the snapshots have icons.
+      assertThat(getIcon(table, 0)).isNotNull()
+      assertThat(getIcon(table, 1)).isNotNull()
+
       // Close the dialog.
       val closeButton = rootPane.defaultButton
       assertThat(closeButton.text).isEqualTo("Close")
@@ -239,6 +237,11 @@ class ManageSnapshotsDialogTest {
     val cellRenderer = tableView.getCellRenderer(row, USE_TO_BOOT_COLUMN_INDEX)
     val checkBox = tableView.prepareRenderer(cellRenderer, row, USE_TO_BOOT_COLUMN_INDEX) as JCheckBox
     return checkBox.isSelected
+  }
+
+  private fun getIcon(tableView: TableView<SnapshotInfo>, row: Int): Icon? {
+    val cellRenderer = tableView.getCellRenderer(row, SNAPSHOT_NAME_COLUMN_INDEX)
+    return (tableView.prepareRenderer(cellRenderer, row, SNAPSHOT_NAME_COLUMN_INDEX) as DefaultTableCellRenderer).icon
   }
 
   @Suppress("SameParameterValue")
@@ -273,4 +276,5 @@ class ManageSnapshotsDialogTest {
   }
 }
 
+private const val SNAPSHOT_NAME_COLUMN_INDEX = 0
 private const val USE_TO_BOOT_COLUMN_INDEX = 3
