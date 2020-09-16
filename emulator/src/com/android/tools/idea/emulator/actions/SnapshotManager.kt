@@ -165,6 +165,12 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
  * Information about an Emulator snapshot.
  */
 class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot, val sizeOnDisk: Long) {
+
+  /**
+   * Creates a placeholder for a non-existent snapshot.
+   */
+  constructor(snapshotFolder: Path) : this(snapshotFolder, Snapshot.getDefaultInstance(), 0)
+
   /**
    * The ID of the snapshot.
    */
