@@ -94,7 +94,13 @@ class RunSqliteStatementGutterIconAction(
   }
 
   private fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatementPsi: PsiElement) {
+    val connectivityState = when (databaseId) {
+      is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+      is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+    }
+
     DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+      connectivityState,
       AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
     )
 
