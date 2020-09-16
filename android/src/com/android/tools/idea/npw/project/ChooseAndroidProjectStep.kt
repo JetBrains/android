@@ -286,7 +286,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
               .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
               .map(::NewTemplateRendererWithDescription)
           else
-            listOf()
+            listOf<NewTemplateRendererWithDescription>()
 
         val newTemplateNames = newTemplateRenderers.map { it.template.name }
         yieldAll(oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers)
