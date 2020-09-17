@@ -767,6 +767,20 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.REMOVE_GOOGLE_REPOSITORY_EXPECTED);
   }
 
+  @Test
+  public void testGetPsiElement() throws IOException {
+    writeToBuildFile(TestFile.PARSE_MULTIPLE_REPOSITORIES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertNotNull(repositories.get(0).getPsiElement());
+    assertThat(repositories.get(0).getPsiElement().getText()).isEqualTo("jcenter()");
+    assertNotNull(repositories.get(1).getPsiElement());
+    assertThat(repositories.get(1).getPsiElement().getText()).isEqualTo("mavenCentral()");
+  }
+
   enum TestFile implements TestFileName {
     PARSE_J_CENTER_DEFAULT_REPOSITORY("parseJCenterDefaultRepository"),
     PARSE_J_CENTER_CUSTOM_REPOSITORY("parseJCenterCustomRepository"),
