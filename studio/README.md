@@ -2,6 +2,16 @@
 **Warning:** work in progress
 ***
 
+# Opening Android Studio in the IDE
+
+* Open the project in `//tools/adt/idea`
+* Set a [*Path Variable*](https://www.jetbrains.com/help/idea/settings-path-variables.html) named `SDK_PLATFORM` for the platform to use:
+  * Linux: `linux/android-studio`
+  * Mac: `darwin/android-studio/Contents`
+  * Windows: `windows/android-studio`
+
+You are good to go.
+
 # Building Android Studio
 
 To build Android Studio run
@@ -45,22 +55,12 @@ Currently all the new targets needed are tagged as manual, and live in paralell 
 bazel run //tools/base/bazel:iml_to_build -- --project_path tools/adt/idea --strict
 ```
 
-This will create and/or update the iml_module rules. To update the attributes that are manuallt added to iml_module rules use:
+This will create and/or update the iml_module rules. To update the attributes that are manually added to iml_module rules use:
 
 ```
 bazel run //tools/base/bazel:fix_unbundled_rules
 ```
 
-When the rules are generated, to build them you can use the
-following build/query command:
+Note that to switch bazel to use the unbundled rules, the file //tools/base/bazel/project.bzl needs to be changed.
 
-```
-bazel build `bazel query "attr(tags, unb, //...)"`
-```
-
-To ensure all unb. rules are manual run:
-
-```
-bazel query "attr(name, "unb.", //...) except attr(tags, manual, //...)"
-```
-
+This is done for now by tools/base/bazel/studio_linux.sh before it runs the tests.

@@ -610,7 +610,11 @@ def intellij_platform(
         **kwargs):
     native.java_import(
         name = name,
-        jars = [src + "/linux/android-studio/lib/" + jar for jar in spec.jar_order],
+        jars = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/" + jar for jar in spec.jars + spec.jars_windows],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/" + jar for jar in spec.jars + spec.jars_darwin],
+            "//conditions:default": [src + "/linux/android-studio/lib/" + jar for jar in spec.jars + spec.jars_linux],
+        }),
         visibility = ["//visibility:public"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
@@ -634,9 +638,16 @@ def intellij_platform(
     )
 
     for plugin, jars in spec.plugin_jars.items():
+        add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
+        add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
+        add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
         native.java_import(
             name = name + "-plugin-%s" % plugin,
-            jars = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars],
+            jars = select({
+                "//tools/base/bazel:windows": [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows],
+                "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin],
+                "//conditions:default": [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux],
+            }),
             visibility = ["//visibility:public"],
         )
 

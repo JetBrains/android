@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-java-ide-customization">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/linux/android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/java-ide-customization/lib/java-ide-customization.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
