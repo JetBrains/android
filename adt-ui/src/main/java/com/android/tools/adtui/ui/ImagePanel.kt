@@ -15,8 +15,10 @@
  */
 package com.android.tools.adtui.ui
 
-import com.google.common.graph.Graph
+import com.android.tools.adtui.ImageUtils
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.ImageUtil
 import java.awt.AlphaComposite
 import java.awt.Composite
 import java.awt.Graphics
@@ -26,9 +28,10 @@ import java.awt.Rectangle
 import kotlin.math.roundToInt
 
 /**
- * A [JBPanel] that shows an [Image] as background, scaled with no interpolation, and preserving aspect ratio.
+ * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
+ * Quality of scaling is controlled by the [highFidelityScaling] parameter.
  */
-class ImagePanel : JBPanel<ImagePanel>(true) {
+class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
   var image: Image? = null
     set(value) {
       field = value
@@ -50,7 +53,7 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
     g.color = background
     g.fillRect(rect.x, rect.y, rect.width, rect.height)
 
-    // Set Alpha to "light" if component is not active
+    // Set Alpha to "light" if component is not active.
     var prevComposite: Composite? = null
     if (!active) {
       (g as Graphics2D?)?.apply {
@@ -69,11 +72,23 @@ class ImagePanel : JBPanel<ImagePanel>(true) {
         val h = (imageHeight * scale).roundToInt()
         val xOffset = rect.x + (rect.width - w) / 2
         val yOffset = rect.y + (rect.height - h) / 2
-        g.drawImage(img, xOffset, yOffset, w, h, null)
+        if (highFidelityScaling) {
+          val bufferedImage = ImageUtil.toBufferedImage(img)
+          val graphicsScale = JBUIScale.sysScale(g as Graphics2D).toDouble()
+          val scaleX = graphicsScale * w / imageWidth
+          val scaleY = graphicsScale * h / imageHeight
+          // ImageUtils.scale uses a two-step scaling algorithm that produces better quality results
+          // than the standard AWT scaling.
+          val scaledImage = ImageUtils.scale(bufferedImage, scaleX, scaleY)
+          g.drawImage(scaledImage, xOffset, yOffset, w, h, null)
+        }
+        else {
+          g.drawImage(img, xOffset, yOffset, w, h, null)
+        }
       }
     }
 
-    // Restore composite
+    // Restore composite.
     (g as Graphics2D?)?.apply {
       prevComposite?.let { composite = it }
     }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -37,6 +39,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 import javax.swing.JButton
@@ -140,6 +143,8 @@ class ManageSnapshotsDialogTest {
       assertThat(selectionStateLabel.isVisible).isFalse()
       assertThat(previewImagePanel.isVisible).isTrue()
       assertThat(previewImagePanel.image).isNotNull()
+      ui.layout()
+      ImageDiffUtil.assertImageSimilar(getGoldenFile("SnapshotPreview"), ui.render(previewImagePanel), 0.0)
       assertThat(snapshotDetailsPanel.isVisible).isTrue()
 
       assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isTrue()
@@ -274,7 +279,15 @@ class ManageSnapshotsDialogTest {
     assertThat(action.isEnabled).isTrue()
     action.actionPerformed(TestActionEvent(action))
   }
+
+  @Suppress("SameParameterValue")
+  private fun getGoldenFile(name: String): File {
+    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+  }
 }
 
 private const val SNAPSHOT_NAME_COLUMN_INDEX = 0
 private const val USE_TO_BOOT_COLUMN_INDEX = 3
+
+private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/ManageSnapshotsDialogTest/golden"
+
