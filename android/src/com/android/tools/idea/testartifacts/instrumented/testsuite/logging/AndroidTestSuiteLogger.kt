@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType
 import javax.swing.JComponent
 import javax.swing.event.AncestorEvent
 import javax.swing.event.AncestorListener
@@ -26,9 +27,9 @@ import javax.swing.event.AncestorListener
 /**
  * Android Studio usage tracker for Android Test Suite feature.
  */
-class AndroidTestSuiteLogger {
+class AndroidTestSuiteLogger(private val usageLogReporter: UsageLogReporter = UsageLogReporterImpl,
+                             private val timestamp: Long = System.currentTimeMillis()) {
   private val impressions: MutableSet<ParallelAndroidTestReportUiEvent.UiElement> = mutableSetOf()
-  private val timestamp: Long = System.currentTimeMillis()
 
   /**
    * Add impression event. The event is reported in bulk by [reportImpressions].
@@ -66,23 +67,24 @@ class AndroidTestSuiteLogger {
    * this logger is instantiated.
    */
   fun reportImpressions() {
-    UsageTracker.log(
-      timestamp,
+    usageLogReporter.report(
       AndroidStudioEvent.newBuilder().apply {
         category = AndroidStudioEvent.EventCategory.TESTS
         kind = AndroidStudioEvent.EventKind.PARALLEL_ANDROID_TEST_REPORT_UI
         parallelAndroidTestReportUiEventBuilder.apply {
           addAllImpressions(impressions)
         }
-      }
-    )
+      },
+      timestamp)
+    impressions.clear()
   }
 
   /**
-   * Reports the interaction immediately to the [UsageTracker].
+   * Reports a click interaction immediately to the [UsageTracker].
    */
-  fun reportInteraction(element: ParallelAndroidTestReportUiEvent.UiElement) {
-    UsageTracker.log(
+  fun reportClickInteraction(element: ParallelAndroidTestReportUiEvent.UiElement,
+                             resultType: UserInteractionResultType = UserInteractionResultType.UNKNOWN_UI_INTERACTION_RESULT) {
+    usageLogReporter.report(
       AndroidStudioEvent.newBuilder().apply {
         category = AndroidStudioEvent.EventCategory.TESTS
         kind = AndroidStudioEvent.EventKind.PARALLEL_ANDROID_TEST_REPORT_UI
@@ -90,6 +92,7 @@ class AndroidTestSuiteLogger {
           addInteractionsBuilder().apply {
             type = ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionType.CLICK
             uiElement = element
+            result = resultType
           }
         }
       }
@@ -98,4 +101,18 @@ class AndroidTestSuiteLogger {
 
   @VisibleForTesting
   fun getImpressionsForTesting(): Set<ParallelAndroidTestReportUiEvent.UiElement> = impressions
+}
+
+interface UsageLogReporter {
+  fun report(studioEvent: AndroidStudioEvent.Builder, eventTimeMs: Long? = null)
+}
+
+private object UsageLogReporterImpl : UsageLogReporter {
+  override fun report(studioEvent: AndroidStudioEvent.Builder, eventTimeMs: Long?) {
+    if (eventTimeMs == null) {
+      UsageTracker.log(studioEvent)
+    } else {
+      UsageTracker.log(eventTimeMs, studioEvent)
+    }
+  }
 }

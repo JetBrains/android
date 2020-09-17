@@ -682,7 +682,7 @@ class AndroidTestResultsTableViewTest {
     // by verifying that the navigatable array lookup is made.
     verify(mockDataProvider).getData(eq(CommonDataKeys.NAVIGATABLE_ARRAY.name))
 
-    verify(mockLogger).reportInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
+    verify(mockLogger).reportClickInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
   }
 
   @Test
