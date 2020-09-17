@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build
 
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
+
 class GradleBuildStateIntegrationJdk8Test: GradleBuildStateIntegrationTest() {
   override fun setUp() {
     super.setUp()

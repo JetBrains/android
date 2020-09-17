@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
+
 class GradleSyncIntegrationJdk8Test : GradleSyncIntegrationTest() {
   override fun setUp() {
     super.setUp()
