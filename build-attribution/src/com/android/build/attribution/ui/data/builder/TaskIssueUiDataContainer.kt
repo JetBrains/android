@@ -111,7 +111,8 @@ class TaskIssueUiDataContainer(
     override val bugReportTitle = type.uiName
     override val bugReportBriefDescription =
       "Task declares the same output directory as task ${connectedTask.name} from " +
-      "${if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName}."
+      (if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName) +
+      ": '${outputFolder}'."
     override val explanation = """
 This task declares the same output directory as task '${connectedTask.taskPath}': ${wrapPathToSpans(outputFolder)}
 As a result, these tasks are not able to take advantage of incremental build optimizations,
