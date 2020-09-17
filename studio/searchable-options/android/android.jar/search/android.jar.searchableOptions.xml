@@ -480,6 +480,8 @@
     <option name="file" path="ActionManager" hit="Export to Zip File..." />
     <option name="to" path="ActionManager" hit="Export to Zip File..." />
     <option name="zip" path="ActionManager" hit="Export to Zip File..." />
+    <option name="controls" path="ActionManager" hit="Extended Controls" />
+    <option name="extended" path="ActionManager" hit="Extended Controls" />
     <option name="a" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="extracts" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="into" path="ActionManager" hit="Extracts one or more views into a separate layout" />
@@ -590,8 +592,6 @@
     <option name="s" path="ActionManager" hit="Make Module(s)" />
     <option name="make" path="ActionManager" hit="Make Project" />
     <option name="project" path="ActionManager" hit="Make Project" />
-    <option name="manage" path="ActionManager" hit="Manage Snapshots" />
-    <option name="snapshots" path="ActionManager" hit="Manage Snapshots" />
     <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
@@ -875,6 +875,9 @@
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
     <option name="show" path="ActionManager" hit="Show In Resource Manager" />
+    <option name="controls" path="ActionManager" hit="Show extended controls" />
+    <option name="extended" path="ActionManager" hit="Show extended controls" />
+    <option name="show" path="ActionManager" hit="Show extended controls" />
     <option name="editor" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="for" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="help" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
