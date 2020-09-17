@@ -349,7 +349,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
 
     String failure = requestSyncAndGetExpectedFailure();
-    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
+    assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {

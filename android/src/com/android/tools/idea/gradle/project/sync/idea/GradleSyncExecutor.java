@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_REQUEST;
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_VARIANTS;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -33,6 +35,7 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -43,10 +46,14 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ProjectSyncRequest;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
+import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
+import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
+import com.intellij.openapi.externalSystem.importing.ProjectResolverPolicy;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -54,6 +61,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -61,11 +70,14 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.service.project.GradlePartialResolverPolicy;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -159,6 +171,7 @@ public class GradleSyncExecutor {
     return externalProjectPath;
   }
 
+  @WorkerThread
   @NotNull
   public List<GradleModuleModels> fetchGradleModels() {
     GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
@@ -215,5 +228,56 @@ public class GradleSyncExecutor {
     }
 
     return builder.build();
+  }
+
+  @WorkerThread
+  public void fetchAndMergeNativeVariants(@NotNull Set<@NotNull String> requestedAbis) {
+    SelectedVariantCollector variantCollector = new SelectedVariantCollector(myProject);
+    SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
+    GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
+    if (settings == null) {
+      throw new IllegalStateException("Cannot obtain GradleExecutionSettings");
+    }
+
+    Map<String, String> variantsByModule = selectedVariants.getSelectedVariantsByModule();
+    Map<String, String> abisByModule = selectedVariants.getSelectedAbisByModule();
+    Map<String, String> variantsByNativeModule =
+      variantsByModule.entrySet().stream()
+        .filter(it -> abisByModule.containsKey(it.getKey()))
+        .collect(Collectors.toMap(it -> it.getKey(), it -> it.getValue()));
+
+    settings.putUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY,
+                         new ProjectResolutionMode.FetchNativeVariantsMode(variantsByNativeModule, requestedAbis));
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
+    String projectPath = myProject.getBasePath();
+    assert projectPath != null;
+
+    GradleProjectResolver projectResolver = new GradleProjectResolver();
+    ProjectResolverPolicy projectResolverPolicy = new GradlePartialResolverPolicy(it -> it instanceof AndroidGradleProjectResolver);
+    DataNode<ProjectData> projectDataNode =
+      projectResolver.resolveProjectInfo(id, projectPath, false, settings, projectResolverPolicy, NULL_OBJECT);
+    if (projectDataNode == null) {
+      Logger.getInstance(GradleSyncExecutor.class).warn("Failed to retrieve native variant models.");
+      return;
+    }
+    @NotNull Collection<DataNode<IdeAndroidNativeVariantsModelsWrapper>> nativeVariants = findAll(projectDataNode, NATIVE_VARIANTS);
+    Map<String, Module> moduleMap = Stream.of(ModuleManager.getInstance(myProject).getModules())
+      .filter(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(SYSTEM_ID, it))
+      .collect(Collectors.toMap(it -> ExternalSystemApiUtil.getExternalProjectId(it), it -> it));
+    for (DataNode<IdeAndroidNativeVariantsModelsWrapper> nativeVariantsWrapperNode : nativeVariants) {
+      IdeAndroidNativeVariantsModelsWrapper nativeVariantsWrapper = nativeVariantsWrapperNode.getData();
+      String moduleId = nativeVariantsWrapper.getModuleId();
+      Module module = moduleMap.get(moduleId);
+      if (module == null){
+        Logger.getInstance(GradleSyncExecutor.class).error("Module not found. ModuleId: " + moduleId);
+        continue;
+      }
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet == null){
+        Logger.getInstance(GradleSyncExecutor.class).error("NdkFacet not found. ModuleId: " + moduleId);
+        continue;
+      }
+      nativeVariantsWrapper.mergeInto(ndkFacet);
+    }
   }
 }

@@ -41,13 +41,38 @@ import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
+@UsedInBuildAction
+abstract class GradleModule(val gradleProject: BasicGradleProject) {
+  abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+
+  var projectSyncIssues: List<SyncIssueData>? = null; private set
+  fun setSyncIssues(issues: Collection<SyncIssue>) {
+    projectSyncIssues = issues.map { syncIssue ->
+      SyncIssueData(
+        message = syncIssue.message,
+        data = syncIssue.data,
+        multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.toList(),
+        severity = syncIssue.severity,
+        type = syncIssue.type
+      )
+    }
+  }
+
+  protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
+    inline fun <reified T : Any> T.deliver() {
+      println("Consuming ${T::class.simpleName} for ${gradleProject.path}")
+      buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
+    }
+  }
+}
+
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
 class AndroidModule private constructor(
   val modelVersion: GradleVersion?,
-  private val gradleProject: BasicGradleProject,
+  gradleProject: BasicGradleProject,
   private val androidProject: IdeAndroidProject,
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
@@ -58,7 +83,7 @@ class AndroidModule private constructor(
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?,
   private val modelCache: ModelCache
-) {
+) : GradleModule(gradleProject) {
   companion object {
     @JvmStatic
     fun create(
@@ -132,7 +157,6 @@ class AndroidModule private constructor(
 
   private val additionallySyncedVariants: MutableList<IdeVariant> = mutableListOf()
   private val additionallySyncedNativeVariants: MutableList<IdeNativeVariantAbi> = mutableListOf()
-  private var projectSyncIssues: List<SyncIssueData>? = null
 
   fun addVariant(variant: Variant): IdeVariant {
     val ideVariant = modelCache.variantFrom(variant, modelVersion)
@@ -144,18 +168,6 @@ class AndroidModule private constructor(
     val ideNativeVariantAbi = modelCache.nativeVariantAbiFrom(variant)
     additionallySyncedNativeVariants.add(ideNativeVariantAbi)
     return ideNativeVariantAbi
-  }
-
-  fun setSyncIssues(issues: Collection<SyncIssue>) {
-    projectSyncIssues = issues.map { syncIssue ->
-      SyncIssueData(
-        message = syncIssue.message,
-        data = syncIssue.data,
-        multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.toList(),
-        severity = syncIssue.severity,
-        type = syncIssue.type
-      )
-    }
   }
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
@@ -170,21 +182,14 @@ class AndroidModule private constructor(
     return collectIdentifiers(variants)
   }
 
-  private inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
-    inline fun <reified T : Any> T.deliver() {
-      println("Consuming ${T::class.simpleName} for ${gradleProject.path}")
-      buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
-    }
-  }
-
-  fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
     // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
     val selectedVariantName =
       additionallySyncedVariants.firstOrNull()?.name
       ?: prefetchedVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
-      ?: throw AndroidSyncException("No variants found for '${androidProject.name}'. Check build files to ensure at least one variant exists.")
+      ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject,
@@ -203,6 +208,24 @@ class AndroidModule private constructor(
 }
 
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+
+@UsedInBuildAction
+class NativeVariantsAndroidModule private constructor(
+  gradleProject: BasicGradleProject,
+  private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
+) : GradleModule(gradleProject) {
+  companion object {
+    fun createV2(gradleProject: BasicGradleProject): NativeVariantsAndroidModule = NativeVariantsAndroidModule(gradleProject, null)
+    fun createV1(gradleProject: BasicGradleProject, nativeVariants: List<IdeNativeVariantAbi>): NativeVariantsAndroidModule =
+      NativeVariantsAndroidModule(gradleProject, nativeVariants)
+  }
+
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues.orEmpty()).deliver()
+    }
+  }
+}
 
 @UsedInBuildAction
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =

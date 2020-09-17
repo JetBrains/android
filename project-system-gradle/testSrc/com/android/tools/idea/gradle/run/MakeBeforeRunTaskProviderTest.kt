@@ -226,7 +226,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
@@ -236,7 +236,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
@@ -246,7 +246,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should be invoked to make sure Android models are up-to-date.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
   }
 
   companion object {

@@ -26,9 +26,11 @@ import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.impl.ModelCache
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
+import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
@@ -42,6 +44,7 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.util.LinkedList
@@ -56,17 +59,23 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     try {
-      when (syncOptions) {
-        is SyncProjectActionOptions -> {
-          val androidModules = populateAndroidModels(controller, buildModel, syncOptions)
-          // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
-          // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-          populateProjectSyncIssues(controller, androidModules)
+      val modules: List<GradleModule> =
+        when (syncOptions) {
+          is SyncProjectActionOptions -> {
+            val androidModules = populateAndroidModels(controller, buildModel, syncOptions)
+            // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
+            // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+            populateProjectSyncIssues(controller, androidModules)
 
-          androidModules.forEach { it.deliverModels(consumer) }
+            androidModules
+          }
+          is NativeVariantsSyncActionOptions -> {
+            consumer.consume(buildModel, controller.getModel(IdeaProject::class.java), IdeaProject::class.java)
+            fetchNativeVariantsAndroidModels(controller, buildModel, syncOptions)
+          }
+          // Note: No more cases.
         }
-        // Note: No more cases.
-      }
+      modules.forEach { it.deliverModels(consumer) }
     }
     catch (e: AndroidSyncException) {
       consumer.consume(
@@ -167,6 +176,41 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     )
 
     return androidModules
+  }
+
+  private fun fetchNativeVariantsAndroidModels(
+    controller: BuildController,
+    buildModel: GradleBuild,
+    syncOptions: NativeVariantsSyncActionOptions
+  ): List<GradleModule> {
+    val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+    val modelCache = ModelCache.create(buildFolderPaths)
+    return buildModel.projects.mapNotNull { gradleProject ->
+      val moduleId = createUniqueModuleId(buildModel.buildIdentifier.rootDir, gradleProject.path)
+      val variantName = syncOptions.moduleVariants[moduleId] ?: return@mapNotNull null
+
+      fun tryV2(): NativeVariantsAndroidModule? {
+        controller.findModel(gradleProject, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+          it.variantsToGenerateBuildInformation = listOf(variantName)
+          it.abisToGenerateBuildInformation = syncOptions.requestedAbis.toList()
+        } ?: return null
+        return NativeVariantsAndroidModule.createV2(gradleProject)
+      }
+
+      fun fetchV1Abi(abi: String): IdeNativeVariantAbi? {
+        return modelCache.nativeVariantAbiFrom(
+          controller.findModel(gradleProject, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
+            parameter.setVariantName(variantName)
+            parameter.setAbiName(abi)
+          } ?: return null)
+      }
+
+      fun tryV1(): NativeVariantsAndroidModule {
+        return NativeVariantsAndroidModule.createV1(gradleProject, syncOptions.requestedAbis.mapNotNull { abi -> fetchV1Abi(abi) })
+      }
+
+      tryV2() ?: tryV1()
+    }
   }
 
   private fun populateProjectSyncIssues(
@@ -389,4 +433,3 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     return abiToRequest
   }
 }
-

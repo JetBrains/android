@@ -278,7 +278,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="60"/>
+            line="61"/>
     </issue>
 
     <issue
@@ -286,7 +286,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="61"/>
+            line="62"/>
     </issue>
 
     <issue
@@ -550,7 +550,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="388"/>
+            line="383"/>
     </issue>
 
     <issue
@@ -614,7 +614,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="95"/>
+            line="94"/>
     </issue>
 
     <issue
@@ -622,7 +622,7 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="96"/>
+            line="95"/>
     </issue>
 
     <issue
@@ -686,7 +686,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/LibraryDependency.java"
-            line="91"/>
+            line="86"/>
     </issue>
 
     <issue
@@ -719,14 +719,6 @@
         <location
             file="src/com/android/tools/idea/ui/wizard/ProposedFileTreeModel.kt"
             line="105"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/VariantOnlySyncOptions.java"
-            line="55"/>
     </issue>
 
     <issue

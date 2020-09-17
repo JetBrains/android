@@ -34,6 +34,11 @@ class IdeAndroidModels(
   val v1NativeVariantAbis: List<IdeNativeVariantAbi>?
 ) : Serializable
 
+class IdeAndroidNativeVariantsModels(
+  val v1NativeVariantAbis: List<IdeNativeVariantAbi>?, // null if v2.
+  val syncIssues: List<SyncIssueData>
+) : Serializable
+
 /**
  * A model to represent errors usually passed via exceptions. This is necessary to workaround exception serialization issues across
  * different JVM versions.

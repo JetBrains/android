@@ -29,7 +29,6 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -44,7 +43,6 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
   var testName = TestName()
 
   @Test
-  @Ignore("b/151654753")
   fun testModelsAreNotFetchedForSyncedAbi() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
     openPreparedProject("project") { project ->
@@ -68,7 +66,6 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
   }
 
   @Test
-  @Ignore("b/151654753")
   fun testModelsAreFetchedForNotSyncedAbi() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
     openPreparedProject("project") { project ->
@@ -85,6 +82,7 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
           runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
         }
       }
+
       // Even running a not synced ABI should not require sync with native sync v2.
       attemptRunningOn(ARMEABI_V7A)
 

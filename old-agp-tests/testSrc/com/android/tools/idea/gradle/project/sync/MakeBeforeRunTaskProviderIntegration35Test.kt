@@ -28,7 +28,6 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth
 import com.intellij.execution.RunManager
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -43,7 +42,6 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
   var testName = TestName()
 
   @Test
-  @Ignore("b/151654753")
   fun testModelsAreNotFetchedForSyncedAbi() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradlePluginVersion = "3.5.0")
     openPreparedProject("project") { project ->
@@ -72,7 +70,6 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
   }
 
   @Test
-  @Ignore("b/151654753")
   fun testModelsAreFetchedForNotSyncedAbi() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradlePluginVersion = "3.5.0")
     openPreparedProject("project") { project ->
