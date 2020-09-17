@@ -103,7 +103,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
       instructions.add(new TextInstruction(metrics, " to attach a process or load a capture."));
     }
     instructions.add(new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN));
-    instructions.add(new UrlInstruction(font, "Learn More", "https://developer.android.com/r/studio-ui/about-profilers.html"));
+    instructions.add(new HyperlinkInstruction(font, "Learn More", "https://developer.android.com/r/studio-ui/about-profilers.html"));
 
     RenderInstruction[] instructionsArray = new RenderInstruction[instructions.size()];
     instructions.toArray(instructionsArray);

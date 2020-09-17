@@ -16,12 +16,12 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.IconInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.RenderInstruction
 import com.android.tools.adtui.instructions.TextInstruction
-import com.android.tools.adtui.instructions.UrlInstruction
 import com.intellij.icons.AllIcons
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtilities
@@ -34,6 +34,7 @@ import javax.swing.JPanel
 private val TEXT_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(13f)
 
 class UrlData(val text: String, val url: String)
+class ActionData(val text: String, val callback: () -> Unit)
 
 sealed class Chunk
 class IconChunk(val icon: Icon) : Chunk()
@@ -47,14 +48,25 @@ class LabelData(vararg val chunks: Chunk)
  * @param helpUrlData If present, shows a link at the bottom of the empty state text, offering
  * users a change to click on a link that takes them to a browser page where they can read more
  * about what is causing the empty state / what they can do.
+ *
+ * @param actionData If present, shows a link below empty text and url (if present), which when clicked
+ * runs the callback passed to ActionData.
  */
-class EmptyStatePanel @JvmOverloads constructor(private val reason: LabelData, helpUrlData: UrlData? = null): JPanel(BorderLayout()) {
+class EmptyStatePanel @JvmOverloads constructor(
+  private val reason: LabelData,
+  helpUrlData: UrlData? = null,
+  actionData: ActionData? = null
+): JPanel(BorderLayout()) {
   init {
-    add(createInstructionsPanel(this, reason, helpUrlData))
+    add(createInstructionsPanel(this, reason, helpUrlData, actionData))
   }
 
   @JvmOverloads
-  constructor(reason: String, helpUrlData: UrlData? = null): this(LabelData(TextChunk(reason)), helpUrlData)
+  constructor(
+    reason: String,
+    helpUrlData: UrlData? = null,
+    actionData: ActionData? = null
+  ): this(LabelData(TextChunk(reason)), helpUrlData, actionData)
 
   /**
    * The raw reason text rendered by this empty state panel (in other words, icons not included)
@@ -65,7 +77,12 @@ class EmptyStatePanel @JvmOverloads constructor(private val reason: LabelData, h
   val reasonText get() = reason.chunks.mapNotNull { it as? TextChunk }.joinToString(" ") { it.text }
 }
 
-private fun createInstructionsPanel(parent: JComponent, reason: LabelData, helpUrlData: UrlData?): InstructionsPanel {
+private fun createInstructionsPanel(
+  parent: JComponent,
+  reason: LabelData,
+  helpUrlData: UrlData?,
+  actionData: ActionData?
+): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
   val textMetrics = UIUtilities.getFontMetrics(parent, TEXT_FONT)
   reason.chunks.forEach {
@@ -78,7 +95,13 @@ private fun createInstructionsPanel(parent: JComponent, reason: LabelData, helpU
   if (helpUrlData != null) {
     instructions.add(NewRowInstruction(12))
     instructions.add(IconInstruction(AllIcons.General.ContextHelp, 5, null))
-    instructions.add(UrlInstruction(textMetrics.font, helpUrlData.text, helpUrlData.url))
+    instructions.add(
+      HyperlinkInstruction(textMetrics.font, helpUrlData.text, helpUrlData.url))
+  }
+
+  if (actionData != null) {
+    instructions.add(NewRowInstruction(12))
+    instructions.add(HyperlinkInstruction(textMetrics.font, actionData.text, actionData.callback))
   }
 
   return InstructionsPanel.Builder(*instructions.toTypedArray())

@@ -23,24 +23,48 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import javax.swing.JComponent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * An instruction for rendering an URL. It wraps a {@link HyperlinkLabel} which supports all the proper formatting and interactions users
- * would perform on a typical URL. By default, it will handle mouse clicks by browsing to the specified url.
+ * would perform on a typical URL.
+ * By default, it will handle mouse clicks by browsing to the specified url, unless action is specified, in which case the
+ * action will be run when the link is clicked.
  */
-public final class UrlInstruction extends RenderInstruction {
+public final class HyperlinkInstruction extends RenderInstruction {
   @NotNull private final HyperlinkLabel myHyperlinkLabel;
   @NotNull private final Dimension mySize;
 
-  public UrlInstruction(@NotNull Font font, @NotNull String text, @NotNull String url) {
+  private HyperlinkInstruction(@NotNull Font font, @NotNull String text, @Nullable String url, @Nullable Runnable action) {
     myHyperlinkLabel = new HyperlinkLabel(text);
-    myHyperlinkLabel.setHyperlinkTarget(url);
     myHyperlinkLabel.setFont(font);
     mySize = myHyperlinkLabel.getPreferredSize();
 
+    if (url != null) {
+      myHyperlinkLabel.setHyperlinkTarget(url);
+    }
+
+    if (action != null) {
+      myHyperlinkLabel.addHyperlinkListener(new HyperlinkListener() {
+        @Override
+        public void hyperlinkUpdate(HyperlinkEvent e) {
+          action.run();
+        }
+      });
+    }
+
     setMouseHandler(evt -> myHyperlinkLabel.dispatchEvent(evt));
+  }
+
+  public HyperlinkInstruction(@NotNull Font font, @NotNull String text, @NotNull String url) {
+    this(font, text, url, null);
+  }
+
+  public HyperlinkInstruction(@NotNull Font font, @NotNull String text, @NotNull Runnable action) {
+    this(font, text, null, action);
   }
 
   @NotNull
