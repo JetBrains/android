@@ -360,11 +360,13 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
+/* b/168816086
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
         release to ".release",
         reopenedRelease to ".release"
       )
+b/168816086 */
     }
 
     open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
@@ -386,11 +388,13 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
+/* b/168816086
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
         release to ".release",
         reopenedRelease to ".release"
       )
+b/168816086 */
     }
 
     fun testSwitchingVariants_variantSpecificDependencies() {
