@@ -201,5 +201,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.truth",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
