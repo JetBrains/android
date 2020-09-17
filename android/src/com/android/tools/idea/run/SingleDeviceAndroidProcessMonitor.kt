@@ -133,7 +133,7 @@ class SingleDeviceAndroidProcessMonitor(
         }
         PROCESS_IS_RUNNING -> {
           if (!isTargetProcessFound) {
-            close()
+            detachAndClose()
           }
         }
         else -> {
