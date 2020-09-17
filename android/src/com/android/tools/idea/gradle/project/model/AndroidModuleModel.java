@@ -81,7 +81,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2020-06-28/3";
+  private final static String ourAndroidSyncVersion = "2020-09-17/1";
 
   @Nullable private transient Module myModule;
 
