@@ -46,6 +46,7 @@ class DefaultInspectorClientTest {
     transportRule.attach()
     val window1 = view(123)
     val window2 = view(321)
+    val window3 = view(456)
 
     // Run an event and verify it's run
     transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(window1, window2))
@@ -65,6 +66,23 @@ class DefaultInspectorClientTest {
     transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(window2, window1))
     transportRule.advanceTime(1100, TimeUnit.MILLISECONDS)
     assertEquals(2, called)
+    called = 0
+
+    // Send a couple events, and then another event with only a new window, and verify only one is run.
+    // Advance time a little between each, and then when we poll we'll get them in reverse order.
+    transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(window1, window2))
+    transportRule.advanceTime(1, TimeUnit.MILLISECONDS)
+    transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(window2, window1))
+    transportRule.advanceTime(1, TimeUnit.MILLISECONDS)
+    transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent(window3))
+    transportRule.advanceTime(1100, TimeUnit.MILLISECONDS)
+    assertEquals(1, called)
+    called = 0
+
+    // Verify that an event with no windows gets run
+    transportRule.transportService.addEventToStream(client.selectedStream.streamId, createEvent())
+    transportRule.advanceTime(1100, TimeUnit.MILLISECONDS)
+    assertEquals(1, called)
     called = 0
   }
 
@@ -142,17 +160,16 @@ class DefaultInspectorClientTest {
   }
 
   private fun createEvent(
-    window1: ViewNode,
-    vararg otherWindows: ViewNode
+    vararg windows: ViewNode
   ): Common.Event {
-    val originalTemplateEvent = transportRule.createComponentTreeEvent(window1)
+    val originalTemplateEvent = transportRule.createComponentTreeEvent(windows.firstOrNull())
     return Common.Event.newBuilder(originalTemplateEvent).apply {
       this.timestamp = transportRule.getCurrentTimeNanos()
       groupId = Common.Event.EventGroupIds.INVALID_VALUE.toLong()
       layoutInspectorEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(originalTemplateEvent.layoutInspectorEvent).apply {
         val originalTree = originalTemplateEvent.layoutInspectorEvent.tree
         tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(originalTree).apply {
-          otherWindows.forEach { addAllWindowIds(it.drawId) }
+          windows.drop(1).forEach { addAllWindowIds(it.drawId) }
         }.build()
       }.build()
     }.build()

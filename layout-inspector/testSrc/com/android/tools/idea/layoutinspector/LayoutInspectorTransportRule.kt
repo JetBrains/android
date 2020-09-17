@@ -453,7 +453,7 @@ class LayoutInspectorTransportRule(
     }
   }
 
-  fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
+  fun createComponentTreeEvent(rootView: ViewNode?): Common.Event {
     val strings = TestStringTable()
     val tree = TreeBuilder(strings)
     val config = ConfigurationBuilder(strings)
@@ -463,11 +463,13 @@ class LayoutInspectorTransportRule(
       pid = DEFAULT_PROCESS.pid
       groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
       layoutInspectorEventBuilder.treeBuilder.apply {
-        root = tree.makeViewTree(rootView)
+        if (rootView != null) {
+          root = tree.makeViewTree(rootView)
+          addAllWindowIds(rootView.drawId)
+        }
         resources = config.makeSampleConfiguration(project)
         generation = inspectorModel.lastGeneration + 1
         addAllString(strings.asEntryList())
-        addAllWindowIds(rootView.drawId)
       }
     }.build()
   }

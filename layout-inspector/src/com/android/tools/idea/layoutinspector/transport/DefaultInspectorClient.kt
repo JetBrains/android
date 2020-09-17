@@ -130,8 +130,8 @@ class DefaultInspectorClient(
 
   private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
 
-  // Map of message group id to map of root view drawId to timestamp
-  private val lastResponseTimePerGroup = mutableMapOf<Long, MutableMap<Long?, Long>>()
+  // Map of message group id to map of root view drawId to timestamp. "null" window id corresponds to messages with an empty window list.
+  private val lastResponseTimePerWindow = mutableMapOf<Long, MutableMap<Long?, Long>>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
   private var adbBridge: AndroidDebugBridge? = null
 
@@ -196,25 +196,34 @@ class DefaultInspectorClient(
       streamId = { selectedStream.streamId },
       groupId = { groupId.number.toLong() },
       processId = { selectedProcess.pid }) {
-      val groupLastResponseTimes = lastResponseTimePerGroup.getOrPut(it.groupId, ::mutableMapOf)
-      val rootId = it.layoutInspectorEvent?.tree?.root?.drawId
+
+      val groupLastResponseTimes = lastResponseTimePerWindow.getOrPut(it.groupId, ::mutableMapOf)
+      // Get the timestamp of the most recent message we've received in this group.
+      val latestMessageTimestamp = groupLastResponseTimes.values.max() ?: Long.MIN_VALUE
+
+      val layoutInspectorEvent = it.layoutInspectorEvent
+      // If this is the newest message in the group, update the map to contain only timestamps for current windows
+      // (or for "null" if there are none).
+      if (it.timestamp > latestMessageTimestamp) {
+        layoutInspectorEvent?.tree?.allWindowIdsList?.ifEmpty { listOf(null) }?.let { allWindows ->
+          allWindows.forEach { window -> groupLastResponseTimes.putIfAbsent(window, Long.MIN_VALUE) }
+          groupLastResponseTimes.keys.retainAll(allWindows)
+        }
+      }
+
+      val rootId = if (layoutInspectorEvent?.tree?.hasRoot() == true) layoutInspectorEvent.tree?.root?.drawId else null
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
           (it.groupId == EventGroupIds.PROPERTIES.number.toLong() ||
-           it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE))) {
+           // only continue if the rootId is in the map, or this is an empty event.
+           it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MAX_VALUE))) {
         try {
-          callback(it.layoutInspectorEvent)
+          callback(layoutInspectorEvent)
         }
         catch (ex: Exception) {
           Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
         }
         groupLastResponseTimes[rootId] = it.timestamp
-        if (rootId != null) {
-          // Remove entries corresponding to windows we no longer know about (but keep any that we don't know about now but will in the
-          // future, if we happen to process messages out of order).
-          groupLastResponseTimes.entries.removeIf { (viewId, timestamp) ->
-            viewId !in it.layoutInspectorEvent.tree.allWindowIdsList && timestamp < it.timestamp }
-        }
       }
       false
     })
@@ -481,7 +490,7 @@ class DefaultInspectorClient(
     selectedProcess = Common.Process.getDefaultInstance()
     isConnected = false
     listeners.forEach { transportPoller.unregisterListener(it) }
-    lastResponseTimePerGroup.clear()
+    lastResponseTimePerWindow.clear()
     processChangedListeners.forEach { it(this) }
     if (debugAttributesOverridden) {
       if (!disableDebugViewAttributes(adbBridge, stream)) {
