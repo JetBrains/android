@@ -1,24 +1,12 @@
 #!/usr/bin/env python3
 import os
 import argparse
-from lxml import etree as ET
-import xml.dom.minidom as minidom
 import tempfile
 import sys
 import zipfile
 import tarfile
 import re
 import shutil
-
-JDK_FILES = [
-    "jre/lib/charsets.jar", "jre/lib/ext/cldrdata.jar", "jre/lib/ext/dnsns.jar",
-    "jre/lib/ext/jaccess.jar", "jre/lib/ext/localedata.jar",
-    "jre/lib/ext/nashorn.jar", "jre/lib/ext/sunec.jar",
-    "jre/lib/ext/sunjce_provider.jar", "jre/lib/ext/sunpkcs11.jar",
-    "jre/lib/ext/zipfs.jar", "jre/lib/jce.jar", "jre/lib/jsse.jar",
-    "jre/lib/management-agent.jar", "jre/lib/resources.jar", "jre/lib/rt.jar",
-    "lib/tools.jar"
-]
 
 # A list of files not included in the SDK because they are maked by files in the root lib directory
 # This should be sorted out at a different leve, but for now removing them here
@@ -27,156 +15,149 @@ HIDDEN = [
     "/plugins/Kotlin/lib/kotlin-stdlib.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-common.jar",
+    "/lib/annotations-java5.jar",
 ]
 
+ALL = "all"
+LINUX = "linux"
+WIN = "windows"
+MAC = "darwin"
 
-def list_sdk_jars(idea_home):
-  jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
-  return [idea_home + path for path in jars]
+PLATFORMS = [LINUX, WIN, MAC]
+
+HOME_PATHS = {
+    LINUX: "/linux/android-studio",
+    MAC: "/darwin/android-studio/Contents",
+    WIN: "/windows/android-studio",
+}
+
+def list_sdk_jars(sdk):
+  sets = {}
+  for platform in PLATFORMS:
+    idea_home = sdk + HOME_PATHS[platform]
+    jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
+    jars = [jar for jar in jars if jar not in HIDDEN]
+    sets[platform] = set(jars)
+
+  sets[ALL] = sets[WIN] & sets[MAC] & sets[LINUX]
+  sets[LINUX] = sets[LINUX] - sets[ALL]
+  sets[WIN] = sets[WIN] - sets[ALL]
+  sets[MAC] = sets[MAC] - sets[ALL]
+
+  sdk_jars = {}
+  for platform in [ALL] + PLATFORMS:
+    sdk_jars[platform] = sorted(sets[platform])
+
+  return sdk_jars
 
 
-def list_plugin_jars(idea_home):
+def list_plugin_jars(sdk):
+  all = {}
+  for platform in PLATFORMS:
+    idea_home = sdk + HOME_PATHS[platform]
+    all[platform] = {}
+    for plugin in os.listdir(idea_home + "/plugins"):
+      path = "/plugins/" + plugin + "/lib/"
+      jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
+      jars = [jar for jar in jars if jar not in HIDDEN]
+      all[platform][plugin] = set(jars)
+
+  plugins = sorted(set(all[MAC].keys()) | set(all[WIN].keys()) | set(all[LINUX].keys()))
   plugin_jars = {}
-  for plugin in os.listdir(idea_home + "/plugins"):
-    path = "/plugins/" + plugin + "/lib/"
-    jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
-    jars = [idea_home + jar for jar in jars if jar not in HIDDEN]
-    plugin_jars[plugin] = jars
+  plugin_jars[ALL] = {}
+  plugin_jars[MAC] = {}
+  plugin_jars[WIN] = {}
+  plugin_jars[LINUX] = {}
+  for p in plugins:
+    common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    plugin_jars[ALL][p] = sorted(common)
+    plugin_jars[MAC][p] = sorted(all[MAC][p] - common)
+    plugin_jars[WIN][p] = sorted(all[WIN][p] - common)
+    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common)
+
   return plugin_jars
 
 
-def define_jdk(table,
-               name,
-               type,
-               home_path,
-               version=None,
-               additional=None,
-               annotations=[],
-               files=[],
-               sources=[]):
-  jdk = ET.SubElement(table, "jdk", {"version": "2"})
-  ET.SubElement(jdk, "name", {"value": name})
-  ET.SubElement(jdk, "type", {"value": type})
-  if version:
-    ET.SubElement(jdk, "version", {"value": version})
-  ET.SubElement(jdk, "homePath", {"value": "$PROJECT_DIR$/" + home_path})
-  roots = ET.SubElement(jdk, "roots")
-  annotations_path = ET.SubElement(roots, "annotationsPath")
-  a_roots = ET.SubElement(annotations_path, "root", {"type": "composite"})
-  for annotation in annotations:
-    a = ET.SubElement(a_roots, "root")
-    a.set("url", annotation)
-    a.set("type", "simple")
-  class_path = ET.SubElement(roots, "classPath")
-  c_roots = ET.SubElement(class_path, "root", {"type": "composite"})
-  for file in files:
-    r = ET.SubElement(c_roots, "root")
-    r.set("url", "jar://$PROJECT_DIR$/" + file + "!/")
-    r.set("type", "simple")
+def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
+ 
+  suffix = {
+    ALL: "",
+    MAC: "_darwin",
+    WIN: "_windows",
+    LINUX: "_linux",
+  }
 
-  source_path = ET.SubElement(roots, "sourcePath")
-  s_roots = ET.SubElement(source_path, "root", {"type": "composite"})
-  for source in sources:
-    s = ET.SubElement(s_roots, "root")
-    s.set("url", "jar://$PROJECT_DIR$/" + source + "!/")
-    s.set("type", "simple")
-  ET.SubElement(jdk, "additional", {"sdk": additional} if additional else {})
-  return jdk
-
-
-def write_spec_file(workspace, sdk_dir, version, jars, plugin_jars):
-  with open(sdk_dir + "/spec.bzl", "w") as file:
+  with open(workspace + sdk_rel + "/spec.bzl", "w") as file:
     name = version.replace("-", "").replace(".", "_")
     file.write("# Auto-generated file, do not edit manually.\n")
     file.write(name  + " = struct(\n" )
-    file.write("    jar_order = [\n")
-    for jar in jars:
-      file.write("        \"" + os.path.basename(jar) + "\",\n")
-    file.write("    ],\n")
-    file.write("    plugin_jars = {\n")
-    for plugin, jars in plugin_jars.items():
-      file.write("        \"" + plugin + "\": [\n")
-      for jar in jars:
-        file.write("            \"" + os.path.basename(jar) + "\",\n")
-      file.write("        ],\n")
-    file.write("    },\n")
+    for platform in [ALL] + PLATFORMS:
+      file.write(f"    jars{suffix[platform]} = [\n")
+      for jar in sdk_jars[platform]:
+        file.write("        \"" + os.path.basename(jar) + "\",\n")
+      file.write("    ],\n")
+
+    for platform in [ALL] + PLATFORMS:
+      file.write(f"    plugin_jars{suffix[platform]} = {{\n")
+      for plugin, jars in plugin_jars[platform].items():
+        if jars:
+          file.write("        \"" + plugin + "\": [\n")
+          for jar in jars:
+            file.write("            \"" + os.path.basename(jar) + "\",\n")
+          file.write("        ],\n")
+      file.write("    },\n")
     file.write(")\n")
 
-def gen_lib(project_dir, name, jars, srcs):
-  component = ET.Element("component", {"name": "libraryTable"})
-  library = ET.SubElement(component, "library", {"name": name})
-  classes = ET.SubElement(library, "CLASSES")
-  for jar in jars:
-    rel_path = os.path.relpath(jar, project_dir)
-    root = ET.SubElement(classes, "root", { "url": f"jar://$PROJECT_DIR$/{rel_path}!/" })
 
-  sources = ET.SubElement(library, "SOURCES")
+def gen_lib(project_dir, name, jars, srcs):
+  xml = f'<component name="libraryTable">\n  <library name="{name}">\n    <CLASSES>\n'
+  for rel_path in jars:
+    xml += f'      <root url="jar://$PROJECT_DIR$/{rel_path}!/" />\n'
+
+  xml += f'    </CLASSES>\n    <JAVADOC />\n    <SOURCES>\n'
   for src in srcs:
     rel_path = os.path.relpath(src, project_dir)
-    root = ET.SubElement(sources, "root", { "url": f"jar://$PROJECT_DIR$/{rel_path}!/" })
+    xml += f'      <root url="jar://$PROJECT_DIR$/{rel_path}!/" />\n'
+
+  xml += f'    </SOURCES>\n  </library>\n</component>'
 
   filename = name.replace("-", "_")
-  with open(project_dir + "/.idea/libraries/" + filename + ".xml", "wb") as file:
-    file.write(ET.tostring(component, pretty_print=True))
+  with open(project_dir + "/.idea/libraries/" + filename + ".xml", "w") as file:
+    file.write(xml)
 
 
-def update_xml_file(workspace, jdk, sdk, jars, plugin_jars):
-  app = ET.Element("application")
-  table = ET.SubElement(app, "component", {"name": "ProjectJdkTable"})
-
+def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
   project_dir = os.path.join(workspace, "tools/adt/idea")
-  jdk_jars = [os.path.join(jdk, j) for j in JDK_FILES]
+  rel_workspace = os.path.relpath(workspace, project_dir)
 
-  define_jdk(
-      table,
-      name="IDEA jdk",
-      type="JavaSDK",
-      version="java version \"1.8.0_242\"",
-      home_path=os.path.relpath(jdk, project_dir),
-      annotations=["jar://$APPLICATION_HOME_DIR$/lib/jdkAnnotations.jar!/"],
-      files=[os.path.relpath(jar, project_dir) for jar in jdk_jars],
-      sources=[os.path.relpath(os.path.join(jdk, "src.zip"), project_dir)],
-  )
-
-  ex_jars = jdk_jars + jars
-  define_jdk(
-      table,
-      name="Android Studio",
-      type="IDEA JDK",
-      home_path=os.path.relpath(
-          os.path.join(sdk, "linux/android-studio"), project_dir),
-      files=[os.path.relpath(jar, project_dir) for jar in ex_jars],
-      sources=[
-          os.path.relpath(os.path.join(jdk, "src.zip"), project_dir),
-          os.path.relpath(
-              os.path.join(sdk, "android-studio-sources.zip"), project_dir),
-      ],
-      additional="IDEA jdk",
-  )
-
-  with open(project_dir + "/.idea/jdk.table.lin.xml", "wb") as file:
-    file.write(ET.tostring(app, pretty_print=True))
+  # Add all jars, IJ will ignore the ones that don't exist
+  all_jars = sdk_jars[ALL] + sorted(set(sdk_jars[MAC] + sdk_jars[WIN] + sdk_jars[LINUX]))
+  paths = [rel_workspace + sdk + "/$SDK_PLATFORM$" + j for j in all_jars]
+  gen_lib(project_dir, "studio-sdk", paths, [workspace + sdk + "/android-studio-sources.zip"])
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
-  for plugin, jars in plugin_jars.items():
-    gen_lib(project_dir, "studio-plugin-" + plugin, jars, [sdk + "/android-studio-sources.zip"])
 
-  updater_jar = sdk + "/updater-full.jar"
-  if os.path.exists(updater_jar):
-    gen_lib(project_dir, "intellij-updater", [updater_jar], [sdk + "/android-studio-sources.zip"])
+  for plugin, jars in plugin_jars[ALL].items():
+    add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[LINUX][plugin]))
+    paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars + add]
+    gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
+
+  updater_jar = rel_workspace + sdk + "/updater-full.jar"
+  if os.path.exists(project_dir + "/" + updater_jar):
+    gen_lib(project_dir, "intellij-updater", [updater_jar], [workspace + sdk + "/android-studio-sources.zip"])
+
 
 def update_files(workspace, version):
-  sdk = workspace + "/prebuilts/studio/intellij-sdk/" + version
-  jdk = workspace + "/prebuilts/studio/jdk/linux"
+  sdk = "/prebuilts/studio/intellij-sdk/" + version
 
-  sdk_jars = list_sdk_jars(sdk + "/linux/android-studio")
-  plugin_jars = list_plugin_jars(sdk + "/linux/android-studio")
+  sdk_jars = list_sdk_jars(workspace + sdk)
+  plugin_jars = list_plugin_jars(workspace + sdk)
 
-  update_xml_file(workspace, jdk, sdk, sdk_jars, plugin_jars)
+  write_xml_files(workspace, sdk, sdk_jars, plugin_jars)
   write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars)
 
 

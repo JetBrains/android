@@ -1119,13 +1119,6 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
-java_proto_library(
-    name = "unb.android-core-proto",
-    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
-    protoc_version = "3.0.0",
-    visibility = ["//visibility:public"],
-)
-
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "intellij.android.core",
@@ -1500,4 +1493,11 @@ iml_module(
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
     ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.android-core-proto",
+    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
 )
