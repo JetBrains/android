@@ -52,4 +52,14 @@ public class SelectedVariants implements Serializable {
   public String getSelectedAbi(@NotNull String moduleId) {
     return mySelectedAbiByModule.get(moduleId);
   }
+
+  @NotNull
+  public Map<String, String> getSelectedVariantsByModule() {
+    return new HashMap<>(mySelectedVariantByModule);
+  }
+
+  @NotNull
+  public Map<String, String> getSelectedAbisByModule() {
+    return new HashMap<>(mySelectedAbiByModule);
+  }
 }

@@ -93,6 +93,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -277,7 +278,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   enum SyncNeeded {
     NOT_NEEDED(false),
     SINGLE_VARIANT_SYNC_NEEDED(false),
-    FULL_SYNC_NEEDED(true);
+    FULL_SYNC_NEEDED(true),
+    NATIVE_VARIANTS_SYNC_NEEDED(false);
 
     public final boolean isFullSync;
 
@@ -288,7 +290,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @VisibleForTesting
   @NotNull
-  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration) {
+  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration, Collection<String> abis) {
 
     // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
@@ -299,29 +301,44 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // If the project has native modules, and there're any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
-      if (ndkModel != null && ndkModel.getSyncedVariantAbis().size() < ndkModel.getAllVariantAbis().size()) {
-        return SyncNeeded.FULL_SYNC_NEEDED;
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (ndkModel != null && androidModel != null) {
+        String selectedVariantName = androidModel.getSelectedVariant().getName();
+        Set<String> availableAbis = ndkModel.getSyncedVariantAbis().stream()
+          .filter(it -> it.getVariant().equals(selectedVariantName))
+          .map(it -> it.getAbi())
+          .collect(Collectors.toSet());
+        if (!availableAbis.containsAll(abis)) {
+          return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED;
+        }
       }
     }
     return SyncNeeded.NOT_NEEDED;
   }
 
   @Nullable
-  private String runSync(@NotNull SyncNeeded syncNeeded) {
-    String result;
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
-    request.runInBackground = false;
-    request.forceFullVariantsSync = syncNeeded.isFullSync;
+  private String runSync(@NotNull SyncNeeded syncNeeded,
+                         @NotNull Set<@NotNull String> requestedAbis) {
+    if (syncNeeded == SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED) {
+      GradleSyncInvoker.getInstance().fetchAndMergeNativeVariants(myProject, requestedAbis);
+      return null;
+    }
+    else {
+      String result;
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
+      request.runInBackground = false;
+      request.forceFullVariantsSync = syncNeeded.isFullSync;
 
-    AtomicReference<String> errorMsgRef = new AtomicReference<>();
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        errorMsgRef.set(errorMessage);
-      }
-    });
-    result = errorMsgRef.get();
-    return result;
+      AtomicReference<String> errorMsgRef = new AtomicReference<>();
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
+        @Override
+        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+          errorMsgRef.set(errorMessage);
+        }
+      });
+      result = errorMsgRef.get();
+      return result;
+    }
   }
 
   /**
@@ -349,22 +366,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    // If the model needs a sync, we need to sync "synchronously" before running.
-    SyncNeeded syncNeeded = isSyncNeeded(context, configuration);
+    // Note: this run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
+    // the android run config context
+    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
+    List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
+    @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
 
-    if (syncNeeded != SyncNeeded.NOT_NEEDED) {
-      String errorMsg = runSync(syncNeeded);
-      if (errorMsg != null) {
-        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
-        // including the path of the APK.
-        getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
-        return false;
-      }
-    }
-
-    if (myProject.isDisposed()) {
-      return false;
-    }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration instanceof RunProfileWithCompileBeforeLaunchOption &&
@@ -374,12 +381,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Compute modules to build
     Module[] modules = getModules(context, configuration);
-
-    // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
-    // the android run config context
-    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
-    List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
-    @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
 
     List<String> cmdLineArgs;
     try {
@@ -408,6 +409,25 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
 
       getLog().info("Gradle invocation complete, success = " + success);
+
+      // If the model needs a sync, we need to sync "synchronously" before running.
+      Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
+      SyncNeeded syncNeeded = isSyncNeeded(context, configuration, targetAbis);
+
+      if (syncNeeded != SyncNeeded.NOT_NEEDED) {
+        String errorMsg = runSync(syncNeeded, targetAbis);
+        if (errorMsg != null) {
+          // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+          // including the path of the APK.
+          getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
+          return false;
+        }
+      }
+
+      if (myProject.isDisposed()) {
+        return false;
+      }
+
       return success;
     }
     catch (InvocationTargetException e) {
