@@ -36,6 +36,7 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 
 /**
  * Unit tests for [SingleDeviceAndroidProcessMonitor].
@@ -73,11 +74,13 @@ class SingleDeviceAndroidProcessMonitorTest {
       mockDevice,
       object : SingleDeviceAndroidProcessMonitorStateListener {
         override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          if (newState == PROCESS_IS_RUNNING) {
-            latchForStart.countDown()
-          }
-          if (newState == PROCESS_FINISHED) {
-            latchForEnd.countDown()
+          when (newState) {
+            PROCESS_IS_RUNNING -> latchForStart.countDown()
+            PROCESS_DETACHED -> latchForEnd.countDown()
+            PROCESS_FINISHED ->
+              fail("Process should not have finished, and should have detached instead if it terminates on the device end")
+            else -> {
+            }
           }
         }
       },
@@ -100,6 +103,7 @@ class SingleDeviceAndroidProcessMonitorTest {
 
     assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
     verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+    verify(mockDevice, never()).kill(TARGET_APP_NAME)
   }
 
   @Test
