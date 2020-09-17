@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -154,7 +155,7 @@ class ComponentTreeLoaderTest {
 
     val (tree, _, _) =
       ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
-    assertThat(tree.drawId).isEqualTo(1)
+    assertThat(tree!!.drawId).isEqualTo(1)
     assertThat(tree.x).isEqualTo(0)
     assertThat(tree.y).isEqualTo(0)
     assertThat(tree.width).isEqualTo(100)
@@ -211,7 +212,7 @@ class ComponentTreeLoaderTest {
 
     val (tree, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
 
-    assertThat(tree.imageType).isEqualTo(PNG_AS_REQUESTED)
+    assertThat(tree!!.imageType).isEqualTo(PNG_AS_REQUESTED)
     ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren[0] as DrawViewImage).image as BufferedImage, 0.0)
     assertThat(tree.flatten().flatMap { it.drawChildren.asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
@@ -268,4 +269,21 @@ class ComponentTreeLoaderTest {
     verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
   }
 
+  @Test
+  fun testEmptyTree() {
+    val eventTreeEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
+      tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
+        payloadType = PayloadType.NONE
+        generation = 17
+      }.build()
+    }.build()
+
+    val client: DefaultInspectorClient = mock()
+    val skiaParser: SkiaParserService = mock()
+    val (root, id, generation) =
+      ComponentTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    assertThat(root).isNull()
+    assertThat(id).isNull()
+    assertThat(generation).isEqualTo(17)
+  }
 }

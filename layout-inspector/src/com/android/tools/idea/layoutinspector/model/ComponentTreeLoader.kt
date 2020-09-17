@@ -54,7 +54,7 @@ object ComponentTreeLoader : TreeLoader {
     resourceLookup: ResourceLookup,
     client: InspectorClient,
     project: Project
-  ): Triple<ViewNode, Long, Int>? {
+  ): Triple<ViewNode?, Long?, Int>? {
     return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
   }
 
@@ -64,10 +64,13 @@ object ComponentTreeLoader : TreeLoader {
     client: InspectorClient,
     skiaParser: SkiaParserService,
     project: Project
-  ): Triple<ViewNode, Long, Int>? {
+  ): Triple<ViewNode?, Long?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    val root = ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
-    return Triple(root, root.drawId, event.tree.generation)
+    var root: ViewNode? = null
+    if (event.tree.hasRoot()) {
+      root = ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+    }
+    return Triple(root, root?.drawId, event.tree.generation)
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
