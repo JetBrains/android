@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler
 
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
+
 class AndroidGradleBuildTargetProviderJdk8Test: AndroidGradleBuildTargetProviderTest() {
   override fun setUp() {
     super.setUp()

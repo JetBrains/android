@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
+
 class GradleTaskFinderTestOnlyModuleJdk8Test: GradleTaskFinderTestOnlyModuleTest() {
   override fun setUp() {
     super.setUp()

@@ -23,7 +23,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -31,7 +30,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -42,9 +40,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,7 +53,6 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -481,36 +476,5 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @NotNull
   public String getBaseTestPath() {
     return myFixture.getTempDirPath();
-  }
-
-  protected static void overrideJdkTo8() throws IOException {
-    String jdk8Path = getEmbeddedJdk8Path();
-    @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
-    ideSdks.cleanJdkEnvVariableInitialization();
-    LOG.info("Using JDK from " + jdk8Path);
-    ideSdks.initializeJdkEnvVariable(jdk8Path);
-    assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
-  }
-
-  protected static void restoreJdk() {
-    IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
-  }
-
-  protected static String getEmbeddedJdk8Path() throws IOException {
-    String sourcesRoot = StudioPathManager.getSourcesRoot();
-    String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
-    String relativePath = toSystemDependentName(jdkDevPath);
-    File jdkRootPath = new File(toCanonicalPath(relativePath));
-    if (SystemInfo.isWindows) {
-      jdkRootPath = new File(jdkRootPath, "win");
-    }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
-    }
-    else if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, "mac");
-      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
-    }
-    return jdkRootPath.getCanonicalPath();
   }
 }

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.tools.idea.gradle.project.build.GradleBuildStateIntegrationTest
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 
 class BuildActionInvokerJdk8Test: BuildActionInvokerTest() {
   override fun setUp() {
