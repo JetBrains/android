@@ -29,7 +29,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
-import gnu.trove.TObjectLongHashMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
@@ -64,7 +64,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("updateLock")
   private var listeners: List<Listener> = emptyList()
   @GuardedBy("updateLock")
-  private val updateIntervalsByListener = TObjectLongHashMap<Listener>()
+  private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
   /** Long.MAX_VALUE means no updates. A negative value means that the update interval needs to be calculated. */
   @GuardedBy("updateLock")
   private var updateInterval: Long = Long.MAX_VALUE
@@ -94,13 +94,13 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   /**
-   * Removes a listener add by the [addListener] method.
+   * Removes a listener added by the [addListener] method.
    */
   @AnyThread
   fun removeListener(listener: Listener) {
     synchronized(updateLock) {
       listeners = listeners.minus(listener)
-      val interval = updateIntervalsByListener.remove(listener)
+      val interval = updateIntervalsByListener.removeLong(listener)
       if (interval == updateInterval) {
         updateInterval = -1
       }
@@ -133,8 +133,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun getUpdateInterval(): Long {
     if (updateInterval < 0) {
       var value = Long.MAX_VALUE
-      for (interval in updateIntervalsByListener.values) {
-        value = value.coerceAtMost(interval)
+      val iter = updateIntervalsByListener.values.iterator()
+      while (iter.hasNext()) {
+        value = value.coerceAtMost(iter.nextLong())
       }
       updateInterval = value
     }
