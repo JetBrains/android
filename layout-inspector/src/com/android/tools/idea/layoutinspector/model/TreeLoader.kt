@@ -25,11 +25,11 @@ import com.intellij.openapi.project.Project
 interface TreeLoader {
   /**
    * Load the component tree corresponding to the given [data] (implementation specific). Returns:
-   *  - the root node
+   *  - the root node, or null if all windows are gone
    *  - an implementation-specific id, which will be one of the values in the list returned by [getAllWindowIds]
    *  - a generation id, that can be used to ensure other responses (e.g. properties) are up to date
    */
-  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project): Triple<ViewNode, *, Int>?
+  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project): Triple<ViewNode?, *, Int>?
 
   fun getAllWindowIds(data: Any?, client: InspectorClient): List<*>?
 }

@@ -84,7 +84,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
     val (root, rootId, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
                                                                     currentClient, layoutInspectorModel.project) ?: return
-    if (rootId != null && allIds != null) {
+    if (allIds != null) {
       ApplicationManager.getApplication().invokeLater {
         synchronized(latestLoadTime) {
           if (latestLoadTime.get() > time) {

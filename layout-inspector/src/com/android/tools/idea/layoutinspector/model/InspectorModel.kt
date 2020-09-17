@@ -123,16 +123,16 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode?, id: Any, allIds: List<*>, generation: Int) {
+  fun update(newRoot: ViewNode?, id: Any?, allIds: List<*>, generation: Int) {
     updating = true
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
-    val oldRoot = roots[id]
+    val oldRoot = if (id != null) roots[id] else null
     // changes in DIM_BEHIND will cause a structural change
     structuralChange = structuralChange || (newRoot?.isDimBehind != oldRoot?.isDimBehind)
     if (newRoot == oldRoot && !structuralChange) {
       return
     }
-    if (newRoot?.drawId != oldRoot?.drawId || newRoot?.qualifiedName != oldRoot?.qualifiedName) {
+    if (id != null && (newRoot?.drawId != oldRoot?.drawId || newRoot?.qualifiedName != oldRoot?.qualifiedName)) {
       if (newRoot != null) {
         roots[id] = newRoot
       }
