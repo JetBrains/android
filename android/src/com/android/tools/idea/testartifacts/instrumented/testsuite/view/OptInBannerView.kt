@@ -16,6 +16,8 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.testframework.ui.BaseTestsOutputConsoleView
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ObservableConsoleView
@@ -40,7 +42,8 @@ import javax.swing.JPanel
 /**
  * A banner which promotes Android Test Matrix view.
  */
-class OptInBannerView(confirmationDurationSeconds: Long = 10L) {
+class OptInBannerView(logger: AndroidTestSuiteLogger,
+                      confirmationDurationSeconds: Long = 10L) {
   private val myBannerBackground = LightColors.YELLOW
   private val myConfig = AndroidTestConfiguration.getInstance()
 
@@ -52,6 +55,10 @@ class OptInBannerView(confirmationDurationSeconds: Long = 10L) {
     addHyperlinkListener {
       myConfig.ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX = true
       myConfig.SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER = false
+
+      logger.reportClickInteraction(
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_OPT_IN_BANNER,
+        ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.ACCEPT)
 
       // Update message and dismiss it after the delay.
       myLabel.text = "Test Matrix is enabled for your next test run. Revert to the older UI in Settings."
@@ -69,6 +76,10 @@ class OptInBannerView(confirmationDurationSeconds: Long = 10L) {
     addHyperlinkListener {
       rootPanel.isVisible = false
       myConfig.SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER = false
+
+      logger.reportClickInteraction(
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_OPT_IN_BANNER,
+        ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.DISMISS)
     }
   }
 
@@ -85,13 +96,20 @@ class OptInBannerView(confirmationDurationSeconds: Long = 10L) {
     add(myLabel, BorderLayout.WEST)
     add(actionLinkContainer, BorderLayout.EAST)
   }
+
+  init {
+    logger.addImpressionWhenDisplayed(rootPanel,
+                                      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_OPT_IN_BANNER)
+  }
 }
 
 /**
  * Creates a new [ConsoleView] with a [OptInBannerView] at top.
  * A [ConsoleView] method calls are delegated to a given [baseConsoleView].
  */
-fun createConsoleViewWithOptInBanner(baseConsoleView: BaseTestsOutputConsoleView): ConsoleView {
+@JvmOverloads
+fun createConsoleViewWithOptInBanner(baseConsoleView: BaseTestsOutputConsoleView,
+                                     logger: AndroidTestSuiteLogger = AndroidTestSuiteLogger()): ConsoleView {
   val config = AndroidTestConfiguration.getInstance()
   if(!config.SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER || config.ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX) {
     return baseConsoleView
@@ -104,13 +122,15 @@ fun createConsoleViewWithOptInBanner(baseConsoleView: BaseTestsOutputConsoleView
       Disposer.register(this, baseConsoleView)
     }
 
-    private val myOptInBannerView = OptInBannerView()
+    private val myOptInBannerView = OptInBannerView(logger)
     private val myRootPanel = JPanel(BorderLayout()).apply {
       add(myOptInBannerView.rootPanel, BorderLayout.NORTH)
       add(baseConsoleView.component, BorderLayout.CENTER)
     }
 
     override fun getComponent(): JComponent = myRootPanel
-    override fun dispose() {}
+    override fun dispose() {
+      logger.reportImpressions()
+    }
   }
 }
