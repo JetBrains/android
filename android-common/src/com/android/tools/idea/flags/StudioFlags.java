@@ -94,7 +94,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
-    false);
+    true);
   //endregion
 
   //region Profiler
