@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent.UiElement
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType
 import com.intellij.execution.Executor
 import com.intellij.execution.testframework.AbstractTestProxy
 import com.intellij.execution.testframework.TestConsoleProperties
@@ -42,6 +47,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.RETURNS_MOCKS
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.withSettings
 import org.mockito.MockitoAnnotations
 import javax.swing.JPanel
@@ -64,6 +70,7 @@ class OptInBannerViewTest {
 
   @Mock lateinit var mockStorage: Storage
   @Mock lateinit var mockExecutor: Executor
+  @Mock lateinit var mockLogger: AndroidTestSuiteLogger
 
   @Before
   fun setup() {
@@ -112,7 +119,7 @@ class OptInBannerViewTest {
 
   @Test
   fun clickOnEnableButtonInBanner() {
-    val banner = OptInBannerView(confirmationDurationSeconds = 0)
+    val banner = OptInBannerView(mockLogger, confirmationDurationSeconds = 0)
 
     banner.hyperLinkLabelToEnable.doClick()
 
@@ -129,11 +136,14 @@ class OptInBannerViewTest {
       }
       true
     }).isTrue()
+
+    verify(mockLogger).reportClickInteraction(eq(UiElement.TEST_SUITE_OPT_IN_BANNER),
+                                              eq(UserInteractionResultType.ACCEPT))
   }
 
   @Test
   fun clickOnDismissButtonInBanner() {
-    val banner = OptInBannerView()
+    val banner = OptInBannerView(mockLogger)
 
     banner.hyperLinkLabelToDismiss.doClick()
 
@@ -141,6 +151,20 @@ class OptInBannerViewTest {
     assertThat(config.ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX).isFalse()
     assertThat(config.SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER).isFalse()
     assertThat(banner.rootPanel.isVisible).isFalse()
+
+    verify(mockLogger).reportClickInteraction(eq(UiElement.TEST_SUITE_OPT_IN_BANNER),
+                                              eq(UserInteractionResultType.DISMISS))
+  }
+
+  @Test
+  fun impressionLogging() {
+    val consoleWithBanner = createConsoleViewWithOptInBanner(createBaseConsole(), mockLogger)
+
+    // Impressions are reported at the time of disposal.
+    Disposer.dispose(consoleWithBanner)
+
+    verify(mockLogger).addImpressionWhenDisplayed(any(), eq(UiElement.TEST_SUITE_OPT_IN_BANNER))
+    verify(mockLogger).reportImpressions()
   }
 
   private fun createBaseConsole(): BaseTestsOutputConsoleView {
