@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant
 
+import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.io.File
+import java.nio.file.Files
 
 class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @get:Rule
@@ -46,6 +48,20 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+    }
+  }
+
+  @Test
+  fun testSwitchVariants_symlinks() {
+    assumeNotWindows()
+
+    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val suffix = "_sm"
+    val symlink_path = File(path.path + suffix)
+    Files.createSymbolicLink(symlink_path.toPath(), path.toPath())
+    openPreparedProject("project$suffix") { project ->
       switchVariant(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app", "release")
     }

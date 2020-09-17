@@ -20,10 +20,12 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,13 +53,20 @@ public class SelectedVariantCollector {
     return selectedVariants;
   }
 
-  @VisibleForTesting
   @Nullable
-  SelectedVariant findSelectedVariant(@NotNull Module module) {
+  private SelectedVariant findSelectedVariant(@NotNull Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
-      if (rootProjectPath == null) return null;
+      String rootProjectPath;
+      try {
+        String path = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+        if (path == null) return null;
+        rootProjectPath = new File(path).getCanonicalPath();
+      }
+      catch (IOException e) {
+        Logger.getInstance(SelectedVariantCollector.class).error(e);
+        return null;
+      }
       File rootFolder = new File(rootProjectPath);
       String projectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
