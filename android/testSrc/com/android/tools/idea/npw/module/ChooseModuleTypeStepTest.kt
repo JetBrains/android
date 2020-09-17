@@ -71,7 +71,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.new.automotive"), message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
       message("android.wizard.module.new.things"), message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.new.java.or.kotlin.library"),
-      message("android.wizard.module.new.benchmark.module.app"))
+      message("android.wizard.module.new.benchmark.module.app"), message("android.wizard.module.new.native.library"))
       .filterNot {
         StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() &&
         (it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title"))
