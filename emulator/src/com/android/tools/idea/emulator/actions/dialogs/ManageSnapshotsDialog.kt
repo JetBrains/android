@@ -74,7 +74,6 @@ import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
-import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
@@ -129,7 +128,7 @@ class ManageSnapshotsDialog(
     isVisible = false
     name = "runningOperationLabel"
   }
-  private val snapshotImagePanel = ImagePanel()
+  private val snapshotImagePanel = ImagePanel(true)
   private val snapshotInfoPanel = htmlComponent(lineWrap = true)
   private val selectionStateLabel = Label("No snapshots selected").apply { name = "selectionStateLabel" }
   private val coldBootCheckBox = JBCheckBox("Start without using a snapshot (cold boot)").apply {
@@ -229,7 +228,14 @@ class ManageSnapshotsDialog(
   }
 
   private fun updateSnapshotDetails(snapshot: SnapshotInfo) {
-    snapshotImagePanel.image = snapshotIoLock.read { Toolkit.getDefaultToolkit().getImage(snapshot.screenshotFile.toString()) }
+    snapshotImagePanel.image = snapshotIoLock.read {
+      try {
+        ImageIO.read(snapshot.screenshotFile.toFile())
+      }
+      catch (_: IOException) {
+        null
+      }
+    }
     val htmlEscaper = HtmlEscapers.htmlEscaper()
     val name = htmlEscaper.escape(snapshot.displayName)
     val size = getHumanizedSize(snapshot.sizeOnDisk)
