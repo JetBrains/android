@@ -47,7 +47,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
     val integrator = AccessibilityLintIntegrator(issueModel)
     assertTrue(integrator.issues.isEmpty())
     for (i in 0 until numberOfIssues) {
-      val issue = ScannerTestHelper().createTestIssueBuilder().setMsg(i.toString()).build()
+      val issue = ScannerTestHelper.createTestIssueBuilder().setMsg(i.toString()).build()
       integrator.createIssue(issue, null)
     }
     assertEquals(numberOfIssues, integrator.issues.size)
@@ -83,7 +83,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
 
   @Test
   fun testCreateIssueOnInternalError() {
-    val internalIssue = ScannerTestHelper().createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
+    val internalIssue = ScannerTestHelper.createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
 
@@ -94,6 +94,6 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
   }
 
   private fun createTestIssue(): ValidatorData.Issue {
-    return ScannerTestHelper().createTestIssueBuilder().build()
+    return ScannerTestHelper.createTestIssueBuilder().build()
   }
 }

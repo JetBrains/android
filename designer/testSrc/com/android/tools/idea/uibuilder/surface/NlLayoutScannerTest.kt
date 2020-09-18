@@ -136,7 +136,8 @@ class NlLayoutScannerTest : LayoutTestCase() {
     scanner.buildViewToComponentMap(component)
 
     val result = helper.generateResult(component).build()
-    val issue = helper.createIssueBuilder().setSrcId(helper.lastUsedIssueId).build()
+    val issue = ScannerTestHelper.createTestIssueBuilder()
+      .setSrcId(helper.lastUsedIssueId).build()
 
     val found = scanner.findComponent(issue, result.srcMap)
 
@@ -151,7 +152,8 @@ class NlLayoutScannerTest : LayoutTestCase() {
     scanner.buildViewToComponentMap(component)
 
     val result = helper.generateResult(component).build()
-    val issue = helper.createIssueBuilder().setSrcId(helper.lastUsedIssueId).build()
+    val issue = ScannerTestHelper.createTestIssueBuilder()
+      .setSrcId(helper.lastUsedIssueId).build()
 
     // Simulate render out of sync. View to component map no longer useful.
     // When render is out of sync with error update, new view instance is created

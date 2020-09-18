@@ -247,10 +247,9 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
   }
 
   fun testToDetailedString() {
-    val helper = ScannerTestHelper()
     val result = ValidatorResult.Builder()
     for (i in 0 until 3) {
-      result.mIssues.add(helper
+      result.mIssues.add(ScannerTestHelper
           .createTestIssueBuilder()
           .setMsg("msg : $i")
           .build())
