@@ -290,7 +290,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         if (treePath != null) {
           ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
           myRemoveItem.setEnabled(canRemove(node.getUserObject()));
-          myPopup.show(e.getComponent(), e.getX(), e.getY());
+          JBPopupMenu.showByEvent(e, myPopup);
         }
       }
     };
