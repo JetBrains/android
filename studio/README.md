@@ -10,7 +10,9 @@
   * Mac: `darwin/android-studio/Contents`
   * Windows: `windows/android-studio`
 
-You are good to go.
+*** note
+Please note that in order for this Path Variable to take full effect, you need to close and reopen the project
+***
 
 # Updating the platform prebuilts
 
