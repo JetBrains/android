@@ -58,9 +58,10 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   fun setUp() {
     val project = projectRule.project
     model = model(project, DemoExample.setUpDemo(projectRule.fixture))
+    val fileManager = Mockito.mock(FileEditorManager::class.java)
+    Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     componentStack = ComponentStack(project)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
-    Mockito.`when`(FileEditorManager.getInstance(project).openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val propertiesComponent = PropertiesComponentMock()
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     model!!.resourceLookup.dpi = 560
