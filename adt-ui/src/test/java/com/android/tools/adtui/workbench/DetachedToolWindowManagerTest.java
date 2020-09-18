@@ -86,7 +86,6 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    registerProjectComponent(FileEditorManager.class, myEditorManager);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
     when(myWorkBench1.getName()).thenReturn(WORKBENCH_NAME1);
     when(myWorkBench2.getName()).thenReturn(WORKBENCH_NAME2);
@@ -111,6 +110,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    registerProjectComponent(FileEditorManager.class, myEditorManager);
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);
