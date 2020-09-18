@@ -96,12 +96,38 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, "");
   }
 
+  @Test
+  public void testPluginsBlockPsi() throws IOException {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_PSI);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertThat(buildModel.getPluginsPsiElement()).isNotNull();
+    String expectedText;
+    if (isGroovy()) {
+      expectedText = "{\n  id 'java'\n}";
+    }
+    else {
+      expectedText = "id(\"java\")"; // is a KtBlock, not just a method call
+    }
+    assertThat(buildModel.getPluginsPsiElement().getText()).isEqualTo(expectedText);
+  }
+
+  @Test
+  public void testApplyPluginNoPluginsBlockPsi() throws IOException {
+    writeToBuildFile(TestFile.APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertThat(buildModel.getPluginsPsiElement()).isNull();
+  }
+
   enum TestFile implements TestFileName {
     REMOVE_REPOSITORIES_SINGLE_BLOCK("removeRepositoriesSingleBlock"),
     REMOVE_REPOSITORIES_MULTIPLE_BLOCKS("removeRepositoriesMultipleBlocks"),
     REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES("removeRepositoriesWithBuildscriptRepositories"),
     REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED("removeRepositoriesWithBuildscriptRepositoriesExpected"),
     REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK("removeRepositoriesWithAllprojectsBlock"),
+    PLUGINS_BLOCK_PSI("pluginsBlockPsi"),
+    APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI("applyPluginNoPluginsBlockPsi")
     ;
 
     @NotNull private @SystemDependent String path;
