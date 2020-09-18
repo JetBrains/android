@@ -16,13 +16,9 @@
 package com.android.tools.idea.lint.common
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
-import com.android.tools.lint.detector.api.Category
-import com.android.tools.lint.detector.api.Implementation
-import com.android.tools.lint.detector.api.Issue
-import com.android.tools.lint.detector.api.Scope
-import com.android.tools.lint.detector.api.Severity
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
@@ -38,7 +34,6 @@ import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
@@ -61,11 +56,11 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
 import junit.framework.TestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.EnumSet
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -405,6 +400,11 @@ class LintIdeTest : UsefulTestCase() {
 
   class LintModuleFixtureBuilderImpl(fixtureBuilder: TestFixtureBuilder<out IdeaProjectTestFixture>)
     : JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>(fixtureBuilder), LintModuleFixtureBuilder<ModuleFixtureImpl> {
+
+    init {
+      JavaCodeInsightFixtureAdtTestCase.addJdk(this)
+    }
+
     private var myModuleRoot: File? = null
     override fun setModuleRoot(moduleRoot: String) {
       val file = File(moduleRoot)
@@ -437,7 +437,7 @@ class LintIdeTest : UsefulTestCase() {
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
       get() {
-        val adtPath = Paths.get(PathManager.getHomePath(), "../adt/idea", "android").normalize()
+        val adtPath = Paths.get(StudioPathManager.getSourcesRoot(), "tools/adt/idea", "android").normalize()
         return if (Files.exists(adtPath))
           adtPath.toString()
         else

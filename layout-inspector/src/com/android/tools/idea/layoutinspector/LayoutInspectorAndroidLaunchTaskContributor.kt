@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchContext
@@ -57,7 +58,8 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
   override fun run(launchContext: LaunchContext): LaunchResult? {
     val project = module.project
     val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return LaunchResult.success()
-    val preferredProcess = LayoutInspectorPreferredProcess(launchContext.device, module)
+    val packageName = AndroidModuleInfo.getInstance(module)?.`package`
+    val preferredProcess = LayoutInspectorPreferredProcess(launchContext.device, packageName)
     if (window.isVisible) {
       lookupLayoutInspector(window)?.allClients?.find { it.attachIfSupported(preferredProcess) != null }
     }

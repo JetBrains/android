@@ -63,19 +63,5 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   }
 
   val isFeatureEnabled: Boolean
-    get() {
-      if (!StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()) {
-        return false
-      }
-
-      // TODO(b/163043414): mDNS is not supported on Windows (and Linux) at this point in time
-      if (SystemInfo.isWindows || SystemInfo.isLinux) {
-        // If the flag is currently overridden (from user or test), don't check
-        if (!StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.isOverridden) {
-          return false
-        }
-      }
-
-      return true
-    }
+    get() = StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()
 }

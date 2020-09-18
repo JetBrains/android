@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ChooseModuleTypeWizard
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
-import com.android.tools.idea.npw.module.createWithDefaultGallery
+import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep
 import com.android.tools.idea.sdk.IdeSdks
@@ -130,7 +130,8 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
         addStep(ChooseAndroidProjectStep(NewProjectModel()))
       }
       else {
-        addStep(createWithDefaultGallery(project!!, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker()))
+        val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
+        addStep(ChooseModuleTypeStep(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker()))
       }
     }
 

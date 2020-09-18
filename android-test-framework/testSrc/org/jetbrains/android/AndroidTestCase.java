@@ -495,6 +495,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     public AndroidModuleFixtureBuilderImpl(TestFixtureBuilder<? extends IdeaProjectTestFixture> fixtureBuilder) {
       super(fixtureBuilder);
+      JavaCodeInsightFixtureAdtTestCase.addJdk(this);
     }
 
     @Override

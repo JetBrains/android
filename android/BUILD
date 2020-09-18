@@ -3,6 +3,14 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
+load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+
+java_proto_library(
+    name = "android-core-proto",
+    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    protoc_version = "3.0.0",
+    visibility = ["//visibility:public"],
+)
 
 # managed by go/iml_to_build
 iml_module(
@@ -180,6 +188,7 @@ iml_module(
         "//tools/idea/.idea/libraries:xml-apis",
         "//tools/idea/plugins/webp:intellij.webp[module]",
         "//tools/idea/.idea/libraries:ini4j",
+        "//tools/adt/idea/android:android-core-proto",
     ],
 )
 
@@ -258,10 +267,15 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
             # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
+            "timeout": "long",
+        },
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
@@ -318,10 +332,6 @@ iml_module(
         "rendering": {
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
-        },
-        "ArchiveToGradleModuleModelTest": {
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
         },
         "other": {
             "shard_count": 10,
@@ -542,6 +552,7 @@ filegroup(
 filegroup(
     name = "artifacts",
     srcs = [
+        ":android-core-proto",
         ":deploy-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
@@ -659,10 +670,10 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-core/1.0.0-alpha1:jar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.3:jar",
-        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/2.0.0-beta4:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/1.1.3:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/2.0.0-beta4:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout/2.0.1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/coordinatorlayout/coordinatorlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/coordinatorlayout/coordinatorlayout/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/core/core-ktx/1.0.1:aar",
@@ -815,9 +826,11 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout-solver/1.0.2:jar",
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout-solver/1.1.0:jar",  # required by com.android.support:wear:28.0.0
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout-solver/1.1.3:jar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout-solver/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout/1.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout/1.1.0:aar",  # required by com.android.support:wear:28.0.0
         "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout/1.1.3:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/constraint/constraint-layout/2.0.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/coordinatorlayout/28.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/cursoradapter/28.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/customtabs/26.1.0:aar",
@@ -909,31 +922,33 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/tools/sdklib/26.5.0:jar",
         "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
         "//prebuilts/tools/common/m2/repository/com/github/gundy/semver4j/0.16.4:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-base/19.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-base/19.4.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-identifier/17.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-lite/19.3.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads/19.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads-lite/19.4.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-ads/19.4.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-audience/16.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-base/17.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-base/17.2.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-base/17.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-base/17.4.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-basement/17.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-basement/17.2.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-basement/17.3.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-gass/19.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-basement/17.4.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-gass/19.4.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-maps/17.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-base/17.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-impl/17.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-sdk-api/17.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement/17.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-base/17.2.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-impl/17.2.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement-sdk-api/17.2.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-measurement/17.2.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-stats/17.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.2.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-wearable/17.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.1.0:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.2.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.2.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/support/wearable/2.7.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/1.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/wearable/wearable/2.7.0:jar",
@@ -1104,6 +1119,13 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
+java_proto_library(
+    name = "unb.android-core-proto",
+    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    protoc_version = "3.0.0",
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build [unb]
 iml_module(
     name = "intellij.android.core",
@@ -1132,6 +1154,7 @@ iml_module(
         "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/adt/idea/android/lib:unb.pepk",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
@@ -1211,6 +1234,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
     ],
 )
 
@@ -1294,10 +1318,15 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
             # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
+            "timeout": "long",
+        },
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
+            # TODO(b/167611852) remove after reducing its run time.
+            "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
@@ -1355,10 +1384,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
-        "ArchiveToGradleModuleModelTest": {
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
-        },
         "other": {
             "shard_count": 10,
             # TODO(b/167611852) remove after reducing its run time.
@@ -1407,6 +1432,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",

@@ -32,21 +32,24 @@ import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.util.ui.SwingHelper
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
+import org.apache.commons.lang.StringEscapeUtils
 import org.ini4j.Config
 import org.ini4j.Ini
+import java.awt.Desktop
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -57,6 +60,10 @@ import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
+import java.text.DateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -64,7 +71,7 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTextPane
+import javax.swing.event.HyperlinkEvent
 
 private const val INI_GLOBAL_SECTION_NAME = "global"
 private const val BUILD_PROP_FILE_NAME = "build.prop"
@@ -127,7 +134,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var packageName = ""
-  val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot").apply {
+  val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
@@ -135,12 +142,22 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         AnActionEvent.createFromDataContext("", null, dataContext))
     }
   }
-  private val myInfoText = JTextPane().apply { alignmentY = 0.0f }
+  val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
+    alignmentX = 0.0f
+    alignmentY = 0.0f
+    isEditable = false
+    addHyperlinkListener {
+      LOG.warn("opening ${it.url.path}")
+      if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+        Desktop.getDesktop().browse(it.url.toURI())
+      }
+    }
+  }
   private val myImageLabel = JLabel()
   private val myInnerPanel = panel {
     row {
       myImageLabel()
-      myInfoText(CCFlags.growY)
+      myInfoText(grow)
     }
   }
   private val myLayoutPanel = panel {
@@ -148,9 +165,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       myRetentionDebugButton()
     }
     row {
-      scrollPane(
-        myInnerPanel
-      )
+      scrollPane(myInnerPanel)
     }
   }
   private val myRetentionPanel = RetentionPanel().apply {
@@ -162,7 +177,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       }
     })
     layout = GridLayoutManager(1, 1)
-    add(myLayoutPanel, GridConstraints())
+    add(myLayoutPanel, GridConstraints().apply {
+      fill = GridConstraints.FILL_HORIZONTAL
+    })
   }
 
   @VisibleForTesting
@@ -175,6 +192,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     false
   }
 
+  private var testStartTime: Long? = null
   /**
    * Returns the root panel.
    */
@@ -195,6 +213,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     val targetHeight = targetWidth * imageHeight / imageWidth
     val newImage = image.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT)
     myImageLabel.icon = ImageIcon(newImage)
+    myInnerPanel.revalidate()
   }
 
   fun isSystemImageCompatible(snapshotHardwareIni: Ini,
@@ -306,23 +325,37 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   private fun updateInfoText() {
     var text = ""
-    val device = myRetentionPanel.androidDevice
+    text += "<html>"
+    text += "<b>Test details</b><br>"
+    if (testStartTime != null && testStartTime != 0L) {
+      text += "Test failed: ${testStartTime?.formatTime()?.escapeHtml()}<br>"
+    }
     val snapshotFile = myRetentionPanel.getSnapshotFile()
-    if (device != null) {
-      text += String.format(Locale.getDefault(), "AVD name: %s\n", device.deviceName)
-    }
     if (snapshotFile != null) {
-      text += String.format(
-        Locale.getDefault(),
-        "Snapshot file size: %d MB\nSnapshot file path: %s\n",
-        snapshotFile.length() / 1024 / 1024,
-        snapshotFile.absolutePath)
+      text += "<br><b>Test snapshot</b><br>"
+      text += "${snapshotFile.name.escapeHtml()}<br>"
+      text += "size: ${snapshotFile.length() / 1024 / 1024} MB<br>"
+      if (snapshotFile.parent != null) {
+        text += "<a href=\"file:///${snapshotFile.parent.escapeHtml()}\">View file</a><br>"
+      }
+      try {
+        val attribs = Files.readAttributes(snapshotFile.toPath(), BasicFileAttributes::class.java)
+        val formatted: String = attribs.creationTime().toMillis().formatTime()
+        text += "Created: ${formatted.escapeHtml()}<br>"
+      } catch (ex: Exception) {
+        // No-op
+      }
     }
+    text += "</html>"
     myInfoText.text = text
   }
 
   fun setAndroidDevice(device: AndroidDevice?) {
     myRetentionPanel.androidDevice = device
+  }
+
+  fun setStartTime(time: Long?) {
+    testStartTime = time
     updateInfoText()
   }
 
@@ -331,3 +364,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       RetentionView::class.java)
   }
 }
+
+private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(this))
+
+private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)

@@ -29,11 +29,14 @@ import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
+import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
@@ -123,7 +126,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val embeddedFlags = if (standalone) {
       ""
     } else {
-      """ "-no-window" "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
+      """ ${getEmulatorHiddenWindowFlag()} "-gpu" "auto-no-window" "-idle-grpc-timeout" "300""""
     }
 
     registration = """
@@ -200,10 +203,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     throw TimeoutException()
   }
 
+  /**
+   * Clears the gRPC call log.
+   */
+  @UiThread
+  fun clearGrpcCallLog() {
+    grpcCallLog.clear()
+  }
+
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
         .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
+        .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
         .build()
   }
 
@@ -258,6 +270,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     val snapshotMessage = Snapshot.newBuilder()
       .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
+      .setCreationTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build()
     val snapshotFile = snapshotFolder.resolve("snapshot.pb")
     Files.newOutputStream(snapshotFile, CREATE).use { stream ->
@@ -390,8 +403,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
         val image = drawDisplayImage(w, h)
         val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
-        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 4)
-        val alpha = 0xFF.toByte()
+        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
         var i = 0
         for (y in 0 until rotatedImage.height) {
           for (x in 0 until rotatedImage.width) {
@@ -399,13 +411,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             imageBytes[i++] = (rgb ushr 16).toByte()
             imageBytes[i++] = (rgb ushr 8).toByte()
             imageBytes[i++] = rgb.toByte()
-            imageBytes[i++] = alpha
           }
         }
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(imageBytes))
           .setFormat(ImageFormat.newBuilder()
-            .setFormat(ImgFormat.RGBA8888)
+            .setFormat(ImgFormat.RGB888)
             .setWidth(rotatedImage.width)
             .setHeight(rotatedImage.height)
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
@@ -441,6 +452,29 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     private fun sendDefaultSnapshotPackage(responseObserver: StreamObserver<SnapshotPackage>) {
       sendResponse(responseObserver, SnapshotPackage.getDefaultInstance())
+    }
+  }
+
+  private inner class UiControllerService(
+    private val executor: ExecutorService
+  ) : UiControllerGrpc.UiControllerImplBase() {
+
+    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun setUiTheme(themingStyle: ThemingStyle, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
     }
   }
 

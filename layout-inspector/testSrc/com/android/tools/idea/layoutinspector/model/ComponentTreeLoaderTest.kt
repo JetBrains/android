@@ -213,7 +213,7 @@ class ComponentTreeLoaderTest {
 
     assertThat(tree.imageType).isEqualTo(PNG_AS_REQUESTED)
     ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren[0] as DrawViewImage).image as BufferedImage, 0.0)
-    assertThat(tree.flatten().flatMap { it.drawChildren }.count { it is DrawViewImage }).isEqualTo(1)
+    assertThat(tree.flatten().flatMap { it.drawChildren.asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 

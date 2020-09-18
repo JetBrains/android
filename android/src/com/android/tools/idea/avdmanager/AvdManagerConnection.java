@@ -55,6 +55,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import com.android.tools.idea.emulator.EmulatorSettings;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -69,7 +70,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.compiler.chainsSearch.ChainRelevance;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -626,7 +626,8 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(project, info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
+      // Launch with hidden window.
+      commandLine.addParameters(getEmulatorHiddenWindowFlag(), "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300");
     }
   }
 
@@ -646,6 +647,11 @@ public class AvdManagerConnection {
   public static boolean isFoldable(@NotNull AvdInfo avd) {
     String displayRegionWidth = avd.getProperty("hw.displayRegion.0.1.width");
     return displayRegionWidth != null && !"0".equals(displayRegionWidth);
+  }
+
+  @NotNull
+  public static String getEmulatorHiddenWindowFlag() {
+    return StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() ? "-qt-hide-window" : "-no-window";
   }
 
   /**

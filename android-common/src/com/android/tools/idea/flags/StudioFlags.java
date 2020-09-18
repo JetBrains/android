@@ -89,6 +89,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_MODULE_WITH_SIDE_BAR = Flag.create(
     NPW, "new.module.with.side.bar", "New Module with sidebar",
     "Shows latest UX implementation of New Module with a left side bar",
+    true);
+
+  public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
+    NPW, "new.native.module", "New Android Native Module",
+    "Show template to create a new Android Native module in the new module wizard.",
     false);
   //endregion
 
@@ -226,11 +231,6 @@ public final class StudioFlags {
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
-
-  public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
-    NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
-    "Show the popup picker for resource picking or attribute customization in layout editor.",
-    true);
 
   public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
     NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
@@ -422,7 +422,7 @@ public final class StudioFlags {
                     "optimisticinstall.supportlevel",
                     "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
                     "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
-                    OptimisticInstallSupportLevel.DISABLED);
+                    OptimisticInstallSupportLevel.DEX);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
@@ -537,9 +537,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
     GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
     "Turns on the new \"Project Structure\" dialog.", true);
-  public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
-    GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
-    "Turns on Single-Variant Sync.", false);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
@@ -553,9 +550,6 @@ public final class StudioFlags {
     GRADLE_IDE, "build.analyzer.new.ui.visualization", "Enable new visualization for \"Build Analyzer\"",
     "Enable new visualization of tasks impact for \"Build Analyzer\" as well as filtering feature that depends on it",
     true);
-  public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
-    GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
-    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
@@ -630,6 +624,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "new.snapshot.ui", "Enable new snapshot UI",
     "Enables the new snapshot management UI",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
+    EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
+    "Enables the extended controls in the Embedded Emulator",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",

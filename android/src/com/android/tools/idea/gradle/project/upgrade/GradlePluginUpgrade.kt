@@ -34,6 +34,7 @@ import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -193,6 +194,8 @@ private fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor
   }
   val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
     if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
+      processor.trackProcessorUsage(FAILURE_PREDICTED)
+      LOG.warn("cannot upgrade: classpath processor is always a no-op")
       val dialog = AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor)
       dialog.show()
       return@invokeAndWaitIfNeeded false
@@ -245,7 +248,7 @@ fun shouldForcePluginUpgrade(
   project: Project?,
   current: GradleVersion?,
   recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  ) : Boolean {
+) : Boolean {
   // We don't care about forcing upgrades when running unit tests.
   if (ApplicationManager.getApplication().isUnitTestMode) return false
   // Or when the skip upgrades property is set.
@@ -365,4 +368,9 @@ private fun Project.findPluginInfo() : AndroidPluginInfo? {
     return null
   }
   return pluginInfo
+}
+
+internal fun releaseNotesUrl(v: GradleVersion): String = when {
+  v.isPreview -> "https://developer.android.com/studio/preview/features#android_gradle_plugin_${v.major}${v.minor}"
+  else -> "https://developer.android.com/studio/releases/gradle-plugin#${v.major}-${v.minor}-0"
 }

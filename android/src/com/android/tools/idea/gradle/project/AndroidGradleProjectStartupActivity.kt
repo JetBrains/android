@@ -59,6 +59,8 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.impl.libraries.LibraryTableImplUtil
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -215,6 +217,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       .orderEntries.filterIsInstance<LibraryOrderEntry>().asSequence()
       .mapNotNull { it.library }
       .filter { it.name?.startsWith("Gradle: ") ?: false }
+      // Module level libraries and libraries not listed in any library table usually represent special kinds of artifacts like local
+      // libraries in `lib` folders, generated code, etc. We are interested in libraries with JAR files in the shared Gradle cache.
+      //
+      .filter { it.table?.tableLevel == LibraryTablesRegistrar.PROJECT_LEVEL }
   }
     .distinct()
     .forEach { library ->

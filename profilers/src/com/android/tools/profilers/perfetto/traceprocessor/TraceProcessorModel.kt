@@ -41,6 +41,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
   private val processMap: Map<Int, ProcessModel>
   private val cpuCores: List<CpuCoreModel>
 
+  private val danglingThreads = builder.danglingThreads
+
   private val startCaptureTimestamp = builder.startCaptureTimestamp
   private val endCaptureTimestamp = builder.endCaptureTimestamp
 
@@ -62,7 +64,12 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     processMap = processMapBuilder.toSortedMap()
 
     // Build cpuCores
-    cpuCores = (0 until builder.cpuCoresCount).map { CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf())) }
+    cpuCores = (0 until builder.cpuCoresCount).map {
+      val cpuCountersMap = builder.coreToCpuCounters.getOrDefault(it, listOf())
+        .map { counterModel -> counterModel.name to counterModel }
+        .toMap()
+      CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf()), cpuCountersMap)
+    }
   }
 
   override fun getCaptureStartTimestampUs() = startCaptureTimestamp
@@ -70,6 +77,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   override fun getProcessById(id: Int) = processMap[id]
   override fun getProcesses() = processMap.values.toList()
+  override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
 
   override fun getCpuCores() = cpuCores
 
@@ -83,9 +91,11 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal var endCaptureTimestamp = Long.MIN_VALUE
     internal var cpuCoresCount = 0
     internal val processById = mutableMapOf<Int, ProcessModel>()
+    internal val danglingThreads = mutableMapOf<Int, ThreadModel>()
     internal val threadToEventsMap = mutableMapOf<Int, List<TraceEventModel>>()
     internal val threadToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
+    internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
 
     fun addProcessMetadata(processMetadataResult: TraceProcessor.ProcessMetadataResult) {
@@ -96,6 +106,10 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
           process.threadList.map { t -> t.id.toInt() to ThreadModel(t.id.toInt(), process.id.toInt(), t.name, listOf(), listOf()) }
             .toMap().toSortedMap(),
           mapOf())
+      }
+
+      for (thread in processMetadataResult.danglingThreadList) {
+        danglingThreads[thread.id.toInt()] = ThreadModel(thread.id.toInt(), 0, thread.name, emptyList(), emptyList())
       }
     }
 
@@ -220,7 +234,19 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
       }
     }
 
-    fun addCounters(counters: TraceProcessor.CountersResult) {
+    fun addCpuCounters(result: TraceProcessor.CpuCoreCountersResult) {
+      cpuCoresCount = maxOf(cpuCoresCount, result.numCores)
+
+      result.countersPerCoreList.forEach { countersPerCore ->
+        coreToCpuCounters[countersPerCore.cpu] = countersPerCore.counterList.map { counter ->
+          CounterModel(counter.name,
+                       counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }
+                         .toMap().toSortedMap())
+        }
+      }
+    }
+
+    fun addProcessCounters(counters: TraceProcessor.ProcessCountersResult) {
       processToCounters[counters.processId.toInt()] = counters.counterList.map { counter ->
         CounterModel(counter.name,
                      counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }

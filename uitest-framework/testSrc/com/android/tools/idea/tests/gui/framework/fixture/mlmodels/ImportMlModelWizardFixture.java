@@ -16,23 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture.mlmodels;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.adtui.ASGallery;
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureLibraryStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewModuleFromJarStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import javax.swing.JDialog;
-import javax.swing.JTextField;
-import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 

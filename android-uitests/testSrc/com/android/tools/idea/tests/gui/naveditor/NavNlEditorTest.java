@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
-import com.android.flags.junit.SetFlagRule;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -137,7 +136,6 @@ public class NavNlEditorTest {
 
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
@@ -178,7 +176,6 @@ public class NavNlEditorTest {
       guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
     }
     finally {
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
     }
   }

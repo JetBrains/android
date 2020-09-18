@@ -23,7 +23,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -48,16 +47,10 @@ import org.jetbrains.annotations.NotNull;
 public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   protected GradleSyncExecutor mySyncExecutor;
 
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncExecutor = new GradleSyncExecutor(getProject());
-  }
-
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
   }
 
   public void testFetchGradleModelsWithSimpleApplication() throws Exception {
@@ -133,7 +126,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     });
 
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
-    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
+    assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
   }
 
   @NotNull

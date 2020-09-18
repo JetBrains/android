@@ -980,7 +980,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
-    DurationDataRenderer<GcDurationData> durationDataRenderer = view.getGcDurationDataRenderer();
+    DurationDataRenderer<GcDurationData> durationDataRenderer = view.getTimelineComponent().getGcDurationDataRenderer();
     java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
     assertThat(renderedRegions.size()).isEqualTo(4);
     int iconWidth = StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth();
@@ -1062,7 +1062,8 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
-    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer = view.getAllocationSamplingRateRenderer();
+    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer =
+      view.getTimelineComponent().getAllocationSamplingRateRenderer();
     java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
     assertThat(renderedRegions.size()).isEqualTo(4);
     int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth();

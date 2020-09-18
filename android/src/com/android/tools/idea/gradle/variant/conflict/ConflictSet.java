@@ -126,8 +126,16 @@ public class ConflictSet {
       }
     }
 
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      for (IdeLibrary dependency : testArtifact.getLevel2Dependencies().getModuleDependencies()) {
+    if (variant.getAndroidTestArtifact() != null) {
+      for (IdeLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+        if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+          return dependency.getVariant();
+        }
+      }
+    }
+
+    if (variant.getUnitTestArtifact() != null) {
+      for (IdeLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }

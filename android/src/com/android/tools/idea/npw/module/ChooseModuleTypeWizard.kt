@@ -18,6 +18,8 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
+import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
@@ -25,15 +27,16 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
-import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.SeparatorWithText
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.IconUtil
@@ -43,6 +46,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.Optional
+import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
@@ -64,7 +68,8 @@ class ChooseModuleTypeWizard(
 
   val mainPanel = JPanel(BorderLayout())
 
-  private val moduleGalleryEntryList: List<ModuleGalleryEntry> = sortModuleEntries(moduleGalleryEntries)
+  private val importModuleGalleryEntry = ImportModuleGalleryEntry() // Added to the left list bottom, and as a marker for the separator
+  private val moduleGalleryEntryList: List<ModuleGalleryEntry> = sortModuleEntries(moduleGalleryEntries) + importModuleGalleryEntry
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
   private val modelWizardDialog: ModelWizardDialog by lazy {
@@ -90,7 +95,7 @@ class ChooseModuleTypeWizard(
   init {
     val leftList = JBList(moduleGalleryEntryList).apply {
       setCellRenderer { _, value, _, isSelected, cellHasFocus ->
-        JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
+        val cellLabel = JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
           border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
@@ -101,6 +106,21 @@ class ChooseModuleTypeWizard(
             // Only scale if needed, to keep icon bounded
             icon = IconUtil.scale(icon, this, size.height().toFloat() * 0.7f / icon.iconHeight)
           }
+        }
+
+        if (value == importModuleGalleryEntry) {
+          // Add a separator before "Import..." label
+          val separator = SeparatorWithText().apply {
+            border = JBUI.Borders.empty(TABLE_CELL_LEFT_PADDING)
+          }
+          JPanel(BorderLayout()).apply {
+            background = UIUtil.TRANSPARENT_COLOR
+            add(separator, BorderLayout.NORTH)
+            add(cellLabel, BorderLayout.CENTER)
+          }
+        }
+        else {
+          cellLabel
         }
       }
       selectedIndex = 0
@@ -137,6 +157,7 @@ class ChooseModuleTypeWizard(
     val titleLabel = JBLabel("Templates").apply {
       isOpaque = true
       background = UIUtil.getListBackground()
+      foreground = UIUtil.getListSelectionBackground(false)
       preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
       border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
     }
@@ -182,6 +203,13 @@ class ChooseModuleTypeWizard(
   }
 }
 
+private class ImportModuleGalleryEntry : ModuleGalleryEntry {
+  override val icon: Icon = AllIcons.ToolbarDecorator.Import
+  override val name: String = "Import..."
+  override val description: String = message("android.wizard.module.import.gradle.description")
+  override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+    SourceToGradleModuleStep(SourceToGradleModuleModel(project, projectSyncInvoker))
+}
 
 @VisibleForTesting
 fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<ModuleGalleryEntry> {
@@ -197,7 +225,6 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
     message("android.wizard.module.new.things"),
     message("android.wizard.module.import.gradle.title"),
     message("android.wizard.module.import.eclipse.title"),
-    message("android.wizard.module.import.archive.title"),
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.benchmark.module.app"))
@@ -205,11 +232,6 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
   return moduleTypeProviders.partition { it.name in orderedNames }.run {
     first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name }
   }
-}
-
-fun createWithDefaultGallery(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): ModelWizardStep<out WizardModel>  {
-  val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
-  return DeprecatedChooseModuleTypeStep(project, moduleParent, moduleDescriptions, projectSyncInvoker)
 }
 
 fun showDefaultWizard(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) {

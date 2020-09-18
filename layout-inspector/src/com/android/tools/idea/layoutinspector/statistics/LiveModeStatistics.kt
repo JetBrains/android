@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.statistics
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorLiveMode
 
 /**
@@ -36,7 +37,9 @@ class LiveModeStatistics {
    */
   private var clicksWithoutLiveUpdates = 0
 
-  private var currentModeIsLive = false
+  @VisibleForTesting
+  var currentModeIsLive = false
+    private set
 
   /**
    * Start a new session by resetting all counters.

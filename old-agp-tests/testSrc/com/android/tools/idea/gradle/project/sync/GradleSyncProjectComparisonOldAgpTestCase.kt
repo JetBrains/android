@@ -38,12 +38,7 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
 bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests \
 --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
  */
-abstract class GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync: Boolean = false
-) : GradleSyncProjectComparisonTest(singleVariantSync) {
-  class FullVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase()
-
-  class SingleVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync = true)
-
+class GradleSyncProjectComparisonOldAgpTest: GradleSyncProjectComparisonTest() {
   fun testSimpleApplicationWithAgp3_3_2() {
     val text = importSyncAndDumpProject(
       projectDir = TestProjectPaths.SIMPLE_APPLICATION,

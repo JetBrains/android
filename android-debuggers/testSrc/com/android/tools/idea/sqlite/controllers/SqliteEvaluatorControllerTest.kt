@@ -452,7 +452,10 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     sqliteEvaluatorView.listeners.first().evaluateCurrentStatement()
 
     // Assert
-    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT)
+    verify(mockTrackerService).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+    )
   }
 
   fun testNotifyDataMightBeStaleUpdatesTable() {

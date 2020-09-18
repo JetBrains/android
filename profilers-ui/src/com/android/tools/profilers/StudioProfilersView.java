@@ -298,10 +298,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myBack = new CommonButton(AllIcons.Actions.Back);
-    myBack.addActionListener(action -> {
+    myBack.addActionListener(action -> confirmExit("Go back?", () -> {
       myProfiler.setStage(myProfiler.getStage().getParentStage());
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
-    });
+    }));
     myCommonToolbar.add(myBack);
     myCommonToolbar.add(new FlatSeparator());
 
@@ -309,11 +309,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
                                                myProfiler::getDirectStages,
                                                myProfiler::getStageClass,
-                                               stage -> {
+                                               stage -> confirmExit("Exit?", () -> {
                                                  // Track first, so current stage is sent with the event
                                                  myProfiler.getIdeServices().getFeatureTracker().trackSelectMonitor();
                                                  myProfiler.setNewStage(stage);
-                                               },
+                                               }),
                                                () -> myProfiler.getStage().getHomeStageClass());
     stageCombo.setRenderer(new StageComboBoxRenderer());
     stages.bind();
@@ -441,6 +441,15 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageComponent.add(myStageCenterComponent, BorderLayout.CENTER);
 
     updateStreaming();
+  }
+
+  private void confirmExit(String title, Runnable exit) {
+    String msg = myProfiler.getStage().getConfirmExitMessage();
+    if (msg != null) {
+      getStudioProfilers().getIdeServices().openYesNoDialog(msg, title, exit, () -> {});
+    } else {
+      exit.run();
+    }
   }
 
   private void toggleTimelineButtons() {

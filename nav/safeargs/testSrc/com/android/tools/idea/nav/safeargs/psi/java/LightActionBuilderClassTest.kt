@@ -47,7 +47,7 @@ class LightActionBuilderClassTest {
               android:name="test.safeargs.Fragment1"
               android:label="Fragment1">
             <argument
-                android:name="arg"
+                android:name="arg_one"
                 app:argType="string" />
             <action
               android:id="@+id/action_fragment1_to_fragment2"
@@ -58,7 +58,7 @@ class LightActionBuilderClassTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2">
             <argument
-                android:name="arg"
+                android:name="arg_one"
                 app:argType="string" />
             <action
               android:id="@+id/action_fragment2_to_main"
@@ -89,7 +89,7 @@ class LightActionBuilderClassTest {
       Truth.assertThat(methods.size).isEqualTo(2)
 
       methods[0].checkSignaturesAndReturnType(
-        name = "setArg",
+        name = "setArgOne",
         returnType = "ActionFragment1ToFragment2",
         parameters = listOf(
           Parameter("arg", "String")
@@ -97,7 +97,7 @@ class LightActionBuilderClassTest {
       )
 
       methods[1].checkSignaturesAndReturnType(
-        name = "getArg",
+        name = "getArgOne",
         returnType = "String"
       )
     }
@@ -126,7 +126,7 @@ class LightActionBuilderClassTest {
                 app:argType="string" />
                 
               <argument
-                  android:name="overriddenArgWithDefaultValue"
+                  android:name="overridden_arg_with_default_value"
                   app:argType="integer"
                   android:defaultValue="1" />
             </action>
@@ -141,7 +141,7 @@ class LightActionBuilderClassTest {
                 app:argType="string" />
                 
             <argument
-                android:name="overriddenArgWithDefaultValue"
+                android:name="overridden_arg_with_default_value"
                 app:argType="integer" />
                 
             <action

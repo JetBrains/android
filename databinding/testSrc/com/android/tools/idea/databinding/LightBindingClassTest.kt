@@ -162,7 +162,6 @@ class LightBindingClassTest {
       """.trimIndent())) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
-
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = mode
   }
 

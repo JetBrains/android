@@ -38,7 +38,26 @@ class ConstraintGroup(properties: PropertiesTable<NelePropertyItem>): GroupSpec<
     SdkConstants.CONSTRAINT_REFERENCED_IDS,
     SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL,
     SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+    SdkConstants.ATTR_FLOW_WRAP_MODE,
+    SdkConstants.ATTR_FLOW_MAX_ELEMENTS_WRAP,
+    SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_BIAS,
+    SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_STYLE,
+    SdkConstants.ATTR_FLOW_HORIZONTAL_BIAS,
+    SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE,
+    SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN,
+    SdkConstants.ATTR_FLOW_HORIZONTAL_GAP,
+    SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_BIAS,
+    SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_STYLE,
+    SdkConstants.ATTR_FLOW_FIRST_VERTICAL_BIAS,
+    SdkConstants.ATTR_FLOW_FIRST_VERTICAL_STYLE,
+    SdkConstants.ATTR_FLOW_VERTICAL_BIAS,
+    SdkConstants.ATTR_FLOW_VERTICAL_STYLE,
+    SdkConstants.ATTR_FLOW_VERTICAL_ALIGN,
+    SdkConstants.ATTR_FLOW_VERTICAL_GAP,
+    SdkConstants.ATTR_FLOW_LAST_VERTICAL_BIAS,
+    SdkConstants.ATTR_FLOW_LAST_VERTICAL_STYLE
+  )
 
   override val name: String
     get() = CONSTRAINT_GROUP_NAME

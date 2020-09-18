@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -69,16 +70,16 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   /**
    * TODO(b/163360968): Remove 'myCanModify' once we properly support writing in Kotlin and Java files. Currently,
-   * {@link org.jetbrains.android.AndroidAnnotatorUtil#createSetAttributeTask(PsiElement)} only works on XML files.
+   * {@link org.jetbrains.android.AndroidAnnotatorUtil#createSetXmlAttributeTask(PsiElement)} only works on XML files.
    */
   private final boolean myCanModify;
 
   /**
-   * @param element {@link PsiElement} being annotated, usually an XML attribute or tag.
+   * @param element          {@link PsiElement} being annotated, usually an XML attribute or tag.
    * @param resourceResolver {@link ResourceResolver} instance used to resolve resources from the active theme.
-   * @param facet the {@link AndroidFacet} for the active module.
-   * @param file the bitmap file to render in the gutter, when null, a fallback icon will be rendered instead. See {@link #getIcon()}.
-   * @param configuration Android {@link Configuration} associated with the containing file of the annotated element.
+   * @param facet            the {@link AndroidFacet} for the active module.
+   * @param file             the bitmap file to render in the gutter, when null, a fallback icon will be rendered instead. See {@link #getIcon()}.
+   * @param configuration    Android {@link Configuration} associated with the containing file of the annotated element.
    */
   public GutterIconRenderer(@NotNull PsiElement element,
                             @NotNull ResourceResolver resourceResolver,
@@ -90,7 +91,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     myFile = file;
     myConfiguration = configuration;
     mySetAttributeTask = createSetXmlAttributeTask(element);
-    PsiFile containingFile = element.getContainingFile();
+    PsiFile containingFile = ApplicationManager.getApplication().runReadAction((Computable<PsiFile>)element::getContainingFile);
     myCanModify = containingFile != null && containingFile.getFileType() == XmlFileType.INSTANCE;
   }
 
@@ -167,7 +168,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       Project project = editor.getProject();
       if (project == null) return;
 
-      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
+      if (StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
         // Show the resource picker popup.
         ResourceChooserHelperKt.createAndShowResourcePickerPopup(
           ResourceType.DRAWABLE,

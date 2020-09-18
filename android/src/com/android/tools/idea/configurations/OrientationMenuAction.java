@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.configuration.DeviceConfigHelper;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.UiMode;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.resources.configuration.*;
-import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
@@ -96,16 +101,6 @@ public class OrientationMenuAction extends DropDownAction {
         uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
       }
       add(uiModeGroup);
-
-      addSeparator();
-      DefaultActionGroup nightModeGroup = DefaultActionGroup.createPopupGroup(() -> "_Night Mode");
-      NightMode currentNightMode = configuration.getNightMode();
-      for (NightMode nightMode : NightMode.values()) {
-        String title = nightMode.getShortDisplayValue();
-        boolean checked = nightMode == currentNightMode;
-        nightModeGroup.add(new SetNightModeAction(myRenderContext, title, nightMode, checked));
-      }
-      add(nightModeGroup);
 
       if (mySurface != null) {
         addSeparator();
@@ -223,24 +218,6 @@ public class OrientationMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setUiMode(myUiMode);
-    }
-  }
-
-  private static class SetNightModeAction extends ConfigurationAction {
-    @NotNull private final NightMode myNightMode;
-
-    private SetNightModeAction(@NotNull ConfigurationHolder renderContext,
-                               @NotNull String title,
-                               @NotNull NightMode nightMode,
-                               boolean checked) {
-      super(renderContext, title);
-      myNightMode = nightMode;
-      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, checked);
-    }
-
-    @Override
-    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-      configuration.setNightMode(myNightMode);
     }
   }
 

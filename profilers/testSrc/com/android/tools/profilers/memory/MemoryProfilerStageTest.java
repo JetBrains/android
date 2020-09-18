@@ -501,7 +501,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTransportService.addEventToStream(FAKE_DEVICE_ID, ProfilersTestData.generateMemoryUsageData(2, data)
       .setPid(FAKE_PROCESS.getPid()).build());
     myStage.getDetailedMemoryUsage().getMemoryRange().set(0, 1024 /* 1 KB */); // Sets the scale B/KB/MB/GB.
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
     assertThat(legends.getJavaLegend().getValue()).isEqualTo("10 KB");
@@ -535,7 +535,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       FAKE_DEVICE_ID, ProfilersTestData
         .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
         .build());
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getObjectsLegend().getName()).isEqualTo("Allocated");
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("100");
@@ -566,7 +566,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testLegendsOrder() {
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
+    MemoryStageLegends legends = myStage.getLegends();
     List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames).containsExactly("Total", "Java", "Native", "Graphics", "Stack", "Code", "Others", "Allocated")
       .inOrder();
@@ -574,7 +574,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testTooltipLegendsOrder() {
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames)
       .containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "Tracking", "GC Duration", "Total")

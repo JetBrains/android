@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -37,10 +38,10 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
   }
 
   fun testSortFullModuleEntries() {
-    assertThat(sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Wear OS Module", "Android TV Module",
+    assertThat(sort("Z", "Android Library", "Phone & Tablet Module", "Wear OS Module", "Android TV Module",
                     "Import Gradle Project", "Import Eclipse ADT Project", "Google Cloud Module", "Java or Kotlin Library", "Benchmark Module",
                     "A")).containsExactly("Phone & Tablet Module", "Android Library", "Wear OS Module", "Android TV Module",
-                                          "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package",
+                                          "Import Gradle Project", "Import Eclipse ADT Project",
                                           "Java or Kotlin Library", "Google Cloud Module", "Benchmark Module", "A", "Z").inOrder()
   }
 
@@ -55,7 +56,8 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val expectedEntries = listOf(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
-      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java or Kotlin Library", "Benchmark Module")
+      "Import Eclipse ADT Project", "Java or Kotlin Library", "Benchmark Module")
+      .filterNot { StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && (it == "Import Gradle Project" || it == "Import Eclipse ADT Project")}
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

@@ -3,6 +3,7 @@ package com.android.tools.idea.util;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.PathUtil;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -64,13 +65,13 @@ public class StudioPathManager {
     if (isRunningInBazelTest()) {
       // This can be a Bazel test running with a bundled or unbundled Studio SDK.
       // We can find it out quickly by probing the directory layout.
-      if (Paths.get(PathManager.getHomePath()).endsWith("tools/idea")) {
-        // Bazel test running on bundled build.
-        return getSourcesRootBundled();
-      }
-      else {
+      if (PathManager.getHomePath().contains("/prebuilts/studio/intellij-sdk/")) {
         // Bazel test running on unbundled build.
         return getSourcesRootUnbundled();
+      }
+      else {
+        // Bazel test running on bundled build or as aswb.
+        return getSourcesRootBundled();
       }
     }
 
@@ -104,6 +105,11 @@ public class StudioPathManager {
    * @return the source root directory, assuming that unbundled SDK is being used.
    */
   private static String getSourcesRootUnbundled() {
-    return Paths.get(PathManager.getHomePath(), ROOT_FROM_UNBUNDLED_SDK).normalize().toString();
+    String relative = ROOT_FROM_UNBUNDLED_SDK;
+    if (SystemInfo.isMac) {
+      // On Mac, idea home points to the "Contents" directory
+      relative += "../";
+    }
+    return Paths.get(PathManager.getHomePath(), relative).normalize().toString();
   }
 }

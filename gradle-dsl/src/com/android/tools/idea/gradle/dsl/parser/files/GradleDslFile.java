@@ -128,7 +128,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
       myGradleDslWriter = new GroovyDslWriter();
       setPsiElement(groovyPsiFile);
     }
-    else if (psiFile instanceof KtFile && StudioFlags.KOTLIN_DSL_PARSING.get()) {
+    else if (psiFile instanceof KtFile) {
       KtFile ktFile = (KtFile)psiFile;
       myGradleDslParser = new KotlinDslParser(ktFile, this);
       myGradleDslWriter = new KotlinDslWriter();

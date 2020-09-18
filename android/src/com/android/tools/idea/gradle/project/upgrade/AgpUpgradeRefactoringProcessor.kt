@@ -72,9 +72,12 @@ import com.intellij.lang.properties.psi.Property
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
+import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
@@ -97,6 +100,8 @@ import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
+import com.intellij.usages.ConfigurableUsageTarget
+import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -375,6 +380,13 @@ class AgpUpgradeRefactoringProcessor(
 
     val initialElements = viewDescriptor.elements
     val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements)
+      .map {
+        when (val action = backFromPreviewAction) {
+          null -> WrappedUsageTarget(it) as UsageTarget
+          else -> WrappedConfigurableUsageTarget(it, action) as UsageTarget
+        }
+      }
+      .toArray(UsageTarget.EMPTY_ARRAY)
     val convertUsagesRef = Ref<Array<Usage>>()
     if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
         {
@@ -447,7 +459,13 @@ class AgpUpgradeRefactoringProcessor(
     showUsageView(viewDescriptor, factory, usages)
   }
 
-  var additionalPreviewActions : List<Action> = listOf()
+  var backFromPreviewAction : Action? = null
+    set(value) {
+      backFromPreviewAction?.let { additionalPreviewActions.remove(it) }
+      field = value
+      value?.let { additionalPreviewActions.add(it) }
+    }
+  private var additionalPreviewActions : MutableList<Action> = mutableListOf()
 
   // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
   // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
@@ -1152,6 +1170,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     fun computeReplacementName(name: String, compileReplacement: String): String? {
       return when {
         name == "compile" -> compileReplacement
+        name.endsWith("Compile") && (name.startsWith("test") || name.startsWith("androidTest")) ->
+          name.removeSuffix("Compile").appendCapitalized("implementation")
         name.endsWith("Compile") -> name.removeSuffix("Compile").appendCapitalized(compileReplacement)
         name == "runtime" -> "runtimeOnly"
         name.endsWith("Runtime") -> "${name}Only"
@@ -1318,6 +1338,70 @@ class WrappedPsiElement(
 }
 
 /**
+ * The UsageView (preview) window includes a toolbar ribbon, which itself includes a settings button if:
+ * - the refactoring usageViewDescriptor contains at least one target, and;
+ * - the target is a ConfigurableUsageTarget.
+ *
+ * In order to work around the bug in the UsageView leading to inconsistent tree views when findUsages is re-executed, we always have
+ * a target, generating [PsiElement2UsageTargetAdapter]s from our [WrappedPsiElement]s.  However: the PsiElement2UsageTargetAdapter
+ * implements [ConfigurableUsageTarget], which leads to a settings icon even if our refactoring has no meaningful settings; and the
+ * implementation of showSettings() on [PsiElement2UsageTargetAdapter] in any case does not do what we want, in a non-overrideable way.
+ *
+ * Therefore, instead of using raw [PsiElement2UsageTargetAdapter]s, we wrap them in one of these delegating classes: one which implements
+ * [UsageTarget], for use when there is no suitable showSettings() action, and one which implements [ConfigurableUsageTarget], when there
+ * is.
+ */
+private class WrappedUsageTarget(
+  private val usageTarget: PsiElement2UsageTargetAdapter
+): PsiElementUsageTarget by usageTarget,
+   TypeSafeDataProvider by usageTarget,
+   PsiElementNavigationItem by usageTarget,
+   ItemPresentation by usageTarget,
+   UsageTarget by usageTarget {
+  // We need these overrides (here and in WrappedConfigurableUsageTarget) because of multiple implementations
+  override fun canNavigate() = usageTarget.canNavigate()
+  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+  override fun getName() = usageTarget.getName()
+  override fun findUsages() = usageTarget.findUsages()
+  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
+  // We need these because otherwise the default methods get called
+  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
+    usageTarget.highlightUsages(file, editor, clearHighlights)
+  override fun isReadOnly() = usageTarget.isReadOnly()
+  override fun getFiles() = usageTarget.getFiles()
+  override fun update() = usageTarget.update()
+}
+
+private class WrappedConfigurableUsageTarget(
+  private val usageTarget: PsiElement2UsageTargetAdapter,
+  private val showSettingsAction: Action
+): PsiElementUsageTarget by usageTarget,
+   TypeSafeDataProvider by usageTarget,
+   PsiElementNavigationItem by usageTarget,
+   ItemPresentation by usageTarget,
+   ConfigurableUsageTarget by usageTarget {
+  override fun canNavigate() = usageTarget.canNavigate()
+  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+  override fun getName() = usageTarget.getName()
+  override fun findUsages() = usageTarget.findUsages()
+  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
+
+  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
+    usageTarget.highlightUsages(file, editor, clearHighlights)
+  override fun isReadOnly() = usageTarget.isReadOnly()
+  override fun getFiles() = usageTarget.getFiles()
+  override fun update() = usageTarget.update()
+
+  override fun showSettings() = showSettingsAction.actionPerformed(null)
+}
+
+/**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
  *
  * This usage type provider will only provide a usage type if the element in question is a [WrappedPsiElement], which is not
@@ -1397,11 +1481,11 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
  * Currently, the difference between these messages is simply that the Processor reports on the state of all its
  * Components, while each Component reports only on itself.
  */
-private fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int) {
+internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int? = null) {
   val processorEvent = UpgradeAssistantProcessorEvent.newBuilder()
     .setUpgradeUuid(uuid)
     .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).build())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).apply { usages?.let { setUsages(it) } }.build())
   processorEvent.addComponentInfo(classpathRefactoringProcessor.getComponentInfo())
   componentRefactoringProcessors.forEach {
     processorEvent.addComponentInfo(it.getComponentInfo())

@@ -23,6 +23,7 @@ public class AndroidIcons {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     // Template thumbnails
     public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
+    public static final Icon AndroidNativeModule = load("/icons/wizards/cpp_configure.png"); // 256x256
     public static final Icon AutomotiveModule = load("/icons/wizards/automotive_module.png"); // 256x256
     public static final Icon BenchmarkModule = load("/icons/wizards/benchmark_module.png"); // 256x256
     public static final Icon DynamicFeatureModule = load("/icons/wizards/dynamic_feature_module.png"); // 256x256

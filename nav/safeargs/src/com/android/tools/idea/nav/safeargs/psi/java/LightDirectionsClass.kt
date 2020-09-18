@@ -122,7 +122,7 @@ class LightDirectionsClass(private val facet: AndroidFacet,
             action.arguments.forEach { arg ->
               if (arg.defaultValue == null) {
                 val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-                this.addParameter(arg.name, argType)
+                this.addParameter(arg.name.toCamelCase(), argType)
               }
             }
           }

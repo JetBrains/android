@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspect
 import com.android.tools.idea.lint.common.AndroidLintGradleIdeErrorInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidLintJavaPluginLanguageLevelInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
@@ -147,6 +148,26 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testDeprecatedConfigurationUse() throws Exception {
     AndroidLintGradleDeprecatedConfigurationInspection inspection = new AndroidLintGradleDeprecatedConfigurationInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaNoLanguageLevel() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelBlock() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelReceiver() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelToplevel() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 

@@ -118,9 +118,9 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureNewModuleFromJarStepFixture<NewModuleWizardFixture> clickNextToModuleFromJar() {
-    clickNextToStep(message("android.wizard.module.import.archive.title"), message("android.wizard.module.import.library.title"));
-    return new ConfigureNewModuleFromJarStepFixture<>(this, target().getRootPane());
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNewNativeLibraryModule() {
+    clickNextToStep(message("android.wizard.module.new.native.library"), message("android.wizard.module.new.native.library"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   private void clickNextToStep(String moduleName, String nextStepTitle) {

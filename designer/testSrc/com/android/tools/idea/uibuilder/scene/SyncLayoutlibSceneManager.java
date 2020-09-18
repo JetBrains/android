@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.Update;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -48,7 +49,10 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       model,
       model.getSurface(),
       EdtExecutorService.getInstance(),
-      queue -> queue.setPassThrough(true),
+      d -> new RenderingQueue() {
+        @Override
+        public void queue(@NotNull Update update) { update.run(); }
+      },
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
       LayoutScannerConfiguration.getDISABLED());

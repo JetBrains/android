@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -105,7 +106,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
     // Now that the Android plugin is kept in a separate place, we need to look in a relative position instead
     private val navEditorPluginHome: String
       get() {
-        val adtPath = PathManager.getHomePath() + "/../adt/idea/nav/editor"
+        val adtPath = TestUtils.getWorkspaceFile("tools/adt/idea/nav/editor").path
         return if (File(adtPath).exists()) {
           adtPath
         }

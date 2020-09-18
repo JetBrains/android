@@ -69,10 +69,10 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
               android:name="test.safeargs.Fragment"
               android:label="Fragment">
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="${typeMapping.before}" />
             <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="${typeMapping.before}[]" />
           </fragment>
         </navigation>
@@ -96,12 +96,12 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(4)
       methods[0].checkSignaturesAndReturnType(
-        name = "getArg1",
+        name = "getArgOne",
         returnType = typeMapping.after
       )
 
       methods[1].checkSignaturesAndReturnType(
-        name = "getArg2",
+        name = "getArgTwo",
         returnType = "${typeMapping.after}[]"
       )
 

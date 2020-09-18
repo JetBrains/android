@@ -26,6 +26,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
@@ -56,10 +57,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -532,6 +535,64 @@ public class StudioProfilersViewTest {
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     myView.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+  }
+
+  @Test
+  public void profilerStaysInStageWhenUserConfirmsStay() {
+    setFakeStage();
+    myProfilerServices.setShouldProceedYesNoDialog(false);
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isInstanceOf(FakeStage.class);
+  }
+
+  @Test
+  public void profilerExitsWhenUserConfirmsExit() {
+    setFakeStage();
+    myProfilerServices.setShouldProceedYesNoDialog(true);
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isNotInstanceOf(FakeStage.class);
+  }
+
+  private void setFakeStage() {
+    FakeStage stage = new FakeStage(myProfilers);
+    myView.bind(stage.getClass(), FakeStageView::new);
+    myProfilers.setStage(stage);
+    assertThat(myProfilers.getStage()).isInstanceOf(FakeStage.class);
+  }
+
+  private static class FakeStage extends Stage<Timeline> {
+    FakeStage(@NotNull StudioProfilers profilers) {
+      super(profilers);
+    }
+
+    @NotNull
+    @Override
+    public Timeline getTimeline() {
+      return getStudioProfilers().getTimeline();
+    }
+
+    @Override
+    public void enter() { }
+
+    @Override
+    public void exit() { }
+
+    @Nullable
+    @Override
+    public String getConfirmExitMessage() {
+      return "Really?";
+    }
+  }
+
+  private static class FakeStageView extends StageView<FakeStage> {
+    public FakeStageView(@NotNull StudioProfilersView view, @NotNull FakeStage stage) {
+      super(view, stage);
+    }
+
+    @Override
+    public JComponent getToolbar() {
+      return new JLabel("Hello world");
+    }
   }
 
   public void transitionStage(Stage stage) throws Exception {

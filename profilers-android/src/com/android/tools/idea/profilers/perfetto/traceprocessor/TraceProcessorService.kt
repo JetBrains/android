@@ -165,6 +165,10 @@ class TraceProcessorServiceImpl(
       .addQuery(QueryParameters.newBuilder()
                   .setTraceId(traceId)
                   .setSchedRequest(QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+      // Query all CPU data.
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
 
     // Now let's add the queries that we limit for the processes we're interested in:
     for (id in processIds) {
@@ -173,7 +177,7 @@ class TraceProcessorServiceImpl(
                               .setTraceEventsRequest(QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
       queryBuilder.addQuery(QueryParameters.newBuilder()
                               .setTraceId(traceId)
-                              .setCountersRequest(QueryParameters.CountersParameters.newBuilder().setProcessId(id.toLong())))
+                              .setProcessCountersRequest(QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())))
     }
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
@@ -204,7 +208,8 @@ class TraceProcessorServiceImpl(
     response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
     response.resultList.filter { it.hasTraceEventsResult() }.forEach { modelBuilder.addTraceEvents(it.traceEventsResult) }
     response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
-    response.resultList.filter { it.hasCountersResult() }.forEach { modelBuilder.addCounters(it.countersResult) }
+    response.resultList.filter { it.hasCpuCoreCountersResult() }.forEach { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }
+    response.resultList.filter { it.hasProcessCountersResult() }.forEach { modelBuilder.addProcessCounters(it.processCountersResult) }
 
     val model = modelBuilder.build()
 

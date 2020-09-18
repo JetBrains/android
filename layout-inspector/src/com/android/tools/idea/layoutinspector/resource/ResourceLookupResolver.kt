@@ -42,6 +42,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.model.Namespacing
@@ -154,10 +155,10 @@ class ResourceLookupResolver(
   /**
    * Find the attribute value from resource reference.
    */
-  fun findAttributeValue(property: InspectorPropertyItem, source: ResourceReference): String? {
+  fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, source: ResourceReference): String? {
     return when (source.resourceType) {
-      ResourceType.LAYOUT -> findAttributeValueFromViewTag(property, source)
-      ResourceType.STYLE -> findAttributeValueFromStyle(property, source)
+      ResourceType.LAYOUT -> findAttributeValueFromViewTag(property, view, source)
+      ResourceType.STYLE -> findAttributeValueFromStyle(property, view, source)
       else -> null
     }
   }
@@ -172,9 +173,9 @@ class ResourceLookupResolver(
    *  - a string containing the file name and a line number
    *  - a [Navigatable] that can be used to goto the source location
    */
-  fun findFileLocations(property: InspectorPropertyItem, source: ResourceReference?, max: Int): List<SourceLocation> {
+  fun findFileLocations(property: InspectorPropertyItem, view: ViewNode, source: ResourceReference?, max: Int): List<SourceLocation> {
     return when (source?.resourceType) {
-      ResourceType.LAYOUT -> findFileLocationsFromViewTag(property, source, max)
+      ResourceType.LAYOUT -> findFileLocationsFromViewTag(property, view, source, max)
       ResourceType.STYLE -> findFileLocationsFromStyle(property, source, max)
       else -> emptyList()
     }
@@ -191,9 +192,9 @@ class ResourceLookupResolver(
   /**
    * Resolve this drawable property as an icon.
    */
-  fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
+  fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
     val url = property.value?.let { ResourceUrl.parse(it) } ?: return null
-    val tag = findViewTagInFile(property.view, property.view.layout) ?: return null
+    val tag = findViewTagInFile(view, view.layout) ?: return null
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null
     return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), project, appFacet)
@@ -203,6 +204,9 @@ class ResourceLookupResolver(
    * Attempt to determine if [attributeName] refers to a dimension.
    */
   fun isDimension(view: ViewNode, attributeName: String): Boolean {
+    if (view is ComposeViewNode) {
+      return false
+    }
     val isLayoutAttribute = attributeName.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val qualifiedTagName = (if (isLayoutAttribute) view.parent?.qualifiedName else view.qualifiedName) ?: return false
     var psiClass: PsiClass? = JavaPsiFacade.getInstance(project).findClass(qualifiedTagName, GlobalSearchScope.allScope(project))
@@ -237,8 +241,13 @@ class ResourceLookupResolver(
     return ResourceNamespace.fromNamespaceUri(namespaceUri)
   }
 
-  private fun findFileLocationsFromViewTag(property: InspectorPropertyItem, layout: ResourceReference, max: Int): List<SourceLocation> {
-    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return findApproximateLocation(layout)
+  private fun findFileLocationsFromViewTag(
+    property: InspectorPropertyItem,
+    view: ViewNode,
+    layout: ResourceReference,
+    max: Int
+  ): List<SourceLocation> {
+    val xmlAttributeValue = findLayoutAttribute(property, view, layout)?.valueElement ?: return findApproximateLocation(layout)
     val location = createFileLocation(xmlAttributeValue) ?: return findApproximateLocation(layout)
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue)
     if (max <= 1 || resValue == null) {
@@ -280,17 +289,17 @@ class ResourceLookupResolver(
     return result
   }
 
-  private fun findAttributeValueFromViewTag(property: InspectorPropertyItem, layout: ResourceReference): String? {
-    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return null
+  private fun findAttributeValueFromViewTag(property: InspectorPropertyItem, view: ViewNode, layout: ResourceReference): String? {
+    val xmlAttributeValue = findLayoutAttribute(property, view, layout)?.valueElement ?: return null
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue) ?: return xmlAttributeValue.value
-    return resolveValue(property, resValue) ?: xmlAttributeValue.value
+    return resolveValue(property, view, resValue) ?: xmlAttributeValue.value
   }
 
-  private fun findAttributeValueFromStyle(property: InspectorPropertyItem, style: ResourceReference): String? {
+  private fun findAttributeValueFromStyle(property: InspectorPropertyItem, view: ViewNode, style: ResourceReference): String? {
     val reference = mapReference(style) ?: return null
     val styleValue = resolver.getStyle(reference) ?: return null
     val styleItem = styleValue.getItem(attr(property))?.let { StyleItemResourceValueWithStyleReference(styleValue, it) } ?: return null
-    return resolveValue(property, styleItem)
+    return resolveValue(property, view, styleItem)
   }
 
   /**
@@ -302,11 +311,11 @@ class ResourceLookupResolver(
    * Other types are resolved using [dereference] rather than [ResourceResolver.resolveResValue]
    * since the former also handles state lists.
    */
-  private fun resolveValue(property: InspectorPropertyItem, resValue: ResourceValue): String? {
+  private fun resolveValue(property: InspectorPropertyItem, view: ViewNode, resValue: ResourceValue): String? {
     if (property.type == COLOR) {
       resolver.resolveColor(resValue, project)?.let { return colorToString(it) }
     }
-    return toString(property, generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last())
+    return toString(generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last(), view)
   }
 
   /**
@@ -314,13 +323,13 @@ class ResourceLookupResolver(
    *
    * If the value is a file return the reference value instead of the filename.
    */
-  private fun toString(property: InspectorPropertyItem, resValue: ResourceValue): String? {
+  private fun toString(resValue: ResourceValue, view: ViewNode): String? {
     val stringValue = resValue.value ?: return null
     // If this is not a file accept the value as is.
     toFileResourcePathString(stringValue) ?: return stringValue
 
     // Otherwise convert to a reference value instead (e.g. @drawable/my_drawable).
-    val tag = findViewTagInFile(property.view, property.view.layout) ?: return stringValue
+    val tag = findViewTagInFile(view, view.layout) ?: return stringValue
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = resValue.asReference()
     val url = reference.getRelativeResourceUrl(namespace, namespaceResolver)
@@ -482,8 +491,8 @@ class ResourceLookupResolver(
     return "${file.name}:$line"
   }
 
-  private fun findLayoutAttribute(property: InspectorPropertyItem, layout: ResourceReference): XmlAttribute? {
-    val tag = findViewTagInFile(property.view, layout)
+  private fun findLayoutAttribute(property: InspectorPropertyItem, view: ViewNode, layout: ResourceReference): XmlAttribute? {
+    val tag = findViewTagInFile(view, layout)
     return tag?.getAttribute(property.attrName, property.namespace)
   }
 
@@ -520,7 +529,7 @@ class ResourceLookupResolver(
   /**
    * A [PsiRecursiveElementVisitor] to find a view in an [XmlFile].
    */
-  private inner class ViewLocator(view: ViewNode) : PsiRecursiveElementVisitor() {
+  private class ViewLocator(view: ViewNode) : PsiRecursiveElementVisitor() {
     private val viewId = view.viewId
     private val parentId = view.parent?.viewId
     private var found: XmlTag? = null

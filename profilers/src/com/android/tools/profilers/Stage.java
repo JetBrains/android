@@ -120,6 +120,16 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   }
 
   /**
+   * @return a message string to prompt user if they want to exit the stage,
+   *         indicating any implication. Returns null if no such prompt is
+   *         necessary.
+   */
+  @Nullable
+  public String getConfirmExitMessage() {
+    return null;
+  }
+
+  /**
    * @return whether this stage provides any interaction with the timeline,
    *         which hints the user interface to show or hide timeline-related functionalities
    */

@@ -130,7 +130,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   )
 
   // Setup the dependencies of the test artifact.
-  selectedVariant.testArtifacts.forEach { testArtifact ->
+  listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
     setupAndroidDependenciesForArtifact(
       testArtifact,
       this,
@@ -316,14 +316,6 @@ private fun setupAndroidDependenciesForArtifact(
       sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
       javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
       sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
-    }
-
-    // It may be possible that we have local sources not obtained by Gradle. We look for those here.
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-sources.jar", true)?.also {
-      libraryData.addPath(SOURCE, it.absolutePath)
-    }
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-javadoc.jar", true)?.also {
-      libraryData.addPath(DOC, it.absolutePath)
     }
 
     // Add external annotations.

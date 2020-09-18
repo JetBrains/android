@@ -17,10 +17,32 @@ package com.android.tools.idea.gradle.project.sync
 
 import java.io.Serializable
 
-class SyncActionOptions(
-  val selectedVariants: SelectedVariants?,
+sealed class SyncActionOptions : Serializable
+
+/**
+ * A sync action fetching enough models to set up a project.
+ */
+sealed class SyncProjectActionOptions : SyncActionOptions(), Serializable {
+  abstract val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
+}
+
+class FullSyncActionOptions(
+  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
+) : SyncProjectActionOptions(), Serializable
+
+class SingleVariantSyncActionOptions(
+  val selectedVariants: SelectedVariants,
   val moduleIdWithVariantSwitched: String?,
-  val isSingleVariantSyncEnabled: Boolean,
-  val cachedLibraries: Collection<String> = emptySet(),
+  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
+) : SyncProjectActionOptions(), Serializable
+
+class NativeVariantsSyncActionOptions(
+  /** moduleId => variantName where moduleId is by [com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId] */
+  val moduleVariants: Map<String, String>,
+  val requestedAbis: Set<String>
+): SyncActionOptions(), Serializable
+
+class AdditionalClassifierArtifactsActionOptions(
+  val cachedLibraries: Collection<String>,
   val downloadAndroidxUISamplesSources: Boolean
-) : Serializable
+): Serializable

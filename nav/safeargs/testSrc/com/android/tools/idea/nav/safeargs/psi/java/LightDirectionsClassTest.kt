@@ -114,10 +114,10 @@ class LightDirectionsClassTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2" >
             <argument
-                android:name="arg1"
+                android:name="arg_one"
                 app:argType="string" />
             <argument
-                android:name="arg2"
+                android:name="arg_two"
                 app:argType="float" />
           </fragment>
 
@@ -158,8 +158,8 @@ class LightDirectionsClassTest {
         name = "actionFragment1ToFragment2",
         returnType = "ActionFragment1ToFragment2",
         parameters = listOf(
-          Parameter("arg1", "String"),
-          Parameter("arg2", PsiType.FLOAT.name)
+          Parameter("argOne", "String"),
+          Parameter("argTwo", PsiType.FLOAT.name)
         )
       )
     }

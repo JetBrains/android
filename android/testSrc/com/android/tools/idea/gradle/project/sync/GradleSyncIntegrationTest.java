@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -48,10 +49,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +60,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -106,6 +107,9 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
@@ -164,11 +168,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
@@ -350,7 +349,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
 
     String failure = requestSyncAndGetExpectedFailure();
-    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
+    assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {
@@ -378,58 +377,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    loadProject(DEPENDENT_MODULES);
-
+    prepareProjectForImport(DEPENDENT_MODULES, null, null, null);
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
     File appBuildFile = getBuildFilePath("app");
     appendToFile(appBuildFile, "\nandroid.buildTypes { qa { } }\n");
+    importProject();
+    prepareProjectForTest(getProject(), "app");
 
-    try {
-      requestSyncAndWait();
-    }
-    catch (AssertionError expected) {
-      // Sync issues are expected.
-    }
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicQa");
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
       .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
                    m.getMessage().contains(
-                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+                     "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
-  }
-
-  public void testSyncWithAARDependencyAddsSources() throws Exception {
-    Project project = getProject();
-
-    loadProject(SIMPLE_APPLICATION);
-
-    Module appModule = getModule("app");
-
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-      project, () -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-
-        buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
-
-        String newDependency = "com.foo.bar:bar:0.1@aar";
-        buildModel.dependencies().addArtifact(COMPILE, newDependency);
-        buildModel.applyChanges();
-      }));
-
-    requestSyncAndWait();
-
-    // Verify that the library has sources.
-    ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: com.foo.bar:bar:0.1@aar";
-    Library library = libraries.findMatchingLibrary(libraryNameRegex);
-
-    assertNotNull("Library com.foo.bar:bar:0.1 is missing", library);
-    VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).asList().hasSize(1);
   }
 
   // Verify that custom properties on local.properties are preserved after sync (b/70670394)
@@ -759,8 +724,7 @@ b/154962759 */
     assertFalse(rootModel.isKaptEnabled());
   }
 
-  // b/161618318
-  public void /*test*/ExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
     loadSimpleApplication();
     SyncViewManager viewManager = mock(SyncViewManager.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
@@ -769,10 +733,12 @@ b/154962759 */
     requestSyncAndGetExpectedFailure();
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(3)).onEvent(any(), eventCaptor.capture());
+    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to wait
+    verify(viewManager, after(1000).atLeast(0)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
+    // There should be at least two events
+    assertThat(events.size()).isAtLeast(2);
     // The first event should be a StartBuildEvent
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
     // And the last event should be a FinishBuildEvent. There may be other progress events in between.

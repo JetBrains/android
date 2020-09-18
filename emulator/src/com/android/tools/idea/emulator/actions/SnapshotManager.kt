@@ -45,13 +45,22 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
    */
   @Slow
   fun fetchSnapshotList(excludeQuickBoot: Boolean = false): List<SnapshotInfo> {
-    return Files.list(snapshotsFolder).use { stream ->
-      stream.asSequence()
-        .mapNotNull { folder ->
-          if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
-        }
-        .toList()
+    try {
+      return Files.list(snapshotsFolder).use { stream ->
+        stream.asSequence()
+          .mapNotNull { folder ->
+            if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
+          }
+          .toList()
+      }
     }
+    catch (_: NoSuchFileException) {
+      // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
+    }
+    catch (e: IOException) {
+      logger.warn("Error reading ${snapshotsFolder} - ${e.localizedMessage}")
+    }
+    return emptyList()
   }
 
   @Slow
@@ -66,7 +75,8 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
       }
       return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder))
     }
-    catch (ignore: NoSuchFileException) {
+    catch (_: NoSuchFileException) {
+      // The "snapshot.pb" file is missing. Skip the incomplete snapshot.
     }
     catch (e: IOException) {
       logger.warn("Error reading ${snapshotProtoFile} - ${e.localizedMessage}")
@@ -83,7 +93,7 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
   }
 
   /*
-   * Writes the given snapshot proto to the snapshot.pb file.
+   * Writes the given snapshot proto to the "snapshot.pb" file.
    */
   @Slow
   fun saveSnapshotProto(snapshotFolder: Path, snapshotProto: Snapshot) {
@@ -155,6 +165,12 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
  * Information about an Emulator snapshot.
  */
 class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot, val sizeOnDisk: Long) {
+
+  /**
+   * Creates a placeholder for a non-existent snapshot.
+   */
+  constructor(snapshotFolder: Path) : this(snapshotFolder, Snapshot.getDefaultInstance(), 0)
+
   /**
    * The ID of the snapshot.
    */

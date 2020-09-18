@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertThat;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums;
@@ -52,8 +51,7 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     assertThat(hyperlink.toHtml()).isEqualTo(EXPECTED_HTML);
   }
 
-  // b/161618318
-  public void /*test*/Execute() throws Exception {
+  public void testExecute() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
 
@@ -65,7 +63,6 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
 
     // Add distribution to Gradle wrapper.
     properties.setProperty(DISTRIBUTION_SHA_256_SUM, SHA256);
-    properties.setProperty(DISTRIBUTION_URL_PROPERTY, DISTRIBUTION);
     savePropertiesToFile(properties, propertiesFilePath, null);
 
     gradleWrapper = GradleWrapper.find(project);
@@ -73,8 +70,7 @@ public class ConfirmSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTe
     properties = gradleWrapper.getProperties();
     assertNotNull(properties);
 
-    // Verify that distribution is added to Gradle wrapper.
-    assertThat(properties.getProperty(DISTRIBUTION_URL_PROPERTY, null)).isEqualTo(DISTRIBUTION);
+    // Verify that checksum is added to Gradle wrapper.
     assertThat(properties.getProperty(DISTRIBUTION_SHA_256_SUM, null)).isEqualTo(SHA256);
 
     // Verify hyperlink is created correctly

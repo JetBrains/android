@@ -82,7 +82,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     newProjectModuleModel = NewProjectModuleModel(model)
     val renderModel = newProjectModuleModel!!.extraRenderTemplateModel
     return listOf(
-      ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
+      if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+        ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
+      } else {
+        com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep(newProjectModuleModel!!, model)
+      },
       ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
@@ -122,10 +126,16 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
         })
         val activitySelectedListener = ListSelectionListener {
           myGallery.selectedElement?.let { renderer ->
-            myTemplateName.text = renderer.label
-            myTemplateDesc.text = "<html>" + renderer.description + "</html>"
-            myDocumentationLink.isVisible = renderer.documentationUrl != null
-            myDocumentationLink.setHyperlinkTarget(renderer.documentationUrl)
+            if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+              myTemplateName.isVisible = false
+              myTemplateDesc.parent.isVisible = false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
+            }
+            else {
+              myTemplateName.text = renderer.label
+              myTemplateDesc.text = "<html>" + renderer.description + "</html>"
+              myDocumentationLink.isVisible = renderer.documentationUrl != null
+              myDocumentationLink.setHyperlinkTarget(renderer.documentationUrl)
+            }
 
             canGoForward.set(true)
           } ?: canGoForward.set(false)
@@ -180,7 +190,10 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     }
 
     FormScalingUtil.scaleComponentTree(this.javaClass, loadingPanel)
-    loadingPanel.stopLoading()
+    loadingPanel.apply {
+      revalidate() // We may have called add(component) after being displayed
+      stopLoading()
+    }
   }
 
   override fun onProceeding() {

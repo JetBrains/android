@@ -224,7 +224,7 @@ class InspectorModelTest {
   private fun assertSingleRoot(model: InspectorModel) {
     assertEquals(
       model.root.flatten()
-        .flatMap { it.drawChildren.map { drawChild -> drawChild.owner }.plus(it) }
+        .flatMap { it.drawChildren.asSequence().map { drawChild -> drawChild.owner }.plus(it) }
         .map { it.parentSequence.last() }
         .distinct()
         .single(),

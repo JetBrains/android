@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
-import com.intellij.execution.testframework.sm.runner.history.actions.ImportTestsFromHistoryAction
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -41,7 +40,7 @@ class ImportTestGroup : com.intellij.execution.testframework.sm.runner.history.a
     return TestHistoryConfiguration.getInstance(project).files.asSequence()
       .map { fileName: String? -> File(testHistoryRoot, fileName) }
       .filter { file: File -> file.exists() }
-      .map { Pair(it.lastModified(), ImportTestsFromHistoryAction(null, project, it.name)) }
+      .map { Pair(it.lastModified(), ImportTestsFromHistoryAction(project, it)) }
   }
 
   private fun getUtpTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {

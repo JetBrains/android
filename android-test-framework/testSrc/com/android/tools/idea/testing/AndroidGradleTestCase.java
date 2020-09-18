@@ -142,7 +142,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUp() throws Exception {
     super.setUp();
 
-    StudioFlags.KOTLIN_DSL_PARSING.override(true);
     TestApplicationManager.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
@@ -195,7 +194,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @Override
   protected void tearDown() throws Exception {
-    StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
@@ -499,7 +497,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
   }
 
-  private static String getEmbeddedJdk8Path() throws IOException {
+  protected static String getEmbeddedJdk8Path() throws IOException {
     String sourcesRoot = StudioPathManager.getSourcesRoot();
     String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
     String relativePath = toSystemDependentName(jdkDevPath);

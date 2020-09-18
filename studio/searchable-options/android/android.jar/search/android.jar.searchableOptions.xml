@@ -412,6 +412,12 @@
     <option name="or" path="ActionManager" hit="Create or select an Emulator snapshot" />
     <option name="select" path="ActionManager" hit="Create or select an Emulator snapshot" />
     <option name="snapshot" path="ActionManager" hit="Create or select an Emulator snapshot" />
+    <option name="create" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="delete" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="load" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="or" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="rename" path="ActionManager" hit="Create, load, rename or delete snapshots" />
+    <option name="snapshots" path="ActionManager" hit="Create, load, rename or delete snapshots" />
     <option name="build" path="ActionManager" hit="Debug Without Build" />
     <option name="debug" path="ActionManager" hit="Debug Without Build" />
     <option name="without" path="ActionManager" hit="Debug Without Build" />
@@ -452,6 +458,14 @@
     <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
+    <option name="disable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="enable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="mode" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="night" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="of" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="or" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="preview" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="the" path="ActionManager" hit="Enable or disable the Night mode of preview" />
     <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
@@ -576,6 +590,8 @@
     <option name="s" path="ActionManager" hit="Make Module(s)" />
     <option name="make" path="ActionManager" hit="Make Project" />
     <option name="project" path="ActionManager" hit="Make Project" />
+    <option name="manage" path="ActionManager" hit="Manage Snapshots" />
+    <option name="snapshots" path="ActionManager" hit="Manage Snapshots" />
     <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
@@ -905,6 +921,10 @@
     <option name="take" path="ActionManager" hit="Take a screenshot" />
     <option name="history" path="ActionManager" hit="Test History" />
     <option name="test" path="ActionManager" hit="Test History" />
+    <option name="device" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="mode" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="night" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="toggle" path="ActionManager" hit="Toggle Device Night Mode" />
     <option name="device" path="ActionManager" hit="Toggle Device Orientation" />
     <option name="orientation" path="ActionManager" hit="Toggle Device Orientation" />
     <option name="toggle" path="ActionManager" hit="Toggle Device Orientation" />
@@ -1110,14 +1130,6 @@
     <option name="running" hit="Make project automatically (only works while not running / debugging)" />
     <option name="while" hit="Make project automatically (only works while not running / debugging)" />
     <option name="works" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="before" hit="Sync project with Gradle before building, if needed" />
-    <option name="building" hit="Sync project with Gradle before building, if needed" />
-    <option name="gradle" hit="Sync project with Gradle before building, if needed" />
-    <option name="if" hit="Sync project with Gradle before building, if needed" />
-    <option name="needed" hit="Sync project with Gradle before building, if needed" />
-    <option name="project" hit="Sync project with Gradle before building, if needed" />
-    <option name="sync" hit="Sync project with Gradle before building, if needed" />
-    <option name="with" hit="Sync project with Gradle before building, if needed" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
@@ -1291,11 +1303,6 @@
     <option name="layout" hit="Layout Editor" />
     <option name="inspector" hit="Layout Inspector" />
     <option name="layout" hit="Layout Inspector" />
-    <option name="active" hit="Only sync the active variant" />
-    <option name="only" hit="Only sync the active variant" />
-    <option name="sync" hit="Only sync the active variant" />
-    <option name="the" hit="Only sync the active variant" />
-    <option name="variant" hit="Only sync the active variant" />
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />

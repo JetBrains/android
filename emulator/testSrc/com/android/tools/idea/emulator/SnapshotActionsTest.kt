@@ -19,6 +19,7 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.actions.BootMode
 import com.android.tools.idea.emulator.actions.BootType
@@ -67,7 +68,7 @@ class SnapshotActionsTest {
 
   @Before
   fun setUp() {
-    FakeUi.setPortableUiFont()
+    setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
   }
 
@@ -86,9 +87,9 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val textField = checkNotNull(ui.findComponent { it is JTextField }) as JTextField
+      val textField = ui.getComponent<JTextField>()
       textField.text = "first snapshot"
-      val checkBox = checkNotNull(ui.findComponent { it is JCheckBox && it.text == "Boot from this snapshot" }) as JCheckBox
+      val checkBox = ui.getComponent<JCheckBox> { it.text == "Boot from this snapshot" }
       checkBox.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")
@@ -109,14 +110,14 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val snapshotRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Boot from snapshot" }) as JRadioButton
+      val snapshotRadio = ui.getComponent<JRadioButton> { it.text == "Boot from snapshot" }
       assertThat(snapshotRadio.isSelected).isTrue()
-      val comboBox = checkNotNull(ui.findComponent { it is JComboBox<*> }) as JComboBox<*>
+      val comboBox = ui.getComponent<JComboBox<*>>()
       waitForCondition(2, TimeUnit.SECONDS) {
         comboBox.itemCount != 0
       }
       assertThat((comboBox.selectedItem as SnapshotInfo).displayName).isEqualTo("first snapshot")
-      val quickBootRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Quick boot (default)" }) as JRadioButton
+      val quickBootRadio = ui.getComponent<JRadioButton> { it.text == "Quick boot (default)" }
       quickBootRadio.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")

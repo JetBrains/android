@@ -93,8 +93,8 @@ class ResourceLookup(private val project: Project) {
    *  - a string containing the file name and a line number
    *  - a [Navigatable] that can be used to goto the source location
    */
-  fun findFileLocations(property: InspectorPropertyItem, max: Int = MAX_RESOURCE_INDIRECTION): List<SourceLocation> =
-    resolver?.findFileLocations(property, property.source, max) ?: emptyList()
+  fun findFileLocations(property: InspectorPropertyItem, view: ViewNode, max: Int = MAX_RESOURCE_INDIRECTION): List<SourceLocation> =
+    resolver?.findFileLocations(property, view, property.source, max) ?: emptyList()
 
   /**
    * Find the location of the specified [view].
@@ -105,14 +105,14 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the attribute value from resource reference.
    */
-  fun findAttributeValue(property: InspectorPropertyItem, location: ResourceReference): String? =
-    resolver?.findAttributeValue(property, location)
+  fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, location: ResourceReference): String? =
+    resolver?.findAttributeValue(property, view, location)
 
   /**
    * Find the icon from this drawable property.
    */
-  fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
-    resolver?.resolveAsIcon(property)?.let { return it }
+  fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
+    resolver?.resolveAsIcon(property, view)?.let { return it }
     val value = property.value
     val color = value?.let { parseColor(value) } ?: return null
     // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
@@ -122,9 +122,9 @@ class ResourceLookup(private val project: Project) {
   /**
    * Convert a class name to a source location.
    */
-  fun resolveClassNameAsSourceLocation(className: String): SourceLocation {
+  fun resolveClassNameAsSourceLocation(className: String): SourceLocation? {
     val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
-    val navigatable = psiClass?.let { findNavigatable(psiClass) }
+    val navigatable = psiClass?.let { findNavigatable(psiClass) } ?: return null
     val source = ClassUtil.extractClassName(className)
     return SourceLocation(source, navigatable)
   }

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_VARIANTS;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
@@ -41,6 +41,7 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -75,9 +76,13 @@ import com.android.tools.idea.gradle.project.model.NdkModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
+import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions;
+import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions;
+import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
+import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
@@ -86,6 +91,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels;
+import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidNativeVariantsModels;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidSyncError;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
@@ -150,6 +156,7 @@ import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 
@@ -158,8 +165,11 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+  public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
+
+  public static final Key<ProjectResolutionMode> REQUESTED_PROJECT_RESOLUTION_MODE_KEY = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE");
   static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
@@ -191,8 +201,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
     if (androidModels != null) {
       String modelVersionString = androidModels.getAndroidProject().getModelVersion();
-      GradleVersion modelVersion = getModelVersion(modelVersionString);
-      validateModelVersion(modelVersion, modelVersionString);
+      validateModelVersion(modelVersionString);
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
@@ -239,8 +248,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
   }
 
-  private void validateModelVersion(@Nullable GradleVersion modelVersion, @NotNull String modelVersionString) {
-    if (!isSupportedVersion(modelVersion)) {
+  private void validateModelVersion(@NotNull String modelVersionString) {
+    GradleVersion modelVersion = !isNullOrEmpty(modelVersionString)
+                                 ? GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
+                                 : null;
+    boolean result = modelVersion != null && modelVersion.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
+    if (!result) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       // @formatter:off
       event.setCategory(GRADLE_SYNC)
@@ -278,9 +291,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    *   <li>JavaModuleModel</li>
    * </ul>
    *
-   * @param moduleNode     the module node to attach the models to
-   * @param gradleModule   the module in question
-   * @param androidModels  the android project models obtained from this module (null is none found)
+   * @param moduleNode    the module node to attach the models to
+   * @param gradleModule  the module in question
+   * @param androidModels the android project models obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
                                                @NotNull IdeaModule gradleModule,
@@ -658,6 +671,17 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (syncError != null) {
       throw ideAndroidSyncErrorToException(syncError);
     }
+    // Special mode sync to fetch additional native variants.
+    for (IdeaModule gradleModule : gradleProject.getModules()) {
+      IdeAndroidNativeVariantsModels nativeVariants = resolverCtx.getExtraProject(gradleModule, IdeAndroidNativeVariantsModels.class);
+      if (nativeVariants != null) {
+        projectDataNode.createChild(NATIVE_VARIANTS,
+                                    new IdeAndroidNativeVariantsModelsWrapper(
+                                      GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule),
+                                      nativeVariants
+                                    ));
+      }
+    }
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -806,38 +830,57 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @NotNull
   private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
-    // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
-    // to decide which models to request from Gradle.
-    Project project = myProjectFinder.findProject(resolverCtx);
-    SelectedVariants selectedVariants = null;
-    boolean isSingleVariantSync = false;
-    Collection<String> cachedLibraries = emptySet();
-    String moduleWithVariantSwitched = null;
+    GradleExecutionSettings gradleExecutionSettings = resolverCtx.getSettings();
+    ProjectResolutionMode projectResolutionMode = getRequestedSyncMode(gradleExecutionSettings);
+    SyncActionOptions syncOptions;
+    if (projectResolutionMode == ProjectResolutionMode.SyncProjectMode.INSTANCE) {
+      // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
+      // to decide which models to request from Gradle.
+      @Nullable Project project = myProjectFinder.findProject(resolverCtx);
 
-    if (project != null) {
-      isSingleVariantSync = shouldOnlySyncSingleVariant(project);
+      AdditionalClassifierArtifactsActionOptions additionalClassifierArtifactsAction =
+        new AdditionalClassifierArtifactsActionOptions(
+          (project != null) ? LibraryFilePaths.getInstance(project).retrieveCachedLibs() : emptySet(),
+          StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
+        );
+      boolean isSingleVariantSync = project != null && !shouldSyncAllVariants(project);
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
-        selectedVariants = variantCollector.collectSelectedVariants();
-        moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
+        SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
+        String moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
         project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
+        syncOptions = new SingleVariantSyncActionOptions(
+          selectedVariants,
+          moduleWithVariantSwitched,
+          additionalClassifierArtifactsAction
+        );
       }
-      cachedLibraries = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
+      else {
+        syncOptions = new FullSyncActionOptions(additionalClassifierArtifactsAction);
+      }
     }
-
-    SyncActionOptions options = new SyncActionOptions(
-      selectedVariants,
-      moduleWithVariantSwitched,
-      isSingleVariantSync,
-      cachedLibraries,
-      StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
-    );
-    return new AndroidExtraModelProvider(options);
+    else if (projectResolutionMode instanceof ProjectResolutionMode.FetchNativeVariantsMode) {
+      ProjectResolutionMode.FetchNativeVariantsMode fetchNativeVariantsMode =
+        (ProjectResolutionMode.FetchNativeVariantsMode)projectResolutionMode;
+      syncOptions = new NativeVariantsSyncActionOptions(fetchNativeVariantsMode.getModuleVariants(),
+                                                        fetchNativeVariantsMode.getRequestedAbis());
+    }
+    else {
+      throw new IllegalStateException("Unknown FetchModelsMode class: " + projectResolutionMode.getClass().getName());
+    }
+    return new AndroidExtraModelProvider(syncOptions);
   }
 
-  private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
-    Boolean shouldOnlySyncSingleVariant = project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY);
-    return shouldOnlySyncSingleVariant != null && shouldOnlySyncSingleVariant;
+  @NotNull
+  private static ProjectResolutionMode getRequestedSyncMode(GradleExecutionSettings gradleExecutionSettings) {
+    ProjectResolutionMode projectResolutionMode =
+      gradleExecutionSettings != null ? gradleExecutionSettings.getUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY) : null;
+    return projectResolutionMode != null ? projectResolutionMode : ProjectResolutionMode.SyncProjectMode.INSTANCE;
+  }
+
+  private static boolean shouldSyncAllVariants(@NotNull Project project) {
+    Boolean shouldSyncAllVariants = project.getUserData(GradleSyncExecutor.FULL_SYNC_KEY);
+    return shouldSyncAllVariants != null && shouldSyncAllVariants;
   }
 
   private void displayInternalWarningIfForcedUpgradesAreDisabled() {

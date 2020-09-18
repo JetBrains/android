@@ -28,7 +28,11 @@ import com.intellij.util.xmlb.XmlSerializerUtil
        storages = [Storage(value = "android-test-configuration.xml",
                            roamingType = RoamingType.DISABLED)])
 data class AndroidTestConfiguration(
-  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = !isStableBuild()  // b/162020400.
+  // Use the new Android Test Matrix for both single and multi-device test results
+  // TODO(b/162020400): Change default value to true once the new view is stabilized.
+  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = !isStableBuild(),
+  // Show the opt-in banner in the legacy results UI.
+  var SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER: Boolean = true
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
     @JvmStatic

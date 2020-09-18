@@ -890,7 +890,7 @@ android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/install.p
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/install_egg_info.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/install_lib.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/install_scripts.py
-android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/launcher manifest.xml
+android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/launcher_manifest.xml
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/py36compat.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/register.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/command/rotate.py
@@ -922,8 +922,8 @@ android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/py27compat.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/py31compat.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/py33compat.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/sandbox.py
-android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/script (dev).tmpl
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/script.tmpl
+android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/script_(dev).tmpl
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/site-patch.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/ssl_support.py
 android-studio/bin/lldb/lib/python3.8/site-packages/setuptools/unicode_utils.py
@@ -2177,6 +2177,9 @@ android-studio/plugins/android/lib/device-art-resources/wear_round/layout
 android-studio/plugins/android/lib/device-art-resources/wear_round/mask.png
 android-studio/plugins/android/lib/device-art-resources/wear_round/select.png
 android-studio/plugins/android/lib/device-art-resources/wear_round/shadow.png
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/device_bezel.png
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/hardware.ini
+android-studio/plugins/android/lib/device-art-resources/wear_round_chin_320_290/layout
 android-studio/plugins/android/lib/device-art-resources/wear_square/back.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/fore.png
 android-studio/plugins/android/lib/device-art-resources/wear_square/layout
@@ -2517,6 +2520,7 @@ android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libandroid_runtime
 android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libbinder.so
 android-studio/plugins/android/lib/layoutlib/data/linux/lib64/libhidlbase.so
 android-studio/plugins/android/lib/libjava_version.jar
+android-studio/plugins/android/lib/libunb.android-core-proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
 android-studio/plugins/android/lib/moshi-1.6.0.jar

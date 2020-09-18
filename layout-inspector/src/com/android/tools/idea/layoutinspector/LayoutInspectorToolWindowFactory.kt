@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -26,6 +25,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.ide.DataManager
@@ -41,7 +41,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
@@ -53,6 +52,13 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
  */
 fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
   toolWindow.contentManager?.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
+
+/**
+ * Create a [DataProvider] for the specified [layoutInspector].
+ */
+@VisibleForTesting
+fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider =
+  DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else null }
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -81,12 +87,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentPanel.add(workbench, BorderLayout.CENTER)
     val content = contentManager.factory.createContent(contentPanel, "", true)
     content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
-    DataManager.registerDataProvider(workbench, DataProvider { dataId ->
-      if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) {
-        return@DataProvider layoutInspector
-      }
-      null
-    })
+    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }

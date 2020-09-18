@@ -772,17 +772,15 @@ public class RenderLogger implements IRenderLogger {
 
   /**
    * Android framework log priority levels.
-   * They are defined in system/core/liblog/include/android/log.h in the Android Framework code.
+   * They are defined in system/core/base/include/android-base/logging.h in the Android Framework code.
    */
-  private static final int ANDROID_LOG_UNKNOWN = 0;
-  private static final int ANDROID_LOG_DEFAULT = 1;
-  private static final int ANDROID_LOG_VERBOSE = 2;
-  private static final int ANDROID_LOG_DEBUG = 3;
-  private static final int ANDROID_LOG_INFO = 4;
-  private static final int ANDROID_LOG_WARN = 5;
-  private static final int ANDROID_LOG_ERROR = 6;
-  private static final int ANDROID_LOG_FATAL = 7;
-  private static final int ANDROID_LOG_SILENT = 8;
+  private static final int ANDROID_LOG_VERBOSE = 0;
+  private static final int ANDROID_LOG_DEBUG = 1;
+  private static final int ANDROID_LOG_INFO = 2;
+  private static final int ANDROID_LOG_WARN = 3;
+  private static final int ANDROID_LOG_ERROR = 4;
+  private static final int ANDROID_LOG_FATAL_WITHOUT_ABORT = 5;
+  private static final int ANDROID_LOG_FATAL = 6;
 
   @Override
   public void logAndroidFramework(int priority, String tag, @NotNull String message) {
@@ -802,6 +800,7 @@ public class RenderLogger implements IRenderLogger {
           case ANDROID_LOG_ERROR:
             LOG.warn(fullMessage);
             break;
+          case ANDROID_LOG_FATAL_WITHOUT_ABORT:
           case ANDROID_LOG_FATAL:
             LOG.error(fullMessage);
             break;

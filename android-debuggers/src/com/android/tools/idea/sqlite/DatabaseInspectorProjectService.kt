@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.adb.PackageNameProvider
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -35,7 +36,9 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
+import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
@@ -54,6 +57,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
 /**
@@ -138,7 +142,8 @@ interface DatabaseInspectorProjectService {
   @UiThread
   suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor
   )
 
   /**
@@ -215,6 +220,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   override val projectScope = AndroidCoroutineScope(project, uiThread)
 
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
+  private var packageName: String? = null
+
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
     createController(model, databaseRepository, offlineDatabaseManager)
@@ -257,7 +266,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @UiThread
   override suspend fun startAppInspectionSession(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor
   ) = withContext(uiThread) {
     withContext(workerThread) { downloadOfflineDatabases?.cancelAndJoin() }
     // close all databases when a new session starts
@@ -266,6 +276,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     ideServices = appInspectionIdeServices
     controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
+
+    packageName = withContext(workerThread) {
+      PackageNameProvider.getPackageName(project, processDescriptor.serial, processDescriptor.processName).await()
+    }
   }
 
   @UiThread
@@ -284,19 +298,34 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     downloadOfflineDatabases = projectScope.launch {
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
+        val stopwatch = Stopwatch.createStarted()
+        var totalSizeDownloaded = 0L
         val databasesToDownload = openDatabases
           .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
           .filter { !it.isInMemoryDatabase() }
 
         for (liveSqliteDatabaseId in databasesToDownload) {
           try {
-            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(processDescriptor, liveSqliteDatabaseId)
+            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(
+              packageName ?: processDescriptor.processName,
+              processDescriptor,
+              liveSqliteDatabaseId
+            )
             openSqliteDatabase(databaseFileData).await()
+            totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { it.length }.sum()
           }
           catch (e: OfflineDatabaseException) {
+            databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
           }
         }
+        stopwatch.stop()
+        val offlineMetadata = AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
+          .newBuilder()
+          .setTotalDownloadSizeBytes(totalSizeDownloaded)
+          .setTotalDownloadTimeMs(stopwatch.elapsed(TimeUnit.MILLISECONDS).toInt())
+          .build()
+        databaseInspectorAnalyticsTracker.trackOfflineModeEntered(offlineMetadata)
       }
     }
   }

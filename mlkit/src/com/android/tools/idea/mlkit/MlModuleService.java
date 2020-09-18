@@ -69,14 +69,12 @@ public class MlModuleService {
       Set<MlModelMetadata> latestModelMetadataSet = new HashSet<>();
       GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
       FileBasedIndex index = FileBasedIndex.getInstance();
-      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+      for (String key : index.getAllKeys(MlModelFileIndex.INDEX_ID, myModule.getProject())) {
         index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
           latestModelMetadataSet.add(value);
           return true;
         }, searchScope);
-
-        return true;
-      }, searchScope, null);
+      }
 
       // Invalidates cached light classes that no longer have model file associated.
       List<MlModelMetadata> outdatedModelMetadataList = ContainerUtil

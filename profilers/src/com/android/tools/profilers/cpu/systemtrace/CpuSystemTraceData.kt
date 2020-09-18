@@ -59,6 +59,14 @@ interface CpuSystemTraceData {
   fun getMemoryCounters(): Map<String, List<SeriesData<Long>>>
 
   /**
+   * The CPU counters by CPU core.
+   *
+   * Each element of the list is a map of counter name to counter values for one CPU core.
+   * Currently supported counters are "cpufreq" and "cpuidle".
+   */
+  fun getCpuCounters(): List<Map<String, List<SeriesData<Long>>>>
+
+  /**
    * Returns true if the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
    * due to the capture buffer being a ring buffer.
    */

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -35,24 +36,25 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
-  override fun useSingleVariantSyncInfrastructure(): Boolean = true
-
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-      project.verifyModelsAttached()
-      var completed = false
-      project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
-        completed = true
-      })
-      assertThat(completed).isTrue()
+      verifySyncSkipped(project)
+    }
+  }
+
+  fun testReopenKaptProject() {
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    openPreparedProject("project") { }
+    openPreparedProject("project") { project ->
+      verifySyncSkipped(project)
     }
   }
 
@@ -84,13 +86,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-      project.verifyModelsAttached()
-      var completed = false
-      project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
-        completed = true
-      })
-      assertThat(completed).isTrue()
+      verifySyncSkipped(project)
     }
   }
 
@@ -114,6 +110,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36Project() {
+    addJdk8ToTable()
     prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     openPreparedProject("project") { project ->
       val androidTestRunConfiguration =
@@ -130,6 +127,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36ProjectWithoutModules() {
+    addJdk8ToTable()
     val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     runWriteAction {
       val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
@@ -147,6 +145,25 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
         "All Tests Sub 36" to "My36.app.sub36"
       ))
     }
+  }
+
+  private fun addJdk8ToTable() {
+    val jdkTable = ProjectJdkTable.getInstance();
+    val jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path())
+    assertThat(jdk).isNotNull()
+    runWriteAction {
+      jdkTable.addJdk(jdk!!)
+    }
+  }
+
+  private fun verifySyncSkipped(project: Project) {
+    assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
+    project.verifyModelsAttached()
+    var completed = false
+    project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
+      completed = true
+    })
+    assertThat(completed).isTrue()
   }
 }
 

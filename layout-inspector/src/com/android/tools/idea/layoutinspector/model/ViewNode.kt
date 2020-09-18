@@ -100,7 +100,7 @@ open class ViewNode(
   val isDimBehind: Boolean
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
-  fun flatten(): Collection<ViewNode> {
-    return children.flatMap { it.flatten() }.plus(this)
+  fun flatten(): Sequence<ViewNode> {
+    return children.asSequence().flatMap { it.flatten() }.plus(this)
   }
 }

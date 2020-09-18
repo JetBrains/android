@@ -354,7 +354,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.repositories.RepositoryUrlManager"/>
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.common.surface.DesignSurfaceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <applicationService serviceInterface="org.jetbrains.android.facet.AndroidFacetConfiguration$EditorTabProvider"
@@ -617,7 +616,6 @@
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
-    <projectService serviceImplementation="com.android.tools.idea.project.AndroidKtsSupportNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
@@ -984,7 +982,7 @@
     <listener class="com.android.tools.idea.startup.AdbFileProviderInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
 
-    <listener class="com.android.tools.idea.startup.ApkFacetProviderInitializer"
+    <listener class="com.android.tools.idea.startup.ApkFacetCheckerInitializer"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </applicationListeners>
 

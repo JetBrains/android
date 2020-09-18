@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
@@ -181,7 +182,7 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
 
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
 
-private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
+private fun getStudioSourcesLocation() = File(StudioPathManager.getSourcesRoot())
 
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 

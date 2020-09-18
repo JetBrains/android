@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
@@ -122,6 +123,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getCaptureEndTimestampUs() = 0L
     override fun getProcesses(): List<ProcessModel> = emptyList()
     override fun getProcessById(id: Int) = getProcesses().find { it.id == id }
+    override fun getDanglingThread(tid: Int): ThreadModel? = null
     override fun getCpuCores(): List<CpuCoreModel> = emptyList()
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.PERFETTO
     override fun isCapturePossibleCorrupted() = false

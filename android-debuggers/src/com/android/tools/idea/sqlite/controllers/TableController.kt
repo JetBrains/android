@@ -277,7 +277,13 @@ class TableController(
     }
 
     override fun cancelRunningStatementInvoked() {
+      val connectivityState = when (databaseId) {
+        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+      }
+
       databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
+        connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
       )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.

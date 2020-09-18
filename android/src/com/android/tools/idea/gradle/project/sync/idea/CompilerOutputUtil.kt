@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -34,9 +33,7 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
   data.isInheritProjectCompileOutputPath = false
 
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.absolutePath
-  val testCompilerOutput = selectedVariant.extraJavaArtifacts.firstOrNull { artifact ->
-    artifact.name == IdeAndroidProject.ARTIFACT_UNIT_TEST
-  }?.classesFolder?.absolutePath
+  val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.absolutePath
 
   // Do we actually need to set these? Since useExternalCompilerOutput is true.
   data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)

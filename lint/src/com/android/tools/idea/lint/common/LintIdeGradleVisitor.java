@@ -213,11 +213,56 @@ public class LintIdeGradleVisitor extends GradleVisitor {
             Map<String, String> namedArguments = Maps.newHashMap();
             List<String> unnamedArguments = Lists.newArrayList();
             extractMethodCallArguments(applicationStatement, unnamedArguments, namedArguments);
+            if (parentName == null && unnamedArguments.size() == 1 && namedArguments.isEmpty()) {
+              // This might be a top-level application statement for Dsl property assignment with embedded hierarchy
+              GrExpression invokedExpression = applicationStatement.getInvokedExpression();
+              if (invokedExpression instanceof GrReferenceExpression) {
+                GrReferenceExpression referenceExpression = (GrReferenceExpression) invokedExpression;
+                GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
+                if (qualifierExpression != null) {
+                  parentName = qualifierExpression.getText();
+                }
+                String name = referenceExpression.getReferenceName();
+                String value = unnamedArguments.get(0);
+                GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
+                for (GradleScanner detector : detectors) {
+                  detector.checkDslPropertyAssignment(context, name, value, parentName, null,
+                                                      invokedExpression, argumentList, applicationStatement);
+                }
+              }
+            }
             for (GradleScanner detector : detectors) {
               detector.checkMethodCall(context, statementName, parentName, parentParentName, namedArguments, unnamedArguments,
                                        applicationStatement);
             }
             super.visitApplicationStatement(applicationStatement);
+          }
+
+          @Override
+          public void visitAssignmentExpression(@NotNull GrAssignmentExpression expression) {
+            GrClosableBlock block = PsiTreeUtil.getParentOfType(expression, GrClosableBlock.class, true);
+            // if block is not null, we will handle assignments in visitClosure()
+            if (block == null) {
+              GrExpression lvalue = expression.getLValue();
+              if (lvalue instanceof GrReferenceExpression) {
+                GrReferenceExpression lvalueRef = (GrReferenceExpression) lvalue;
+                GrExpression qualifierExpression = lvalueRef.getQualifierExpression();
+                String qualifierName = null;
+                if (qualifierExpression != null) {
+                  qualifierName = qualifierExpression.getText();
+                }
+                String name = lvalueRef.getReferenceName();
+                GrExpression rvalue = expression.getRValue();
+                if (rvalue != null) {
+                  String value = rvalue.getText();
+                  for (GradleScanner detector : detectors) {
+                    detector.checkDslPropertyAssignment(context, name, value, qualifierName,
+                                                        null, lvalue, rvalue, expression);
+                  }
+                }
+              }
+            }
+            super.visitAssignmentExpression(expression);
           }
         });
       }

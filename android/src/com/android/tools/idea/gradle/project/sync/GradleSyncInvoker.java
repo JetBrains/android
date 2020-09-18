@@ -52,6 +52,7 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -169,6 +170,13 @@ public class GradleSyncInvoker {
     new GradleSyncExecutor(project).sync(request, listener);
   }
 
+  @WorkerThread
+  public void fetchAndMergeNativeVariants(@NotNull Project project,
+                                          @NotNull Set<@NotNull String> requestedAbis) {
+    new GradleSyncExecutor(project).fetchAndMergeNativeVariants(requestedAbis);
+  }
+
+  @WorkerThread
   @NotNull
   public List<GradleModuleModels> fetchGradleModels(@NotNull Project project) {
     return new GradleSyncExecutor(project).fetchGradleModels();

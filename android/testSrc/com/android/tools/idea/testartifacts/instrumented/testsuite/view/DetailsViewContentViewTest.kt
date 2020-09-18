@@ -104,6 +104,16 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun testResultLabelHtmlEscaping() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
+    view.setAndroidDevice(device("device id", "<device name>"))
+    view.setErrorStackTrace("<ErrorStackTrace>")
+    assertThat(view.myTestResultLabel.text).isEqualTo(
+      "<html><font size='+1'>&lt;ErrorStackTrace&gt;</font><br><font color='#b81708'>Failed</font> on &lt;device name&gt;</html>")
+  }
+
+  @Test
   fun testResultLabelOnRunning() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.IN_PROGRESS)

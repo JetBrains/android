@@ -117,25 +117,25 @@ class ViewContextMenuFactoryTest {
     val hideSubtree = createdGroup?.getChildren(null)?.get(0)!!
     hideSubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(ROOT, VIEW1, -1L)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
 
     model.root.flatten().forEach { it.visible = true }
     val showOnlySubtree = createdGroup?.getChildren(null)?.get(1)!!
     showOnlySubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(VIEW2, VIEW3)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
 
     model.root.flatten().forEach { it.visible = true }
     val showOnlyParents = createdGroup?.getChildren(null)?.get(2)!!
     showOnlyParents.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(ROOT, VIEW2, -1L)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
   }
 
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) },
+    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
       .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All").inOrder()
@@ -205,7 +205,7 @@ class ViewContextMenuFactoryLegacyTest {
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) },
+    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText }).containsExactly("Select View").inOrder()
 
