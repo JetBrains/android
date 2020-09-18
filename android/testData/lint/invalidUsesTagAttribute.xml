@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <automotiveApp>
-  <uses <error descr="Expecting one of `media`, `notification`, or `sms` for the name attribute in uses tag">name="media<caret>session"</error>/>
+  <uses <error descr="Expecting one of `media`, `notification`, `sms`, or `template` for the name attribute in uses tag">name="media<caret>session"</error>/>
 </automotiveApp>
