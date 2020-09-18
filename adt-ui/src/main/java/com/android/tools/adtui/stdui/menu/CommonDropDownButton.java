@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui.menu;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +66,7 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
         if (menu.isSelected()) {
           myAction.actionPerformed(event);
           populatePopup();
-          myPopup.show(menu, 0, menu.getHeight());
+          JBPopupMenu.showBelow(menu, myPopup);
         }
       }
     });

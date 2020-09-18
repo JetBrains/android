@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -283,7 +282,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         if (treePath != null) {
           ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
           myRemoveItem.setEnabled(canRemove(node.getUserObject()));
-          myPopup.show(e.getComponent(), e.getX(), e.getY());
+          JBPopupMenu.showByEvent(e, myPopup);
         }
       }
     };
