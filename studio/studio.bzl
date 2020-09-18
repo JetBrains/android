@@ -611,9 +611,9 @@ def intellij_platform(
     native.java_import(
         name = name,
         jars = select({
-            "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/" + jar for jar in spec.jars + spec.jars_windows],
-            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/" + jar for jar in spec.jars + spec.jars_darwin],
-            "//conditions:default": [src + "/linux/android-studio/lib/" + jar for jar in spec.jars + spec.jars_linux],
+            "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
+            "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
         visibility = ["//visibility:public"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
