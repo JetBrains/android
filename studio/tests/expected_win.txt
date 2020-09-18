@@ -31,6 +31,7 @@ android-studio/bin/lldb/bin/libxml2.dll
 android-studio/bin/lldb/bin/llvm-symbolizer.exe
 android-studio/bin/lldb/bin/minidump_stackwalk.exe
 android-studio/bin/lldb/bin/msvcp140.dll
+android-studio/bin/lldb/bin/python38.dll
 android-studio/bin/lldb/bin/ucrtbase.dll
 android-studio/bin/lldb/bin/vcruntime140.dll
 android-studio/bin/lldb/bin/x86_64-linux-android-c++filt.exe
