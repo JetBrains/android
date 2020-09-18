@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -100,6 +101,15 @@ public interface GradleBuildModel extends GradleFileModel {
   PluginModel applyPlugin(@NotNull String plugin);
 
   void removePlugin(@NotNull String plugin);
+
+  /**
+   * In most cases in the Dsl api, we can obtain a PsiElement for an element from the corresponding model.  In the specific case of plugins,
+   * where there are multiple forms of expression (including `apply plugin: ...` which has no corresponding block element) there is no
+   * representation of the collection as a Dsl entity, only as a Java List.  This is therefore needed at this level for clients wishing
+   * to interact with the Psi corresponding to a plugins { ... } block, if any.
+   */
+  @Nullable
+  PsiElement getPluginsPsiElement();
 
   @NotNull
   AndroidModel android();

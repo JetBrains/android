@@ -62,6 +62,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +71,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
@@ -158,6 +160,16 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
     }
 
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getPluginsPsiElement() {
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS);
+    if (pluginsDslElement != null) {
+      return pluginsDslElement.getPsiElement();
+    }
+    return null;
   }
 
   /**
