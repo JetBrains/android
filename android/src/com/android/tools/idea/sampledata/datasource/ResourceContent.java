@@ -50,12 +50,16 @@ public class ResourceContent implements Function<OutputStream, Exception> {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     final String[] paths = {
       FileUtil.join(homePath, "plugins/android/lib/sampleData"), // Bundled path
-      FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData"), // Development path
+      StudioPathManager.isRunningFromSources()
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData")
+      : null, // Development path
       FileUtil.join(homePath, "/community/android/android/lib/sampleData") // IDEA plugin Development path
     };
 
     StringBuilder notFoundPaths = new StringBuilder();
     for (String jarPath : paths) {
+      if (jarPath == null) continue;
+
       File rootFile = new File(jarPath);
       if (rootFile.exists()) {
         LOG.debug("Sample data base dir found at " + jarPath);

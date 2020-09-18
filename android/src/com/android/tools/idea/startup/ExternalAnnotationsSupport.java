@@ -175,11 +175,14 @@ public class ExternalAnnotationsSupport {
       if (root == null) {
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
         final String[] paths = {
-          FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/annotations"),
+          StudioPathManager.isRunningFromSources()
+          ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/annotations")
+          : null,
           FileUtil.join(homePath, "android/android/annotations"),
           FileUtil.join(homePath, "community/android/android/annotations")
         };
         for (String relativePath : paths) {
+          if (relativePath == null) continue;
           if (root != null) break;
           root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(relativePath));
         }
