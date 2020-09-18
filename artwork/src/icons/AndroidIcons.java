@@ -20,7 +20,7 @@ public class AndroidIcons {
   public static final Icon Variant = load("/icons/variant.png");
 
   public static class Wizards {
-    public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
+    public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.svg"); // 64x64
     // Template thumbnails
     public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
     public static final Icon AutomotiveModule = load("/icons/wizards/automotive_module.png"); // 256x256
