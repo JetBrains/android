@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
@@ -100,7 +101,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
     JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
-    component.show(button, 0, button.getHeight());
+    JBPopupMenu.showBelow(button, component);
   }
 
   private static void showJBPopup(@NotNull AnActionEvent eve, @NotNull ActionButton button, @NotNull JPanel componentPopup) {
