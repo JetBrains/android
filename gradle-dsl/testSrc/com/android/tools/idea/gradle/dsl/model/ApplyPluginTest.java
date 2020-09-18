@@ -407,6 +407,36 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
   }
 
+  @Test
+  public void testPluginRemove() throws Exception {
+    writeToBuildFile(TestFile.PLUGIN_REMOVE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application", "io.fabric"), buildModel.plugins());
+
+    for (PluginModel plugin : buildModel.plugins()) {
+      if (plugin.name().toString().equals("io.fabric")) {
+        plugin.remove();
+      }
+    }
+
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGIN_REMOVE_EXPECTED);
+  }
+
+  @Test
+  public void testGetPsiElement() throws Exception {
+    writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
+
+    assertNotNull(buildModel.plugins().get(0).getPsiElement());
+    assertEquals("com.android.application", buildModel.plugins().get(0).getPsiElement().getText().replaceAll("['\"]", ""));
+    assertNotNull(buildModel.plugins().get(1).getPsiElement());
+    assertEquals("com.android.library", buildModel.plugins().get(1).getPsiElement().getText().replaceAll("['\"]", ""));
+  }
+
   enum TestFile implements TestFileName {
     ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
     APPLIED_KOTLIN_PLUGIN("appliedKotlinPlugin"),
@@ -445,6 +475,8 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
+    PLUGIN_REMOVE("pluginRemove"),
+    PLUGIN_REMOVE_EXPECTED("pluginRemoveExpected")
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {
