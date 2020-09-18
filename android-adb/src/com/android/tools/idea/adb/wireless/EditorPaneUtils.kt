@@ -53,8 +53,16 @@ fun JEditorPane.setHtml(htmlBuilder: HtmlBuilder, textColor: Color?) {
   SwingHelper.setHtml(this, htmlBuilder.html, textColor)
 }
 
-fun setTitlePanelBorder(panel: JComponent, leftPixels: Int) {
-  val line: Border = CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, leftPixels, 1, 0)
+fun setTitlePanelBorder(panel: JComponent) {
+  setPanelBorder(panel, 0, 1)
+}
+
+fun setBottomPanelBorder(panel: JComponent) {
+  setPanelBorder(panel, 1, 0)
+}
+
+private fun setPanelBorder(panel: JComponent, topPixels: Int, bottomPixels: Int) {
+  val line: Border = CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, topPixels, 0, bottomPixels, 0)
   val c: Border = CompoundBorder(line, JBUI.Borders.empty(5, 10))
   panel.border = c
   panel.minimumSize = JBDimension(0, 30)

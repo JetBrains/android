@@ -37,7 +37,7 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
                                       title = "Pair devices over Wi-Fi",
                                       isModal = true,
                                       hasOkButton = false,
-                                      cancelButtonText = "Done",
+                                      cancelButtonText = "Close",
                                       centerPanelProvider = { createCenterPanel() })
     dialog = SimpleDialog(options)
     pairingPanel = AdbDevicePairingPanel(dialog.disposable)
@@ -106,5 +106,5 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
   }
 
   private val panelPreferredSize: JBDimension
-    get() = JBDimension(1000, 600)
+    get() = JBDimension(600, 600)
 }

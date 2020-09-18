@@ -72,30 +72,26 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
-  private fun createHelpLink(): JComponent {
-    val link = HyperlinkLabel("Can't connect your device?")
-    link.setHyperlinkTarget(Urls.cantConnectDevice)
-    return link
-  }
-
   private fun createHeaderPanel(): JComponent {
-    val topLabel = JBLabel("Pair over Wi-Fi").apply {
-      border = JBEmptyBorder(0, 0, 5, 0)
-      font = JBUI.Fonts.label(16f).asBold()
+    val topLabel = JBLabel("Pair new devices over Wi-Fi").apply {
+      border = JBEmptyBorder(0, 0, 10, 0)
+      font = JBUI.Fonts.label(22f)//.asBold()
     }
 
     val editorPane = createHtmlEditorPane()
     val htmlBuilder = HtmlBuilder().apply {
-      add("Pair devices over Wi-Fi for wireless debugging scanning a QR code manually or using a 6 digit code.")
+      add("Pair devices to enable wireless debugging.")
       add(" ")
-      add("Wireless debugging allows for cable free workflows but can be slower than USB connection.")
+      add("Pair camera-enabled devices using a QR code.")
+      add(" ")
+      add("Other devices can be paired using Pin code.")
       add("  ")
       addLink("Learn more", Urls.learnMore)
     }
     editorPane.setHtml(htmlBuilder, UIColors.HEADER_LABEL)
 
     return JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.empty(10, 10, 15, 10)
+      border = JBUI.Borders.empty(10, 10, 22, 10)
       add(topLabel, BorderLayout.NORTH)
       add(editorPane, BorderLayout.CENTER)
     }
@@ -104,12 +100,10 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
   private fun createCenterPanel(): JComponent {
     val qrCodePanel = qrCodePanel.component
     val pinCodePanel = pinCodePanel.component
-    val helpLink = createHelpLink()
 
     val contentPanel = PairingContentPanel().apply {
       setQrCodeComponent(qrCodePanel)
       setPinCodeComponent(pinCodePanel)
-      setHelpLinkComponent(helpLink)
     }.component
 
     return centerPanel.apply {
