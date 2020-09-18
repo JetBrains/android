@@ -8,7 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
