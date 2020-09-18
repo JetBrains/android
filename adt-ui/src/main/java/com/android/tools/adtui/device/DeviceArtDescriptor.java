@@ -78,16 +78,18 @@ public class DeviceArtDescriptor {
     }
 
     // In development environments, search a few other folders
-    String srcRoot = StudioPathManager.getSourcesRoot();
     String basePath = PathManager.getHomePath();
-    String[] paths = new String[] {
+    String[] paths = new String[]{
       FileUtil.join(basePath, "plugins", "android"),
-      FileUtil.join(srcRoot, "tools", "adt", "idea", "artwork", "resources"),
+      StudioPathManager.isRunningFromSources()
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources")
+      : null,
       FileUtil.join(basePath, "android", "artwork", "resources"),
       FileUtil.join(basePath, "community", "android", "artwork", "resources"),
     };
 
     for (String p : paths) {
+      if (p == null) continue;
       File base = new File(p);
       if (base.isDirectory()) {
         File files = new File(base, FN_BASE);
