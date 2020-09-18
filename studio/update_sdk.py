@@ -36,6 +36,8 @@ def list_sdk_jars(sdk):
   for platform in PLATFORMS:
     idea_home = sdk + HOME_PATHS[platform]
     jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
+    # Java plugin sdk are included as part of the platform as there are references to it.
+    jars += ["/plugins/java/lib/" + jar for jar in os.listdir(idea_home + "/plugins/java/lib/") if jar.endswith(".jar")]
     jars = [jar for jar in jars if jar not in HIDDEN]
     sets[platform] = set(jars)
 
@@ -57,6 +59,9 @@ def list_plugin_jars(sdk):
     idea_home = sdk + HOME_PATHS[platform]
     all[platform] = {}
     for plugin in os.listdir(idea_home + "/plugins"):
+      if plugin == "java":
+        # The plugin java is added as part of the platform
+        continue
       path = "/plugins/" + plugin + "/lib/"
       jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
       jars = [jar for jar in jars if jar not in HIDDEN]
@@ -94,7 +99,7 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
     for platform in [ALL] + PLATFORMS:
       file.write(f"    jars{suffix[platform]} = [\n")
       for jar in sdk_jars[platform]:
-        file.write("        \"" + os.path.basename(jar) + "\",\n")
+        file.write("        \"" + jar + "\",\n")
       file.write("    ],\n")
 
     for platform in [ALL] + PLATFORMS:
