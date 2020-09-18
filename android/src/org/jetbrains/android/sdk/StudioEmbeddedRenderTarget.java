@@ -104,13 +104,16 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     // Possible paths of the embedded "layoutlib" directory.
     final String[] paths = {
       FileUtil.join(homePath, "plugins/android/lib/layoutlib/"), // Bundled path.
-      FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/"), //Dev path.
+      StudioPathManager.isRunningFromSources() //Dev path.
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/")
+      : null,
       FileUtil.join(homePath, "community/android/tools-base/layoutlib/"), // IDEA path.
       FileUtil.join(homePath, "android/tools-base/layoutlib/"), // IDEA community path.
     };
 
     StringBuilder notFoundPaths = new StringBuilder();
     for (String path : paths) {
+      if (path == null) continue;
       VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
 
       if (root != null) {
