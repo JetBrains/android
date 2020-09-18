@@ -415,7 +415,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMaxScale = maxScale;
 
     if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myValidatorControl = new NlLayoutScannerControl(this);
+      myValidatorControl = new NlLayoutScannerControl(this, this);
     }
 
     myDelegateDataProvider = delegateDataProvider;

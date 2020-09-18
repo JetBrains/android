@@ -22,6 +22,7 @@ import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import java.awt.Desktop
@@ -35,7 +36,8 @@ import javax.swing.event.HyperlinkListener
  */
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
-  private val issueProvider: IssueProvider = object : IssueProvider() {
+  @VisibleForTesting
+  val issueProvider: IssueProvider = object : IssueProvider() {
     override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
       issues.forEach {
         issueListBuilder.add(it)
@@ -60,11 +62,6 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    * Populate lints based on issues created through [createAnIssue]
    */
   fun populateLints() {
-    issueModel.addIssueProvider(issueProvider)
-  }
-
-  private fun forceUpdate() {
-    issueModel.removeIssueProvider(issueProvider)
     issueModel.addIssueProvider(issueProvider)
   }
 

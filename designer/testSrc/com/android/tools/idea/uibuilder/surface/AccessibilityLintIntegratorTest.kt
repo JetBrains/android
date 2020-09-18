@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
+import com.google.common.collect.ImmutableCollection
+import com.google.common.collect.ImmutableList
 import org.junit.Test
 import org.mockito.Mockito
 
@@ -34,6 +37,25 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
     integrator.createIssue(createTestIssue(), null)
 
     assertEquals(1, integrator.issues.size)
+  }
+
+  @Test
+  fun testIssueProvider() {
+    // Precondition : create issues.
+    val numberOfIssues = 3
+    val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
+    val integrator = AccessibilityLintIntegrator(issueModel)
+    assertTrue(integrator.issues.isEmpty())
+    for (i in 0 until numberOfIssues) {
+      val issue = ScannerTestHelper().createTestIssueBuilder().setMsg(i.toString()).build()
+      integrator.createIssue(issue, null)
+    }
+    assertEquals(numberOfIssues, integrator.issues.size)
+
+    // Test ensure issues are added correctly.
+    val issueListBuilder: ImmutableCollection.Builder<Issue> = ImmutableList.builder()
+    integrator.issueProvider.collectIssues(issueListBuilder)
+    assertEquals(numberOfIssues, issueListBuilder.build().size)
   }
 
   @Test
@@ -61,7 +83,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
 
   @Test
   fun testCreateIssueOnInternalError() {
-    val internalIssue = createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
+    val internalIssue = ScannerTestHelper().createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
 
@@ -71,18 +93,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
     assertEquals(0, integrator.issues.size)
   }
 
-  private fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
-    return ValidatorData.Issue.IssueBuilder()
-      .setCategory("")
-      .setType(ValidatorData.Type.ACCESSIBILITY)
-      .setMsg("Test")
-      .setLevel(ValidatorData.Level.ERROR)
-      .setSrcId(-1)
-      .setFix(ValidatorData.Fix(""))
-      .setSourceClass("")
-  }
-
   private fun createTestIssue(): ValidatorData.Issue {
-    return createTestIssueBuilder().build()
+    return ScannerTestHelper().createTestIssueBuilder().build()
   }
 }

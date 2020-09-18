@@ -24,6 +24,7 @@ import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.lint.detector.api.Category
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
@@ -116,6 +117,30 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     val showIssuePanelArg = ArgumentCaptor.forClass(Boolean::class.java)
     Mockito.verify(surface, Mockito.times(1)).setShowIssuePanel(showIssuePanelArg.capture(), eq(false))
     assertTrue(showIssuePanelArg.value)
+  }
+
+  fun testLayoutScannerListenerResult() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    simulateSurfaceRefreshedWithScanner(control, 2)
+    val result = control.runLayoutScanner()
+
+    control.scannerListener.lintUpdated(null)
+
+    assertTrue(result.get())
+  }
+
+  fun testLayoutScannerListenerNoResult() {
+    val surface = surface!!
+    val control = NlLayoutScannerControl(surface, disposable!!)
+
+    simulateSurfaceRefreshedWithScanner(control, 0)
+    val result = control.runLayoutScanner()
+
+    control.scannerListener.lintUpdated(null)
+
+    assertFalse(result.get())
   }
 
   fun testTryRefreshWithScanner() {
@@ -214,6 +239,30 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     assertEquals(issuesSize, control.scanner.issues.size)
 
     assertTrue(control.hasA11yIssue())
+  }
+
+  fun testToDetailedStringNoResult() {
+    val result = ValidatorResult.Builder().build()
+    assertEquals("Result containing 0 issues:\n", result.toDetailedString())
+  }
+
+  fun testToDetailedString() {
+    val helper = ScannerTestHelper()
+    val result = ValidatorResult.Builder()
+    for (i in 0 until 3) {
+      result.mIssues.add(helper
+          .createTestIssueBuilder()
+          .setMsg("msg : $i")
+          .build())
+    }
+    assertEquals("""
+      Result containing 3 issues:
+       - [E::ERROR] msg : 0
+       - [E::ERROR] msg : 1
+       - [E::ERROR] msg : 2
+
+    """.trimIndent(),
+                 result.build().toDetailedString())
   }
 
   private fun addA11ySystemLintIssue(surface: NlDesignSurface) {
