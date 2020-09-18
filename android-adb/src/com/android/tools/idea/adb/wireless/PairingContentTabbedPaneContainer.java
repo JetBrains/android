@@ -15,27 +15,28 @@
  */
 package com.android.tools.idea.adb.wireless;
 
-import com.intellij.ui.components.JBTabbedPane;
+import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class PairingContentPanel {
-  @NotNull private JPanel myRootContainer;
-  @NotNull private JBTabbedPane myTabbedPane;
-  @NotNull private PairingContentTabbedPaneContainer myQrCodePanel;
-  @NotNull private PairingContentTabbedPaneContainer myPinCodePanel;
+/**
+ * Top level component in each pairing tab. Contains a top and bottom row of fixed size,
+ * and a center panel for a custom component.
+ */
+public class PairingContentTabbedPaneContainer {
+  @NotNull private JPanel myRootComponent;
+  @NotNull private JPanel myTopRow;
+  @NotNull private JPanel myCenterRow;
+  @NotNull private JPanel myBottomRow;
 
-  @NotNull
-  public JComponent getComponent() {
-    return myRootContainer;
+  public PairingContentTabbedPaneContainer() {
+    EditorPaneUtils.setTitlePanelBorder(myTopRow);
+    EditorPaneUtils.setBottomPanelBorder(myBottomRow);
   }
 
-  public void setQrCodeComponent(@NotNull JComponent component) {
-    myQrCodePanel.setContent(component);
-  }
-
-  public void setPinCodeComponent(@NotNull JComponent component) {
-    myPinCodePanel.setContent(component);
+  public void setContent(@NotNull JComponent component) {
+    myCenterRow.removeAll();
+    myCenterRow.add(component, BorderLayout.CENTER);
   }
 }
