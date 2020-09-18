@@ -20,12 +20,12 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
+import com.android.tools.lint.client.api.ConfigurationHierarchy;
 import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
-import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
@@ -269,27 +269,24 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
-    return getConfigurations().getConfigurationForProject(project, (client, file) -> createConfiguration(project));
+    return getConfigurations().getConfigurationForProject(project, (file, defaultConfiguration) -> createConfiguration(project, defaultConfiguration));
   }
 
-  private Configuration createConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
-    File defaultConfigFile = new File(project.getDir(), LintXmlConfiguration.CONFIG_FILE_NAME);
+  private Configuration createConfiguration(
+    @NonNull com.android.tools.lint.detector.api.Project project,
+    @NonNull Configuration defaultConfiguration
+  ) {
     LintModelModule model = project.getBuildModule();
+    final ConfigurationHierarchy configurations = getConfigurations();
     if (model != null) {
-      try {
-        LintModelLintOptions lintOptions = model.getLintOptions();
-        File configFile = lintOptions.getLintConfig();
-        if (configFile == null) {
-          configFile = defaultConfigFile;
-        }
-        return new LintIdeGradleConfiguration(this, configFile, project.getDir(), lintOptions, getIssues());
-      }
-      catch (Exception e) {
-        LOG.error(e);
-      }
+      LintModelLintOptions options = model.getLintOptions();
+      return configurations.createLintOptionsConfiguration(
+        project, options, false, defaultConfiguration,
+        () -> new LintIdeGradleConfiguration(configurations, options, getIssues())
+      );
+    } else {
+      return new LintIdeConfiguration(configurations, project, getIssues());
     }
-
-    return new LintIdeConfiguration(this, defaultConfigFile, getIssues());
   }
 
   @Override
