@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Utility methods for SDK paths.
@@ -100,10 +99,10 @@ public class SdkPaths {
     if (isNotEmpty(cause)) {
       String message;
       if (includePathInMessage) {
-        message = String.format("The path\n'%1$s'\n%2$s", sdkPath.getPath(), cause);
+        message = String.format("The %1$s path\n'%2$s'\n%3$s", sdkName, sdkPath.getPath(), cause);
       }
       else {
-        message = String.format("The path %1$s", cause);
+        message = String.format("The %1$s path %2$s", sdkName, cause);
       }
       return ValidationResult.error(message);
     }
