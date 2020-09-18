@@ -70,6 +70,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
@@ -649,6 +650,12 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   @Nullable
   public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                              @NotNull ClassifierSet targetSet) {
+    return findSmallestSuperSetNode(rootNode, targetSet.getInstancesStream().collect(Collectors.toSet()));
+  }
+
+  @Nullable
+  private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
+                                                                              @NotNull Set<InstanceObject> targetSet) {
     if (rootNode.getAdapter().isSupersetOf(targetSet)) {
       for (MemoryObjectTreeNode<ClassifierSet> child : rootNode.getChildren()) {
         MemoryObjectTreeNode<ClassifierSet> result = findSmallestSuperSetNode(child, targetSet);
