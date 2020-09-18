@@ -98,7 +98,6 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     // Tests always run in do not generate *.iml files mode.
     assertThat(projectRootVirtualFile.findFileByRelativePath(".idea/modules.xml")).isNull()
 
-/* b/168816086
     runWriteAction {
       projectRootVirtualFile.findFileByRelativePath(".idea/modules/app/project.app.iml")!!.delete("test")
       projectRootVirtualFile.findFileByRelativePath(".idea/modules/project.iml")!!.delete("test")
@@ -108,7 +107,6 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
       project.verifyModelsAttached()
     }
-b/168816086 */
   }
 
   fun testOpen36Project() {
@@ -159,9 +157,7 @@ b/168816086 */
   }
 
   private fun verifySyncSkipped(project: Project) {
-/* b/168816086
     assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-b/168816086 */
     project.verifyModelsAttached()
     var completed = false
     project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
