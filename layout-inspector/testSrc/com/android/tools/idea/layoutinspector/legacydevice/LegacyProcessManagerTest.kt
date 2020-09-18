@@ -35,7 +35,8 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 private const val DEVICE1 = "1234"
-private const val EMULATOR1 = "emulator-789"
+private const val EMULATOR1 = "emulator-678"
+private const val EMULATOR2 = "emulator-789"
 
 private const val PROCESS1 = 12345
 private const val PROCESS2 = 12346
@@ -73,6 +74,7 @@ class LegacyProcessManagerTest {
 
   @After
   fun after() {
+    bridge!!.devices.forEach { adbServer!!.disconnectDevice(it.serialNumber).get() }
     AndroidDebugBridge.terminate()
     AndroidDebugBridge.disableFakeAdbServerMode()
     adbServer?.close()
@@ -105,7 +107,7 @@ class LegacyProcessManagerTest {
   fun testStopDevice() {
     val manager = startProcesses()
 
-    adbServer!!.disconnectDevice(DEVICE1)
+    adbServer!!.disconnectDevice(DEVICE1).get()
 
     val waiter = ProcessManagerAsserts(manager)
     waiter.assertNoDevices()
@@ -146,9 +148,9 @@ class LegacyProcessManagerTest {
 
   @Test
   fun testEmulatorWithoutUnknownManufacturer() {
-    val (_, manager) = startDevice(EMULATOR1, "unknown", "My Pixel", "2.0", "28")
+    val (_, manager) = startDevice(EMULATOR2, "unknown", "My Pixel", "2.0", "28")
     val stream = manager.getStreams().firstOrNull() ?: error("Emulator not found")
-    val preferred = LayoutInspectorPreferredProcess(findDevice(EMULATOR1)!!, "com.example")
+    val preferred = LayoutInspectorPreferredProcess(findDevice(EMULATOR2)!!, "com.example")
     assertThat(stream.device.manufacturer).isEqualTo("Emulator")
     assertThat(stream.device.model).isEqualTo("My Pixel")
     assertThat(preferred.isDeviceMatch(stream.device)).isTrue()
