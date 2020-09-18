@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import java.util.regex.Pattern;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.createDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.util.regex.Pattern;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link SdkPaths}.
@@ -59,11 +58,11 @@ public class SdkPathsTest extends TestCase {
 
     ValidationResult result = validateAndroidSdk(mockFile, false);
     assertFalse(result.success);
-    assertEquals("The path does not belong to a directory.", result.message);
+    assertEquals("The SDK path does not belong to a directory.", result.message);
 
     result = validateAndroidSdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The SDK path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
   }
 
   public void testNoPlatformsSdkDirectory() throws Exception {
@@ -94,11 +93,11 @@ public class SdkPathsTest extends TestCase {
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
     assertFalse(result.success);
-    assertEquals("The path does not belong to a directory.", result.message);
+    assertEquals("The NDK path does not belong to a directory.", result.message);
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The NDK path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
@@ -107,11 +106,11 @@ public class SdkPathsTest extends TestCase {
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
     assertFalse(result.success);
-    assertEquals("The path is not readable.", result.message);
+    assertEquals("The NDK path is not readable.", result.message);
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The path\n'%1$s'\nis not readable.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The NDK path\n'%1$s'\nis not readable.", DUMMY_PATH), result.message);
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
