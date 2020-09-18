@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
-import com.android.tools.lint.client.api.Configuration
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintOptionsConfiguration
@@ -38,7 +37,7 @@ class LintIdeConfiguration(
   override fun isEnabled(issue: Issue): Boolean {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue === IssueRegistry.BASELINE || issue === IssueRegistry.CANCELLED) {
+      if (issue == IssueRegistry.BASELINE) {
         return true
       }
 
@@ -61,7 +60,7 @@ class LintIdeGradleConfiguration(
   override fun getSeverity(issue: Issue): Severity {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue === IssueRegistry.BASELINE || issue === IssueRegistry.CANCELLED) {
+      if (issue == IssueRegistry.BASELINE) {
         return Severity.IGNORE
       }
 
