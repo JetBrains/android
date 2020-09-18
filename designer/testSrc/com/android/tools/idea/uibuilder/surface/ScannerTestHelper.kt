@@ -162,4 +162,15 @@ class ScannerTestHelper {
     builder.mSrcMap[validatorIssueId] = component.viewInfo?.viewObject as View
     return builder
   }
+
+  fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
+    return ValidatorData.Issue.IssueBuilder()
+      .setCategory("")
+      .setType(ValidatorData.Type.ACCESSIBILITY)
+      .setMsg("Test")
+      .setLevel(ValidatorData.Level.ERROR)
+      .setSrcId(-1)
+      .setFix(ValidatorData.Fix(""))
+      .setSourceClass("")
+  }
 }

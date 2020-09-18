@@ -56,8 +56,8 @@ class NlLayoutScanner(
   val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
   @VisibleForTesting
   val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
-
-  private val listeners = HashSet<Listener>()
+  @VisibleForTesting
+  val listeners = HashSet<Listener>()
 
   init {
     Disposer.register(parent, this)
