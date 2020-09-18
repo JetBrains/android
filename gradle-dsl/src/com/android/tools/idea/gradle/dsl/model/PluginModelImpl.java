@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
@@ -108,7 +110,15 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myDslElement).buildResolved();
   }
 
+  @Override
   public void remove() {
     PropertyUtil.removeElement(myCompleteElement);
   }
+
+  @Nullable
+  @Override
+  public PsiElement getPsiElement() {
+    return myCompleteElement.getPsiElement();
+  }
+
 }
