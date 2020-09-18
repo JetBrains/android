@@ -12,6 +12,50 @@
 
 You are good to go.
 
+# Updating the platform prebuilts
+
+## From `go/ab`
+
+The ideal and official way of updating prebuilts that can be uploaded to `prebuilts/studio/intellij-sdk` is to do:
+
+```
+./tools/adt/idea/studio/update_sdk.py --download <bid>
+```
+Where `<bid>` is the build ID of the studio sdk target [here](https://android-build.googleplex.com/builds/branches/git_studio-sdk-master-dev/grid?).
+
+This command will update your prebuilts and your library files in tools/adt/idea to point to the newly downloaded
+platform.
+
+## From a locally built platform
+
+While the migration is in progress, the flow to modify the prebuilts for `tools/idea` is complicated, and will be improved overtime.
+Because the tools/idea project still has references to android modules, we need a separate checkout with a few things. For example, let's
+say your main checkout is at `$SRC/studio-master-dev`, and we create a new `$SRC/studio-sdk`:
+
+```
+cd $SRC/studio-sdk
+repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-master-dev -m studio-sdk
+repo sync -j10
+```
+
+Then we build the platform on this new checkout:
+
+```
+cd $SRC/studio-sdk/tools/idea
+./build_studio.sh --studio-sdk
+```
+
+And finally we can import this prebuilts into the main checkout:
+
+```
+cd $SRC/studio-master-dev
+./tools/adt/idea/studio/update_sdk.py --path $SRC/studio-sdk/tools/idea/out/studio/dist
+```
+
+*** note
+Once the tools/idea project does not have any android references, we will be able to all this from the same checkout
+***
+
 # Building Android Studio
 
 To build Android Studio run
@@ -26,7 +70,7 @@ this operation by running the IDE headless with a "traverseUI" argument. All the
 are stored in `searchable-options` and we ensure its consistency via tests.
 
 The test `//tools/adt/idea/studio:searchable_options_test` ensures that the bundled xmls are up-to-date.
-If this test fails, its `outputs.zip` file contains the new .xmls that need to be udpdated.
+If this test fails, its `outputs.zip` file contains the new .xmls that need to be updated.
 
 Alternatively, running
 ```
@@ -49,7 +93,7 @@ bazel build //tools/adt/idea/studio:android-studio --config=remote
 # Note: This is still work in progress
 
 We are not yet using this mechanism to build and release Studio, as this is still in progress.
-Currently all the new targets needed are tagged as manual, and live in paralell with the main iml_module targets. To generate the iml_modules for this project use:
+Currently all the new targets needed are tagged as manual, and live in parallel with the main iml_module targets. To generate the iml_modules for this project use:
 
 ```
 bazel run //tools/base/bazel:iml_to_build -- --project_path tools/adt/idea --strict
