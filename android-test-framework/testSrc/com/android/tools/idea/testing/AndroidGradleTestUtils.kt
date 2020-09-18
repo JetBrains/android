@@ -1057,6 +1057,7 @@ private fun <T> openPreparedProject(
   }
   finally {
     runInEdtAndWait {
+      PlatformTestUtil.saveProject(project, true)
       ProjectUtil.closeAndDispose(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }

@@ -103,12 +103,12 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
       projectRootVirtualFile.findFileByRelativePath(".idea/modules/app/project.app.iml")!!.delete("test")
       projectRootVirtualFile.findFileByRelativePath(".idea/modules/project.iml")!!.delete("test")
     }
-b/168816086 */
 
     openPreparedProject("project") { project ->
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
       project.verifyModelsAttached()
     }
+b/168816086 */
   }
 
   fun testOpen36Project() {
