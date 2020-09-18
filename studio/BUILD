@@ -513,7 +513,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-decompiler",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
