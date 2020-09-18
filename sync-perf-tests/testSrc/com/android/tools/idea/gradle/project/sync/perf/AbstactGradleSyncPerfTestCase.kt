@@ -71,8 +71,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}")
     fun testParameters() = arrayOf<Array<Any?>>(
       // Keep first parameter even if it is the same to track results in perfgate
-      arrayOf(true, null, null),
-      arrayOf(true, "5.5", "3.5.0")
+      arrayOf(true, null, null)
     )
   }
 

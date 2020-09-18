@@ -45,7 +45,6 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip");
     unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
     unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.5.0.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
   }
 }
