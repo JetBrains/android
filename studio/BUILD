@@ -389,12 +389,12 @@ py_test(
     ],
     data = [
         ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
         ":android-studio.plugin.lst",
     ],
     tags = [
         "block_network",
         "manual",
-        "no_mac",
         "no_windows",
     ],
 )
@@ -404,6 +404,7 @@ py_binary(
     srcs = ["tests/update_searchable_options.py"],
     data = [
         ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
         ":android-studio.plugin.lst",
     ],
     tags = [
