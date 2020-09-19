@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.utils.HtmlBuilder;
 import com.intellij.ui.border.CustomLineBorder;
@@ -29,15 +30,20 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Form that displays either a {@link PairingContentPanel} or an error message, used when
+ * ADB initialization failed.
+ */
+@UiThread
 public class PairingCenterPanel {
   @NotNull private JPanel myContentPanel;
   @NotNull private JPanel myErrorContainerPanel;
   @NotNull private JEditorPane myErrorText;
   @NotNull private JPanel myRoot;
   @NotNull private JBScrollPane myScrollPane;
-  private JPanel myErrorTopPanel;
-  private JPanel myErrorBottomPanel;
-  private JPanel myErrorTextPanel;
+  @NotNull private JPanel myErrorTopPanel;
+  @NotNull private JPanel myErrorBottomPanel;
+  @NotNull private JPanel myErrorTextPanel;
 
   public PairingCenterPanel() {
     myContentPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);

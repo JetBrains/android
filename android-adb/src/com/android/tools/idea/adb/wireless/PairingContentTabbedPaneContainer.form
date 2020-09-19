@@ -14,7 +14,18 @@
         </constraints>
         <properties/>
         <border type="none"/>
-        <children/>
+        <children>
+          <component id="5387e" class="com.intellij.util.ui.AsyncProcessIcon" binding="myAsyncProcessIcon" custom-create="true">
+            <constraints border-constraint="East"/>
+            <properties/>
+          </component>
+          <component id="f0359" class="com.intellij.ui.components.JBLabel" binding="myAsyncProcessText">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <font style="1"/>
+            </properties>
+          </component>
+        </children>
       </grid>
       <grid id="fbd03" binding="myCenterRow" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
