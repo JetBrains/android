@@ -15,7 +15,7 @@ class StudioTests(unittest.TestCase):
   only checking file lists.
   """
 
-  def test_linux_files(self):
+  def test_studio_files(self):
 
     platforms = ["linux", "win", "mac"]
     actual = {}

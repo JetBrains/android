@@ -2,6 +2,7 @@
 import argparse
 import glob
 import os
+import platform
 import re
 import shutil
 import stat
@@ -24,8 +25,12 @@ def extract_file(zip_file, info, extract_dir):
 def generate_searchable_options(work_dir, out_dir):
   """Generates the xmls in out_dir, using work_dir as a scratch pad."""
 
-  # Linux only
-  zip_path = os.path.join("tools/adt/idea/studio/android-studio.linux.zip")
+  suffix = {
+    "Windows": "win",
+    "Linux": "linux",
+    "Darwin": "mac",
+  }
+  zip_path = os.path.join("tools/adt/idea/studio/android-studio.%s.zip" % suffix[platform.system()])
   with zipfile.ZipFile(zip_path) as zip_file:
     for info in zip_file.infolist():
       extract_file(zip_file, info, work_dir)
@@ -40,10 +45,16 @@ def generate_searchable_options(work_dir, out_dir):
   env = {
       "STUDIO_PROPERTIES": properties_file,
       "XDG_DATA_HOME": "%s/data" % work_dir,
+      "SHELL": os.getenv("SHELL")
   }
   options_dir = os.path.join(work_dir, "options")
-  studio_sh = "%s/android-studio/bin/studio.sh" % work_dir
-  subprocess.call([studio_sh, "traverseUI", options_dir, "true"], env=env)
+
+  studio_bin = {
+    "Windows": "/android-studio/bin/studio.cmd",
+    "Linux": "/android-studio/bin/studio.sh",
+    "Darwin": "/Android Studio.app/Contents/MacOS/studio",
+  }
+  subprocess.call([work_dir + studio_bin[platform.system()], "traverseUI", options_dir, "true"], env=env)
 
   plugin_list = []
   with open("tools/adt/idea/studio/android-studio.plugin.lst", "r") as list_file:
