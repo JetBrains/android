@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -25,6 +26,11 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Form that displays a single device ready to be paired via PIN code.
+ * Next to the device info, a "Pair" button is displayed.
+ */
+@UiThread
 public class PinCodeDevicePanel {
   @NotNull private final MdnsService myMdnsService;
   @NotNull private JButton myPairButton;

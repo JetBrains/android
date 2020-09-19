@@ -18,7 +18,6 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
@@ -55,7 +54,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
   }
 
   val pinCodePanel by lazy {
-    PinCodePanel(parentDisposable, Consumer<MdnsService> { service -> pinCodePairInvoked(service) })
+    PinCodePanel(Consumer<MdnsService> { service -> pinCodePairInvoked(service) })
   }
 
   var isLoading: Boolean
@@ -101,7 +100,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
     val qrCodePanel = qrCodePanel.component
     val pinCodePanel = pinCodePanel.component
 
-    val contentPanel = PairingContentPanel().apply {
+    val contentPanel = PairingContentPanel(parentDisposable).apply {
       setQrCodeComponent(qrCodePanel)
       setPinCodeComponent(pinCodePanel)
     }.component

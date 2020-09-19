@@ -28,7 +28,7 @@ import javax.swing.JComponent
 @UiThread
 class PinCodePairingDialog(project: Project) {
   private val dialog: SimpleDialog
-  private val pairingPanel by lazy { PinCodeInputPanel() }
+  private val pairingPanel by lazy { PinCodeInputPanel(disposable) }
 
   init {
     val options = SimpleDialogOptions(project,

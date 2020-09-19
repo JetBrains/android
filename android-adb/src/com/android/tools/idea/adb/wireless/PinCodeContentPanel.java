@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import icons.AndroidIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -25,23 +28,27 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Form that displays the list of devices available to pair via PIN code.
+ * If there are no devices available, a custom icon and text are displayed.
+ */
+@UiThread
 public class PinCodeContentPanel {
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myEmptyPanel;
   @NotNull private JPanel myDevicesPanel;
-  @NotNull private JPanel myDevicesHeaderPanel;
   @NotNull private JPanel myDeviceList;
   @NotNull private JBScrollPane myDeviceListScrollPane;
+  private JBLabel myDeviceLineupLabel;
   @NotNull List<PinCodeDevicePanel> myPanels = new ArrayList<>();
 
   public PinCodeContentPanel() {
     myDeviceList.setLayout(new VerticalFlowLayout());
 
     myEmptyPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    myDevicesHeaderPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myDeviceListScrollPane.setBorder(JBUI.Borders.empty());
     myDeviceList.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    EditorPaneUtils.setTitlePanelBorder(myDevicesHeaderPanel);
+    myDeviceLineupLabel.setIcon(AndroidIcons.DeviceExplorer.DevicesLineup);
   }
 
   @NotNull

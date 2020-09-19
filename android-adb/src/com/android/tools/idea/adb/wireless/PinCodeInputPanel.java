@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
@@ -25,6 +28,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Form that allows entering 6 digit PIN code, as well as displaying
+ * pairing status and result.
+ */
+@UiThread
 public class PinCodeInputPanel {
   public static final int PIN_CODE_DIGIT_COUNT = 6;
   @NotNull private JPanel myRootContainer;
@@ -40,7 +48,7 @@ public class PinCodeInputPanel {
   @NotNull private JTextField myPinCodeDigit6;
   @NotNull private final List<JTextField> myAllDigitTextFields;
 
-  public PinCodeInputPanel() {
+  public PinCodeInputPanel(@NotNull Disposable parentDisposable) {
     myPairingProgressLabel.setText("");
     myPairingProgressAsyncIcon.setVisible(false);
     myStatusIconLabel.setVisible(false);
@@ -50,6 +58,9 @@ public class PinCodeInputPanel {
     for (int i = 0; i < myAllDigitTextFields.size(); i++) {
       myAllDigitTextFields.get(i).setName("PinCode-Digit-" + i);
     }
+
+    // Ensure async icon is disposed deterministically
+    Disposer.register(parentDisposable, myPairingProgressAsyncIcon);
   }
 
   private void createUIComponents() {
