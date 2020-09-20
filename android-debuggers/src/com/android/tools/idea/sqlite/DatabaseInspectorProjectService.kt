@@ -183,37 +183,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     }
 ) : DatabaseInspectorProjectService {
 
-  @NonInjectable
-  @TestOnly
-  constructor(project: Project, edtExecutor: Executor, taskExecutor: Executor, viewFactory: DatabaseInspectorViewsFactory) : this (
-    project,
-    edtExecutor,
-    taskExecutor,
-    DatabaseRepositoryImpl(project, taskExecutor),
-    viewFactory,
-    OfflineDatabaseManagerImpl(project),
-    DatabaseInspectorModelImpl(),
-    { myModel, myRepository, myOfflineDatabaseManager ->
-      DatabaseInspectorControllerImpl(
-        project,
-        myModel,
-        myRepository,
-        viewFactory,
-        myOfflineDatabaseManager,
-        edtExecutor,
-        taskExecutor
-      ).also {
-        it.setUp()
-        Disposer.register(project, it)
-      }
-    }
-  )
-
   constructor(project: Project) : this (
-    project,
-    EdtExecutorService.getInstance(),
-    PooledThreadExecutor.INSTANCE,
-    DatabaseInspectorViewsFactoryImpl()
+    project = project,
+    edtExecutor = EdtExecutorService.getInstance(),
+    taskExecutor = PooledThreadExecutor.INSTANCE,
+    viewFactory = DatabaseInspectorViewsFactoryImpl()
   )
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
@@ -222,7 +196,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
-  private var packageName: String? = null
+  private var appPackageName: String? = null
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -277,7 +251,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     ideServices = appInspectionIdeServices
     controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
 
-    packageName = withContext(workerThread) {
+    appPackageName = withContext(workerThread) {
       PackageNameProvider.getPackageName(project, processDescriptor.serial, processDescriptor.processName).await()
     }
   }
@@ -285,7 +259,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @UiThread
   override suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor) {
     ideServices = null
-    controller.stopAppInspectionSession()
 
     val openDatabases = model.getOpenDatabaseIds()
     openDatabases.forEach {
@@ -295,6 +268,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     model.clearDatabases()
     databaseRepository.clear()
 
+    controller.stopAppInspectionSession()
 
     downloadOfflineDatabases = projectScope.launch {
       if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
@@ -307,7 +281,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
         for (liveSqliteDatabaseId in databasesToDownload) {
           try {
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(
-              packageName ?: processDescriptor.processName,
+              appPackageName ?: processDescriptor.processName,
               processDescriptor,
               liveSqliteDatabaseId
             )
