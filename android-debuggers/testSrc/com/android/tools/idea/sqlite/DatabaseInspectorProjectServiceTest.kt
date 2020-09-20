@@ -60,6 +60,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
 import java.io.File
+import java.util.function.Supplier
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
@@ -70,7 +71,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var model: OpenDatabaseInspectorModel
   private lateinit var repository: OpenDatabaseRepository
   private lateinit var processDescriptor: ProcessDescriptor
-  private lateinit var offlineDatabaseManager: OfflineDatabaseManager
+  private lateinit var fileDatabaseManager: FileDatabaseManager
 
   private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
 
@@ -86,7 +87,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     trackerService = FakeDatabaseInspectorAnalyticsTracker()
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
-    offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
+    fileDatabaseManager = mock(FileDatabaseManager::class.java)
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
@@ -103,7 +104,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       project = project,
       model = model,
       databaseRepository = repository,
-      offlineDatabaseManager = offlineDatabaseManager,
+      fileDatabaseManager = fileDatabaseManager,
       createController = { _, _, _ -> databaseInspectorController }
     )
 
@@ -269,14 +270,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    verifyZeroInteractions(offlineDatabaseManager)
+    verifyZeroInteractions(fileDatabaseManager)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testDownloadOfflineDatabasesWhenAppInspectionSessionIsTerminated() {
     // Prepare
-    val inOrderVerifier = inOrder(databaseInspectorController, offlineDatabaseManager)
+    val inOrderVerifier = inOrder(databaseInspectorController, fileDatabaseManager)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
     DatabaseInspectorFlagController.enableOfflineMode(true)
@@ -298,11 +299,11 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     runDispatching {
       `when`(
-        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1)
+        fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1)
       ).thenReturn(DatabaseFileData(sqliteFile1))
 
       `when`(
-        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3)
+        fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3)
       ).thenReturn(DatabaseFileData(sqliteFile2))
     }
 
@@ -314,11 +315,11 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     // Assert
     runDispatching {
-      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1)
-      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId3)
+      inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1)
+      inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId3)
       inOrderVerifier.verify(databaseInspectorController, times(2)).addSqliteDatabase(any(SqliteDatabaseId::class.java))
     }
-    verifyNoMoreInteractions(offlineDatabaseManager)
+    verifyNoMoreInteractions(fileDatabaseManager)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
@@ -402,6 +403,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
     `when`(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
     `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
-    AdbFileProvider { createTempFile() }.storeInProject(project)
+    AdbFileProvider(Supplier { createTempFile() }).storeInProject(project)
   }
 }

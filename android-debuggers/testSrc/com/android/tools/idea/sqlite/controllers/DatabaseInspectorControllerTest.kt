@@ -23,7 +23,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
-import com.android.tools.idea.sqlite.OfflineDatabaseManager
+import com.android.tools.idea.sqlite.FileDatabaseManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -122,7 +122,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var databaseInspectorModel: OpenDatabaseInspectorModel
   private lateinit var databaseRepository: OpenDatabaseRepository
-  private lateinit var offlineDatabaseManager: OfflineDatabaseManager
+  private lateinit var fileDatabaseManager: FileDatabaseManager
 
   private lateinit var trackerService: DatabaseInspectorAnalyticsTracker
 
@@ -146,7 +146,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorModel = spy(OpenDatabaseInspectorModel())
     databaseRepository = spy(OpenDatabaseRepository(project, edtExecutor))
 
-    offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
+    fileDatabaseManager = mock(FileDatabaseManager::class.java)
 
     trackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
@@ -156,7 +156,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorModel,
       databaseRepository,
       viewsFactory,
-      offlineDatabaseManager,
+      fileDatabaseManager,
       edtExecutor,
       edtExecutor
     )
@@ -187,7 +187,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(databaseIdFile, mockDatabaseConnection)
     }
 
-    orderVerifier = inOrder(databaseInspectorView, databaseRepository, mockDatabaseConnection, offlineDatabaseManager)
+    orderVerifier = inOrder(databaseInspectorView, databaseRepository, mockDatabaseConnection, fileDatabaseManager)
 
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, databaseFileData.mainFile, FutureCallbackExecutor.wrap(taskExecutor))
@@ -502,7 +502,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(mockDatabaseConnection).close()
-    runDispatching { orderVerifier.verify(offlineDatabaseManager).cleanUp(databaseIdFile) }
+    runDispatching { orderVerifier.verify(fileDatabaseManager).cleanUp(databaseIdFile.databaseFileData) }
   }
 
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {

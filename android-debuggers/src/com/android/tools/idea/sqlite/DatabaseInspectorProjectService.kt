@@ -31,7 +31,6 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
@@ -46,10 +45,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
@@ -136,8 +138,6 @@ interface DatabaseInspectorProjectService {
 
   /**
    * Called when Database Inspector is connected to new process.
-   *
-   * @param previousState state of UI from previous session if available
    */
   @UiThread
   suspend fun startAppInspectionSession(
@@ -163,16 +163,17 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, taskExecutor),
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
-  private val offlineDatabaseManager: OfflineDatabaseManager = OfflineDatabaseManagerImpl(project),
+  private val fileDatabaseManager: FileDatabaseManager = FileDatabaseManagerImpl(project),
+  private val offlineModeManager: OfflineModeManager = OfflineModeManager(project, fileDatabaseManager),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
-  private val createController: (DatabaseInspectorModel, DatabaseRepository, OfflineDatabaseManager) -> DatabaseInspectorController =
-    { myModel, myRepository, myOfflineDatabaseManager ->
+  private val createController: (DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager) -> DatabaseInspectorController =
+    { myModel, myRepository, myFileDatabaseManager ->
       DatabaseInspectorControllerImpl(
         project,
         myModel,
         myRepository,
         viewFactory,
-        myOfflineDatabaseManager,
+        myFileDatabaseManager,
         edtExecutor,
         taskExecutor
       ).also {
@@ -189,29 +190,28 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     viewFactory = DatabaseInspectorViewsFactoryImpl()
   )
 
-  private val uiThread = edtExecutor.asCoroutineDispatcher()
-  private val workerThread = taskExecutor.asCoroutineDispatcher()
-  override val projectScope = AndroidCoroutineScope(project, uiThread)
-
-  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+  private val uiDispatcher = edtExecutor.asCoroutineDispatcher()
+  private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
+  override val projectScope = AndroidCoroutineScope(project, uiDispatcher)
+  private var downloadAndOpenOfflineDatabasesJob: Job? = null
 
   private var appPackageName: String? = null
 
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    createController(model, databaseRepository, offlineDatabaseManager)
+    createController(model, databaseRepository, fileDatabaseManager)
   }
 
   private var ideServices: AppInspectionIdeServices? = null
-
-  private var downloadOfflineDatabases: Job? = null
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
 
   @TestOnly
   fun getSwitchToOfflineModeJob(): Job? {
-    return downloadOfflineDatabases
+    return downloadAndOpenOfflineDatabasesJob
   }
 
   @AnyThread
@@ -219,7 +219,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     databaseFileData: DatabaseFileData
   ): ListenableFuture<Unit> = projectScope.future {
     val databaseId = try {
-      val databaseConnection = openJdbcDatabaseConnection(project, databaseFileData.mainFile, taskExecutor, workerThread)
+      val databaseConnection = openJdbcDatabaseConnection(project, databaseFileData.mainFile, taskExecutor, workerDispatcher)
       SqliteDatabaseId.fromFileDatabase(databaseFileData).also {
         databaseRepository.addDatabaseConnection(it, databaseConnection)
       }
@@ -246,8 +246,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor
-  ) = withContext(uiThread) {
-    withContext(workerThread) { downloadOfflineDatabases?.cancelAndJoin() }
+  ) = withContext(uiDispatcher) {
+    withContext(workerDispatcher) { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
     // close all databases when a new session starts
     model.getOpenDatabaseIds().forEach { controller.closeDatabase(it) }
     model.clearDatabases()
@@ -255,7 +255,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     ideServices = appInspectionIdeServices
     controller.startAppInspectionSession(databaseInspectorClientCommandsChannel, appInspectionIdeServices)
 
-    appPackageName = withContext(workerThread) {
+    appPackageName = withContext(workerDispatcher) {
       PackageNameProvider.getPackageName(project, processDescriptor.serial, processDescriptor.processName).await()
     }
   }
@@ -274,36 +274,45 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     controller.stopAppInspectionSession()
 
-    downloadOfflineDatabases = projectScope.launch {
-      if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
-        val stopwatch = Stopwatch.createStarted()
-        var totalSizeDownloaded = 0L
-        val databasesToDownload = openDatabases
-          .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
-          .filter { !it.isInMemoryDatabase() }
+    if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
+      enterOfflineMode(openDatabases, processDescriptor)
+    }
+  }
 
-        val databaseFileData = databasesToDownload.mapNotNull { liveSqliteDatabaseId ->
-          try {
-            val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(
-              appPackageName ?: processDescriptor.processName,
-              processDescriptor,
-              liveSqliteDatabaseId
-            )
-            totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { it.length }.sum()
-            databaseFileData
-          }
-          catch (e: OfflineDatabaseException) {
-            databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
-            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
-            null
+  private fun enterOfflineMode(openDatabases: List<SqliteDatabaseId>, processDescriptor: ProcessDescriptor) {
+    downloadAndOpenOfflineDatabasesJob = projectScope.launch {
+      // metrics
+      val stopwatch = Stopwatch.createStarted()
+      var totalSizeDownloaded = 0L
+
+      val flow = offlineModeManager.downloadFiles(
+        openDatabases,
+        processDescriptor,
+        appPackageName
+      ) { message, throwable -> handleError(message, throwable) }
+
+      val openDatabaseFlow = flow.onEach {
+        when (it.downloadState) {
+          OfflineModeManager.DownloadState.IN_PROGRESS -> { /* update ui */ }
+          OfflineModeManager.DownloadState.COMPLETED -> {
+            it.filesDownloaded.forEach { databaseFileData ->
+              totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { file -> file.length }.sum()
+
+              // we open dbs only after all downloads are completed because if the user opens a tab before all downloads are done,
+              // they would hide the download progress
+              // TODO(b/168969287)
+              openSqliteDatabase(databaseFileData).await()
+            }
           }
         }
+      }
 
-        // we open dbs only after all downloads are completed because if the user opens a tab before all downloads are done, they would
-        // hide the download progress
-        // TODO(b/168969287)
-        databaseFileData.forEach { openSqliteDatabase(it).await() }
-
+      try {
+        openDatabaseFlow.collect()
+      } catch (e: CancellationException) {
+        /* update ui */
+      } finally {
+        // metrics
         stopwatch.stop()
         val offlineMetadata = AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
           .newBuilder()

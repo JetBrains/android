@@ -32,7 +32,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
 
-interface OfflineDatabaseManager {
+/** Class responsible for downloading and deleting file database data */
+interface FileDatabaseManager {
   /**
    * Downloads a local copy of the database passed as argument, from the device.
    * @throws IOException if the device corresponding to [processDescriptor] is not found
@@ -45,15 +46,15 @@ interface OfflineDatabaseManager {
   ): DatabaseFileData
 
   /**
-   * Deletes the files associated to [databaseId] from the host machine.
+   * Deletes the files associated to [databaseFileData].
    */
-  suspend fun cleanUp(databaseId: SqliteDatabaseId.FileSqliteDatabaseId)
+  suspend fun cleanUp(databaseFileData: DatabaseFileData)
 }
 
-class OfflineDatabaseManagerImpl(
+class FileDatabaseManagerImpl(
   private val project: Project,
   private val deviceFileDownloaderService: DeviceFileDownloaderService = DeviceFileDownloaderService.getInstance(project)
-) : OfflineDatabaseManager {
+) : FileDatabaseManager {
 
   override suspend fun loadDatabaseFileData(
     packageName: String,
@@ -61,7 +62,7 @@ class OfflineDatabaseManagerImpl(
     databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
   ): DatabaseFileData {
     if (!isFileDownloadAllowed(packageName)) {
-      throw OfflineDatabaseException(
+      throw FileDatabaseException(
         """For security reasons offline mode is disabled when 
         the process being inspected does not correspond to the project open in studio 
         or when the project has been generated from a prebuilt apk."""
@@ -78,10 +79,10 @@ class OfflineDatabaseManagerImpl(
     val files = try {
       deviceFileDownloaderService.downloadFiles(processDescriptor.serial, pathsToDownload, disposableDownloadProgress).await()
     } catch (e: IllegalArgumentException) {
-      throw OfflineDatabaseException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
+      throw FileDatabaseException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
     }
 
-    val mainFile = files[path] ?: throw OfflineDatabaseException("Can't download database '${databaseToDownload.path}'")
+    val mainFile = files[path] ?: throw FileDatabaseException("Can't download database '${databaseToDownload.path}'")
     val shmFile = files["$path-shm"]
     val walFile = files["$path-wal"]
 
@@ -89,8 +90,8 @@ class OfflineDatabaseManagerImpl(
     return DatabaseFileData(mainFile, additionalFiles)
   }
 
-  override suspend fun cleanUp(databaseId: SqliteDatabaseId.FileSqliteDatabaseId) {
-    val filesToClose = listOf(databaseId.databaseFileData.mainFile) + databaseId.databaseFileData.walFiles
+  override suspend fun cleanUp(databaseFileData: DatabaseFileData) {
+    val filesToClose = listOf(databaseFileData.mainFile) + databaseFileData.walFiles
     deviceFileDownloaderService
       .deleteFiles(filesToClose)
       .await()
@@ -126,4 +127,4 @@ class OfflineDatabaseManagerImpl(
   }
 }
 
-class OfflineDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
+class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
