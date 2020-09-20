@@ -35,7 +35,7 @@ private class CommonTabbedPaneEntriesRegistrar : ImageDiffEntriesRegistrar() {
 
     init {
       val tabbedPane = CommonTabbedPane()
-      tabbedPane.font = ImageDiffUtil.getDefaultFont()
+      tabbedPane.font = ImageDiffTestUtil.getDefaultFont()
       tabbedPane.tabPlacement = tabPlacement
       tabbedPane.addTab("tab1", JLabel())
       tabbedPane.addTab("tab2", JLabel())
@@ -45,7 +45,7 @@ private class CommonTabbedPaneEntriesRegistrar : ImageDiffEntriesRegistrar() {
     }
 
     override fun generateComponentImage(): BufferedImage {
-      return ImageDiffUtil.getImageFromComponent(panel)
+      return ImageDiffTestUtil.getImageFromComponent(panel)
     }
   }
 }

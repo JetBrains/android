@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.webp;
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import junit.framework.TestCase;

@@ -21,7 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord

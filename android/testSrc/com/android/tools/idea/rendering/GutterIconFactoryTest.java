@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.vfs.LocalFileSystem;

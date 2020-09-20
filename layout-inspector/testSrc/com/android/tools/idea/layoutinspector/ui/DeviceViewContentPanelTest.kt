@@ -18,7 +18,8 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -501,7 +502,7 @@ class DeviceViewContentPanelTest {
 
     val generatedImage = BufferedImage(400, 600, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
-    graphics.font = ImageDiffUtil.getDefaultFont()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
@@ -514,28 +515,28 @@ class DeviceViewContentPanelTest {
 
     model.selection = model[VIEW1]
     graphics = generatedImage.createGraphics()
-    graphics.font = ImageDiffUtil.getDefaultFont()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_view1.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
-    graphics.font = ImageDiffUtil.getDefaultFont()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawUntransformedBounds = true
     graphics = generatedImage.createGraphics()
-    graphics.font = ImageDiffUtil.getDefaultFont()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
-    graphics.font = ImageDiffUtil.getDefaultFont()
+    graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)

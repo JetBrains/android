@@ -17,7 +17,7 @@ package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.impl.ViewTreeCellRenderer.ColoredViewRenderer
