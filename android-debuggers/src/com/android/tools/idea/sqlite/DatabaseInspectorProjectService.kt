@@ -149,7 +149,6 @@ interface DatabaseInspectorProjectService {
   /**
    * Called when Database Inspector is disconnected from app,
    * takes as argument the [ProcessDescriptor] of the process that has been disconnected.
-   * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
    */
   @UiThread
   suspend fun stopAppInspectionSession(processDescriptor: ProcessDescriptor)
@@ -209,6 +208,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
+
+  @TestOnly
+  fun getSwitchToOfflineModeJob(): Job? {
+    return downloadOfflineDatabases
+  }
 
   @AnyThread
   override fun openSqliteDatabase(
@@ -278,21 +282,28 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
           .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
           .filter { !it.isInMemoryDatabase() }
 
-        for (liveSqliteDatabaseId in databasesToDownload) {
+        val databaseFileData = databasesToDownload.mapNotNull { liveSqliteDatabaseId ->
           try {
             val databaseFileData = offlineDatabaseManager.loadDatabaseFileData(
               appPackageName ?: processDescriptor.processName,
               processDescriptor,
               liveSqliteDatabaseId
             )
-            openSqliteDatabase(databaseFileData).await()
             totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { it.length }.sum()
+            databaseFileData
           }
           catch (e: OfflineDatabaseException) {
             databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
+            null
           }
         }
+
+        // we open dbs only after all downloads are completed because if the user opens a tab before all downloads are done, they would
+        // hide the download progress
+        // TODO(b/168969287)
+        databaseFileData.forEach { openSqliteDatabase(it).await() }
+
         stopwatch.stop()
         val offlineMetadata = AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
           .newBuilder()

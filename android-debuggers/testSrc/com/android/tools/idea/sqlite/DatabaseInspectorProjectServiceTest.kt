@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -51,9 +52,10 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.any
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
@@ -62,7 +64,8 @@ import java.io.File
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
-  private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
+  private lateinit var sqliteFile2: VirtualFile
+  private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectServiceImpl
   private lateinit var databaseInspectorController: FakeDatabaseInspectorController
   private lateinit var model: OpenDatabaseInspectorModel
   private lateinit var repository: OpenDatabaseRepository
@@ -89,6 +92,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     sqliteUtil.setUp()
 
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
+    sqliteFile2 = sqliteUtil.createTestSqliteDatabase("db2.db")
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     repository = OpenDatabaseRepository(project, EdtExecutorService.getInstance())
@@ -272,11 +276,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
   fun testDownloadOfflineDatabasesWhenAppInspectionSessionIsTerminated() {
     // Prepare
+    val inOrderVerifier = inOrder(databaseInspectorController, offlineDatabaseManager)
+
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
     DatabaseInspectorFlagController.enableOfflineMode(true)
 
-    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 0) as SqliteDatabaseId.LiveSqliteDatabaseId
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
+    val databaseId3 = SqliteDatabaseId.fromLiveDatabase("db3", 3) as SqliteDatabaseId.LiveSqliteDatabaseId
 
     val connection = LiveDatabaseConnection(
       testRootDisposable,
@@ -287,14 +294,30 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId3, connection))
+
+    runDispatching {
+      `when`(
+        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1)
+      ).thenReturn(DatabaseFileData(sqliteFile1))
+
+      `when`(
+        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3)
+      ).thenReturn(DatabaseFileData(sqliteFile2))
+    }
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
+      databaseInspectorProjectService.getSwitchToOfflineModeJob()!!.join()
     }
 
     // Assert
-    runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1) }
+    runDispatching {
+      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1)
+      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId3)
+      inOrderVerifier.verify(databaseInspectorController, times(2)).addSqliteDatabase(any(SqliteDatabaseId::class.java))
+    }
     verifyNoMoreInteractions(offlineDatabaseManager)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
