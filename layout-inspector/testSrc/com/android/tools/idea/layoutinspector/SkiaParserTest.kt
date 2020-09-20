@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.repository.testframework.MockFileOp
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule

@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup

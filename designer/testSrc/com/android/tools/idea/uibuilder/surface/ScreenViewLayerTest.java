@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;

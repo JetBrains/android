@@ -31,7 +31,7 @@ abstract class ImageDiffEntry {
   }
 
   ImageDiffEntry(String baselineFilename) {
-    this(baselineFilename, ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
+    this(baselineFilename, ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
   }
 
   /**

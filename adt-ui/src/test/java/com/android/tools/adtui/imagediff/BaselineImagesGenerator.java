@@ -34,9 +34,9 @@ class BaselineImagesGenerator {
       return;
     }
 
-    for (ImageDiffEntry entry : ImageDiffUtil.IMAGE_DIFF_ENTRIES) {
+    for (ImageDiffEntry entry : ImageDiffTestUtil.IMAGE_DIFF_ENTRIES) {
       File destinationFile = new File(resourcesDir, entry.getBaselineFilename());
-      ImageDiffUtil.exportBaselineImage(destinationFile, entry.generateComponentImage());
+      ImageDiffTestUtil.exportBaselineImage(destinationFile, entry.generateComponentImage());
     }
 
     // The program hangs unless I call System.exit(0) explicitly. The AWT event thread seems to keep running.

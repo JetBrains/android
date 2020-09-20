@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs

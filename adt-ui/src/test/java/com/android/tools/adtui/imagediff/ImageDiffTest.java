@@ -34,7 +34,7 @@ public class ImageDiffTest {
   @Parameterized.Parameters(name = "{0}")
   public static List<ImageDiffEntry> getImageDiffEntries() {
     // The parameters of this test class are all the image diff entries of the imagediff package, so it can run all the tests registered.
-    return ImageDiffUtil.IMAGE_DIFF_ENTRIES;
+    return ImageDiffTestUtil.IMAGE_DIFF_ENTRIES;
   }
 
   /**
@@ -50,8 +50,8 @@ public class ImageDiffTest {
   @Test
   public void runTest() {
     // Asserts that a generated image is similar (within a given threshold) to a baseline image with given name.
-    ImageDiffUtil.assertImagesSimilar(myEntry.getBaselineFilename(),
-                                      myEntry.generateComponentImage(),
-                                      myEntry.getSimilarityThreshold());
+    ImageDiffTestUtil.assertImagesSimilar(myEntry.getBaselineFilename(),
+                                          myEntry.generateComponentImage(),
+                                          myEntry.getSimilarityThreshold());
   }
 }
