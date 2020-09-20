@@ -42,6 +42,7 @@ open class OpenDatabaseRepository(
   }
 
   override suspend fun clear() {
+    databaseRepository.clear()
     openDatabases.clear()
   }
 }
