@@ -1,7 +1,10 @@
+android-studio/LICENSE.txt
+android-studio/NOTICE.txt
 android-studio/bin/IdeaWin32.dll
 android-studio/bin/IdeaWin64.dll
 android-studio/bin/WinProcessListHelper.exe
 android-studio/bin/append.bat
+android-studio/bin/appletviewer.policy
 android-studio/bin/breakgen.dll
 android-studio/bin/breakgen64.dll
 android-studio/bin/clang/win/clang-tidy.exe
@@ -34,6 +37,7 @@ android-studio/bin/lldb/bin/msvcp140.dll
 android-studio/bin/lldb/bin/python38.dll
 android-studio/bin/lldb/bin/ucrtbase.dll
 android-studio/bin/lldb/bin/vcruntime140.dll
+android-studio/bin/lldb/bin/vcruntime140_1.dll
 android-studio/bin/lldb/bin/x86_64-linux-android-c++filt.exe
 android-studio/bin/lldb/lib/__future__.py
 android-studio/bin/lldb/lib/__phello__.foo.py
