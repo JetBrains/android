@@ -19,12 +19,14 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
+import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.HelpSupport
@@ -34,6 +36,7 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import icons.StudioIcons
+import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
@@ -123,10 +126,27 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
   }
 }
 
-object ColorSelectionAction: AnAction("Select Color") {
+typealias ColorPickerCreator = (
+  initialColor: Color?,
+  initialColorResource: ResourceReference?,
+  configuration: Configuration?,
+  resourcePickerSources: List<ResourcePickerSources>,
+  restoreFocusComponent: Component?,
+  locationToShow: Point?,
+  colorPickedCallback: ((Color) -> Unit)?,
+  colorResourcePickedCallback: ((String) -> Unit)?) -> Unit
+
+object ColorSelectionAction: TestableColorSelectionAction()
+
+@Suppress("ComponentNotRegistered")
+open class TestableColorSelectionAction(
+  @TestOnly
+  val onCreateColorPicker: ColorPickerCreator = ::createAndShowColorPickerPopup
+) : AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+    val actualProperty = (property as? NeleNewPropertyItem)?.delegate ?: property
 
     val resourceReference = property.resolveValueAsReference(property.rawValue)
     val currentColor = if (resourceReference != null) {
@@ -135,9 +155,9 @@ object ColorSelectionAction: AnAction("Select Color") {
     else {
       property.resolveValueAsColor(property.rawValue)
     }
+    val initialColor = currentColor ?: Color.WHITE
     val restoreFocusTo = componentToRestoreFocusTo(event)
-
-    selectFromColorDialog(locationFromEvent(event), property, currentColor, resourceReference, restoreFocusTo)
+    selectFromColorDialog(locationFromEvent(event), actualProperty, initialColor, resourceReference, restoreFocusTo)
   }
 
   private fun selectFromColorDialog(location: Point,
@@ -145,7 +165,7 @@ object ColorSelectionAction: AnAction("Select Color") {
                                     initialColor: Color?,
                                     resourceReference: ResourceReference?,
                                     restoreFocusTo: Component?) {
-    createAndShowColorPickerPopup(
+    onCreateColorPicker(
       initialColor,
       resourceReference,
       property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull(),
