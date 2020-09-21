@@ -24,7 +24,7 @@ class CpuAnalysisEventsTab(profilersView: StudioProfilersView,
   private fun initComponents() {
     layout = BorderLayout()
     val nodesTable = CaptureNodeDetailTable(model.getNodes(), model.captureRange,
-                                            viewRange = profilersView.studioProfilers.stage.timeline.viewRange, pageSize = 30)
+                                            viewRange = profilersView.studioProfilers.stage.timeline.viewRange, initialPageSize = 25)
     add(nodesTable.component)
   }
 

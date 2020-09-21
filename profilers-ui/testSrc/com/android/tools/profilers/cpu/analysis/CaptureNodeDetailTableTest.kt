@@ -100,7 +100,7 @@ class CaptureNodeDetailTableTest {
 
   @Test
   fun tableCanBePaginated() {
-    val treeWalker = TreeWalker(CaptureNodeDetailTable(listOf(NODE), Range(0.0, 100.0), pageSize = 1).component)
+    val treeWalker = TreeWalker(CaptureNodeDetailTable(listOf(NODE), Range(0.0, 100.0), initialPageSize = 1).component)
     assertThat(treeWalker.descendants().filterIsInstance<JButton>().filter { it.toolTipText == "Go to first page" }).isNotEmpty()
   }
 
