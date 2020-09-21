@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -421,22 +422,27 @@ public class IdeSdks {
     return null;
   }
 
-  // Must run inside a WriteAction
-  public void setJdkPath(@NotNull File path) {
+  /**
+   * Sets the JDK in the given path to be used if valid. Must be run inside a WriteAction.
+   * @param path, folder in which the JDK is looked for.
+   * @return the JDK in the given path if valid, null otherwise.
+   */
+  public Sdk setJdkPath(@NotNull File path) {
     if (checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
       File canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
 
+      ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
       if (myIdeInfo.isAndroidStudio()) {
         // Delete all JDKs in Android Studio. We want to have only one.
-        List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+        List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
         for (final Sdk jdk : jdks) {
-          ProjectJdkTable.getInstance().removeJdk(jdk);
+          projectJdkTable.removeJdk(jdk);
         }
       }
       else {
-        for (Sdk jdk : ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())) {
+        for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
           if (pathsEqual(jdk.getHomePath(), canonicalPath.getPath())) {
             chosenJdk = jdk;
             break;
@@ -463,7 +469,9 @@ public class IdeSdks {
         }
       }
       setUseEnvVariableJdk(false);
+      return chosenJdk;
     }
+    return null;
   }
 
   /**
@@ -915,11 +923,18 @@ public class IdeSdks {
     return virtualFiles;
   }
 
-  private static boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
+  @VisibleForTesting
+  static boolean isJdkCompatible(@Nullable Sdk jdk, @Nullable JavaSdkVersion preferredVersion) {
     if (jdk == null) {
       return false;
     }
     if (preferredVersion == null) {
+      return true;
+    }
+    if (!JavaSdk.getInstance().isOfVersionOrHigher(jdk, JDK_1_8)) {
+      return false;
+    }
+    if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
       return true;
     }
     return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
@@ -1029,7 +1044,7 @@ public class IdeSdks {
     return null;
   }
 
-  private void showValidateDetails(@NotNull File homePath) {
+  private static void showValidateDetails(@NotNull File homePath) {
     LOG.warn("Could not validate JDK at " + homePath + ":");
     LOG.warn("  File exists: " + homePath.exists());
     LOG.warn("  Javac: " + (new File(homePath, "bin/javac").isFile() || new File(homePath, "bin/javac.exe").isFile()));

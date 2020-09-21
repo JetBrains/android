@@ -56,7 +56,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -97,6 +96,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.JComboBox;
@@ -260,8 +260,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setJdkPath(getJdkLocation());
-      ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
+      Sdk chosenJdk = ideSdks.setJdkPath(getJdkLocation());
+      ideSdks.setAndroidSdkPath(getSdkLocation(), chosenJdk, myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         IdeSdks.updateWelcomeRunAndroidSdkAction();
@@ -695,7 +695,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @NotNull
   public List<ProjectConfigurationError> validateState() {
-    List<ProjectConfigurationError> errors = Lists.newArrayList();
+    List<ProjectConfigurationError> errors = new ArrayList<>();
 
     String msg = validateAndroidSdkPath();
     if (msg != null) {

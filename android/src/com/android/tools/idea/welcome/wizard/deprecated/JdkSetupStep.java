@@ -191,7 +191,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
       return false;
     }
     File path = toSystemDependentPath(getJdkLocation().getPath());
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(path));
+    ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(path);});
     myState.put(KEY_JDK_LOCATION, path.getPath());
     return true;
   }
