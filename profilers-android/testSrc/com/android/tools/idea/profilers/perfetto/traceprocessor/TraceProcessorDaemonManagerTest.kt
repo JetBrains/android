@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.testutils.TestUtils
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assume
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.StringReader
@@ -48,7 +46,7 @@ class TraceProcessorDaemonManagerTest {
 
   @Test
   fun `output listener - detects running`() {
-    val source = BufferedReader(StringReader("Server listening on 127.0.0.1:40000\n"))
+    val source = BufferedReader(StringReader("Some Message\nServer listening on 127.0.0.1:40000\n"))
     val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
     val executor = Executors.newSingleThreadExecutor()
@@ -61,7 +59,7 @@ class TraceProcessorDaemonManagerTest {
 
   @Test
   fun `output listener - detects failed`() {
-    val source = BufferedReader(StringReader("Server failed to start. A port number wasn't bound.\n"))
+    val source = BufferedReader(StringReader("Some Message\nServer failed to start. A port number wasn't bound.\n"))
     val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
     val executor = Executors.newSingleThreadExecutor()
@@ -70,6 +68,19 @@ class TraceProcessorDaemonManagerTest {
     listener.run()
     assertThat(listener.selectedPort).isEqualTo(0)
     assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.FAILED)
+  }
+
+  @Test
+  fun `output listener - detects end of stream`() {
+    val source = BufferedReader(StringReader("Some Message\nStream will end\n"))
+    val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
+
+    val executor = Executors.newSingleThreadExecutor()
+    val result = executor.submit(GetStatusCallable(listener))
+
+    listener.run()
+    assertThat(listener.selectedPort).isEqualTo(0)
+    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
   }
 
   private class GetStatusCallable(private val listener: TraceProcessorDaemonManager.TPDStdoutListener)
