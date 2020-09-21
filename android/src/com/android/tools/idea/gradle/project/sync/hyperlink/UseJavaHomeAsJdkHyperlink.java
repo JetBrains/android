@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
-  @NotNull private String myJavaHome;
+  @NotNull private final String myJavaHome;
 
   @Nullable
   public static UseJavaHomeAsJdkHyperlink create() {
@@ -47,7 +47,7 @@ public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(new File(myJavaHome)));
+    ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(new File(myJavaHome));});
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }
