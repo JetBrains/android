@@ -19,6 +19,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -120,10 +121,10 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
       if (filePsiElement != null && elements.contains(filePsiElement)) {
         switch (myRepository) {
           case GOOGLE:
-            buildModel.repositories().addGoogleMavenRepository(myProject);
+            RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), myProject);
             PsiElement buildScriptElement = buildModel.buildscript().getPsiElement();
             if (buildScriptElement != null) {
-              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), myProject);
             }
             break;
           default:

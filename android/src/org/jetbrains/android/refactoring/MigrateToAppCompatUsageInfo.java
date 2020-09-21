@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -726,7 +727,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     @Nullable
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
-      myRepositoriesModel.addGoogleMavenRepository(getProject());
+      RepositoriesModelExtensionKt.addGoogleMavenRepository(myRepositoriesModel, getProject());
       myProjectBuildModel.applyChanges();
       return getElement();
     }
