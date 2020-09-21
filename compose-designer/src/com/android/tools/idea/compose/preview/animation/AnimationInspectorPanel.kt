@@ -21,10 +21,13 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -229,6 +232,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     playPauseAction.dispose()
     animationTabs.clear()
     tabNamesCount.clear()
+  }
+
+  private fun logAnimationInspectorEvent(type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) {
+    AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
   }
 
   /**
@@ -463,6 +470,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         val startState = startStateComboBox.selectedItem
         startStateComboBox.selectedItem = endStateComboBox.selectedItem
         endStateComboBox.selectedItem = startState
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -478,6 +486,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       : AnActionButton(message("animation.inspector.action.go.to.start"), StudioIcons.LayoutEditor.Motion.GO_TO_START) {
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToStart()
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_START_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -493,6 +502,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       : AnActionButton(message("animation.inspector.action.go.to.end"), StudioIcons.LayoutEditor.Motion.GO_TO_END) {
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToEnd()
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -528,7 +538,14 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
     private var isPlaying = false
 
-    override fun actionPerformed(e: AnActionEvent) = if (isPlaying) pause() else play()
+    override fun actionPerformed(e: AnActionEvent) = if (isPlaying) {
+      pause()
+      logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
+    }
+    else {
+      play()
+      logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PLAY_ACTION)
+    }
 
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
@@ -604,6 +621,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
         timeline.speed = speed
+        val changeSpeedEvent = AnimationToolingEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED)
+          .withAnimationMultiplier(speed.speedMultiplier)
+        AnimationToolingUsageTracker.getInstance(surface).logEvent(changeSpeedEvent)
       }
     }
   }
@@ -627,6 +647,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         // Reset the loop when leaving playInLoop mode.
         timeline.loopCount = 0
       }
+      logAnimationInspectorEvent(
+        if (state) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION
+        else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION
+      )
     }
   }
 
