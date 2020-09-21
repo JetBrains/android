@@ -90,7 +90,7 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureConditionalDelivery() {
     wizard().clickNext();
-    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Module Download Options"));
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Module title (this may be visible to users)"));
     return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
   }
 
