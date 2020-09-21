@@ -140,7 +140,7 @@
         <stepElement>
           <section>
             <![CDATA[
-             <img src="file:///usr/local/google/home/nealeckard/Desktop/4.1/system-trace-select-wna.png"
+             <img src="https://d.android.com/studio/releases/assistant/4.1.0/system-trace-select-wna.png"
              alt="Box selection of a thread in the System Trace tool." />
              <br><br>
             <p>The System Trace UI in the Android Studio profiler now includes:
@@ -159,7 +159,7 @@
               </li>
             </ul>
             </p>
-            <a href="https://d.android.com/studio/releases#4.1-ui-upgrades?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
+            <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#4.1-ui-upgrades">Learn more</a>
             <br><br>
             ]]>
           </section>
@@ -297,7 +297,7 @@
               The core Android Studio IDE is based on IntelliJ IDEA and has been upgraded
               to version 2020.1 for this release.
               <br><br>
-              <a href="https://d.android.com/studio/releases#4.1-intellij-idea?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
+              <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#4.1-intellij-idea">Learn more</a>
               <br><br>
             ]]>
           </section>
