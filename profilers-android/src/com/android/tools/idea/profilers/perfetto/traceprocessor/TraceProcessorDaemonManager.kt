@@ -126,7 +126,7 @@ class TraceProcessorDaemonManager(
         daemonPort = stdoutListener.selectedPort
         process = newProcess
         LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
-      } else if(stdoutListener.status == DaemonStatus.FAILED) {
+      } else if(stdoutListener.status == DaemonStatus.FAILED || stdoutListener.status == DaemonStatus.END_OF_STREAM) {
         tracker.trackTraceProcessorDaemonSpawnAttempt(false, timeToSpawnMs)
         LOGGER.info("TPD Manager: Unable to start TPD instance.")
         // Make sure we clean up our instance to not leave a zombie process
@@ -140,7 +140,7 @@ class TraceProcessorDaemonManager(
    * Represents the status of the daemon, that we can extract from its output/logging.
    */
   @VisibleForTesting
-  enum class DaemonStatus { STARTING, RUNNING, FAILED }
+  enum class DaemonStatus { STARTING, RUNNING, FAILED, END_OF_STREAM }
 
   /**
    * This runnable will keep consuming the output (stdout and stderr) from the daemon and will pipe it to our own logs.
@@ -163,18 +163,24 @@ class TraceProcessorDaemonManager(
 
     override fun run() {
       while (true) {
-        val line = outputReader.readLine() ?: break
+        val line = outputReader.readLine()
+        if (line == null) {
+          LOGGER.debug("TPD Manager: [TPD Log] EOF")
+          status = DaemonStatus.END_OF_STREAM
+          break
+        }
         LOGGER.debug("TPD Manager: [TPD Log] $line")
 
         val serverOkMatcher = SERVER_STARTED.matcher(line)
         if (serverOkMatcher.matches()) {
           selectedPort = serverOkMatcher.group("port").toInt()
           status = DaemonStatus.RUNNING
+          break
         } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
           status = DaemonStatus.FAILED
+          break
         }
       }
-      LOGGER.debug("TPD Manager: [TPD Log] EOF")
     }
 
     fun waitForRunningOrFailed() {
