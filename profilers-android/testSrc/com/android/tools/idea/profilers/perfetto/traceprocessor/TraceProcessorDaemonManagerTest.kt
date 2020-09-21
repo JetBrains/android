@@ -21,7 +21,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.StringReader
-import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -50,11 +49,18 @@ class TraceProcessorDaemonManagerTest {
     val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
     val executor = Executors.newSingleThreadExecutor()
-    val result = executor.submit(GetStatusCallable(listener))
+    val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.run()
+    listener.waitForRunningOrFailed(0)
+    val port = listener.selectedPort
+    val status = listener.status
+
+    assertThat(port).isEqualTo(40000)
+    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
+
+    listenerRunnable.get()
     assertThat(listener.selectedPort).isEqualTo(40000)
-    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
+    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
   }
 
   @Test
@@ -63,11 +69,18 @@ class TraceProcessorDaemonManagerTest {
     val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
     val executor = Executors.newSingleThreadExecutor()
-    val result = executor.submit(GetStatusCallable(listener))
+    val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.run()
+    listener.waitForRunningOrFailed(0)
+    val port = listener.selectedPort
+    val status = listener.status
+
+    assertThat(port).isEqualTo(0)
+    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.FAILED)
+
+    listenerRunnable.get()
     assertThat(listener.selectedPort).isEqualTo(0)
-    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.FAILED)
+    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.FAILED)
   }
 
   @Test
@@ -76,20 +89,76 @@ class TraceProcessorDaemonManagerTest {
     val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
     val executor = Executors.newSingleThreadExecutor()
-    val result = executor.submit(GetStatusCallable(listener))
+    val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.run()
+    listener.waitForRunningOrFailed(0)
+    val port = listener.selectedPort
+    val status = listener.status
+
+    assertThat(port).isEqualTo(0)
+    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
+
+    listenerRunnable.get()
     assertThat(listener.selectedPort).isEqualTo(0)
-    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
+    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
   }
 
-  private class GetStatusCallable(private val listener: TraceProcessorDaemonManager.TPDStdoutListener)
-    : Callable<TraceProcessorDaemonManager.DaemonStatus> {
+  @Test
+  fun `output listener - timeout on blocked reader`() {
+    val reader = LockExposedStringReader("Will Never Read This\nStream will end\n")
+    val source = BufferedReader(reader)
+    val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
 
-    override fun call(): TraceProcessorDaemonManager.DaemonStatus {
-      listener.waitForRunningOrFailed()
-      return listener.status
+    val executor = Executors.newFixedThreadPool(2)
+    val lockHolder = LockHolder(reader.getLock())
+    val holderRunnable = executor.submit(lockHolder)
+    val listenerRunnable = executor.submit(RunListener(listener))
+
+    // As holderRunnable is holding reader's lock, so the reader can't return and will timeout.
+    listener.waitForRunningOrFailed(5000)
+    val port = listener.selectedPort
+    val status = listener.status
+
+    assertThat(port).isEqualTo(0)
+    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.STARTING)
+
+    // Release the reader lock and let the thread finish.
+    lockHolder.unlock()
+    holderRunnable.get()
+    listenerRunnable.get()
+
+    // The listener actually finished with END OF STREAM after we release the lock, as expected.
+    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
+  }
+
+  private class RunListener(private val listener: TraceProcessorDaemonManager.TPDStdoutListener): Runnable {
+    override fun run() {
+      listener.run()
     }
+  }
+
+  // Holds {@code lock} until unlock() is called.
+  private class LockHolder(private val lock: Any): Runnable {
+    private val internalLock = Object()
+
+    override fun run() {
+      synchronized(lock) {
+        synchronized(internalLock) {
+          internalLock.wait()
+        }
+      }
+    }
+
+    fun unlock() {
+      synchronized(internalLock) {
+        internalLock.notifyAll()
+      }
+    }
+  }
+
+  // Impl of StringReader with internal lock exposed, so we can test timeout logic.
+  private class LockExposedStringReader(str: String): StringReader(str) {
+    fun getLock(): Any = this.lock
   }
 
 }
