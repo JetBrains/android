@@ -27,51 +27,19 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.io.IOException
 import java.io.Serializable
-import java.util.HashMap
 
-class SelectedVariants : Serializable {
-  // Key: module's Gradle ID, value: selected variant.
-  /**
-   * @see com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
-   */
-  private val mySelectedVariantByModule: MutableMap<String, String> = HashMap()
-
-  // Map from module id to selected abi name, only available for native modules.
-  private val mySelectedAbiByModule: MutableMap<String, String> = HashMap()
-
-  fun addSelectedVariant(moduleId: String, variantName: String, abiName: String?) {
-    mySelectedVariantByModule[moduleId] = variantName
-    if (abiName != null) {
-      mySelectedAbiByModule[moduleId] = abiName
-    }
-  }
-
-  fun size(): Int {
-    return mySelectedVariantByModule.size
-  }
-
-  fun getSelectedVariant(moduleId: String): String? {
-    return mySelectedVariantByModule[moduleId]
-  }
-
-  fun getSelectedAbi(moduleId: String): String? {
-    return mySelectedAbiByModule[moduleId]
-  }
-
-  val selectedVariantsByModule: Map<String, String> get() = HashMap(mySelectedVariantByModule)
-  val selectedAbisByModule: Map<String, String> get() = HashMap(mySelectedAbiByModule)
+data class SelectedVariant(val moduleId: String, val variantName: String, val abiName: String?) : Serializable
+data class SelectedVariants(val selectedVariants: Map<String, SelectedVariant>) : Serializable {
+  fun getSelectedVariant(moduleId: String): String? = selectedVariants[moduleId]?.variantName
+  fun getSelectedAbi(moduleId: String): String? = selectedVariants[moduleId]?.abiName
 }
 
 class SelectedVariantCollector(private val project: Project) {
+
   fun collectSelectedVariants(): SelectedVariants {
-    val selectedVariants = SelectedVariants()
-    for (module in ModuleManager.getInstance(project).modules) {
-      val variant = findSelectedVariant(module)
-      if (variant != null) {
-        selectedVariants.addSelectedVariant(variant.moduleId, variant.variantName, variant.abiName)
-      }
-    }
-    return selectedVariants
+    return SelectedVariants(
+      ModuleManager.getInstance(project).modules.mapNotNull { module -> findSelectedVariant(module) }.associateBy { it.moduleId }
+    )
   }
 
   private fun findSelectedVariant(module: Module): SelectedVariant? {
@@ -91,18 +59,15 @@ class SelectedVariantCollector(private val project: Project) {
       val androidFacet = AndroidFacet.getInstance(module)
       val ndkModuleModel = get(module)
       val ndkFacet = getInstance(module)
+      val moduleId = Modules.createUniqueModuleId(rootFolder, projectPath)
       if (ndkFacet != null && ndkModuleModel != null) {
         val (variant, abi) = ndkFacet.selectedVariantAbi ?: return null
-        return SelectedVariant(rootFolder, projectPath, variant, abi)
+        return SelectedVariant(moduleId, variant, abi)
       }
       if (androidFacet != null) {
-        return SelectedVariant(rootFolder, projectPath, androidFacet.properties.SELECTED_BUILD_VARIANT, null)
+        return SelectedVariant(moduleId, androidFacet.properties.SELECTED_BUILD_VARIANT, null)
       }
     }
     return null
-  }
-
-  internal class SelectedVariant(rootFolderPath: File, gradlePath: String, val variantName: String, val abiName: String?) {
-    val moduleId: String = Modules.createUniqueModuleId(rootFolderPath, gradlePath)
   }
 }

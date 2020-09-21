@@ -239,12 +239,10 @@ public class GradleSyncExecutor {
       throw new IllegalStateException("Cannot obtain GradleExecutionSettings");
     }
 
-    Map<String, String> variantsByModule = selectedVariants.getSelectedVariantsByModule();
-    Map<String, String> abisByModule = selectedVariants.getSelectedAbisByModule();
     Map<String, String> variantsByNativeModule =
-      variantsByModule.entrySet().stream()
-        .filter(it -> abisByModule.containsKey(it.getKey()))
-        .collect(Collectors.toMap(it -> it.getKey(), it -> it.getValue()));
+      selectedVariants.getSelectedVariants().values().stream()
+        .filter(it -> it.getAbiName() != null)
+        .collect(Collectors.toMap(it -> it.getModuleId(), it -> it.getVariantName()));
 
     settings.putUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY,
                          new ProjectResolutionMode.FetchNativeVariantsMode(variantsByNativeModule, requestedAbis));
