@@ -1,7 +1,10 @@
 Android Studio.app/Contents/Info.plist
 Android Studio.app/Contents/MacOS/studio
+Android Studio.app/Contents/Resources/LICENSE.txt
+Android Studio.app/Contents/Resources/NOTICE.txt
 Android Studio.app/Contents/Resources/build.txt
 Android Studio.app/Contents/Resources/studio.icns
+Android Studio.app/Contents/bin/appletviewer.policy
 Android Studio.app/Contents/bin/clang/mac/clang-tidy
 Android Studio.app/Contents/bin/clang/mac/clangd
 Android Studio.app/Contents/bin/format.sh

@@ -1,4 +1,7 @@
 android-studio/Install-Linux-tar.txt
+android-studio/LICENSE.txt
+android-studio/NOTICE.txt
+android-studio/bin/appletviewer.policy
 android-studio/bin/clang/linux/clang-tidy
 android-studio/bin/clang/linux/clangd
 android-studio/bin/clang/linux/libc++.so.1
