@@ -31,6 +31,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
@@ -210,7 +211,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     // Add Google repository
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     Project project = getProject();
-    buildModel.repositories().addGoogleMavenRepository(project);
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), project);
     runWriteCommandAction(project, buildModel::applyChanges);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");

@@ -32,6 +32,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -165,11 +166,11 @@ public class AndroidPluginVersionUpdater {
           // Add Google Maven repository to buildscript (b/69977310)
           if (oldPluginVersion == null || !oldPluginVersion.isAtLeast(3, 0, 0)) {
             if (gradleVersion != null) {
-              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion.toString());
+              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), gradleVersion);
             }
             else {
               // Gradle version will *not* change, use project version
-              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+              RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.buildscript().repositories(), myProject);
             }
           }
           modelsToUpdate.add(buildModel);
