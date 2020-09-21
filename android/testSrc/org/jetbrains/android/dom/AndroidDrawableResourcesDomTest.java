@@ -18,7 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.vfs.VirtualFile;
-
+import com.intellij.psi.PsiFile;
 import java.io.IOException;
 import java.util.List;
 
@@ -363,6 +363,24 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     final VirtualFile javaFile = copyFileToProject("TestDrawable.java", "src/p1/p2/TestDrawable.java");
     myFixture.configureFromExistingVirtualFile(javaFile);
     toTestFirstCompletion("drawableCompletion2.xml", "drawableCompletion2_after.xml");
+  }
+
+  // The test checks that <transition> tag can include <animated-vector> subtag and resolve any resource references therein
+  // Test for http://b.android.com/37081228
+  public void testAnimatedVectorHighlighting() throws Throwable {
+    PsiFile file = myFixture.addFileToProject(
+      "res/drawable/foo.xml",
+      "<animated-selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+      "    <transition android:fromId=\"@+id/off\" android:toId=\"@+id/on\">\n" +
+      "        <animated-vector android:drawable=\"@android:color/background_dark\">\n" +
+      "            <target\n" +
+      "                android:name=\"button\"\n" +
+      "                android:animation=\"@android:anim/bounce_interpolator\" />\n" +
+      "        </animated-vector>\n" +
+      "    </transition>\n" +
+      "\n" +
+      "</animated-selector>");
+    doTestHighlighting(file.getVirtualFile());
   }
 
   private void doTestOnlyDrawableReferences() throws IOException {
