@@ -52,6 +52,8 @@ class TraceProcessorDaemonManager(
   private companion object {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonManager::class.java)
 
+    // Timeout in milliseconds to wait for the TPD to start: 1 minute
+    private val TPD_SPAWN_TIMEOUT = TimeUnit.MINUTES.toMillis(1)
     // TPD is hardcoded to output these strings on stdout:
     private val SERVER_STARTED = Pattern.compile("^Server listening on (?:127.0.0.1|localhost):(?<port>\\d+)\n*$")
     // TPD write the following message to stdout when it cannot find a port to bind.
@@ -116,7 +118,7 @@ class TraceProcessorDaemonManager(
       executorService.execute(stdoutListener)
 
       // wait until we receive the message that the daemon is listening and get the port
-      stdoutListener.waitForRunningOrFailed()
+      stdoutListener.waitForRunningOrFailed(TPD_SPAWN_TIMEOUT)
 
       spawnStopwatch.stop()
       val timeToSpawnMs = spawnStopwatch.elapsed(TimeUnit.MILLISECONDS)
@@ -126,7 +128,7 @@ class TraceProcessorDaemonManager(
         daemonPort = stdoutListener.selectedPort
         process = newProcess
         LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
-      } else if(stdoutListener.status == DaemonStatus.FAILED || stdoutListener.status == DaemonStatus.END_OF_STREAM) {
+      } else {
         tracker.trackTraceProcessorDaemonSpawnAttempt(false, timeToSpawnMs)
         LOGGER.info("TPD Manager: Unable to start TPD instance.")
         // Make sure we clean up our instance to not leave a zombie process
@@ -183,9 +185,10 @@ class TraceProcessorDaemonManager(
       }
     }
 
-    fun waitForRunningOrFailed() {
+    fun waitForRunningOrFailed(timeout: Long) {
       synchronized(statusLock) {
-        while (status == DaemonStatus.STARTING) statusLock.wait()
+        // We do a check to avoid the timeout wait unnecessarily if the status isn't STARTING already.
+        if (status == DaemonStatus.STARTING) statusLock.wait(timeout)
       }
     }
 
