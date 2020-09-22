@@ -53,13 +53,13 @@ class ComposeDelegateStateImportFixContributor : QuickFixContributor {
 }
 
 /**
- * Creates an IntentionAction that allow to add [androidx.compose.getValue] import for [androidx.compose.MutableState] in delegate position.
+ * Creates an IntentionAction that allow to add [androidx.compose.runtime.getValue] import for [androidx.compose.runtime.MutableState] in delegate position.
  */
 private class ComposeDelegateStateImportFixFactory : KotlinSingleIntentionActionFactory() {
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
     val callExpression: KtCallExpression = diagnostic.psiElement as? KtCallExpression ?: return null
     val delegateFqName = callExpression.getResolvedCall(callExpression.analyze(BodyResolveMode.FULL))?.getReturnType()?.fqName
-    if (delegateFqName?.asString() == "androidx.compose.MutableState") {
+    if (delegateFqName?.asString() == "androidx.compose.runtime.MutableState") {
       return ComposeDelegateStateImportFixAction()
     }
     return null
@@ -82,7 +82,7 @@ private class ComposeDelegateStateImportFixAction : IntentionAction {
     psiDocumentManager.commitAllDocuments()
 
     project.executeWriteCommand(QuickFixBundle.message("add.import")) {
-      val descriptor = file.resolveImportReference(FqName("androidx.compose.getValue")).firstOrNull() ?: return@executeWriteCommand
+      val descriptor = file.resolveImportReference(FqName("androidx.compose.runtime.getValue")).firstOrNull() ?: return@executeWriteCommand
       ImportInsertHelper.getInstance(project).importDescriptor(file, descriptor)
     }
   }
