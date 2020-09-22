@@ -81,16 +81,6 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   private val project get() = projectRule.project
   private val fixture get() = projectRule.fixture
 
-  @Before
-  fun setUp() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
-  }
-
   @Test
   fun testFindPreviewAnnotations() {
     val composeTest = fixture.addFileToProject(

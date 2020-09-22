@@ -69,22 +69,7 @@ class ParametrizedPreviewTest {
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
     RenderService.setForTesting(projectRule.project, null)
-  }
-
-  /**
-   * Checks that we do not find parametrized previews when the flag is disabled.
-   */
-  @Test
-  fun testFlagGuardedParametrizedOverride() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(false)
-    val project = projectRule.project
-
-    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
-                                                        ProjectRootManager.getInstance(project).contentRoots[0])!!
-
-    assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews).count())
   }
 
   /**
@@ -92,7 +77,6 @@ class ParametrizedPreviewTest {
    */
   @Test
   fun testParametrizedPreview() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
     val project = projectRule.project
 
     val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
@@ -115,7 +99,6 @@ class ParametrizedPreviewTest {
    */
   @Test
   fun testLoremIpsumInstance() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
     val project = projectRule.project
 
     val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",

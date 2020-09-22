@@ -55,11 +55,6 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
                                        composableAnnotationPackage = composableAnnotationPackage)
   private val fixture get() = projectRule.fixture
 
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
-  }
-
   @Test
   fun testNeedsComposableInspection() {
     fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
@@ -88,7 +83,6 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
   @Test
   fun testNoParametersInPreview() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
     fixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")

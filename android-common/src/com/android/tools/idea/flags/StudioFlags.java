@@ -872,12 +872,6 @@ public final class StudioFlags {
     "render correctly.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
-    COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
-    "If enable, the preview will support Preview data sources",
-    true);
-
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
