@@ -104,7 +104,6 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoader
 import java.awt.BorderLayout
 import java.awt.Color
 import java.time.Duration

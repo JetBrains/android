@@ -17,9 +17,13 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.diagnostic.Logger
 
 /**
@@ -29,8 +33,8 @@ import com.intellij.openapi.diagnostic.Logger
 class ComposeSceneUpdateListener: SceneManager.SceneUpdateListener {
   private val LOG = Logger.getInstance(ComposeSceneUpdateListener::class.java)
 
-  override fun onUpdate(component: NlComponent) {
-    updateAnimationInspectorToolbarIcon(component)
+  override fun onUpdate(component: NlComponent, designSurface: DesignSurface) {
+    updateAnimationInspectorToolbarIcon(component, designSurface)
   }
 
   /**
@@ -38,7 +42,7 @@ class ComposeSceneUpdateListener: SceneManager.SceneUpdateListener {
    * calling the homonym method from ComposeViewAdapter via reflection. This will determine the visibility of the animation inspector icon
    * in the scene toolbar.
    */
-  private fun updateAnimationInspectorToolbarIcon(component: NlComponent) {
+  private fun updateAnimationInspectorToolbarIcon(component: NlComponent, designSurface: DesignSurface) {
     try {
       val viewObj = component.viewInfo?.viewObject ?: return
       val hasAnimationsMethod = viewObj::class.java.declaredMethods
@@ -47,7 +51,13 @@ class ComposeSceneUpdateListener: SceneManager.SceneUpdateListener {
           it.isAccessible = true
         }
       val previewElement = (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance) ?: return
-      previewElement.hasAnimations = hasAnimationsMethod.invoke(viewObj) as Boolean
+      val previewHasAnimations = hasAnimationsMethod.invoke(viewObj) as Boolean
+      if (previewHasAnimations) {
+        AnimationToolingUsageTracker.getInstance(designSurface).logEvent(AnimationToolingEvent(
+          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ANIMATION_INSPECTOR_AVAILABLE
+        ))
+      }
+      previewElement.hasAnimations = previewHasAnimations
     }
     catch (e: Exception) {
       LOG.debug("Could not check if the Composable has animations.", e)
