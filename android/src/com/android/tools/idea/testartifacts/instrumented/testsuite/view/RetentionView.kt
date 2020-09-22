@@ -42,6 +42,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.SwingHelper
+import com.intellij.util.ui.UIUtil
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
@@ -67,6 +68,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
+import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -134,13 +136,14 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var packageName = ""
-  val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot", AllIcons.Actions.Execute).apply {
+  val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
         AnActionEvent.createFromDataContext("", null, dataContext))
     }
+    isBorderPainted = false
   }
   val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
     alignmentX = 0.0f
@@ -157,8 +160,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   private val myInnerPanel = panel {
     row {
       myImageLabel()
-      myInfoText(grow)
+      myInfoText(pushX, growY)
     }
+  }.apply {
+    background = UIUtil.getTableBackground()
+    border =
+      BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(UIUtil.CONTRAST_BORDER_COLOR),
+        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+      )
   }
   private val myLayoutPanel = panel {
     row {
