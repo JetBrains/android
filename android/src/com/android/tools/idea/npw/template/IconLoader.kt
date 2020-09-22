@@ -20,10 +20,11 @@ import com.google.common.cache.CacheLoader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.IconLoader.findIcon
 import java.net.URL
+import java.util.*
 import javax.swing.Icon
-import java.util.Optional
 
-private val log get() = logger<IconLoader>()
+private val log
+  get() = logger<IconLoader>()
 
 /**
  * Guava [CacheLoader] which can convert a file path to an icon. This is used to help us load standard 256x256 icons out of template files.
