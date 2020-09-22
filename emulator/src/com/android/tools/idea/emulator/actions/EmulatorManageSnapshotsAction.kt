@@ -34,7 +34,7 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
   }
 
   override fun update(event: AnActionEvent) {
+    super.update(event)
     event.presentation.isVisible = StudioFlags.EMBEDDED_EMULATOR_NEW_SNAPSHOT_UI.get()
-    event.presentation.isEnabled = getEmulatorController(event) != null
   }
 }

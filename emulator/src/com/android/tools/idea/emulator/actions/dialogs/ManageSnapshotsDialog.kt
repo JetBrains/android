@@ -33,7 +33,6 @@ import com.android.tools.idea.emulator.actions.createBootMode
 import com.android.tools.idea.emulator.logger
 import com.google.common.html.HtmlEscapers
 import com.intellij.CommonBundle
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -49,6 +48,8 @@ import com.intellij.ui.AnActionButton
 import com.intellij.ui.BooleanTableCellEditor
 import com.intellij.ui.BooleanTableCellRenderer
 import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.JBColor
+import com.intellij.ui.LayeredIcon
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.DialogManager
@@ -57,7 +58,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.Label
 import com.intellij.ui.components.dialog
 import com.intellij.ui.components.htmlComponent
-import com.intellij.ui.layout.applyToComponent
 import com.intellij.ui.layout.panel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
@@ -70,13 +70,14 @@ import com.intellij.util.ui.JBImageIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
+import icons.StudioIcons
 import org.jetbrains.kotlin.utils.SmartSet
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
@@ -129,8 +130,15 @@ class ManageSnapshotsDialog(
     name = "runningOperationLabel"
   }
   private val snapshotImagePanel = ImagePanel(true)
+  private val selectionStateLabel = Label("No snapshots selected").apply {
+    name = "selectionStateLabel"
+    verticalTextPosition = SwingConstants.CENTER
+    horizontalAlignment = SwingConstants.CENTER
+  }
+  private val previewPanel = BorderLayoutPanel().apply {
+    preferredSize = JBUI.size(270, 100)
+  }
   private val snapshotInfoPanel = htmlComponent(lineWrap = true)
-  private val selectionStateLabel = Label("No snapshots selected").apply { name = "selectionStateLabel" }
   private val coldBootCheckBox = JBCheckBox("Start without using a snapshot (cold boot)").apply {
     addItemListener {
       if (isSelected != snapshotTableModel.isColdBoot) {
@@ -143,7 +151,7 @@ class ManageSnapshotsDialog(
   private var validationText = JTextField()
   /** Dialog wrapper. Not null when and only when the dialog is shown. */
   private var dialogManager: DialogWrapper? = null
-  private val snapshotManager = SnapshotManager(emulator.emulatorId.avdFolder, emulator.emulatorId.avdId)
+  private val snapshotManager = SnapshotManager(emulator)
   private val backgroundExecutor = createBoundedApplicationPoolExecutor("ManageSnapshotsDialog", 1)
   /**
    * Used to avoid deleting a snapshot folder while accessing files under that folder.
@@ -181,20 +189,8 @@ class ManageSnapshotsDialog(
         }
 
         cell(isVerticalFlow = true) {
-          component(selectionStateLabel).constraints(growX, growY).applyToComponent {
-            preferredSize = JBUI.size(260, 100)
-            verticalTextPosition = SwingConstants.CENTER
-            horizontalAlignment = SwingConstants.CENTER
-          }
-          component(snapshotImagePanel).constraints(growX, growY, pushX).applyToComponent {
-            preferredSize = JBUI.size(260, 100)
-            isVisible = false
-          }
-          component(snapshotInfoPanel).constraints(growX).applyToComponent {
-            val fontMetrics = getFontMetrics(font)
-            preferredSize = Dimension(0, fontMetrics.height * 6)
-            isVisible = false
-          }
+          component(previewPanel).constraints(growX, growY, pushX)
+          component(snapshotInfoPanel).constraints(growX)
         }
       }
       row {
@@ -207,23 +203,27 @@ class ManageSnapshotsDialog(
         component(coldBootCheckBox)
       }
     }.apply {
-      val selectionModel = snapshotTable.selectionModel
-      selectionModel.addListSelectionListener {
+      snapshotTable.selectionModel.addListSelectionListener {
         clearError()
-        val count = selectionModel.selectionSize
-        if (count == 1) {
-          selectionStateLabel.isVisible = false
-          snapshotImagePanel.isVisible = true
-          snapshotInfoPanel.isVisible = true
-          snapshotTable.selectedObject?.let { updateSnapshotDetails(it) }
-        }
-        else {
-          selectionStateLabel.isVisible = true
-          snapshotImagePanel.isVisible = false
-          snapshotInfoPanel.isVisible = false
-          selectionStateLabel.text = if (count == 0) "No snapshots selected" else "$count snapshots selected"
-        }
+        updateSelectionState()
       }
+
+      updateSelectionState()
+    }
+  }
+
+  private fun updateSelectionState() {
+    previewPanel.removeAll()
+    val count = snapshotTable.selectedRowCount
+    if (count == 1) {
+      previewPanel.addToCenter(snapshotImagePanel)
+      snapshotTable.selectedObject?.let { updateSnapshotDetails(it) }
+      snapshotInfoPanel.isVisible = true
+    }
+    else {
+      previewPanel.addToCenter(selectionStateLabel)
+      selectionStateLabel.text = if (count == 0) "No snapshots selected" else "$count snapshots selected"
+      snapshotInfoPanel.isVisible = false
     }
   }
 
@@ -241,10 +241,35 @@ class ManageSnapshotsDialog(
     val size = getHumanizedSize(snapshot.sizeOnDisk)
     val creationTime = JBDateFormat.getFormatter().formatDateTime(snapshot.creationTime).replace(",", "")
     val folderName = htmlEscaper.escape(snapshot.snapshotFolder.fileName.toString())
-    val attributeSection = if (snapshot.creationTime == 0L) "not created yet" else "${size}, created ${creationTime}<br>"
-    val fileSection = if (snapshot.isQuickBoot) "" else "File: ${folderName}<br>"
-    val description = htmlEscaper.escape(snapshot.description)
-    snapshotInfoPanel.text = "<html><b>${name}</b><br>${attributeSection}${fileSection}<br>${description}</html>"
+    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created ${creationTime}, ${size}"
+    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: ${folderName}"
+    val errorSection = if (snapshot.isValid) ""
+        else "<br><font color = ${JBColor.RED.toHtmlString()}>Incompatible with the current configuration</font>"
+    val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
+    snapshotInfoPanel.apply {
+      text = "<html><b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}</html>"
+      val fontMetrics = getFontMetrics(font)
+      val wrappedDescriptionLines = if (width == 0) 0 else fontMetrics.stringWidth(snapshot.description) / width
+      preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines))
+    }
+  }
+
+  private fun countLineBreaks(html: String): Int {
+    var count = 0
+    var offset = 0
+    while (true) {
+      val br = "<br>"
+      offset = html.indexOf(br, offset)
+      if (offset < 0) {
+        return count
+      }
+      count++
+      offset += br.length
+    }
+  }
+
+  private fun Color.toHtmlString(): String {
+    return (rgb and 0xFFFFFF).toString(16)
   }
 
   private fun createTablePanel(): JPanel {
@@ -261,8 +286,11 @@ class ManageSnapshotsDialog(
           .setMoveDownAction(null)
           .setMoveUpAction(null)
           .addExtraAction(LoadSnapshotAction())
+          .setEditActionUpdater {
+            !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) &&
+            snapshotTable.selectedObject?.isValid ?: false
+          }
           .setRemoveActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
-          .setEditActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
           .setPreferredSize(JBUI.size(500, 450))
           .setToolbarPosition(ActionToolbarPosition.BOTTOM)
           .setButtonComparator("Load Snapshot", "Edit", "Remove")
@@ -371,6 +399,9 @@ class ManageSnapshotsDialog(
       return
     }
     val snapshot = snapshotTable.selectedObject ?: return
+    if (snapshot.isQuickBoot || !snapshot.isValid) {
+      return
+    }
     val dialog = EditSnapshotDialog(snapshot.displayName, snapshot.description, snapshot == snapshotTableModel.bootSnapshot)
     if (dialog.createWrapper(parent = snapshotTable).showAndGet()) {
       if (dialog.snapshotName != snapshot.displayName || dialog.snapshotDescription != snapshot.description) {
@@ -396,6 +427,7 @@ class ManageSnapshotsDialog(
     clearError()
     val selectionState = SelectionState(snapshotTable)
     val selectionModel = snapshotTable.selectionModel
+    val minSelectionIndex = selectionModel.minSelectionIndex
     val foldersToDelete = mutableListOf<Path>()
     for (row in selectionModel.maxSelectionIndex downTo selectionModel.minSelectionIndex) {
       if (selectionModel.isSelectedIndex(row)) {
@@ -411,6 +443,14 @@ class ManageSnapshotsDialog(
       }
     }
     selectionModel.clearSelection()
+    // Select a single snapshot near the place where the old selection was or the QuickBoot
+    // snapshot if the old selection was empty.
+    val index = when {
+      minSelectionIndex < 0 -> 0
+      minSelectionIndex < snapshotTable.rowCount -> minSelectionIndex
+      else -> snapshotTable.rowCount - 1
+    }
+    selectionModel.addSelectionInterval(index, index)
 
     backgroundExecutor.submit {
       var errors = false
@@ -512,7 +552,7 @@ class ManageSnapshotsDialog(
     val bootSnapshot = when (bootMode.bootType) {
       BootType.COLD -> null
       BootType.QUICK -> snapshots[QUICK_BOOT_SNAPSHOT_MODEL_ROW]
-      else -> snapshots.find { it.snapshotId == bootMode.bootSnapshotId }
+      else -> snapshots.find { it.snapshotId == bootMode.bootSnapshotId && it.isValid }
     }
 
     invokeLater {
@@ -579,7 +619,7 @@ class ManageSnapshotsDialog(
       }
 
       override fun isCellEditable(snapshot: SnapshotInfo): Boolean {
-        return true
+        return snapshot.isValid
       }
 
       override fun getEditor(snapshot: SnapshotInfo): TableCellEditor {
@@ -602,7 +642,9 @@ class ManageSnapshotsDialog(
 
     val nameColumnIndex: Int
     val bootColumnIndex: Int
-    val snapshotIconMap = hashMapOf<SnapshotInfo, Future<Icon?>>()
+     val snapshotIconMap = hashMapOf<SnapshotInfo, Future<Icon?>>()
+    /** An empty icon matching the size of a decorated one. */
+    private val emptyIcon = createDecoratedIcon(EmptyIcon.ICON_16, EmptyIcon.ICON_16)
 
     init {
       columnInfos = arrayOf(nameColumn, creationTimeColumn, sizeColumn, bootColumn)
@@ -658,6 +700,9 @@ class ManageSnapshotsDialog(
       items = snapshots
       snapshotIconMap.keys.retainAll(HashSet(snapshots)) // Cleanup snapshotIconMap
       savedSelection.restoreSelection()
+      if (snapshotTable.selectedRowCount == 0 && snapshots.isNotEmpty()) {
+        snapshotTable.selectionModel.addSelectionInterval(QUICK_BOOT_SNAPSHOT_MODEL_ROW, QUICK_BOOT_SNAPSHOT_MODEL_ROW)
+      }
     }
 
     override fun getDefaultSortKey(): RowSorter.SortKey? {
@@ -665,30 +710,25 @@ class ManageSnapshotsDialog(
     }
 
     fun getIcon(snapshot: SnapshotInfo): Icon? {
-      val iconFuture = snapshotIconMap.computeIfAbsent(snapshot, ::readIconImage)
+      val iconFuture = snapshotIconMap.computeIfAbsent(snapshot, ::createSnapshotIcon)
 
       if (iconFuture.isDone) {
         try {
-          return iconFuture.get() ?: EmptyIcon.ICON_16
+          return iconFuture.get() ?: emptyIcon
         }
         catch (_: Exception) { // Ignore to return an empty icon.
         }
       }
-      return EmptyIcon.ICON_16
+      return emptyIcon
     }
 
-    private fun readIconImage(snapshot: SnapshotInfo): Future<Icon?> {
+    private fun createSnapshotIcon(snapshot: SnapshotInfo): Future<Icon?> {
       return AndroidIoManager.getInstance().getBackgroundDiskIoExecutor().submit(Callable<Icon> {
-        val image: BufferedImage
-        try {
-          image = ImageIO.read(snapshot.screenshotFile.toFile()) ?: return@Callable null
-        }
-        catch (_: IOException) {
-          return@Callable null
-        }
-        val iconSize = JBUIScale.scale(16)
-        val iconImage = ImageUtils.scale(image, iconSize.toDouble() / max(image.width, image.height))
-        val icon = IconUtil.toSize(JBImageIcon(iconImage), iconSize, iconSize)
+        val snapshotImageIcon = createBaseSnapshotIcon(snapshot)
+        val decorator = if (snapshot.isValid) EmptyIcon.ICON_16
+            else IconUtil.toSize(StudioIcons.Emulator.INVALID_SNAPSHOT_DECORATOR, snapshotImageIcon.iconWidth, snapshotImageIcon.iconHeight)
+        val icon = createDecoratedIcon(snapshotImageIcon, decorator)
+
         // Schedule a table cell update on the UI thread.
         invokeLater {
           val index = indexOf(snapshot)
@@ -700,6 +740,28 @@ class ManageSnapshotsDialog(
       })
     }
 
+    @Slow
+    private fun createBaseSnapshotIcon(snapshot: SnapshotInfo): Icon {
+      try {
+        val image = ImageIO.read(snapshot.screenshotFile.toFile()) ?: return EmptyIcon.ICON_16
+        val imageScale = 16 * JBUIScale.sysScale(snapshotTable).toDouble() / max(image.width, image.height)
+        val iconImage = ImageUtils.scale(image, imageScale)
+        val iconSize = JBUIScale.scale(16)
+        return IconUtil.toSize(JBImageIcon(iconImage), iconSize, iconSize)
+      }
+      catch (_: IOException) {
+        return EmptyIcon.ICON_16
+      }
+    }
+
+    private fun createDecoratedIcon(baseIcon: Icon, decorator: Icon): LayeredIcon {
+      val icon = LayeredIcon(2)
+      icon.setIcon(baseIcon, 0)
+      // Shift the decorator to make it stand out visually.
+      icon.setIcon(decorator, 1, baseIcon.iconWidth / 4, 0)
+      return icon
+    }
+
     override fun dispose() {
       for (future in snapshotIconMap.values) {
         future.cancel(true)
@@ -707,14 +769,15 @@ class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", AllIcons.Actions.Upload) {
+  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.LOAD_SNAPSHOT) {
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
     }
 
     override fun isEnabled(): Boolean {
-      return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected
+      return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected &&
+             snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isValid
     }
   }
 
@@ -807,12 +870,13 @@ class ManageSnapshotsDialog(
     private class SnapshotRowSorter(model: SnapshotTableModel) : DefaultColumnInfoBasedRowSorter(model) {
 
       override fun getComparator(column: Int): Comparator<*> {
-        // Make sure that the QuickBoot snapshot is always at the top of the list.
+        // Make sure that the QuickBoot snapshot is always at the top and invalid snapshots are
+        // always at the bottom of the list.
         val quickBootComparator = if (sortKeys.firstOrNull()?.sortOrder == SortOrder.ASCENDING) {
-          compareByDescending(SnapshotInfo::isQuickBoot)
+          compareByDescending(SnapshotInfo::isQuickBoot).thenByDescending(SnapshotInfo::isValid)
         }
         else {
-          compareBy(SnapshotInfo::isQuickBoot)
+          compareBy(SnapshotInfo::isQuickBoot).thenBy(SnapshotInfo::isValid)
         }
         @Suppress("UNCHECKED_CAST")
         return quickBootComparator.then(super.getComparator(column) as Comparator<SnapshotInfo>)
@@ -831,6 +895,9 @@ class ManageSnapshotsDialog(
       return super.getTableCellRendererComponent(table, snapshot, isSelected, false, row, column).apply {
         if ((snapshot as SnapshotInfo).isQuickBoot) {
           font = font.deriveFont(Font.ITALIC)
+        }
+        if (!snapshot.isValid) {
+          toolTipText = "The snapshot is incompatible with the current configuration"
         }
       }
     }
@@ -857,32 +924,35 @@ class ManageSnapshotsDialog(
     }
   }
 
-  private class SelectionState(val table: SnapshotTable) {
+  private class SelectionState(private val table: SnapshotTable) {
     private val selected = getSelectedSnapshotFolders()
     private val anchor: Path? = getSnapshotFolderAt(table.selectionModel.anchorSelectionIndex)
     private val lead: Path? = getSnapshotFolderAt(table.selectionModel.anchorSelectionIndex)
 
     fun restoreSelection() {
       val selectionModel: ListSelectionModel = table.selectionModel
-      val model = table.model
       selectionModel.clearSelection()
-      var anchorRow = -1
-      var leadRow = -1
-      for (i in 0 until model.rowCount) {
-        val snapshotFolder = model.getItem(i).snapshotFolder
-        val row = table.convertRowIndexToView(i)
-        if (snapshotFolder in selected) {
-          selectionModel.addSelectionInterval(row, row)
+      if (selected.isNotEmpty()) {
+        var anchorRow = -1
+        var leadRow = -1
+        val model = table.model
+        for (i in 0 until model.rowCount) {
+          val snapshotFolder = model.getItem(i).snapshotFolder
+          val row = table.convertRowIndexToView(i)
+          if (snapshotFolder in selected) {
+            selectionModel.addSelectionInterval(row, row)
+          }
+          if (snapshotFolder == anchor) {
+            anchorRow = row
+          }
+          if (snapshotFolder == lead) {
+            leadRow = row
+          }
         }
-        if (snapshotFolder == anchor) {
-          anchorRow = row
-        }
-        if (snapshotFolder == lead) {
-          leadRow = row
-        }
+        selectionModel.anchorSelectionIndex = anchorRow
+        selectionModel.leadSelectionIndex = leadRow
       }
-      selectionModel.anchorSelectionIndex = anchorRow
-      selectionModel.leadSelectionIndex = leadRow
+
       TableUtil.scrollSelectionToVisible(table)
     }
 
@@ -945,17 +1015,6 @@ private fun composeSnapshotId(existingSnapshots: Collection<SnapshotInfo>): Stri
   }
   throw AssertionError("Unable to create an unique snapshot ID")
 }
-
-private val ListSelectionModel.selectionSize: Int
-  get() {
-    var count = 0
-    for (i in minSelectionIndex..maxSelectionIndex) {
-      if (isSelectedIndex(i)) {
-        count++
-      }
-    }
-    return count
-  }
 
 private val ListSelectionModel.isSingleItemSelected: Boolean
   get() = minSelectionIndex >= 0 && minSelectionIndex == maxSelectionIndex
