@@ -20,27 +20,32 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
 class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
-  fun test() {
+  override fun setUp() {
+    super.setUp()
     myFixture.addFileToProject(
       "/androidx/compose/State.kt",
       //language=kotlin
       """
-      package androidx.compose
-      
+      package androidx.compose.runtime
+
       class MutableState<T>
-      
+
       fun <T> state(v:() -> T) = MutableState<T>()
-      
+
+      fun <T> mutableStateOf(v:() -> T) = MutableState<T>()
+
       inline operator fun <T> MutableState<T>.getValue(thisObj: Any?, property: KProperty<*>) = true
 
     """.trimIndent())
+  }
 
+  fun testState() {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
       //language=kotlin
       """
-        import androidx.compose.state
-        
+        import androidx.compose.runtime.state
+
         val myVal by state { false }
       """.trimIndent()
     )
@@ -54,10 +59,38 @@ class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
     myFixture.checkResult(
       //language=kotlin
       """
-        import androidx.compose.getValue
-        import androidx.compose.state
-        
+        import androidx.compose.runtime.getValue
+        import androidx.compose.runtime.state
+
         val myVal by state { false }
+      """.trimIndent()
+    )
+  }
+
+  fun testMutableState() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import androidx.compose.runtime.mutableStateOf
+
+        val myVal by mutableStateOf(3)
+      """.trimIndent()
+    )
+    val error = myFixture.doHighlighting().find { it.description?.contains("[DELEGATE_SPECIAL_FUNCTION_MISSING]") == true }
+    assertThat(error).isNotNull()
+
+    val fix = myFixture.getAllQuickFixes().find { it.text == "Import getValue" }
+    assertThat(fix).isNotNull()
+    fix!!.invoke(project, myFixture.editor, myFixture.file)
+
+    myFixture.checkResult(
+      //language=kotlin
+      """
+        import androidx.compose.runtime.getValue
+        import androidx.compose.runtime.mutableStateOf
+
+        val myVal by mutableStateOf(3)
       """.trimIndent()
     )
   }
