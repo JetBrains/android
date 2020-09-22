@@ -357,7 +357,7 @@ class ComposePreviewTest {
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
       try {
-        guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Inspector")
+        guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Preview")
       }
       catch (e: ComponentLookupException) {
         null

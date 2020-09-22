@@ -147,7 +147,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   internal var animationClock: AnimationClock? = null
 
   init {
-    name = "Animation Inspector"
+    name = "Animation Preview"
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
     noAnimationsPanel.startLoading()
@@ -365,7 +365,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * TODO(b/157895086): Disable toolbar actions while build is in progress
      */
     private fun createPlaybackControllers(): JComponent = ActionManager.getInstance().createActionToolbar(
-      "Animation inspector",
+      "Animation Preview",
       DefaultActionGroup(listOf(
         timelineLoopAction,
         GoToStartAction(),
