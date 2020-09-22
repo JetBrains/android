@@ -298,7 +298,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       animationInspection.set(newValue != null)
       if (animationInspection.get()) {
-        LOG.debug("Animation Inspector open for preview: $newValue")
+        LOG.debug("Animation Preview open for preview: $newValue")
         previewElementProvider.instanceFilter = newValue
         sceneComponentProvider.enabled = false
         // Open the animation inspection panel
