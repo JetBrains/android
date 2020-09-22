@@ -88,6 +88,17 @@ class CaptureNodeDetailTableTest {
   }
 
   @Test
+  fun rowSortingDoesNotUpdateViewRange() {
+    val viewRange = Range(0.0, 100.0)
+    val table = CaptureNodeDetailTable(NODE.children, Range(0.0, 100.0), viewRange).table
+    table.selectionModel.setSelectionInterval(0, 0)
+    val newViewRange = Range(viewRange)
+    // Sort by name to change row order.
+    table.rowSorter.toggleSortOrder(1)
+    assertThat(viewRange.isSameAs(newViewRange)).isTrue()
+  }
+
+  @Test
   fun tableCanBePaginated() {
     val treeWalker = TreeWalker(CaptureNodeDetailTable(listOf(NODE), Range(0.0, 100.0), pageSize = 1).component)
     assertThat(treeWalker.descendants().filterIsInstance<JButton>().filter { it.toolTipText == "Go to first page" }).isNotEmpty()
