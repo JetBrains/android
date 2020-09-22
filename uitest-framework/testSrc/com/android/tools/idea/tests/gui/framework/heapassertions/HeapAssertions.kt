@@ -26,10 +26,10 @@ import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LeakHunter
 import com.intellij.util.PairProcessor
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.PersistentEnumeratorBase
 import com.intellij.util.ref.DebugReflectionUtil
 import com.intellij.util.ui.UIUtil
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.annotations.TestOnly
 import java.io.Closeable
 import java.util.*
@@ -58,9 +58,9 @@ fun checkWeakSoftRefMaps(enforce: Boolean = false) {
     ) { map, backlink ->
       val (sources, sinks, description) = when {
         map is WeakHashMap<*, *> || refHashMapClass.isInstance(map) ->
-          Triple(map.values, ContainerUtil.newIdentityTroveSet(map.keys), "Strong-referenced values: $backlink")
+          Triple(map.values, ReferenceOpenHashSet(map.keys), "Strong-referenced values: $backlink")
         else ->
-          Triple(map.keys, ContainerUtil.newIdentityTroveSet(map.values), "Strong-referenced keys: $backlink")
+          Triple(map.keys, ReferenceOpenHashSet(map.values), "Strong-referenced keys: $backlink")
       }
       try {
         traverseObjectGraph(
@@ -109,7 +109,7 @@ inline fun <reified T> traverseObjectGraph(roots: Map<Any, String>,
                                            crossinline shouldFollowValue: (Any) -> Boolean = { true },
                                            crossinline objectMatches: (T) -> Boolean,
                                            crossinline processor: (T, Any) -> Unit) {
-  val alreadyReported = ContainerUtil.newIdentityTroveSet<Any>()
+  val alreadyReported = ReferenceOpenHashSet<Any>()
   ApplicationManager.getApplication().runReadAction {
     ProhibitAWTEvents.start("checking for leaks").use {
       DebugReflectionUtil.walkObjects(

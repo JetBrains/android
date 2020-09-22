@@ -131,8 +131,8 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.util.Processor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.toArray
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.ifEmpty
@@ -336,7 +336,7 @@ class AgpUpgradeRefactoringProcessor(
       return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
     }
 
-    val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
+    val elements: MutableSet<PsiElement> = ReferenceOpenHashSet()  // protect against poorly implemented equality
 
     for (usage in usages) {
       assert(usage != null) { "Found null element in usages array" }
