@@ -78,6 +78,7 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
         "//tools/idea/plugins/webp/lib/libwebp",
     ],
+    test_flaky = True,  # b/169167550
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
@@ -178,6 +179,7 @@ iml_module(
         "//tools/idea/java/mockJDK-1.7",
         "//tools/idea/plugins/webp/lib/libwebp",
     ],
+    test_flaky = True,  # b/169167550
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
