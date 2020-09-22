@@ -158,8 +158,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     if (root is Container) {
       val queue = ArrayDeque<Container>()
       queue.add(root)
-      var container: Container
-      while (queue.poll().also { container = it } != null) {
+      while (queue.isNotEmpty()) {
+        val container = queue.remove()
         for (child in container.components) {
           if (type.isInstance(child) && predicate(child as T)) {
             return child

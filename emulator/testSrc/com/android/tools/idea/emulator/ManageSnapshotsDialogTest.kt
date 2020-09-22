@@ -46,6 +46,7 @@ import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JEditorPane
 import javax.swing.JLabel
+import javax.swing.JLayeredPane
 import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.table.DefaultTableCellRenderer
@@ -91,6 +92,10 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testDialog() {
+    val invalidSnapshotId = "invalid_snapshot"
+    emulator.createSnapshot(invalidSnapshotId)
+    emulator.markSnapshotInvalid(invalidSnapshotId)
+
     val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
     val dialogWrapper = dialogPanel.createWrapper(projectRule.project)
 
@@ -100,30 +105,32 @@ class ManageSnapshotsDialogTest {
       val table = ui.getComponent<TableView<SnapshotInfo>>()
       val tableModel = table.listTableModel
       val actionsPanel = ui.getComponent<CommonActionsPanel>()
-      val selectionStateLabel = ui.getComponent<JLabel> { it.name == "selectionStateLabel"}
-      val previewImagePanel = ui.getComponent<ImagePanel>()
       val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
       // Wait for the snapshot list to be populated.
       waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.isNotEmpty() }
       // Check that there is only a QuickBoot snapshot, which is a placeholder since it doesn't exist on disk.
-      assertThat(tableModel.items).hasSize(1)
+      assertThat(tableModel.items).hasSize(2)
       val quickBootSnapshot = tableModel.items[0]
       assertThat(quickBootSnapshot.isQuickBoot).isTrue()
-      assertThat(quickBootSnapshot.creationTime).isEqualTo(0) // It is a placeholder.
+      assertThat(quickBootSnapshot.isCreated).isFalse() // It hasn't been created yet.
+      val invalidSnapshot = tableModel.items[1]
+      assertThat(invalidSnapshot.isValid).isFalse()
       assertThat(isUseToBoot(table, 0)).isFalse() // The QuickBoot snapshot is not used to boot.
-      assertThat(table.selectedObjects).isEmpty()
-      assertThat(selectionStateLabel.isVisible).isTrue()
-      assertThat(selectionStateLabel.text).isEqualTo("No snapshots selected")
-      assertThat(previewImagePanel.isVisible).isFalse()
-      assertThat(snapshotDetailsPanel.isVisible).isFalse()
+      assertThat(table.selectedObject).isEqualTo(quickBootSnapshot)
+      assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
+      assertThat(findPreviewImagePanel(ui)?.image).isNull() // The QuickBoot snapshot hasn't been created yet.
+      assertThat(snapshotDetailsPanel.isVisible).isTrue()
+      assertThat(snapshotDetailsPanel.text).contains("Quickboot (auto-saved)")
+      assertThat(snapshotDetailsPanel.text).contains("Not created yet")
 
-      assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE).isEnabled).isFalse()
+      assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isFalse()
 
       val coldBootCheckBox = ui.getComponent<JCheckBox> { it.text.contains("cold boot")}
       assertThat(coldBootCheckBox.isSelected).isTrue()
 
+      emulator.clearGrpcCallLog()
       val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Take Snapshot" }
       // Create a snapshot.
       ui.clickOn(takeSnapshotButton)
@@ -131,7 +138,7 @@ class ManageSnapshotsDialogTest {
       assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 2 }
+      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 3 }
       var selectedSnapshot = checkNotNull(table.selectedObject)
       assertThat(selectedSnapshot.isQuickBoot).isFalse()
       assertThat(selectedSnapshot.creationTime).isNotEqualTo(0)
@@ -140,66 +147,70 @@ class ManageSnapshotsDialogTest {
       assertThat(selectedSnapshot.description).isEmpty()
       assertThat(isUseToBoot(table, table.selectedRow)).isFalse()
 
-      assertThat(selectionStateLabel.isVisible).isFalse()
-      assertThat(previewImagePanel.isVisible).isTrue()
-      assertThat(previewImagePanel.image).isNotNull()
+      assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
+      assertThat(findPreviewImagePanel(ui)?.image).isNotNull()
       ui.layout()
-      ImageDiffUtil.assertImageSimilar(getGoldenFile("SnapshotPreview"), ui.render(previewImagePanel), 0.0)
+      ImageDiffUtil.assertImageSimilar(getGoldenFile("SnapshotPreview"), ui.render(findPreviewImagePanel(ui)!!), 0.0)
       assertThat(snapshotDetailsPanel.isVisible).isTrue()
 
-      assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isTrue()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT).isEnabled).isTrue()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE).isEnabled).isTrue()
+      assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isTrue()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isTrue()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
 
       // Rename the newly created snapshot, add a description and assign it to be used to boot.
-      val name = "First Snapshot"
+      val firstSnapshotName = "First Snapshot"
       val description = "The first snapshot created by the test"
-      editSnapshot(actionsPanel, name, description, true)
+      editSnapshot(actionsPanel, firstSnapshotName, description, true)
       selectedSnapshot = checkNotNull(table.selectedObject)
-      assertThat(selectedSnapshot.displayName).isEqualTo(name)
+      assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
       assertThat(selectedSnapshot.description).isEqualTo(description)
       assertThat(isUseToBoot(table, table.selectedRow)).isTrue()
-      assertThat(snapshotDetailsPanel.text).contains(name)
+      assertThat(snapshotDetailsPanel.text).contains(firstSnapshotName)
       assertThat(snapshotDetailsPanel.text).contains(description)
 
       // Create second snapshot.
       ui.clickOn(takeSnapshotButton)
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 3 }
+      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 4 }
       val secondSnapshot = checkNotNull(table.selectedObject)
       // Create third snapshot.
       ui.clickOn(takeSnapshotButton)
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 4 }
+      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 5 }
       // Add the second snapshot to the selection.
       val row = table.convertRowIndexToView(tableModel.items.indexOf(secondSnapshot))
       table.selectionModel.addSelectionInterval(row, row)
       assertThat(table.selectedObjects).hasSize(2)
-      assertThat(selectionStateLabel.isVisible).isTrue()
-      assertThat(selectionStateLabel.text).isEqualTo("2 snapshots selected")
-      assertThat(previewImagePanel.isVisible).isFalse()
+      assertThat(findSelectionStateLabel(ui)?.isVisible).isTrue()
+      assertThat(findSelectionStateLabel(ui)?.text).isEqualTo("2 snapshots selected")
+      assertThat(findPreviewImagePanel(ui)).isNull()
       assertThat(snapshotDetailsPanel.isVisible).isFalse()
 
-      assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE).isEnabled).isTrue()
+      assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
 
       // Remove the two selected snapshots.
       performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-      assertThat(tableModel.items.size == 2)
-      assertThat(selectionStateLabel.isVisible).isTrue()
-      assertThat(selectionStateLabel.text).isEqualTo("No snapshots selected")
-      assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT).isEnabled).isFalse()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE).isEnabled).isFalse()
+      assertThat(tableModel.items.size == 3)
+      assertThat(table.selectedRowCount).isEqualTo(1)
+      selectedSnapshot = checkNotNull(table.selectedObject)
+      assertThat(selectedSnapshot.snapshotId).isEqualTo(invalidSnapshotId)
+      assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
 
-      // Select the first snapshot.
-      table.selectionModel.setSelectionInterval(1, 1)
-      assertThat(checkNotNull(table.selectedObject).displayName).isEqualTo(name)
-      assertThat(getLoadSnapshotAction(actionsPanel).isEnabled).isTrue()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT).isEnabled).isTrue()
-      assertThat(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE).isEnabled).isTrue()
+      // Remove the invalid snapshot.
+      performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
+
+      assertThat(tableModel.items.size == 2)
+      assertThat(table.selectedRowCount).isEqualTo(1)
+      selectedSnapshot = checkNotNull(table.selectedObject)
+      assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
+      assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isTrue()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isTrue()
+      assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isTrue()
 
       // Load the selected snapshot.
       emulator.clearGrpcCallLog()
@@ -235,6 +246,10 @@ class ManageSnapshotsDialogTest {
       ui.clickOn(closeButton)
     }
   }
+
+  private fun findPreviewImagePanel(ui: FakeUi) = ui.findComponent<ImagePanel>()
+
+  private fun findSelectionStateLabel(ui: FakeUi) = ui.findComponent<JLabel> { it.name == "selectionStateLabel" }
 
   private fun getLoadSnapshotAction(actionsPanel: CommonActionsPanel) = actionsPanel.toolbar.actions[0] as AnActionButton
 
@@ -276,8 +291,25 @@ class ManageSnapshotsDialogTest {
   }
 
   private fun performAction(action: AnActionButton) {
-    assertThat(action.isEnabled).isTrue()
+    assertThat(isPresentationEnabled(action)).isTrue()
     action.actionPerformed(TestActionEvent(action))
+  }
+
+  private fun isPresentationEnabled(action: AnActionButton): Boolean {
+    val contextComponent = action.contextComponent
+    try {
+      action.contextComponent = object : JLayeredPane() {
+        override fun isShowing(): Boolean {
+          return true
+        }
+      }
+      val event = TestActionEvent(action)
+      action.update(event)
+      return event.presentation.isEnabled
+    }
+    finally {
+      action.contextComponent = contextComponent
+    }
   }
 
   @Suppress("SameParameterValue")
