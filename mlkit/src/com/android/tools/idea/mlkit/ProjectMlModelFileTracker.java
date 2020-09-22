@@ -56,7 +56,7 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
         boolean needRebuildIndex = false;
         for (VFileEvent event : events) {
           VirtualFile file = event.getFile();
-          if (file != null && file.getFileType() == TfliteModelFileType.INSTANCE) {
+          if (file != null && TfliteModelFileType.TFLITE_EXTENSION.equals(file.getExtension())) {
             hasModelFile = true;
             if (event instanceof VFileContentChangeEvent) {
               needRebuildIndex = true;
