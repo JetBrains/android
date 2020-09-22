@@ -35,6 +35,9 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncProjectActionOptions
+import com.android.tools.idea.gradle.project.sync.VariantSelectionChange
+import com.android.tools.idea.gradle.project.sync.applyChange
+import com.android.tools.idea.gradle.project.sync.createVariantDetailsFrom
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
@@ -298,7 +301,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val moduleConfiguration = allModulesToSetUp.removeFirst()
       if (!visitedModules.add(moduleConfiguration.id)) continue
 
-      val moduleDependencies = syncVariantAndGetModuleDependencies(controller, moduleConfiguration) ?: continue
+      val moduleDependencies = syncVariantAndGetModuleDependencies(
+        controller,
+        moduleConfiguration,
+        syncOptions.selectedVariants
+      ) ?: continue
       allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
     }
   }
@@ -333,7 +340,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     return allModulesToSetUp
   }
 
-  private fun selectedOrDefaultModuleConfiguration(module: AndroidModule, syncOptions: SingleVariantSyncActionOptions): ModuleConfiguration? {
+  private fun selectedOrDefaultModuleConfiguration(module: AndroidModule,
+                                                   syncOptions: SingleVariantSyncActionOptions): ModuleConfiguration? {
     val selectedVariants = syncOptions.selectedVariants
     val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
     val requestedAbi = selectedVariants.getSelectedAbi(module.id)
@@ -346,24 +354,55 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   ): String? {
     val variantNames = androidModule.allVariantNames ?: return null
     return selectedVariants
-      .getSelectedVariant(androidModule.id)
-      // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
-      ?.takeIf { variantNames.contains(it) }
-    ?: androidModule.defaultVariantName
+             .getSelectedVariant(androidModule.id)
+             // Check to see if we have a variant selected in the IDE, and that it is still a valid one.
+             ?.takeIf { variantNames.contains(it) }
+           ?: androidModule.defaultVariantName
   }
 
   private fun syncVariantAndGetModuleDependencies(
     controller: BuildController,
-    moduleConfiguration: ModuleConfiguration
+    moduleConfiguration: ModuleConfiguration,
+    selectedVariants: SelectedVariants
   ): List<ModuleConfiguration>? {
+    val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
     val module = modulesById[moduleConfiguration.id] ?: return null // TODO(b/166240410): Composite build modules are not be resolved here.
     val variant = syncAndAddVariant(controller, module, moduleConfiguration.variant) ?: return null
+    val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, variant)
+    val variantDiffChange = VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
-    return variant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
-      val dependencyProject = moduleDependency.projectPath ?: return@mapNotNull null
-      val dependencyVariant = moduleDependency.variant ?: return@mapNotNull null
-      ModuleConfiguration(createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject), dependencyVariant, abi)
+
+    fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
+      return variant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
+        val dependencyProject = moduleDependency.projectPath ?: return@mapNotNull null
+        val dependencyVariant = moduleDependency.variant ?: return@mapNotNull null
+        ModuleConfiguration(createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject), dependencyVariant, abi)
+      }
     }
+
+    /**
+     * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
+     * real dependencies of each feature module variant are we can only guess.
+     */
+    fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
+      val rootProjectGradleDirectory = controller.buildModel.rootProject.projectIdentifier.buildIdentifier.rootDir
+      return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
+        val featureModuleId = createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
+        val featureModule = modulesById[featureModuleId] ?: return@mapNotNull null
+        val featureModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[featureModuleId]
+        val featureModuleSelectedVariantDetails = featureModuleCurrentlySelectedVariant?.details
+
+        val newSelectedVariantDetails = featureModuleSelectedVariantDetails?.applyChange(variantDiffChange ?: VariantSelectionChange.EMPTY)
+                                        ?: return@mapNotNull null
+
+        // Make sure the variant name we guessed in fact exists.
+        if (featureModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return@mapNotNull null
+
+        ModuleConfiguration(featureModuleId, newSelectedVariantDetails.name, abi)
+      }
+    }
+
+    return generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
   }
 
   /**

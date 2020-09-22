@@ -78,7 +78,11 @@ data class VariantSelectionChange(
    */
   val flavors: Map<String, String> = emptyMap()
 ) {
+  val isEmpty: Boolean get() = buildType == null && flavors.isEmpty()
+
   companion object {
+    val EMPTY = VariantSelectionChange()
+
     /**
      * Extracts the dimensions and values that differ between two compatible variants [base] and [from].
      */
