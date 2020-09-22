@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
@@ -193,17 +194,37 @@ public class IdeaTestSuiteBase {
   /** @return true if the current Bazel test uses unbundled SDK. */
   private static boolean isUnbundledBazelTestTarget() {
     String classPath = System.getProperty("java.class.path", "");
-    if (classPath.endsWith("classpath.jar")) {
-      // Looks like using JAR Manifest for classpath.
-      try(JarFile jarFile = new JarFile(classPath)) {
-        Manifest mf = jarFile.getManifest();
-        classPath = mf.getMainAttributes().getValue("Class-Path");
-      } catch (IOException|IllegalArgumentException e) {
-        return false;
-      }
+    if (!classPath.endsWith("classpath.jar")) {
+      return containsPrebuiltSdk(classPath);
     }
 
-    return classPath.contains("prebuilts/studio/intellij-sdk/") ||
-           classPath.contains("prebuilts\\studio\\intellij-sdk\\");
+    // Looks like using JAR Manifest for classpath.
+    Path dir = Paths.get(classPath).getParent();
+    try(JarFile jarFile = new JarFile(classPath)) {
+      Manifest mf = jarFile.getManifest();
+      String classPathList = mf.getMainAttributes().getValue("Class-Path");
+      String[] paths = classPathList.split(" ");
+      for (String path : paths) {
+        // Paths are relative to the directory of the classpath.jar file, and
+        // may contain symlinks, so we must convert them to realpath.
+        try {
+          String realPath = dir.resolve(path).toRealPath().toString();
+          if (containsPrebuiltSdk(realPath)) {
+            return true;
+          }
+        } catch (IOException e) {
+          // Fall through. Try the next path.
+        }
+      }
+    } catch (IOException|IllegalArgumentException e) {
+      return false;
+    }
+
+    return false;
+  }
+
+  private static boolean containsPrebuiltSdk(@NotNull String path) {
+    return path.contains("prebuilts/studio/intellij-sdk/") ||
+           path.contains("prebuilts\\studio\\intellij-sdk\\");
   }
 }
