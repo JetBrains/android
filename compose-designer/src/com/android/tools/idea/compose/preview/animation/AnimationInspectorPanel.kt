@@ -881,6 +881,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
        */
       private inner class TimelineTrackListener : TrackListener() {
 
+        private var isDragging = false
+
         override fun mousePressed(e: MouseEvent) {
           // We override the parent class behavior completely because it executes more operations than we need, being less performant than
           // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
@@ -891,6 +893,16 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         override fun mouseDragged(e: MouseEvent) {
           super.mouseDragged(e)
           updateThumbLocationAndSliderValue()
+          isDragging = true
+        }
+
+        override fun mouseReleased(e: MouseEvent?) {
+          super.mouseReleased(e)
+          logAnimationInspectorEvent(
+            if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
+            else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
+          )
+          isDragging = false
         }
 
         fun updateThumbLocationAndSliderValue() {
