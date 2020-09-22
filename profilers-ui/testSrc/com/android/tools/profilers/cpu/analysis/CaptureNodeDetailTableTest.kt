@@ -16,12 +16,15 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import javax.swing.JButton
+import javax.swing.RowSorter
+import javax.swing.SortOrder
 
 class CaptureNodeDetailTableTest {
   @Test
@@ -47,15 +50,32 @@ class CaptureNodeDetailTableTest {
   }
 
   @Test
-  fun tableShouldBeSortedByValueNotByToString() {
+  fun tableShouldBeSortedByValue() {
     val table = CaptureNodeDetailTable(NODES_TO_SORT, Range(0.0, 100.0)).table
-    assertThat(table.getValueAt(0, 0)).isEqualTo(10)
-    assertThat(table.getValueAt(1, 0)).isEqualTo(2)
-    assertThat(table.getValueAt(2, 0)).isEqualTo(300)
-    table.rowSorter.toggleSortOrder(0)
-    assertThat(table.getValueAt(0, 0)).isEqualTo(2)
-    assertThat(table.getValueAt(1, 0)).isEqualTo(10)
-    assertThat(table.getValueAt(2, 0)).isEqualTo(300)
+    assertThat(table.getValueAt(0, 1)).isEqualTo("Foo")
+    assertThat(table.getValueAt(1, 1)).isEqualTo("Bar")
+    assertThat(table.getValueAt(2, 1)).isEqualTo("Foobar")
+
+    // Call AbstractPaginatedTableModel#sortData directly to verify custom comparator logic.
+    val tableModel = table.model as AbstractPaginatedTableModel
+
+    // Sort by start time
+    tableModel.sortData(listOf(RowSorter.SortKey(0, SortOrder.ASCENDING)))
+    assertThat(table.getValueAt(0, 1)).isEqualTo("Bar")
+    assertThat(table.getValueAt(1, 1)).isEqualTo("Foo")
+    assertThat(table.getValueAt(2, 1)).isEqualTo("Foobar")
+
+    // Sort by wall duration
+    tableModel.sortData(listOf(RowSorter.SortKey(2, SortOrder.ASCENDING)))
+    assertThat(table.getValueAt(0, 1)).isEqualTo("Foobar")
+    assertThat(table.getValueAt(1, 1)).isEqualTo("Bar")
+    assertThat(table.getValueAt(2, 1)).isEqualTo("Foo")
+
+    // Sort by CPU duration
+    tableModel.sortData(listOf(RowSorter.SortKey(4, SortOrder.ASCENDING)))
+    assertThat(table.getValueAt(0, 1)).isEqualTo("Foobar")
+    assertThat(table.getValueAt(1, 1)).isEqualTo("Foo")
+    assertThat(table.getValueAt(2, 1)).isEqualTo("Bar")
   }
 
   @Test
@@ -96,12 +116,21 @@ class CaptureNodeDetailTableTest {
     val NODES_TO_SORT = listOf(
       CaptureNode(SingleNameModel("Foo")).apply {
         startGlobal = 10
+        endGlobal = 14
+        startThread = 11
+        endThread = 13
       },
-      CaptureNode(SingleNameModel("Foo")).apply {
+      CaptureNode(SingleNameModel("Bar")).apply {
         startGlobal = 2
+        endGlobal = 5
+        startThread = 2
+        endThread = 5
       },
-      CaptureNode(SingleNameModel("Foo")).apply {
+      CaptureNode(SingleNameModel("Foobar")).apply {
         startGlobal = 300
+        endGlobal = 302
+        startThread = 301
+        endThread = 302
       }
     )
   }
