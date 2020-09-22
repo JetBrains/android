@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.android;
+package com.android.tools.idea.gradle.dsl.model.crashlytics;
 
 import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public interface BuildTypeModel extends FlavorTypeModel {
-  @NotNull
-  ResolvedPropertyModel debuggable();
+public class FirebaseCrashlyticsModelImpl extends GradleDslBlockModel implements FirebaseCrashlyticsModel  {
+  @NonNls public static final String NATIVE_SYMBOL_UPLOAD_ENABLED = "mNativeSymbolUploadEnabled";
 
+  @Override
   @NotNull
-  ResolvedPropertyModel embedMicroApp();
+  public ResolvedPropertyModel nativeSymbolUploadEnabled() {
+    return getModelForProperty(NATIVE_SYMBOL_UPLOAD_ENABLED);
+  }
 
-  @NotNull
-  ResolvedPropertyModel jniDebuggable();
-
-  @NotNull
-  ResolvedPropertyModel minifyEnabled();
-
-  @NotNull
-  ResolvedPropertyModel pseudoLocalesEnabled();
-
-  @NotNull
-  ResolvedPropertyModel renderscriptDebuggable();
-
-  @NotNull
-  ResolvedPropertyModel renderscriptOptimLevel();
-
-  @NotNull
-  ResolvedPropertyModel shrinkResources();
-
-  @NotNull
-  ResolvedPropertyModel testCoverageEnabled();
-
-  @NotNull
-  ResolvedPropertyModel zipAlignEnabled();
-
-  @NotNull
-  FirebaseCrashlyticsModel firebaseCrashlytics();
+  public FirebaseCrashlyticsModelImpl(@NotNull FirebaseCrashlyticsDslElement element) {
+    super(element);
+  }
 }
