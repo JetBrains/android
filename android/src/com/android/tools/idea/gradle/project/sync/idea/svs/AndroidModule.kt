@@ -72,7 +72,7 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
 class AndroidModule private constructor(
   val modelVersion: GradleVersion?,
   gradleProject: BasicGradleProject,
-  private val androidProject: IdeAndroidProject,
+  val androidProject: IdeAndroidProject,
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
