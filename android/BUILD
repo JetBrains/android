@@ -189,6 +189,7 @@ iml_module(
         "//tools/idea/plugins/webp:intellij.webp[module]",
         "//tools/idea/.idea/libraries:ini4j",
         "//tools/adt/idea/android:android-core-proto",
+        "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
     ],
 )
 
