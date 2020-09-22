@@ -129,7 +129,13 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Executor executor = launchContext.getExecutor();
     ConsolePrinter printer = launchContext.getConsolePrinter();
     AdbClient adb = new AdbClient(device, logger);
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, AdbInstaller.Mode.DAEMON);
+
+    AdbInstaller.Mode adbInstallerMode = AdbInstaller.Mode.DAEMON;
+    if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
+      adbInstallerMode = AdbInstaller.Mode.ONE_SHOT;
+    }
+    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
+
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
 

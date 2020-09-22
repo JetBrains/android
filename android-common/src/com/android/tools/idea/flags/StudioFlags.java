@@ -451,6 +451,13 @@ public final class StudioFlags {
     "Eliminate the need to build again when auto re-run checkbox is turned on.",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_KEEP_CONNECTION_ALIVE = Flag.create(
+    RUNDEBUG,
+    "applychanges.connection.keepalive",
+    "Keep connection to device alive.",
+    "Eliminate the cost of opening a connection and spawning a process when using Apply Changes.",
+    true);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
