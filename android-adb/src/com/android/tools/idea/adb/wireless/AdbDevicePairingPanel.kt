@@ -50,7 +50,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
   val qrCodePanel by lazy {
     QrCodePanel(Runnable {
       qrCodeScanAgainInvoked()
-    })
+    }, parentDisposable)
   }
 
   val pinCodePanel by lazy {

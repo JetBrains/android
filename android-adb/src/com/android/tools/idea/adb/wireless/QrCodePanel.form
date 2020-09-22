@@ -15,7 +15,7 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="81c80" class="com.intellij.ui.components.JBLabel">
+      <component id="81c80" class="com.intellij.ui.components.JBLabel" binding="myTopLabel1">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -30,7 +30,7 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="ae5d0" class="com.intellij.ui.components.JBLabel">
+      <component id="ae5d0" class="com.intellij.ui.components.JBLabel" binding="myTopLabel2">
         <constraints>
           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -40,8 +40,8 @@
       </component>
       <vspacer id="65199">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <minimum-size width="5" height="5"/>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="2" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+            <minimum-size width="5" height="20"/>
           </grid>
         </constraints>
       </vspacer>
@@ -52,11 +52,10 @@
           </grid>
         </constraints>
       </hspacer>
-      <component id="1cfa7" class="com.android.tools.adtui.ui.ImagePanel" binding="myQrCodePanel">
+      <component id="1cfa7" class="com.android.tools.adtui.ui.ScalingImagePanel" binding="myQrCodePanel">
         <constraints>
           <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <minimum-size width="100" height="100"/>
-            <preferred-size width="250" height="250"/>
           </grid>
         </constraints>
         <properties/>
@@ -70,8 +69,8 @@
       </hspacer>
       <vspacer id="8cae0">
         <constraints>
-          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <minimum-size width="5" height="5"/>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="2" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+            <minimum-size width="5" height="20"/>
           </grid>
         </constraints>
       </vspacer>

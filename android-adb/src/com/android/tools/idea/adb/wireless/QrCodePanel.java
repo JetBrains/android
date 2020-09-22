@@ -16,11 +16,15 @@
 package com.android.tools.idea.adb.wireless;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.ui.ImagePanel;
+import com.android.tools.adtui.ui.SVGScaledImageProvider;
+import com.android.tools.adtui.ui.ScalingImagePanel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -30,9 +34,11 @@ import org.jetbrains.annotations.NotNull;
 @UiThread
 public class QrCodePanel {
   @NotNull private final Logger LOG = Logger.getInstance(QrCodePanel.class);
+  @NotNull private JBLabel myTopLabel1;
+  @NotNull private JBLabel myTopLabel2;
   @NotNull private JBLabel myFirstLineLabel;
   @NotNull private JBLabel mySecondLineLabel;
-  @NotNull private ImagePanel myQrCodePanel;
+  @NotNull private ScalingImagePanel myQrCodePanel;
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myPairingStatusPanel;
   @NotNull private JPanel myPairingStatusIconPanel;
@@ -42,9 +48,10 @@ public class QrCodePanel {
   @NotNull private JPanel myScanAnotherDevicePanel;
   @NotNull private JButton myScanAnotherDeviceButton;
 
-  public QrCodePanel(@NotNull Runnable scanAnotherDeviceRunnable) {
+  public QrCodePanel(@NotNull Runnable scanAnotherDeviceRunnable, @NotNull Disposable parentDisposable) {
     myRootComponent.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myQrCodePanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
+
     myPairingStatusPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myPairingStatusIconPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myPairingStatusIconLabel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -63,6 +70,9 @@ public class QrCodePanel {
         scanAnotherDeviceRunnable.run();
       }
     });
+
+    Disposer.register(parentDisposable, myPairingStatusProcessIcon);
+    Disposer.register(parentDisposable, myQrCodePanel);
   }
 
   private void createUIComponents() {
@@ -76,6 +86,7 @@ public class QrCodePanel {
 
   public void setQrCode(@NotNull QrCodeImage image) {
     LOG.info("New QR Code generated: " + image.getPairingString());
+    myQrCodePanel.setScaledImageProvider(null);
     myQrCodePanel.setImage(image.getImage());
   }
 
@@ -84,8 +95,11 @@ public class QrCodePanel {
    */
   public void showQrCodePairingStarted() {
     myQrCodePanel.setActive(true);
+    myTopLabel1.setVisible(true);
+    myTopLabel2.setVisible(true);
 
     // Note: Add a "space" so the label size does not become empty and causes a re-layout
+    setBold(myPairingStatusLabel, false);
     myPairingStatusLabel.setText(" ");
     myPairingStatusIconLabel.setVisible(false);
     myPairingStatusProcessIcon.setVisible(false);
@@ -100,7 +114,8 @@ public class QrCodePanel {
   public void showQrCodePairingInProgress() {
     myQrCodePanel.setActive(false);
 
-    myPairingStatusLabel.setText("Connected. Gathering device information.");
+    setBold(myPairingStatusLabel, true);
+    myPairingStatusLabel.setText("Gathering device information");
     myPairingStatusIconLabel.setVisible(false);
     myPairingStatusProcessIcon.setVisible(true);
 
@@ -120,12 +135,14 @@ public class QrCodePanel {
    * and keep the QR code grayed out
    */
   public void showQrCodePairingSuccess(@NotNull AdbOnlineDevice device) {
-    myQrCodePanel.setActive(false);
+    myQrCodePanel.setActive(true);
+    myQrCodePanel.setScaledImageProvider(SVGScaledImageProvider.create(StudioIcons.Common.SUCCESS));
 
-    myPairingStatusIconLabel.setVisible(true);
-    //TODO: Show a big "V" green icon instead
-    myPairingStatusIconLabel.setIcon(StudioIcons.Common.SUCCESS);
+    myTopLabel1.setVisible(false);
+    myTopLabel2.setVisible(false);
+    myPairingStatusIconLabel.setVisible(false);
     myPairingStatusProcessIcon.setVisible(false);
+    setBold(myPairingStatusLabel, true);
     myPairingStatusLabel.setText(device.getDisplayString() + " connected");
 
     myScanAnotherDeviceButton.setVisible(true);
@@ -138,12 +155,23 @@ public class QrCodePanel {
   public void showQrCodePairingError() {
     myQrCodePanel.setActive(false);
 
+    myTopLabel1.setVisible(false);
+    myTopLabel2.setVisible(false);
     myPairingStatusIconLabel.setVisible(true);
     myPairingStatusIconLabel.setIcon(StudioIcons.Common.ERROR);
     myPairingStatusProcessIcon.setVisible(false);
-    myPairingStatusLabel.setText("An error occurred connecting device");
+    setBold(myPairingStatusLabel, false);
+    myPairingStatusLabel.setText("An error occurred connecting device. Scan to try again.");
     //TODO: Add a "troubleshoot connection" hyperlink
 
     myScanAnotherDeviceButton.setVisible(true);
+  }
+
+  public void setBold(JBLabel label, boolean isBold) {
+    if (isBold) {
+      label.setFont(label.getFont().deriveFont(Font.BOLD));
+    } else {
+      label.setFont(label.getFont().deriveFont(Font.PLAIN));
+    }
   }
 }
