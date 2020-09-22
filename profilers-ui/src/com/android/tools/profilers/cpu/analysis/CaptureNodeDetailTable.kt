@@ -182,7 +182,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       }
 
       override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.endGlobal }
+        return compareBy { it.node.endGlobal - it.node.startGlobal }
       }
     },
     SELF_TIME("Self Time", java.lang.Long::class.java) {
@@ -200,7 +200,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       }
 
       override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.endThread }
+        return compareBy { it.node.endThread - it.node.startThread }
       }
     },
     CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java) {
