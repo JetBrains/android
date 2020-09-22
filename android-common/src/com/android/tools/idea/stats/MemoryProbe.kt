@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.memory
+package com.android.tools.idea.stats
 
 import com.intellij.util.ref.DebugReflectionUtil
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet

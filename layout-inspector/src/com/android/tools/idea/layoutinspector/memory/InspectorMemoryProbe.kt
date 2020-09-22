@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.stats.MemoryProbe
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
