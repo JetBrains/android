@@ -159,9 +159,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>) {
     animationTabs[animation]?.let { tab ->
+      tab.isUpdatingAnimationStates = true
       tab.updateStateComboboxes(states.toTypedArray())
       tab.updateSeekableAnimation()
       tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
+      tab.isUpdatingAnimationStates = false
     }
     timeline.jumpToStart()
     timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
@@ -245,16 +247,31 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private inner class AnimationTab(val animation: ComposeAnimation) : JPanel(TabularLayout("Fit,*,Fit", "Fit,*")) {
 
     /**
-     * Listens to changes in either [startStateComboBox] ot [endStateComboBox].
+     * Listens to [startStateComboBox] changes.
      */
-    private val stateChangeListener = object : ActionListener {
+    private val startStateChangeListener = object : ActionListener {
       override fun actionPerformed(e: ActionEvent?) {
         if (isSwappingStates) {
-          // The is no need to trigger the callback, since we're going to make a follow up call to update the other state.
-          isSwappingStates = false
+          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
+          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
           return
         }
+        if (!isUpdatingAnimationStates) {
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+        }
+        updateSeekableAnimation()
+      }
+    }
 
+    /**
+     * Listens to [endStateComboBox] changes.
+     */
+    private val endStateChangeListener = object : ActionListener {
+      override fun actionPerformed(e: ActionEvent?) {
+        if (!isUpdatingAnimationStates && !isSwappingStates) {
+          // Only log end state changes if not swapping states, which has its own tracking.
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+        }
         updateSeekableAnimation()
       }
     }
@@ -266,6 +283,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
      */
     private var isSwappingStates = false
+
+    /**
+     * Flag to be used when updating the available start and end states, since it might trigger changes in the comboboxes that we don't want
+     * to track, as they're not performed by the user.
+     */
+    var isUpdatingAnimationStates = false
 
     /**
      * Displays the animated properties and their value at the current timeline time.
@@ -284,8 +307,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     init {
-      startStateComboBox.addActionListener(stateChangeListener)
-      endStateComboBox.addActionListener(stateChangeListener)
+      startStateComboBox.addActionListener(startStateChangeListener)
+      endStateComboBox.addActionListener(endStateChangeListener)
 
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
       add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
@@ -470,6 +493,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         val startState = startStateComboBox.selectedItem
         startStateComboBox.selectedItem = endStateComboBox.selectedItem
         endStateComboBox.selectedItem = startState
+        isSwappingStates = false
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
       }
 
