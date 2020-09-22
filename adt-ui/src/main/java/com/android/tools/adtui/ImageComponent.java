@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
@@ -44,7 +45,7 @@ public class ImageComponent extends OpaquePanel {
   @Override
   protected void paintChildren(@NotNull Graphics g) {
     if (myIcon == null) return;
-    Image image = IconUtil.toImage(myIcon, ScaleContext.create((Graphics2D)g));
+    Image image = IconLoader.toImage(myIcon, ScaleContext.create((Graphics2D)g));
     UIUtil.drawImage(g, image, new Rectangle(getWidth(), getHeight()), new Rectangle(image.getWidth(null), image.getHeight(null)), null);
   }
 
