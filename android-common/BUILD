@@ -83,6 +83,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
+        "//tools/idea/.idea/libraries:fastutil-min",
     ],
 )
 

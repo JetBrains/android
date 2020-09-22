@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.memory
+package com.android.tools.idea.stats
 
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
