@@ -127,13 +127,10 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation, an
                                                         attributesToConfiguration(previewAnnotation),
                                                         composeLibraryNamespace)
   return if (!parameters.isEmpty()) {
-    if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
-      ParametrizedPreviewElementTemplate(basePreviewElement, parameters)
-    }
-    else null // No parameters allowed, ignore this annotation
+    ParametrizedPreviewElementTemplate(basePreviewElement, parameters)
   }
   else {
-    return basePreviewElement
+    basePreviewElement
   }
 }
 
