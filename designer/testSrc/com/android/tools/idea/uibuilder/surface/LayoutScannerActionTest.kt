@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.actions.LAYOUT_SCANNER_KEY
 import com.android.tools.idea.actions.NOTIFICATION_KEY
 import com.android.tools.idea.common.editor.DesignSurfaceNotificationManager
+import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import org.mockito.Mockito
@@ -79,6 +82,42 @@ class LayoutScannerActionTest : LayoutTestCase() {
 
     assertFalse(notificationControl.isNotificationShown)
     assertEquals("", notificationControl.notificationText)
+  }
+
+  fun testScannerConfigurationDisabled() {
+    val config = LayoutScannerConfiguration.DISABLED
+    assertFalse(config.isLayoutScannerEnabled)
+
+    config.isLayoutScannerEnabled = true
+    assertFalse(config.isLayoutScannerEnabled)
+
+    config.isLayoutScannerEnabled = false
+    assertFalse(config.isLayoutScannerEnabled)
+  }
+
+  fun testScannerConfig() {
+    val config = LayoutScannerEnabled()
+    assertFalse(config.isLayoutScannerEnabled)
+
+    config.isLayoutScannerEnabled = true
+    assertTrue(config.isLayoutScannerEnabled)
+
+    config.isLayoutScannerEnabled = false
+    assertFalse(config.isLayoutScannerEnabled)
+  }
+
+  fun testAlwaysEnabled() {
+    registerApplicationService(PropertiesComponent::class.java, PropertiesComponentMock())
+    val config = LayoutScannerEnabled()
+    assertFalse(config.isLayoutScannerEnabled)
+    alwaysEnableLayoutScanner = true
+    assertTrue(config.isLayoutScannerEnabled)
+    // Disabled will override alwaysEnabled.
+    assertFalse(LayoutScannerConfiguration.DISABLED.isLayoutScannerEnabled)
+  }
+
+  fun testAlwaysEnabledDefault() {
+    assertFalse(alwaysEnableLayoutScanner)
   }
 }
 
