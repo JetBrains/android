@@ -69,7 +69,6 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
-import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.MouseInfo;
 import java.util.ArrayList;
@@ -346,7 +345,7 @@ public class AndroidAnnotatorUtil {
       }
 
       Color color = getCurrentColor();
-      return color == null ? JBUI.scale(EmptyIcon.create(ICON_SIZE)) : JBUI.scale(new ColorIcon(ICON_SIZE, color));
+      return color == null ? JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE)) : JBUIScale.scaleIcon(new ColorIcon(ICON_SIZE, color));
     }
 
     @Nullable
