@@ -41,6 +41,11 @@
             <category>Compose Android</category>
         </intentionAction>
 
+        <intentionAction>
+            <className>org.jetbrains.android.compose.intentions.ComposeCreatePreviewAction</className>
+            <category>Compose Android</category>
+        </intentionAction>
+
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
 
         <intentionAction>
