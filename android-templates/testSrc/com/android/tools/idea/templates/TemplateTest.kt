@@ -510,12 +510,19 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testWatchFace() {
-    checkCreateTemplate("Watch Face")
+    val withJetifier: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.addJetifierSupport = true
+    }
+    checkCreateTemplate("Watch Face", withJetifier)
   }
 
   @TemplateCheck
   fun testWatchFaceWithKotlin() {
-    checkCreateTemplate("Watch Face", withKotlin)
+    val withJetifierAndKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.addJetifierSupport = true
+      withKotlin(moduleData, projectData)
+    }
+    checkCreateTemplate("Watch Face", withJetifierAndKotlin)
   }
 
   @TemplateCheck

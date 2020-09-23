@@ -44,6 +44,7 @@ import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.refactoring.isJetifierEnabled
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
@@ -96,8 +97,12 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !hasAndroidXEnabled(module) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
+        presentation.isEnabled = false
+      }
+      templateConstraints.contains(TemplateConstraint.Jetifier) && !hasJetifierEnabled(module) -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.jetifier", templateName)
         presentation.isEnabled = false
       }
       !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
@@ -155,6 +160,10 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   }
 
   companion object {
-    private fun useAndroidX(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
+    private fun hasAndroidXEnabled(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
+
+    private fun hasJetifierEnabled(module: Module?): Boolean =
+      // If androidX is not enabled, we assume Jetfier is not enabled too (ie appcompat dependencies should work)
+      hasAndroidXEnabled(module) && module != null && module.project.isJetifierEnabled()
   }
 }
