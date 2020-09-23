@@ -289,6 +289,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
+  fun createInvalidSnapshot(snapshotId: String) {
+    createSnapshot(snapshotId)
+    markSnapshotInvalid(snapshotId)
+  }
+
   private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
     sendResponse(responseObserver, Empty.getDefaultInstance())
   }
