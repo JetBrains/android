@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.surface
 
 import android.view.View
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -236,6 +238,48 @@ class NlLayoutScannerTest : LayoutTestCase() {
     assertTrue(scanner.idToComponent.isEmpty())
   }
 
+  fun testValidateFiltersInternalIssues() {
+    val scanner = createScanner()
+    val helper = ScannerTestHelper()
+    val model = helper.buildModel(1)
+    val resultToInject = ValidatorResult.Builder()
+
+    // Add 3 types of issues that will be filtered: Internal, verbose or info.
+    resultToInject.mIssues.add(
+      ScannerTestHelper.createTestIssueBuilder()
+        .setLevel(ValidatorData.Level.ERROR)
+        .setType(ValidatorData.Type.INTERNAL_ERROR)
+        .build())
+    resultToInject.mIssues.add(
+      ScannerTestHelper.createTestIssueBuilder()
+        .setLevel(ValidatorData.Level.VERBOSE)
+        .setType(ValidatorData.Type.ACCESSIBILITY)
+        .build())
+    resultToInject.mIssues.add(
+      ScannerTestHelper.createTestIssueBuilder()
+        .setLevel(ValidatorData.Level.INFO)
+        .setType(ValidatorData.Type.ACCESSIBILITY)
+        .build())
+
+    // Run the scanner core code.
+    val renderResult = helper.mockRenderResult(model, resultToInject.build())
+    var validatorResult: ValidatorResult? = null
+    val listener = object : NlLayoutScanner.Listener {
+      override fun lintUpdated(result: ValidatorResult?) {
+        validatorResult = result
+      }
+    }
+    scanner.addListener(listener)
+    scanner.validateAndUpdateLint(renderResult, model)
+
+    // Expect the results to be filtered.
+    assertNotNull(validatorResult)
+    assertEquals( 3, validatorResult!!.issues.size)
+    assertTrue("Issue from Validator Result must be filtered.", scanner.issues.isEmpty())
+    assertTrue("Maps must be cleaned after the scan.", scanner.viewToComponent.isEmpty())
+    assertTrue("Maps must be cleaned after the scan.", scanner.idToComponent.isEmpty())
+  }
+
   fun testDisable() {
     // Precondition : Populate scanner with issues.
     val componentSize = 5
@@ -257,5 +301,43 @@ class NlLayoutScannerTest : LayoutTestCase() {
     // Test disable and ensure issues are empty.
     scanner.disable()
     assertTrue(scanner.issues.isEmpty())
+  }
+
+  fun testFindRootWithViewLikeDataBinding() {
+
+    // Build component tree with root, c1, c2 with only c2 with view info
+    val helper = ScannerTestHelper()
+    val root = helper.buildNlComponent()
+    val child1 = helper.buildNlComponent()
+    val child2 = helper.buildNlComponent()
+    root.viewInfo = null
+    child1.viewInfo = null
+    val children = ArrayList<NlComponent>(2)
+    children.add(child1)
+    children.add(child2)
+    Mockito.`when`(root.children).thenReturn(children)
+
+    val scanner = createScanner()
+    val result = scanner.tryFindingRootWithViewInfo(root)
+
+    assertEquals(child2, result)
+  }
+
+  fun testFindRootWithViewInfoInRoot() {
+
+    // Build component tree with root, c1, c2.
+    val helper = ScannerTestHelper()
+    val root = helper.buildNlComponent()
+    val child1 = helper.buildNlComponent()
+    val child2 = helper.buildNlComponent()
+    val children = ArrayList<NlComponent>(2)
+    children.add(child1)
+    children.add(child2)
+    Mockito.`when`(root.children).thenReturn(children)
+
+    val scanner = createScanner()
+    val result = scanner.tryFindingRootWithViewInfo(root)
+
+    assertEquals(root, result)
   }
 }

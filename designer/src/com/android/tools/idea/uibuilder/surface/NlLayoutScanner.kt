@@ -90,7 +90,10 @@ class NlLayoutScanner(
       val root = components[0]
       buildViewToComponentMap(root)
       validatorResult.issues.forEach {
-        lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap))
+        if ((it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
+            it.mType == ValidatorData.Type.ACCESSIBILITY) {
+          lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap))
+        }
         metricTracker.trackIssue(it)
       }
       lintIntegrator.populateLints()
@@ -138,7 +141,8 @@ class NlLayoutScanner(
    */
   @VisibleForTesting
   fun buildViewToComponentMap(component: NlComponent) {
-    component.viewInfo?.viewObject?.let { viewObj ->
+    val root = tryFindingRootWithViewInfo(component)
+    root.viewInfo?.viewObject?.let { viewObj ->
       val view = viewObj as View
       viewToComponent[view] = component
 
@@ -148,6 +152,27 @@ class NlLayoutScanner(
 
       component.children.forEach { buildViewToComponentMap(it) }
     }
+  }
+
+  /**
+   * Look for the root view with appropriate view information from the immediate
+   * children. Returns itself if it cannot find one.
+   *
+   * This is done to support views with data binding.
+   */
+  @VisibleForTesting
+  fun tryFindingRootWithViewInfo(component: NlComponent): NlComponent {
+    if (component.viewInfo?.viewObject != null) {
+      return component
+    }
+
+    component.children.forEach {
+      if (it.viewInfo?.viewObject != null) {
+        return it
+      }
+    }
+
+    return component
   }
 
   override fun dispose() {

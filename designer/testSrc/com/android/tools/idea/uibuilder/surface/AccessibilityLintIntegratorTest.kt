@@ -81,18 +81,6 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
       .addIssueProvider(Mockito.any(IssueProvider::class.java))
   }
 
-  @Test
-  fun testCreateIssueOnInternalError() {
-    val internalIssue = ScannerTestHelper.createTestIssueBuilder().setType(ValidatorData.Type.INTERNAL_ERROR)
-    val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
-    val integrator = AccessibilityLintIntegrator(issueModel)
-
-    integrator.createIssue(internalIssue.build(), null)
-
-    // internal error ignored
-    assertEquals(0, integrator.issues.size)
-  }
-
   private fun createTestIssue(): ValidatorData.Issue {
     return ScannerTestHelper.createTestIssueBuilder().build()
   }
