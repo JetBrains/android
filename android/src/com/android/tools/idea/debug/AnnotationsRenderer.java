@@ -22,16 +22,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiAnnotation;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AnnotationsRenderer {
   public static class Result {
@@ -134,7 +133,7 @@ public class AnnotationsRenderer {
     final Color color = new Color(value, hasAlpha);
     String result = String.format(Locale.US, "0x%1$08x {a=%2$02d r=%3$02d g=%4$02d b=%5$02d}", value, color.getAlpha(), color.getRed(),
                                   color.getGreen(), color.getBlue());
-    return new Result(result, JBUI.scale(new ColorIcon(16, 12, color, true)));
+    return new Result(result, JBUIScale.scaleIcon(new ColorIcon(16, 12, color, true)));
   }
 
   @NotNull

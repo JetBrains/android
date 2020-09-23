@@ -18,18 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.common.SwingCoordinate;
-import com.intellij.ui.scale.JBUIScale;
-
 import com.android.tools.idea.common.scene.ScenePicker;
-import java.awt.BasicStroke;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;

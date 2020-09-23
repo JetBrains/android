@@ -16,30 +16,33 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.property.ptable.PTable;
-import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.JBUI;
+import java.awt.*;
+import java.util.Set;
+import javax.swing.*;
 import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Set;
 
 public class NlDefaultRenderer extends NlAttributeRenderer {
   public static final int ICON_SIZE = 14;
@@ -148,7 +151,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getColorIcon(@NotNull String hexColor, int iconSize) {
     Color color = ResourceHelper.parseColor(hexColor);
-    return color == null ? null : JBUI.scale(new ColorIcon(iconSize, color, true));
+    return color == null ? null : JBUIScale.scaleIcon(new ColorIcon(iconSize, color, true));
   }
 
   private void appendName(@NotNull NlProperty property) {
