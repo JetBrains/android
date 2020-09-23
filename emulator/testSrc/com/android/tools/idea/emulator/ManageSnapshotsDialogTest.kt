@@ -20,9 +20,11 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.interactWithModalDialog
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.emulator.actions.SnapshotInfo
 import com.android.tools.idea.emulator.actions.dialogs.ManageSnapshotsDialog
 import com.android.tools.idea.protobuf.TextFormat
@@ -35,6 +37,8 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
+import org.jetbrains.kotlin.idea.util.application.invokeLater
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,30 +94,35 @@ class ManageSnapshotsDialogTest {
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
   }
 
+  @After
+  fun tearDown() {
+    EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+  }
+
   @Test
   fun testDialog() {
+    EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
     val invalidSnapshotId = "invalid_snapshot"
-    emulator.createSnapshot(invalidSnapshotId)
-    emulator.markSnapshotInvalid(invalidSnapshotId)
+    emulator.createInvalidSnapshot(invalidSnapshotId)
 
     val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
     val dialogWrapper = dialogPanel.createWrapper(projectRule.project)
 
+    // Open the "Manage Snapshots" dialog.
     createDialogAndInteractWithIt({ dialogWrapper.show() }) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
-      val tableModel = table.listTableModel
       val actionsPanel = ui.getComponent<CommonActionsPanel>()
       val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.isNotEmpty() }
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       // Check that there is only a QuickBoot snapshot, which is a placeholder since it doesn't exist on disk.
-      assertThat(tableModel.items).hasSize(2)
-      val quickBootSnapshot = tableModel.items[0]
+      assertThat(table.items).hasSize(2)
+      val quickBootSnapshot = table.items[0]
       assertThat(quickBootSnapshot.isQuickBoot).isTrue()
       assertThat(quickBootSnapshot.isCreated).isFalse() // It hasn't been created yet.
-      val invalidSnapshot = tableModel.items[1]
+      val invalidSnapshot = table.items[1]
       assertThat(invalidSnapshot.isValid).isFalse()
       assertThat(isUseToBoot(table, 0)).isFalse() // The QuickBoot snapshot is not used to boot.
       assertThat(table.selectedObject).isEqualTo(quickBootSnapshot)
@@ -138,7 +147,7 @@ class ManageSnapshotsDialogTest {
       assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 3 }
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 3 }
       var selectedSnapshot = checkNotNull(table.selectedObject)
       assertThat(selectedSnapshot.isQuickBoot).isFalse()
       assertThat(selectedSnapshot.creationTime).isNotEqualTo(0)
@@ -171,16 +180,18 @@ class ManageSnapshotsDialogTest {
       // Create second snapshot.
       ui.clickOn(takeSnapshotButton)
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 4 }
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 4 }
       val secondSnapshot = checkNotNull(table.selectedObject)
       // Create third snapshot.
       ui.clickOn(takeSnapshotButton)
       // Wait for the snapshot to be created and the snapshot list to be updated.
-      waitForCondition(2, TimeUnit.SECONDS) { tableModel.items.size == 5 }
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 5 }
+      assertThat(table.selectedRowCount).isEqualTo(1)
+      assertThat(table.selectedRow).isEqualTo(3)
       // Add the second snapshot to the selection.
-      val row = table.convertRowIndexToView(tableModel.items.indexOf(secondSnapshot))
+      val row = table.convertRowIndexToView(table.listTableModel.indexOf(secondSnapshot))
       table.selectionModel.addSelectionInterval(row, row)
-      assertThat(table.selectedObjects).hasSize(2)
+      assertThat(table.selectedRowCount).isEqualTo(2)
       assertThat(findSelectionStateLabel(ui)?.isVisible).isTrue()
       assertThat(findSelectionStateLabel(ui)?.text).isEqualTo("2 snapshots selected")
       assertThat(findPreviewImagePanel(ui)).isNull()
@@ -193,7 +204,7 @@ class ManageSnapshotsDialogTest {
       // Remove the two selected snapshots.
       performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-      assertThat(tableModel.items.size == 3)
+      assertThat(table.items.size == 3)
       assertThat(table.selectedRowCount).isEqualTo(1)
       selectedSnapshot = checkNotNull(table.selectedObject)
       assertThat(selectedSnapshot.snapshotId).isEqualTo(invalidSnapshotId)
@@ -204,7 +215,7 @@ class ManageSnapshotsDialogTest {
       // Remove the invalid snapshot.
       performAction(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))
 
-      assertThat(tableModel.items.size == 2)
+      assertThat(table.items.size == 2)
       assertThat(table.selectedRowCount).isEqualTo(1)
       selectedSnapshot = checkNotNull(table.selectedObject)
       assertThat(selectedSnapshot.displayName).isEqualTo(firstSnapshotName)
@@ -244,6 +255,124 @@ class ManageSnapshotsDialogTest {
       val closeButton = rootPane.defaultButton
       assertThat(closeButton.text).isEqualTo("Close")
       ui.clickOn(closeButton)
+    }
+  }
+
+  @Test
+  fun testInvalidSnapshotsConfirmedDeletion() {
+    emulator.createSnapshot("valid_snapshot")
+    emulator.createInvalidSnapshot("invalid_snapshot1")
+    emulator.createInvalidSnapshot("invalid_snapshot2")
+
+    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+
+    // Open the "Manage Snapshots" dialog.
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+      val rootPane1 = dlg1.rootPane
+      val ui1 = FakeUi(rootPane1)
+      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+      // Wait for the snapshot list to be populated.
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
+      /** The "Delete incompatible snapshots?" dialog opens automatically. */
+      interactWithModalDialog(2) { dlg2 ->
+        val rootPane2 = dlg2.rootPane
+        val ui2 = FakeUi(rootPane2)
+        val dontAskCheckBox = ui2.getComponent<JCheckBox>()
+        assertThat(dontAskCheckBox.isSelected).isFalse()
+        dontAskCheckBox.isSelected = true
+        val deleteButton = ui2.getComponent<JButton> { it.text == "Delete" }
+        ui2.clickOn(deleteButton)
+      }
+
+      // Use invokeLater to get out of the event loop of the "Delete incompatible snapshots?" dialog.
+      invokeLater {
+        assertThat(table.items).hasSize(2) // The two invalid snapshots have been deleted.
+        assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY)
+        // Close the "Manage Snapshots" dialog.
+        ui1.clickOn(rootPane1.defaultButton)
+      }
+    }
+  }
+
+  @Test
+  fun testInvalidSnapshotsDeclinedDeletion() {
+    emulator.createSnapshot("valid_snapshot")
+    emulator.createInvalidSnapshot("invalid_snapshot1")
+    emulator.createInvalidSnapshot("invalid_snapshot2")
+
+    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+
+    // Open the "Manage Snapshots" dialog.
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+      val rootPane1 = dlg1.rootPane
+      val ui1 = FakeUi(rootPane1)
+      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+      // Wait for the snapshot list to be populated.
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
+      /** The "Delete incompatible snapshots?" dialog opens automatically. */
+      interactWithModalDialog(2) { dlg2 ->
+        val rootPane2 = dlg2.rootPane
+        val ui2 = FakeUi(rootPane2)
+        val dontAskCheckBox = ui2.getComponent<JCheckBox>()
+        assertThat(dontAskCheckBox.isSelected).isFalse()
+        dontAskCheckBox.isSelected = true
+        val keepButton = ui2.getComponent<JButton> { it.text == "Keep" }
+        ui2.clickOn(keepButton)
+      }
+
+      // Use invokeLater to get out of the event loop of the "Delete incompatible snapshots?" dialog.
+      invokeLater {
+        assertThat(table.items).hasSize(4) // The two invalid snapshots were not deleted.
+        assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DO_NOT_DELETE)
+        // Close the "Manage Snapshots" dialog.
+        ui1.clickOn(rootPane1.defaultButton)
+      }
+    }
+  }
+
+  @Test
+  fun testInvalidSnapshotsAutomaticDeletion() {
+    EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
+    emulator.createSnapshot("valid_snapshot")
+    emulator.createInvalidSnapshot("invalid_snapshot1")
+    emulator.createInvalidSnapshot("invalid_snapshot2")
+
+    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+
+    // Open the "Manage Snapshots" dialog.
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+      val rootPane1 = dlg1.rootPane
+      val ui1 = FakeUi(rootPane1)
+      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+      // Wait for the snapshot list to be populated.
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
+      // Close the "Manage Snapshots" dialog.
+      ui1.clickOn(rootPane1.defaultButton)
+    }
+  }
+
+  @Test
+  fun testInvalidSnapshotsPreservation() {
+    EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
+    emulator.createSnapshot("valid_snapshot")
+    emulator.createInvalidSnapshot("invalid_snapshot1")
+    emulator.createInvalidSnapshot("invalid_snapshot2")
+
+    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+
+    // Open the "Manage Snapshots" dialog.
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+      val rootPane1 = dlg1.rootPane
+      val ui1 = FakeUi(rootPane1)
+      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+      // Wait for the snapshot list to be populated.
+      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      assertThat(table.items).hasSize(4) // The two invalid snapshots were deleted automatically.
+      // Close the "Manage Snapshots" dialog.
+      ui1.clickOn(rootPane1.defaultButton)
     }
   }
 

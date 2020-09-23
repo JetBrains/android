@@ -19,6 +19,7 @@ package com.android.tools.adtui.swing
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.intellij.ide.DataManager
+import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
+import com.intellij.openapi.ui.DialogWrapperDialog
 import com.intellij.openapi.ui.DialogWrapperPeer
 import com.intellij.openapi.ui.DialogWrapperPeerFactory
 import com.intellij.openapi.ui.popup.StackingPopupDispatcher
@@ -77,6 +79,7 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JLayeredPane
+import javax.swing.JPanel
 import javax.swing.JRootPane
 import javax.swing.JTable
 import javax.swing.JTree
@@ -90,14 +93,28 @@ fun enableHeadlessDialogs(disposable: Disposable) {
 }
 
 /**
- * Executes a function that opens a modal dialog and then a function that interacts with it.
- * The function returns when the dialog is closed.
+ * Calls the [dialogCreator] function that opens a modal dialog and then the [dialogInteractor]
+ * function that interacts with it. This function returns when the dialog is closed.
  *
  * @param dialogCreator user code that opens a modal dialog
  * @param dialogInteractor user code for interacting with the dialog
  */
 fun createDialogAndInteractWithIt(dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
-  val modalDepth = modalDialogStack.size + 1
+  createDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor)
+}
+
+/**
+ * Waits for the dialog to open at the given modal depth and then calls the [dialogInteractor]
+ * function that interacts with the dialog. This function returns when the dialog is closed.
+ *
+ * @param modalDepth the nested level ofe modal dialog to interact with
+ * @param dialogInteractor user code for interacting with the dialog
+ */
+fun interactWithModalDialog(modalDepth: Int, dialogInteractor: (DialogWrapper) -> Unit) {
+  createDialogAndInteractWithIt(modalDepth, {}, dialogInteractor)
+}
+
+private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
   val dialogClosed = CountDownLatch(1)
 
   val futureTask = ListenableFutureTask.create {
@@ -139,6 +156,8 @@ fun createDialogAndInteractWithIt(dialogCreator: () -> Unit, dialogInteractor: (
   finally {
     futureTask.cancel(true)
   }
+
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
 
 /**
@@ -386,6 +405,10 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
         Disposer.register(wrapper.disposable, Disposable { runnable.run() })
       }
     }
+
+    val dialog = MyDialog()
+    dialog.add(rootPane)
+
     val contentPane = contentPane
     if (contentPane is CustomFrameDialogContent) {
       contentPane.updateLayout()
@@ -442,8 +465,8 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     modalityChangeCondition.signalAll()
     modalityChangeLock.unlock()
 
-    while (latch.count > 0) {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val eventQueue = IdeEventQueue.getInstance()
+    while (latch.count > 0 && PlatformTestUtil.dispatchNextEventIfAny(eventQueue) != null) {
       latch.await(10, TimeUnit.MILLISECONDS)
     }
 
@@ -524,6 +547,7 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
   private inner class DialogRootPane : JRootPane(), DataProvider {
     private val myGlassPaneIsSet: Boolean
     private var myLastMinimumSize: Dimension? = null
+
     override fun createLayeredPane(): JLayeredPane {
       val p: JLayeredPane = JBLayeredPane()
       p.name = this.name + ".layeredPane"
@@ -585,6 +609,13 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
       myGlassPaneIsSet = true
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
+    }
+  }
+
+  private inner class MyDialog : JPanel(), DialogWrapperDialog {
+
+    override fun getDialogWrapper(): DialogWrapper {
+      return wrapper
     }
   }
 }

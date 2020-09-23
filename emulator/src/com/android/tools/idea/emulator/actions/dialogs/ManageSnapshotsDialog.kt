@@ -23,6 +23,8 @@ import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.EmulatorSettings
+import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.actions.BootMode
 import com.android.tools.idea.emulator.actions.BootType
@@ -452,6 +454,10 @@ class ManageSnapshotsDialog(
     }
     selectionModel.addSelectionInterval(index, index)
 
+    deleteSnapshotFolders(foldersToDelete, selectionState, notifyWhenDone = true)
+  }
+
+  private fun deleteSnapshotFolders(foldersToDelete: List<Path>, selectionState: SelectionState? = null, notifyWhenDone: Boolean = false) {
     backgroundExecutor.submit {
       var errors = false
       for (folder in foldersToDelete) {
@@ -468,11 +474,11 @@ class ManageSnapshotsDialog(
         val snapshots = snapshotIoLock.read { snapshotManager.fetchSnapshotList() }
         invokeLater {
           snapshotTableModel.update(snapshots)
-          selectionState.restoreSelection()
+          selectionState?.restoreSelection()
           showError("Some snapshots could not be deleted")
         }
       }
-      else {
+      else if (notifyWhenDone) {
         val n = foldersToDelete.size
         val message = if (n == 1) "$n snapshot deleted" else "$n snapshots deleted"
         invokeLater {
@@ -518,12 +524,13 @@ class ManageSnapshotsDialog(
   /**
    * Creates the dialog wrapper.
    */
-  fun createWrapper(project: Project): DialogWrapper {
+  fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
       title = "Manage Snapshots",
       resizable = true,
       panel = createPanel(),
       project = project,
+      parent = parent,
       createActions = { listOf(CloseDialogAction()) })
       .also {
         backgroundExecutor.submit {
@@ -555,9 +562,56 @@ class ManageSnapshotsDialog(
       else -> snapshots.find { it.snapshotId == bootMode.bootSnapshotId && it.isValid }
     }
 
+    val snapshotAutoDeletionPolicy = EmulatorSettings.getInstance().snapshotAutoDeletionPolicy
+    var invalidSnapshotCount = 0
+    var invalidSnapshotSize = 0L
+    if (snapshotAutoDeletionPolicy != SnapshotAutoDeletionPolicy.DO_NOT_DELETE) {
+      for (snapshot in snapshots) {
+        if (!snapshot.isValid) {
+          invalidSnapshotCount++
+          invalidSnapshotSize += snapshot.sizeOnDisk
+        }
+      }
+
+      if (invalidSnapshotCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY) {
+        deleteInvalidSnapshots(snapshots)
+      }
+    }
+
     invokeLater {
       snapshotTableModel.update(snapshots, bootSnapshot)
+      if (invalidSnapshotCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
+          confirmInvalidSnapshotDeletion(invalidSnapshotCount, invalidSnapshotSize)) {
+        deleteInvalidSnapshots(snapshots)
+        snapshotTableModel.update(snapshots, bootSnapshot)
+      }
     }
+  }
+
+  private fun deleteInvalidSnapshots(snapshots: MutableList<SnapshotInfo>) {
+    val foldersToDelete = snapshots.filter { !it.isValid }.map { it.snapshotFolder }
+    snapshots.removeIf { !it.isValid }
+    deleteSnapshotFolders(foldersToDelete)
+  }
+
+  private fun confirmInvalidSnapshotDeletion(invalidSnapshotCount: Int, invalidSnapshotSize: Long): Boolean {
+    val dialog = InvalidSnapshotDeletionConfirmationDialog(invalidSnapshotCount, invalidSnapshotSize)
+    val exitCode = dialog.createWrapper(parent = snapshotTable).apply { show() }.exitCode
+    when (exitCode) {
+      InvalidSnapshotDeletionConfirmationDialog.DELETE_EXIT_CODE -> {
+        if (dialog.dontAskAgain) {
+          EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
+        }
+        return true
+      }
+
+      InvalidSnapshotDeletionConfirmationDialog.KEEP_EXIT_CODE -> {
+        if (dialog.dontAskAgain) {
+          EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
+        }
+      }
+    }
+    return false
   }
 
   private fun invokeLater(runnable: () -> Unit) {
