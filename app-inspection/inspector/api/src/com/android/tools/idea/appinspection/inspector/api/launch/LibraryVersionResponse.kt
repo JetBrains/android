@@ -18,10 +18,10 @@ package com.android.tools.idea.appinspection.inspector.api.launch
 /**
  * Response from a GetLibraryVersions call.
  *
- * It always contains a reference to the [TargetLibrary] and [status]. [errorMessage] is populated if the check resulted in
+ * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is populated if the check resulted in
  * failure.
  */
-data class LibraryVersionResponse(val targetLibrary: TargetLibrary, val status: Status, val errorMessage: String) {
+data class LibraryVersionResponse(val targetLibrary: ArtifactCoordinate, val status: Status, val errorMessage: String) {
   enum class Status {
     /**
      * The target library is compatible with the inspector.

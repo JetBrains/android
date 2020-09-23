@@ -80,7 +80,7 @@ class AppInspectionView(
   private class TabMetadata(
     val provider: AppInspectorTabProvider,
     val component: JComponent
-  ): Comparable<TabMetadata> {
+  ) : Comparable<TabMetadata> {
     fun addTo(tabbedPane: JTabbedPane) {
       tabbedPane.addTab(provider.displayName, provider.icon, component)
       component.putClientProperty(KEY_SUPPORTS_OFFLINE, provider.supportsOffline())
@@ -221,7 +221,7 @@ class AppInspectionView(
                 provider.inspectorId,
                 provider.inspectorLaunchParams.inspectorAgentJar,
                 project.name,
-                (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.targetLibrary,
+                (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
                 force
               )
             )
@@ -281,7 +281,7 @@ class AppInspectionView(
 
   private fun AppInspectorTabProvider.toIncompatibleVersionMessage(): TabMetadata {
     val reason = AppInspectionBundle.message("incompatible.version",
-                                             (inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate)
+                                             (inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString())
     return TabMetadata(this, EmptyStatePanel(reason))
   }
 

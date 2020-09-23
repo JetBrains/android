@@ -19,8 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryArtifact
-import com.android.tools.idea.appinspection.inspector.api.launch.TargetLibrary
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.process.toTransportImpl
@@ -252,10 +251,10 @@ class AppInspectionTargetTest {
 
     // These are the version files we are interested in targeting.
     val targets = listOf(
-      TargetLibrary(LibraryArtifact("1st", "file"), "1.0.0"),
-      TargetLibrary(LibraryArtifact("2nd", "file"), "1.0.0"),
-      TargetLibrary(LibraryArtifact("3rd", "file"), "1.0.0"),
-      TargetLibrary(LibraryArtifact("4th", "file"), "1.0.0")
+      ArtifactCoordinate("1st", "file", "1.0.0"),
+      ArtifactCoordinate("2nd", "file", "1.0.0"),
+      ArtifactCoordinate("3rd", "file", "1.0.0"),
+      ArtifactCoordinate("4th", "file", "1.0.0")
     )
 
     // Add the fake process to transport so we can attach to it via apiServices.attachToProcess

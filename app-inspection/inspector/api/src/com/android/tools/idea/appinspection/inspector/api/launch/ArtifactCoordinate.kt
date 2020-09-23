@@ -16,11 +16,17 @@
 package com.android.tools.idea.appinspection.inspector.api.launch
 
 /**
- * Represents an artifact that can be uniquely identified by the information provided in this class.
+ * Contains information that uniquely identifies the library.
  *
  * This normally refers to the maven/gradle coordinate of the artifact.
  */
-data class LibraryArtifact(
+data class ArtifactCoordinate(
   val groupId: String,
-  val artifactId: String
-)
+  val artifactId: String,
+  val version: String
+) {
+  /**
+   * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
+   */
+  override fun toString() = "${groupId}:${artifactId}:${version}"
+}
