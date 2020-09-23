@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
+import java.util.Comparator;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Comparator;
-
-import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 /**
  * A language,region pair
@@ -111,13 +110,13 @@ public final class Locale {
   public Icon getFlagImage() {
     String languageCode = qualifier.hasLanguage() ? qualifier.getLanguage() : null;
     if (languageCode == null) {
-      return AndroidIcons.EmptyFlag;
+      return AndroidIcons.Flags.FlagEmpty;
     }
     String regionCode = hasRegion() ? qualifier.getRegion() : null;
     FlagManager icons = FlagManager.get();
     Icon image = icons.getFlag(languageCode, regionCode);
     if (image == null) {
-      image = AndroidIcons.EmptyFlag;
+      image = AndroidIcons.Flags.FlagEmpty;
     }
 
     return image;

@@ -71,7 +71,7 @@ public class ResourceSwatchComponent extends JPanel {
   public static final SwatchIcon WARNING_ICON = new SwatchIcon() {
     @Override
     public void paintSwatch(@NotNull Component c, @NotNull Graphics g, int x, int y, int w, int h) {
-      Icon QUESTION_ICON = AndroidIcons.GreyQuestionMark;
+      Icon QUESTION_ICON = AndroidIcons.GreyQuestion;
       int horizontalMargin = (w + JBUIScale.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
       int verticalMargin = (h + JBUIScale.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
       QUESTION_ICON.paintIcon(c, g, x + horizontalMargin, y + verticalMargin);

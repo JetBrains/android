@@ -25,16 +25,14 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The general look and feel for all Studio-specific wizards.
  */
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
-
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
   private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
   private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
@@ -49,7 +47,7 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
   private JLabel myStepIcon;
 
   public StudioWizardLayout() {
-    Icon icon = AndroidIcons.Wizards.StudioProductIcon;
+    Icon icon = AndroidIcons.Wizards.StudioProduct;
     myIcon.setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
     myIcon.setIcon(icon);
 

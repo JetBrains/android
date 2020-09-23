@@ -53,7 +53,7 @@ public final class DeviceRenderer {
                                       @NotNull ColoredTextContainer component,
                                       boolean showSerialNumber,
                                       @Nullable AvdManager avdManager) {
-    component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+    component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator02 : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
 
     String name;
     if (d.isEmulator()) {

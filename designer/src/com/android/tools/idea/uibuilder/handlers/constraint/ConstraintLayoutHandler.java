@@ -84,6 +84,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
@@ -106,7 +107,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Wi
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
@@ -139,15 +139,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -164,10 +156,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.swing.Icon;
-import javax.swing.LookAndFeel;
-import javax.swing.Timer;
-import javax.swing.UIManager;
+import javax.swing.*;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -1926,19 +1915,19 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                            ADD_HORIZONTAL_BARRIER),
       new AddElementAction(AddElementAction.GROUP,
                            // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           AndroidIcons.Sherpa.SwitchBlueprintOff,
                            ADD_GROUP),
       new AddElementAction(AddElementAction.CONSTRAINT_SET,
                            // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           AndroidIcons.Sherpa.SwitchBlueprintOff,
                            ADD_CONSTRAINTS_SET),
       new AddElementAction(AddElementAction.LAYER,
                            // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           AndroidIcons.Sherpa.SwitchBlueprintOff,
                            ADD_LAYER),
       new AddElementAction(AddElementAction.FLOW,
                            // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           AndroidIcons.Sherpa.SwitchBlueprintOff,
                            ADD_FLOW));
   }
 }

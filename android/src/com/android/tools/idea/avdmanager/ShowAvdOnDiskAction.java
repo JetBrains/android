@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.RevealFileAction;
-
 import java.awt.event.ActionEvent;
 import java.io.File;
 
@@ -27,7 +26,7 @@ import java.io.File;
  */
 public class ShowAvdOnDiskAction extends AvdUiAction {
   public ShowAvdOnDiskAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
+    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.MenuOpen);
   }
 
   @Override

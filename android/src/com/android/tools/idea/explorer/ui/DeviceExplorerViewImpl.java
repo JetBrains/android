@@ -47,7 +47,7 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -59,11 +59,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -361,7 +357,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @Override
   public void showNoDeviceScreen() {
     myPanel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device",
-                             AndroidIcons.DeviceExplorer.DevicesLineup,
+                             AndroidIcons.Explorer.DevicesLineup,
                              false);
   }
 
@@ -632,7 +628,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Nullable
     @Override
     public Icon getIcon() {
-      return AllIcons.Actions.Menu_open;
+      return AllIcons.Actions.MenuOpen;
     }
 
     @Nullable
@@ -663,7 +659,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Nullable
     @Override
     public Icon getIcon() {
-      return AllIcons.Actions.Menu_saveall;
+      return AllIcons.Actions.MenuSaveall;
     }
 
     @Nullable

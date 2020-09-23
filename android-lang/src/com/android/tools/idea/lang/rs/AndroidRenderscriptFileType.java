@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.rs;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import icons.AndroidIcons;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +51,6 @@ public final class AndroidRenderscriptFileType extends LanguageFileType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Renderscript;
+    return AndroidIcons.RenderScript;
   }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.cpp;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
@@ -31,14 +33,11 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Step for configuring native (C++) related parameters in new project wizard
@@ -56,7 +55,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   public ConfigureCppSupportStep(@NotNull NewProjectModel model) {
     super(model, message("android.wizard.activity.add.cpp"));
 
-    myIconLabel.setIcon(AndroidIcons.Wizards.CppConfiguration);
+    myIconLabel.setIcon(AndroidIcons.Wizards.CppConfigure);
     myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
     myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
 

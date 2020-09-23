@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,7 +78,7 @@ public class LintAnnotationsModel {
     boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
     if (smallSize) {
       // TODO: add new icons to StudioIcons and replace these icons
-      return isError ? AndroidIcons.Issue.ErrorBadge : AndroidIcons.Issue.WarningBadge;
+      return isError ? AndroidIcons.Nele.Issue.ErrorBadge : AndroidIcons.Nele.Issue.WarningBadge;
     }
 
     if (selected) {
