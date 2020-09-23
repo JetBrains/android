@@ -22,6 +22,15 @@ fun isAndroidGradlePlugin(plugin: PluginData): Boolean {
   return plugin.displayName == "com.android.application"
 }
 
+fun isJavaPlugin(plugin: PluginData): Boolean {
+  return plugin.displayName == "application" ||
+         plugin.displayName == "java" ||
+         plugin.displayName == "java-base" ||
+         plugin.displayName == "java-gradle-plugin" ||
+         plugin.displayName == "java-library" ||
+         plugin.displayName == "java-platform"
+}
+
 fun isAndroidPlugin(plugin: PluginData): Boolean {
   return plugin.displayName == "com.android.application" ||
          plugin.displayName == "com.android.library" ||
@@ -32,7 +41,8 @@ fun isAndroidPlugin(plugin: PluginData): Boolean {
 }
 
 fun isKotlinPlugin(plugin: PluginData): Boolean {
-  return plugin.displayName == "kotlin-android" ||
+  return plugin.displayName == "kotlin" ||
+         plugin.displayName == "kotlin-android" ||
          plugin.displayName == "kotlin-android-extensions" ||
          plugin.displayName == "kotlin-multiplatform" ||
          plugin.displayName == "kotlin-kapt" ||
