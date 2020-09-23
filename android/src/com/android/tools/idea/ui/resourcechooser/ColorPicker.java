@@ -23,6 +23,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
@@ -358,7 +359,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myColorSuggestionPreview.setVisible(true);
       String toolTip = "<html>Change to <b>" + MaterialColorUtils.getMaterialName(myClosestColor);
       myColorSuggestionPreview.setToolTipText(toolTip);
-      myColorSuggestionPreview.setIcon(JBUI.scale(new ColorIcon(12, myClosestColor)));
+      myColorSuggestionPreview.setIcon(JBUIScale.scaleIcon(new ColorIcon(12, myClosestColor)));
     }
     else {
       myColorSuggestionPreview.setVisible(false);
