@@ -95,7 +95,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             for (activeSourceSetInfo in activeSourceSetInfos) {
                 val activeCompilation = activeSourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in activeCompilation.sourceSets) {
-                    if (! sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)) {
+                    if (isRootOrIntermediateSourceSet(activeCompilation.sourceSets, sourceSet)) {
                         val sourceSetId = activeSourceSetInfo.sourceSetIdsByName[sourceSet.name] ?: continue
                         val sourceSetNode = ExternalSystemApiUtil.findFirstRecursively(projectNode) {
                             (it.data as? ModuleData)?.id == sourceSetId
@@ -122,6 +122,10 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, nodeToImport) }
             }
         }
+    }
+
+    private fun isRootOrIntermediateSourceSet(sourceSets: Iterable<KotlinSourceSet>, sourceSet: KotlinSourceSet): Boolean {
+      return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.dependsOnSourceSets }
     }
 
     private fun getDependeeModuleNodes(
