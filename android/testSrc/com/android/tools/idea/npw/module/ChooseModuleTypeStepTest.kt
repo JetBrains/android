@@ -56,7 +56,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val expectedEntries = listOf(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
-      "Import Eclipse ADT Project", "Java or Kotlin Library", "Benchmark Module", "Android Native Library")
+      "Import Eclipse ADT Project", "Java or Kotlin Library", "Benchmark Module")
       .filterNot { StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && (it == "Import Gradle Project" || it == "Import Eclipse ADT Project")}
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
