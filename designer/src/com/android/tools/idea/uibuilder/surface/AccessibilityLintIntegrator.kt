@@ -69,12 +69,6 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
   fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
-    if (result.mLevel == ValidatorData.Level.VERBOSE ||
-        result.mLevel == ValidatorData.Level.INFO ||
-        result.mType == ValidatorData.Type.INTERNAL_ERROR) {
-      // Hide anything that's verbose, info or of internal error.
-      return
-    }
     val source = if (component == null) {
       IssueSource.NONE
     }

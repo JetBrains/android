@@ -83,7 +83,8 @@ class ScannerTestHelper {
    *
    * It creates a [ValidatorData.Issue] per [NlModel.flattenComponents]
    */
-  fun mockRenderResult(model: NlModel): RenderResult {
+  fun mockRenderResult(model: NlModel, injectedResult: ValidatorResult? = null):
+    RenderResult {
     val result = Mockito.mock(RenderResult::class.java)
     val validatorResult = ValidatorResult.Builder()
     val viewInfos = ImmutableList.Builder<ViewInfo>()
@@ -96,7 +97,11 @@ class ScannerTestHelper {
 
       it?.viewInfo?.let { viewInfo -> viewInfos.add(viewInfo) }
     }
-    Mockito.`when`(result.validatorResult).thenReturn(validatorResult.build())
+    if (injectedResult != null) {
+      Mockito.`when`(result.validatorResult).thenReturn(injectedResult)
+    } else {
+      Mockito.`when`(result.validatorResult).thenReturn(validatorResult.build())
+    }
     Mockito.`when`(result.rootViews).thenReturn(viewInfos.build())
 
     val renderResult = Mockito.mock(Result::class.java)
