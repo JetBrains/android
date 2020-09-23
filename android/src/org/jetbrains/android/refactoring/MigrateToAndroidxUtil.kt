@@ -47,6 +47,13 @@ fun Project.isAndroidx(): Boolean = runReadAction {
 }
 
 /**
+ * Checks that the "enableJetifier" property is set to true
+ */
+fun Project.isJetifierEnabled(): Boolean = runReadAction {
+  getProjectProperties()?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.value?.toBoolean() ?: false
+}
+
+/**
  * Returns the actual name of an [AndroidxName] class to be used in a given [Project], based on the AndroidX properties set by the project.
  */
 fun AndroidxName.getNameInProject(project: Project): String = runReadAction {
