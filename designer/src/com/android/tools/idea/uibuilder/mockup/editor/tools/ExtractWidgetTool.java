@@ -15,7 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
+import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LIST_VIEW;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VIEW;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+
 import com.android.annotations.Nullable;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -23,23 +34,23 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tool Allowing the extraction of widget or layout from the current selection
@@ -58,9 +69,9 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
    */
   private static ImmutableList<CreatorAction> ourWidgetCreationActions = new ImmutableList.Builder<CreatorAction>()
     // TODO: add new Icons to StudioIcons and replace this.
-    .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
+    .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.MockupAdd))
     // TODO: add new Icons to StudioIcons and replace this.
-    .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout, true))
+    .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.NewLayout, true))
     .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW))
     .add(new CreatorAction(FLOATING_ACTION_BUTTON.defaultName(), "Create new FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON))
     .add(new CreatorAction(TEXT_VIEW, "Create new TextView", StudioIcons.LayoutEditor.Palette.TEXT_VIEW))

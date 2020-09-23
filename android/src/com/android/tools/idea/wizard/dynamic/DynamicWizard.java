@@ -561,7 +561,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   @Nullable
   public Icon getIcon() {
-    return AndroidIcons.Wizards.StudioProductIcon;
+    return AndroidIcons.Wizards.StudioProduct;
   }
 
   protected static class PathIterator {

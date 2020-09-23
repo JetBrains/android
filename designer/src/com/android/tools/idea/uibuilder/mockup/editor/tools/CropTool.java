@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.SelectionLayer;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import java.awt.*;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Tool handling the the cropping of the mockup
@@ -163,7 +167,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
     public MatchComponentRatio() {
       // TODO: add new Icons to StudioIcons and replace this.
-      super(TITLE, TITLE, AndroidIcons.Mockup.MatchWidget);
+      super(TITLE, TITLE, AndroidIcons.Mockup.AspectRatio);
     }
 
     @Override

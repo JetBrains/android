@@ -71,7 +71,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
-      e.getPresentation().setIcon(AllIcons.Actions.Menu_open);
+      e.getPresentation().setIcon(AllIcons.Actions.MenuOpen);
     }
   }
 

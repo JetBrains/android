@@ -32,7 +32,7 @@ import java.awt.event.ActionEvent
  * This does not change the general Cold/Fast selection.
  */
 class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
-    AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.Menu_open) {
+    AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.MenuOpen) {
 
   override fun actionPerformed(actionEvent: ActionEvent) {
     val project = myAvdInfoProvider.project

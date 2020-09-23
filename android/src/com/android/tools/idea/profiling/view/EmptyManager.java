@@ -27,9 +27,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import icons.AndroidIcons;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +60,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull
   @Override
   protected Icon getIcon() {
-    return AndroidIcons.ToolWindows.Warning;
+    return AndroidIcons.Toolwindows.ToolWindowWarning;
   }
 
   @NotNull

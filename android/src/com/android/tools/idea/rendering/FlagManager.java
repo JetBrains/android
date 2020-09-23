@@ -21,16 +21,13 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.google.common.collect.Maps;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import java.util.Map;
-import javax.swing.Icon;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -202,7 +199,7 @@ public final class FlagManager {
         // or with idea.is.internal=true
       }
       if (flagImage == null) {
-        flagImage = AndroidIcons.EmptyFlag;
+        flagImage = AndroidIcons.Flags.FlagEmpty;
       }
       myImageMap.put(base, flagImage);
     }

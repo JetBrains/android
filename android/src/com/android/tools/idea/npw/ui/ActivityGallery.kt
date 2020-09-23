@@ -18,7 +18,6 @@
  * Utility methods to load Template Images and find labels
  */
 @file:JvmName("ActivityGallery")
-
 package com.android.tools.idea.npw.ui
 
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -28,7 +27,8 @@ import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
-val cppIcon: TemplateIcon get() = TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
+val cppIcon: TemplateIcon
+  get() = TemplateIcon(AndroidIcons.Wizards.CppConfigure)
 
 /**
  * Return the image associated with the current template, if it specifies one, or null otherwise.
