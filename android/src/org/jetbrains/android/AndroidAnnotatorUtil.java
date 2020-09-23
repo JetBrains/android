@@ -36,8 +36,8 @@ import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
+import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
@@ -63,17 +63,15 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Consumer;
 import com.intellij.util.EmptyConsumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
-import com.intellij.util.ui.JBUI;
-import java.awt.Color;
-import java.awt.MouseInfo;
+import java.awt.*;
 import java.util.List;
 import java.util.Objects;
-import javax.swing.Icon;
-import javax.swing.JComponent;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -320,7 +318,7 @@ public class AndroidAnnotatorUtil {
     @Override
     public Icon getIcon() {
       Color color = getCurrentColor();
-      return color == null ? JBUI.scale(EmptyIcon.create(ICON_SIZE)) : JBUI.scale(new ColorIcon(ICON_SIZE, color));
+      return color == null ? JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE)) : JBUIScale.scaleIcon(new ColorIcon(ICON_SIZE, color));
     }
 
     @Nullable
