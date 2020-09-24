@@ -537,6 +537,14 @@ public final class StudioFlags {
     "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
     false
   );
+
+  public static final Flag<Boolean> GRADLE_UNIT_TESTING = Flag.create(
+    RUNDEBUG,
+    "run.unit.tests.via.gradle",
+    "Run Android unit tests through Gradle",
+    "Switch to running unit tests via Gradle Tooling API instead of JUnit",
+    false
+  );
   //endregion
 
   //region Gradle Project System
