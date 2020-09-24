@@ -129,7 +129,6 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   // TODO(karimai): what if the type needs to be imported ?
   val className = if (dslReference is GradleDslLiteral) dslReference.value?.javaClass?.kotlin?.simpleName else null
   val externalName = StringBuilder()
-  var lastArray = false
   var currentParent = dslReference.parent
   var useProjectPrefix = false
 
@@ -168,80 +167,107 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   }
 
   // Now we can start appending names from the resolved reference file context.
+  var parentElement: GradleDslElement? = null
+  var extraArraySyntax: Boolean = currentParent != context.dslFile
+
   for (currentElement in resolutionElements) {
     // Get the external name for the resolve reference.
     val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).externalNameParts.joinToString(".")
+    when (parentElement) {
+      is GradleDslExpressionMap -> externalName.append("[\"")
+      is GradleDslExpressionList -> externalName.append("[")
+      is ExtDslElement -> {
+        if (extraArraySyntax) externalName.append("[\"")
+      }
+      null -> Unit
+      // TODO(xof): this conditional (on isNotEmpty) should be unconditional, but we sometimes have spurious parents in resolutionElements
+      //  (see the note by the declaration of resolutionElements above)
+      else -> if (externalName.isNotEmpty()) externalName.append(".")
+    }
     when (currentElement) {
-      is ExtDslElement -> if (currentParent != context.dslFile) {
-        externalName.append("extra[\"")
-        lastArray = true
+      is ExtDslElement -> if (extraArraySyntax) {
+        externalName.append("extra")
       }
       is GradleDslExpressionMap -> {
-        if (!lastArray) {
-          externalName.append("${elementExternalName}[\"")
-          lastArray = true
-        }
-        else  {
-          val updatedName = "(${externalName}${elementExternalName}\"] as Map<*, *>)[\""
+        externalName.append(elementExternalName)
+        fun maybeCast(close: String) {
+          externalName.append(close)
+          val updatedName = "($externalName as Map<*, *>)"
           externalName.clear().append(updatedName)
+        }
+        when (parentElement) {
+          is GradleDslExpressionMap -> maybeCast("\"]")
+          is GradleDslExpressionList -> maybeCast("]")
+          is ExtDslElement -> {
+            if (extraArraySyntax) maybeCast("\"]")
+          }
         }
       }
       is GradleDslExpressionList -> {
-        if(!lastArray) {
-          externalName.append("${elementExternalName}[")
-          lastArray = true
-        }
-        else {
-          val updatedName = "($externalName${elementExternalName}\"] as List<*>)["
+        externalName.append(elementExternalName)
+        fun maybeCast(close: String) {
+          externalName.append(close)
+          val updatedName = "($externalName as List<*>)"
           externalName.clear().append(updatedName)
+        }
+        when (parentElement) {
+          is GradleDslExpressionMap -> maybeCast("\"]")
+          is GradleDslExpressionList -> maybeCast("]")
+          is ExtDslElement -> {
+            if (extraArraySyntax) maybeCast("\"]")
+          }
         }
       }
       is GradleDslLiteral -> {
         val useTypeCast = !forInjection && currentParent != context.dslFile && className != null
-        if (lastArray) {
-          if (currentElement.parent is GradleDslExpressionList) {
-            var i = 0
-            for (property in (currentElement.parent as GradleDslExpressionList).simpleExpressions) {
-              if (property == currentElement) break
-              i++
+        when (parentElement) {
+          is GradleDslExpressionMap -> {
+            externalName.append("$elementExternalName\"]")
+            if (useTypeCast) externalName.append(" as $className")
+          }
+          is GradleDslExpressionList -> {
+            val i = parentElement.simpleExpressions.indexOf(currentElement)
+            externalName.append("$i]")
+            if (useTypeCast) externalName.append(" as $className")
+          }
+          is ExtDslElement -> {
+            if (extraArraySyntax) {
+              externalName.append("$elementExternalName\"]")
+              if (useTypeCast) externalName.append(" as $className")
             }
-            // Type cast is needed only if we are applying from a parent module context.
-            externalName.append("$i]" + if (useTypeCast) " as $className" else "")
-            lastArray = false
+            else if (currentElement.name == currentElement.fullName) {
+              externalName.append(elementExternalName)
+            }
+            else {
+              // This is for extra properties declared using array access expressions
+              // TODO(karimai): this workaround assumes we don't currently support properties defined within extensionAware containers.
+              //  Decide for a better support to these properties and update this code accordingly.
+              if (useProjectPrefix && context.getBlockParent() !is GradleDslFile) externalName.append("project.")
+              externalName.append("extra[\"$elementExternalName\"]")
+              // If we are using the reference for an assignment, then we should use the type cast.
+              if (!forInjection && className != null) externalName.append(" as $className")
+            }
           }
-          else {
-            // Type cast is needed only if we are applying from a parent module context.
-            externalName.append(
-              "${elementExternalName}\"]" + if (useTypeCast) " as $className" else "")
-            lastArray = false
-          }
-        }
-        else {
-          // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
-          if (currentElement.name == currentElement.fullName) externalName.append(elementExternalName)
-          else if (currentElement.parent is ExtDslElement) {
-            // This is for extra properties declared using array access expressions
-            // TODO(karimai): this workaround assumes we don't currently support properties defined within extensionAware containers.
-            //  Decide for a better support to these properties and update this code accordingly.
-            if (useProjectPrefix && context.getBlockParent() !is GradleDslFile) externalName.append("project.")
-            externalName.append("extra[\"${elementExternalName}\"]")
-            // If we are using the reference for an assignment, then we should use the type cast.
-            if (!forInjection && className != null) externalName.append(" as $className")
+          else -> {
+            if (currentElement.name == currentElement.fullName) {
+              externalName.append(elementExternalName)
+            }
           }
         }
       }
-      is GradleDslNamedDomainContainer -> externalName.append("$elementExternalName.")
-      is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\").")
+      is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
+      is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
       else -> {
         // if we have a model property with a transform (so not directly a GradleDslLiteral)
         if (currentElement.modelEffect?.property != null) {
-          externalName.append("$elementExternalName.")
+          externalName.append(elementExternalName)
         }
       }
     }
+    parentElement = currentElement
   }
 
-  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.', '[', '"') else null
+  return if (externalName.isNotEmpty()) externalName.toString() else null
 }
 
 internal fun isValidBlockName(blockName : String?) =
