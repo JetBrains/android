@@ -175,6 +175,7 @@ fun createAndShowResourcePickerPopup(
   resourceType: ResourceType,
   configuration: Configuration,
   facet: AndroidFacet,
+  resourcePickerSources: List<ResourcePickerSources>,
   locationToShow: Point?,
   resourcePickedCallback: (String) -> Unit
 ) {
@@ -188,7 +189,7 @@ fun createAndShowResourcePickerPopup(
     configuration,
     configuration.resourceResolver,
     resourceType,
-    ResourcePickerSources.allSources(),
+    resourcePickerSources,
     resourcePickedCallback,
     popupDialog::close,
     disposable
