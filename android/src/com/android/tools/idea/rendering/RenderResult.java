@@ -48,6 +48,7 @@ public class RenderResult {
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
+  private final long myRenderDurationMs;
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -60,7 +61,8 @@ public class RenderResult {
                          @NotNull ImagePool.Image image,
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
                          @NotNull Map<Object, ResourceReference> defaultStyles,
-                         @Nullable Object validatorResult) {
+                         @Nullable Object validatorResult,
+                         long renderDurationMs) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -72,6 +74,7 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
     myValidatorResult = validatorResult;
+    myRenderDurationMs = renderDurationMs;
   }
 
   /**
@@ -130,7 +133,8 @@ public class RenderResult {
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
-      session.getValidationData());
+      session.getValidationData(),
+      -1);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -140,33 +144,23 @@ public class RenderResult {
   }
 
   /**
-   * Creates a new session initialization error {@link RenderResult} from a given RenderTask
+   * Creates a new {@link RenderResult} from this with recorded render duration.
    */
   @NotNull
-  public static RenderResult createSessionInitializationError(@NotNull RenderTask renderTask,
-                                                              @NotNull PsiFile file,
-                                                              @NotNull RenderLogger logger,
-                                                              @Nullable Throwable throwable) {
-    Module module = logger.getModule();
-    assert module != null;
-    RenderResult result = new RenderResult(
-      file,
-      module, // do not use renderTask.getModule as a disposed renderTask could be the reason we are here
-      logger,
-      renderTask,
-      Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session", throwable),
-      ImmutableList.of(),
-      ImmutableList.of(),
-      ImagePool.NULL_POOLED_IMAGE,
-      ImmutableMap.of(),
-      ImmutableMap.of(),
-      null);
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(result.toString());
-    }
-
-    return result;
+  public RenderResult createWithDuration(long renderDurationMs) {
+    return new RenderResult(
+      myFile,
+      myModule,
+      myLogger,
+      myRenderTask,
+      myRenderResult,
+      myRootViews,
+      mySystemRootViews,
+      myImage,
+      myDefaultProperties,
+      myDefaultStyles,
+      myValidatorResult,
+      renderDurationMs);
   }
 
   /**
@@ -211,7 +205,8 @@ public class RenderResult {
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
       ImmutableMap.of(),
-      null);
+      null,
+      -1);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -296,5 +291,12 @@ public class RenderResult {
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .toString();
+  }
+
+  /**
+   * Returns render duration in ms or -1 if unknown.
+   */
+  public long getRenderDuration() {
+    return myRenderDurationMs;
   }
 }
