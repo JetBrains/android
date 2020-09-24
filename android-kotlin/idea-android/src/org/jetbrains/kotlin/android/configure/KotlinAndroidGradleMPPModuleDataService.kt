@@ -125,7 +125,13 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     private fun isRootOrIntermediateSourceSet(sourceSets: Iterable<KotlinSourceSet>, sourceSet: KotlinSourceSet): Boolean {
-      return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.dependsOnSourceSets }
+        return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.dependsOnSourceSets } ||
+               /**
+                * TODO Sebastian Sellmair
+                *  Currently default `dependsOn` edges are not correct for android source sets:
+                *  Android source sets are not declaring `dependsOn("commonMain")` by default
+                */
+                !sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)
     }
 
     private fun getDependeeModuleNodes(
