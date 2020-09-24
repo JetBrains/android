@@ -15,49 +15,38 @@
  */
 package org.jetbrains.android
 
-import com.android.ide.common.resources.ResourceResolver
+import com.android.resources.ResourceType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
-class AndroidAnnotatorUtilTest: AndroidTestCase() {
+class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
   fun testPickupColorResourceInJavaFile() {
-    val resolver = ResourceResolver.create(emptyMap(), null)
-    val element = PsiElementFactory.getInstance(project)
-      .createExpressionFromText("R.color.color1", null)
+    val element = createJavaElement("R.color.color1")
 
-    val renderer = AndroidAnnotatorUtil.ColorRenderer(element, null, resolver, null, false, null)
-    val task = renderer.createSetColorAttributeTask()
+    val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.COLOR)
 
-    task.consume("@color/color2")
-    assertEquals("R.color.color2", renderer.element.text)
-
-    task.consume("@android:color/color3")
-    assertEquals("android.R.color.color3", renderer.element.text)
+    task.testJavaConsumer("@color/color2" to "R.color.color2",
+                          "@android:color/color3" to "android.R.color.color3")
   }
 
-  fun testColorRendererInKotlinFile() {
-    val resolver = ResourceResolver.create(emptyMap(), null)
-    val parentElement = KtPsiFactory(project, false).createExpression("R.color.color1") as PsiElement
-    val element = parentElement.lastChild
+  fun testSetColorInKotlinFile() {
+    val element = createKotlinElement("R.color.color1")
 
-    val renderer = AndroidAnnotatorUtil.ColorRenderer(element, null, resolver, null, false, null)
-    val task = renderer.createSetColorAttributeTask()
+    val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.COLOR)
 
-    task.consume("@color/color2")
-    assertEquals("color2", renderer.element.text)
-    assertEquals("R.color.color2", renderer.element.parent.text)
+    task.testKotlinConsumer("@color/color2" to "R.color.color2",
+                            "@android:color/color3" to "android.R.color.color3")
 
-    task.consume("@android:color/color3")
-    assertEquals("color3", renderer.element.text)
-    assertEquals("android.R.color.color3", renderer.element.parent.text)
+    // Verify that the current element in the consumer is the PsiElement that corresponds to the name only
+    assertEquals("color3", task.element.text)
   }
 
   fun testSetColorToXmlTag() {
     val xmlTag = XmlElementFactory.getInstance(project).createTagFromText("<color name=\"xxx\">#000000</color>")
-    val task = AndroidAnnotatorUtil.createSetXmlAttributeTask(xmlTag)
+    val task = AndroidAnnotatorUtil.SetAttributeConsumer(xmlTag, ResourceType.COLOR)
     task.consume("#FFFFFF")
     assertEquals("<color name=\"xxx\">#FFFFFF</color>", xmlTag.text)
 
@@ -72,7 +61,7 @@ class AndroidAnnotatorUtilTest: AndroidTestCase() {
     val xmlAttribute = XmlElementFactory.getInstance(project).createXmlAttribute("android:background", "#000000")
 
     run {
-      val task = AndroidAnnotatorUtil.createSetXmlAttributeTask(xmlAttribute.valueElement!!)
+      val task = AndroidAnnotatorUtil.SetAttributeConsumer(xmlAttribute.valueElement!!, ResourceType.COLOR)
       task.consume("#FFFFFF")
       assertEquals("#FFFFFF", xmlAttribute.valueElement!!.value)
     }
@@ -80,15 +69,62 @@ class AndroidAnnotatorUtilTest: AndroidTestCase() {
     // The xml attribute value element is replaced when new value is set, thus we need to recreate a new task for different test cases.
 
     run {
-      val task = AndroidAnnotatorUtil.createSetXmlAttributeTask(xmlAttribute.valueElement!!)
+      val task = AndroidAnnotatorUtil.SetAttributeConsumer(xmlAttribute.valueElement!!, ResourceType.COLOR)
       task.consume("@color/color1")
       assertEquals("@color/color1", xmlAttribute.valueElement!!.value)
     }
 
     run {
-      val task = AndroidAnnotatorUtil.createSetXmlAttributeTask(xmlAttribute.valueElement!!)
+      val task = AndroidAnnotatorUtil.SetAttributeConsumer(xmlAttribute.valueElement!!, ResourceType.COLOR)
       task.consume("@android:color/color2")
       assertEquals("@android:color/color2", xmlAttribute.valueElement!!.value)
+    }
+  }
+
+  fun testPickupDrawableResourceInJavaFile() {
+    val element = createJavaElement("R.drawable.drawable1")
+
+    val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.DRAWABLE)
+
+    task.testJavaConsumer("@drawable/drawable2" to "R.drawable.drawable2",
+                          "@android:drawable/drawable3" to "android.R.drawable.drawable3")
+  }
+
+  fun testSetDrawableInKotlinFile() {
+    val element = createKotlinElement("R.drawable.drawable1")
+
+    val task = AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.DRAWABLE)
+
+    task.testKotlinConsumer("@drawable/drawable2" to "R.drawable.drawable2",
+                            "@android:drawable/drawable3" to "android.R.drawable.drawable3")
+
+    // Verify that the current element in the consumer is the PsiElement that corresponds to the name only
+    assertEquals("drawable3", task.element.text)
+  }
+
+
+  private fun createJavaElement(text: String) = PsiElementFactory.getInstance(project).createExpressionFromText(text, null)
+
+  private fun createKotlinElement(text: String) = (KtPsiFactory(project, false).createExpression(text) as PsiElement).lastChild
+
+  /**
+   * Test the [AndroidAnnotatorUtil.SetAttributeConsumer] for multiple changes when the [PsiElement] in the consumer is in a Java file.
+   */
+  private fun AndroidAnnotatorUtil.SetAttributeConsumer.testJavaConsumer(vararg resourceAttributeAndExpected: Pair<String, String>) {
+    for ((resource, expectedResult) in resourceAttributeAndExpected) {
+      consume(resource)
+      assertEquals(expectedResult, element.text)
+    }
+  }
+
+  /**
+   * Test the [AndroidAnnotatorUtil.SetAttributeConsumer] for multiple changes when the [PsiElement] in the consumer is in a Kotlin file.
+   */
+  private fun AndroidAnnotatorUtil.SetAttributeConsumer.testKotlinConsumer(vararg resourceAttributeAndExpected: Pair<String, String>) {
+    for ((resource, expectedResult) in resourceAttributeAndExpected) {
+      consume(resource)
+      // For Kotlin, test against the parent, which is the full resource reference: namespace.R.resource_type.resource_name
+      assertEquals(expectedResult, element.parent.text)
     }
   }
 }

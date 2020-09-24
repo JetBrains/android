@@ -28,6 +28,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
@@ -45,7 +46,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -59,8 +59,6 @@ import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -98,9 +96,9 @@ public class AndroidAnnotatorUtil {
   /**
    * Returns a bitmap to be used as an icon to annotate an Android resource reference in an XML file.
    *
-   * @param resourceValue the resource value defining the resource being referenced
+   * @param resourceValue    the resource value defining the resource being referenced
    * @param resourceResolver the resource resolver to use
-   * @param facet the android facet
+   * @param facet            the android facet
    * @return the bitmap for the annotation icon, or null to have no annotation icon
    */
   @Nullable
@@ -138,7 +136,7 @@ public class AndroidAnnotatorUtil {
           // Take a look and see if we have a bitmap we can fall back to.
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
-              resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+            resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
             FolderConfiguration configuration = item.getConfiguration();
             DensityQualifier densityQualifier = configuration.getDensityQualifier();
@@ -235,7 +233,7 @@ public class AndroidAnnotatorUtil {
       String fileName = bitmap.getName();
       Density[] densities = Density.values();
       // Iterate in reverse, since the Density enum is in descending order.
-      for (int i = densities.length; --i >= 0;) {
+      for (int i = densities.length; --i >= 0; ) {
         Density d = densities[i];
         if (d.isValidValueForDevice()) {
           String folderName = parentName.replace(density.getResourceValue(), d.getResourceValue());
@@ -260,7 +258,7 @@ public class AndroidAnnotatorUtil {
   /**
    * Picks a suitable configuration to use for resource resolution within a given file.
    *
-   * @param file the file to determine a configuration for
+   * @param file  the file to determine a configuration for
    * @param facet {@link AndroidFacet} of the {@code file}
    */
   @Nullable
@@ -277,7 +275,8 @@ public class AndroidAnnotatorUtil {
       if (nearestConfigurationFile == null) {
         return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
       }
-    } else {
+    }
+    else {
       nearestConfigurationFile = virtualFile;
     }
 
@@ -322,7 +321,7 @@ public class AndroidAnnotatorUtil {
 
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
-      mySetColorTask = createSetColorAttributeTask();
+      mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
       myConfiguration = configuration;
     }
 
@@ -354,11 +353,14 @@ public class AndroidAnnotatorUtil {
     private Color getCurrentColor() {
       if (myColor != null) {
         return myColor;
-      } else if (myElement instanceof XmlTag) {
+      }
+      else if (myElement instanceof XmlTag) {
         return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
-      } else if (myElement instanceof XmlAttributeValue) {
+      }
+      else if (myElement instanceof XmlAttributeValue) {
         return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -446,41 +448,57 @@ public class AndroidAnnotatorUtil {
     public int hashCode() {
       return HashCodes.mix(myElement.hashCode(), Objects.hashCode(myColor));
     }
+  }
+
+  /**
+   * A {@link Consumer} that can be used to edit resources in XML and Java/Kt files.
+   * <p>
+   * Supports Tags and Attribute for XML and it uses the resource expression: namespace.R.resource_type.resource_name for Java/Kt.
+   */
+  public static class SetAttributeConsumer implements Consumer<String> {
+    private PsiElement myElement;
+    private final Consumer<String> myAttributeConsumer;
+    private final ResourceType myResourceType;
+
+    /**
+     * @param psiElement   The PsiElement of the reference to edit. {@link XmlTag} or {@link XmlAttributeValue} for XML.
+     * {@link PsiReferenceExpression} for Java and {@link KtNameReferenceExpression} for Kotlin
+     * @param resourceType The type of the resource reference being edited.
+     */
+    public SetAttributeConsumer(PsiElement psiElement, ResourceType resourceType) {
+      myElement = psiElement;
+      myResourceType = resourceType;
+      myAttributeConsumer = createSetAttributeTask();
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public PsiElement getElement() {
+      return myElement;
+    }
+
+    @Override
+    public void consume(String s) {
+      myAttributeConsumer.consume(s);
+    }
 
     /**
      * Returns a {@link Consumer} that sets the value for all eligible Java, Kotlin, and Xml files.
-     * For now it supports be Java/Kotlin files with (android.)R.color and XML resource files.
+     * For now it supports Java/Kotlin files with (android.)R.resource_type and XML resource files.
      */
-    @VisibleForTesting
     @NotNull
-    public Consumer<String> createSetColorAttributeTask() {
-      return colorAttributeValue -> {
+    private Consumer<String> createSetAttributeTask() {
+      return attributeValue -> {
         PsiElement psiElement = myElement;
         if (psiElement instanceof PsiReferenceExpression || psiElement instanceof KtNameReferenceExpression) {
           // The element is in Java or kotlin file.
           // In Java file, the type of psiElement is PsiReferenceExpression. Its text is "R.color.[resource_name]" or "android.R.color.xxx"
           // In Kotlin file, the type of psiElement is KtNameReferenceExpression. Its text is [resource_name].
-
-          String resourceIdentifier = convertColorAttributeValueToIdentifier(colorAttributeValue);
-          if (resourceIdentifier == null) {
-            return;
-          }
-          if (psiElement instanceof PsiReferenceExpression) {
-            // Java file case.
-            PsiExpression expression =
-              PsiElementFactory.getInstance(psiElement.getProject()).createExpressionFromText(resourceIdentifier, psiElement);
-            myElement = psiElement.replace(expression);
-          }
-          else {
-            // Kotlin file case
-            KtExpression expression = KtPsiFactoryKt.KtPsiFactory(psiElement.getProject()).createExpression(resourceIdentifier);
-            PsiElement resourceReferenceElement = psiElement.getParent().replace(expression);
-            myElement = resourceReferenceElement.getLastChild();
-          }
+          myElement = setJavaOrKotlinAttribute(psiElement, attributeValue, myResourceType);
         }
-        else {
+        else if (psiElement != null) {
           // xml file cases.
-          createSetXmlAttributeTask(psiElement).consume(colorAttributeValue);
+          myElement = setXmlAttribute(psiElement, attributeValue);
         }
       };
     }
@@ -492,7 +510,7 @@ public class AndroidAnnotatorUtil {
    * If the given color attribute value is not eligible, return null.
    */
   @Nullable
-  private static String convertColorAttributeValueToIdentifier(@NotNull String colorAttributeValue) {
+  private static String convertResourceAttributeToIdentifier(@NotNull String colorAttributeValue, @NotNull ResourceType resourceType) {
     int nameStartIndex = colorAttributeValue.lastIndexOf('/');
     if (nameStartIndex == -1) {
       return null;
@@ -507,29 +525,55 @@ public class AndroidAnnotatorUtil {
       builder.append(SdkConstants.ANDROID_PKG_PREFIX);
     }
     return builder.append(SdkConstants.R_PREFIX)
-      .append(SdkConstants.RESOURCE_CLZ_COLOR).append(".")
+      .append(resourceType.getName()).append(".")
       .append(resourceName)
       .toString();
   }
 
   /**
-   * Returns a {@link Consumer} that sets the value of an {@link XmlAttribute} or an {@link XmlTag}.
+   * Replaces the PsiElement for an expression of the given attribute value.
+   *
+   * @param psiElement The PsiElement of the resource reference being edited. Eg: The PsiElement of 'R.color.foo_color'
+   * @param attributeValue Resource reference String to be written. Expected in the form: '@color/resource_name'
+   * @return The new {@link PsiElement} resulting from replacing the original element for an expression of the given value.
    */
-  @NotNull
-  public static Consumer<String> createSetXmlAttributeTask(@NotNull PsiElement psiElement) {
-    SmartPsiElementPointer<PsiElement> smartPsiElementPointer = ReadAction.compute(() -> SmartPointerManager.createPointer(psiElement));
-    return attributeValue -> {
-      PsiElement element = smartPsiElementPointer.getElement();
-      if (element instanceof XmlTag) {
-        XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        xmlTagValue.setText(attributeValue);
+  public static PsiElement setJavaOrKotlinAttribute(@NotNull PsiElement psiElement,
+                                                    @NotNull String attributeValue,
+                                                    @NotNull ResourceType resourceType) {
+    String resourceIdentifier = convertResourceAttributeToIdentifier(attributeValue, resourceType);
+    if (resourceIdentifier == null) {
+      return psiElement;
+    }
+    if (psiElement instanceof PsiReferenceExpression) {
+      // Java file case.
+      PsiExpression expression =
+        PsiElementFactory.getInstance(psiElement.getProject()).createExpressionFromText(resourceIdentifier, psiElement);
+      return psiElement.replace(expression);
+    }
+    else {
+      // Kotlin file case
+      KtExpression expression = KtPsiFactoryKt.KtPsiFactory(psiElement.getProject()).createExpression(resourceIdentifier);
+      // Replace the parent with the resulting expression, but return the last child, which corresponds to the name of the resource
+      return psiElement.getParent().replace(expression).getLastChild();
+    }
+  }
+
+  /**
+   * Sets the given attributeValue to the {@link XmlTag} or {@link XmlAttributeValue} given.
+   * @return The {@link PsiElement} of either the original {@link XmlTag} or the new {@link XmlAttributeValue} set.
+   */
+  public static PsiElement setXmlAttribute(@NotNull PsiElement element, @NotNull String attributeValue) {
+    if (element instanceof XmlTag) {
+      XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
+      xmlTagValue.setText(attributeValue);
+    }
+    else if (element instanceof XmlAttributeValue) {
+      XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+      if (xmlAttribute != null) {
+        xmlAttribute.setValue(attributeValue);
+        return xmlAttribute.getValueElement();
       }
-      else if (element instanceof XmlAttributeValue) {
-        XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
-        if (xmlAttribute != null) {
-          xmlAttribute.setValue(attributeValue);
-        }
-      }
-    };
+    }
+    return element;
   }
 }
