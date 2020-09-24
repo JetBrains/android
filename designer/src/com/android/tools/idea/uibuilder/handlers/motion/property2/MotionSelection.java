@@ -17,8 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.MOTION_LAYOUT;
 
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
@@ -27,7 +30,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Arrays;
@@ -238,6 +240,17 @@ public class MotionSelection {
     return getComponentFromConstraintTag(motionTag);
   }
 
+  /**
+   * Find the {@link NlComponent} that correspond to the <code><CustomAttribute></code> being created.
+   *
+   * Only the following tags can have a <code><CustomAttribute></code>:
+   * <ul>
+   *   <li><code><Constraint></code></li>
+   *   <li><code><KeyAttribute></code></li>
+   *   <li><code><KeyCycle></code></li>
+   *   <li><code><KeyTimeCycle></code></li>
+   * </ul>
+   */
   @Nullable
   public NlComponent getComponentForCustomAttributeCompletions() {
     NlComponentTag componentTag = getNlComponentTag();
@@ -263,19 +276,32 @@ public class MotionSelection {
     }
   }
 
+  /**
+   * Return the {@link NlComponent} matching the id of the <code><Constraint></code> tag.
+   */
+  @Nullable
   private NlComponent getComponentFromConstraintTag(@NotNull MTag constraintTag) {
-    String constraintId = Utils.stripID(constraintTag.getAttributeValue(ATTR_ID));
-    if (myComponents.isEmpty()) {
+    String constraintId = parseId(constraintTag.getAttributeValue(ATTR_ID));
+    if (constraintId == null) {
       return null;
     }
+    return getViewById(constraintId);
+  }
+
+  @Nullable
+  private NlComponent getViewById(@NotNull String id) {
     NlComponent motionLayout = getMotionLayoutComponent();
     if (motionLayout == null) {
       return null;
     }
-    return motionLayout.getChildren().stream().filter(view -> constraintId.equals(view.getId())).findFirst().orElse(null);
+    return motionLayout.getChildren().stream().filter(view -> id.equals(view.getId())).findFirst().orElse(null);
   }
 
+  @Nullable
   private NlComponent getMotionLayoutComponent() {
+    if (myComponents.isEmpty()) {
+      return null;
+    }
     NlComponent motionLayout = myComponents.get(0);
     if (!MOTION_LAYOUT.isEquals(motionLayout.getTagName())) {
       motionLayout = motionLayout.getParent();
@@ -286,42 +312,58 @@ public class MotionSelection {
     return motionLayout;
   }
 
+  /**
+   * Return the {@link NlComponent} that correspond to this key frame tag.
+   */
   private NlComponent getComponentFromKeyWithArbitraryBackup(@NotNull MotionSceneTag keyTag) {
     if (myComponents.isEmpty()) {
       return null;
     }
     NlComponent component = getComponentFromKey(keyTag);
+    // If no component is found, just return an arbitrary component (for completions in new custom field dialog).
     return component != null ? component : myComponents.get(0);
   }
 
+  /**
+   * Find the {@link NlComponent} that this KeyFrame is working on.
+   *
+   * Lookup the component from the motionTarget attribute.
+   * The motionTarget can be either a view id or a regular expression.
+   */
   private NlComponent getComponentFromKey(@NotNull MotionSceneTag keyTag) {
-    MTag keyFrameSet = keyTag.getParent();
-    if (keyFrameSet == null) {
+    String motionTarget = keyTag.getAttributeValue(MotionSceneAttrs.Key.MOTION_TARGET);
+    if (motionTarget == null) {
       return null;
     }
-    MTag transition = keyFrameSet.getParent();
-    if (transition == null) {
+    String target = parseId(motionTarget);
+    if (target != null) {
+      // The motionTarget was a view id:
+      return getViewById(target);
+    }
+    // The motionTarget must be a regular expression...
+    NlComponent motionLayout = getMotionLayoutComponent();
+    if (motionLayout == null) {
       return null;
     }
-    String startConstraintSetId = Utils.stripID(transition.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START));
-    if (startConstraintSetId.isEmpty()) {
+    return motionLayout.getChildren().stream()
+      .filter(component -> matches(component, motionTarget))
+      .findFirst().orElse(null);
+  }
+
+  private static boolean matches(@NotNull NlComponent component, @NotNull String motionTarget) {
+    String tag = component.getAttribute(AUTO_URI, MotionSceneAttrs.LAYOUT_CONSTRAINT_TAG);
+    return tag != null && tag.matches(motionTarget);
+  }
+
+  @Nullable
+  private static String parseId(@Nullable String value) {
+    if (value == null) {
       return null;
     }
-    MTag motionScene = transition.getParent();
-    if (motionScene == null) {
+    ResourceUrl url = ResourceUrl.parse(value);
+    if (url == null || url.type != ResourceType.ID || url.name.isEmpty()) {
       return null;
     }
-    MTag startConstraint = Arrays.stream(motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET))
-      .filter(mtag -> Utils.stripID(mtag.getAttributeValue(ATTR_ID)).equals(startConstraintSetId))
-      .findFirst()
-      .orElse(null);
-    if (startConstraint == null) {
-      return null;
-    }
-    return Arrays.stream(startConstraint.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT))
-      .map(mTag -> getComponentFromConstraintTag(mTag))
-      .filter(Objects::nonNull)
-      .findFirst()
-      .orElse(null);
+    return url.name;
   }
 }
