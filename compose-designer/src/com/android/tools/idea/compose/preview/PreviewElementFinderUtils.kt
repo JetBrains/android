@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.text.nullize
@@ -32,6 +33,7 @@ import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
 import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.android.compose.findComposeLibraryNamespace
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
@@ -40,6 +42,14 @@ import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.kotlin.KotlinUClassLiteralExpression
+
+
+/**
+ * Returns true if the [KtAnnotationEntry] is a `@Preview` annotation.
+ */
+internal fun KtAnnotationEntry.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> {
+  PREVIEW_ANNOTATION_FQNS.contains(getQualifiedName())
+}
 
 /**
  * Returns true if the [UAnnotation] is a `@Preview` annotation.
