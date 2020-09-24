@@ -55,14 +55,14 @@ enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
   FAILED(true),
 
   /**
-   * A test case is passed.
-   */
-  PASSED(true),
-
-  /**
    * A test case is skipped by test runner.
    */
   SKIPPED(true),
+
+  /**
+   * A test case is passed.
+   */
+  PASSED(true),
 
   /**
    * A test case is in progress.
