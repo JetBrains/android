@@ -87,7 +87,9 @@ import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 import javax.imageio.ImageIO
+import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -126,6 +128,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
+  private val grpcLock = ReentrantLock()
 
   init {
     val embeddedFlags = if (standalone) {
@@ -216,6 +219,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     grpcCallLog.clear()
   }
 
+  fun pauseGrpc() {
+    grpcLock.lock()
+  }
+
+  fun resumeGrpc() {
+    grpcLock.unlock()
+  }
+
   fun markSnapshotInvalid(snapshotId: String) {
     invalidSnapshots.add(snapshotId)
   }
@@ -287,6 +298,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       snapshotMessage.writeTo(codedStream)
       codedStream.flush()
     }
+  }
+
+  fun createInvalidSnapshot(snapshotId: String) {
+    createSnapshot(snapshotId)
+    markSnapshotInvalid(snapshotId)
   }
 
   private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
@@ -531,15 +547,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       val forwardingCall = object: SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
-          callRecord.responseMessageCounter.add(Unit)
-          super.sendMessage(response)
+          grpcLock.withLock {
+            callRecord.responseMessageCounter.add(Unit)
+            super.sendMessage(response)
+          }
         }
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
-          callRecord.request = request as MessageOrBuilder
-          grpcCallLog.add(callRecord)
-          super.onMessage(request)
+          grpcLock.withLock {
+            callRecord.request = request as MessageOrBuilder
+            grpcCallLog.add(callRecord)
+            super.onMessage(request)
+          }
         }
 
         override fun onComplete() {

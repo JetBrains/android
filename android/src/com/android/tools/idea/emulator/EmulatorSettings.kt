@@ -42,6 +42,8 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       }
     }
 
+  var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+
   /**
    * Show the "AVD launched standalone" notification for a TV or automotive AVD.
    */
@@ -70,4 +72,12 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       return ServiceManager.getService(EmulatorSettings::class.java)
     }
   }
+
+  enum class SnapshotAutoDeletionPolicy(val displayName: String) {
+    DELETE_AUTOMATICALLY("Delete automatically"),
+    ASK_BEFORE_DELETING("Ask before deleting"),
+    DO_NOT_DELETE("Do not delete")
+  }
 }
+
+val DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY = EmulatorSettings.SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING
