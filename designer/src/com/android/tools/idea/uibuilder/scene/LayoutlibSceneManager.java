@@ -225,9 +225,6 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  /** Time it took to render. It does not account for inflation time. */
-  private long myRenderTimeMs = 0;
-
   /** Counter for user touch events during the interactive session. */
   private AtomicInteger myTouchEventsCounter = new AtomicInteger(0);
 
@@ -877,11 +874,6 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  /** Returns time it took to render. It does not account for inflation time. */
-  public long getTotalRenderTime() {
-    return myRenderTimeMs;
-  }
-
   private void updateHierarchy(@Nullable RenderResult result) {
     try {
       myUpdateHierarchyLock.acquire();
@@ -1286,13 +1278,12 @@ public class LayoutlibSceneManager extends SceneManager {
               updateHierarchy(result);
             }
             if (result != null) {
-              myRenderTimeMs = System.currentTimeMillis() - startRenderTimeMs;
-              return result.createWithDuration(myRenderTimeMs);
+              return result.createWithDuration(System.currentTimeMillis() - startRenderTimeMs);
             }
             return null;
           }).thenApply(result -> {
             if (result != null) {
-              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, myRenderTimeMs, false);
+              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, result.getRenderDuration(), false);
             }
             return result;
           });
