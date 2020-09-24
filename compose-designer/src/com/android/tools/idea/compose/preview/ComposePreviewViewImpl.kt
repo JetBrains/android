@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.impl.segmentedActionBar.PillBorder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -48,7 +49,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.FilledRoundedBorder
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -182,7 +182,7 @@ private class PinnedLabelPanel(pinAction: AnAction? = null): JPanel(BorderLayout
     add(JPanel().apply {
       isOpaque = false
       add(JPanel().apply {
-        border = BorderFactory.createCompoundBorder(FilledRoundedBorder(pinnedLabelBackground, 10, 4),
+        border = BorderFactory.createCompoundBorder(PillBorder(pinnedLabelBackground, 4),
                                                     JBUI.Borders.emptyRight(5))
         pinnedButton?.let {
           add(it)
