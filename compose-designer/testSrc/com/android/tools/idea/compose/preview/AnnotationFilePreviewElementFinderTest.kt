@@ -346,6 +346,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       try {
         val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
         assertEquals(0, elements.count())
+        assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
       }
       finally {
         DumbServiceImpl.getInstance(project).isDumb = false
