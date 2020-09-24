@@ -6,11 +6,8 @@ iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
     split_test_targets = {
-        # Base100 test is failing consistently in perfgate_linux.
-        # b/168792787
         "Base100": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
-            "tags": ["no_test_linux"],
         },
         "Dolphin": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
