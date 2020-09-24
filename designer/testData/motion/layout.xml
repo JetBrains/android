@@ -61,6 +61,7 @@
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintEnd_toStartOf="parent"
       app:layout_constraintTop_toTopOf="@id/button"
+      app:layout_constraintTag="BigButtonWindow"
       tools:layout_editor_absoluteX="10dp"
       tools:layout_editor_absoluteY="40dp"
       tools:layout_editor_width="10dp"

@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils
 import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector
@@ -54,9 +55,9 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
   }
 
   fun createKeyFrame(start: String, end: String, keyType: String, framePosition: Int, target: String): MotionSelection {
-    val component = nlModel.find(target) ?: throw error("NlComponent not found: $target")
+    val component = nlModel.find(target) ?: motionLayout
     val keyFrameSet = findKeyFrameSet(start, end)
-    val keyFrame = findKeyFrame(keyFrameSet, keyType, framePosition, target)
+    val keyFrame = findKeyFrame(keyFrameSet, keyType, framePosition, target) as MTag
     return MotionSelection(MotionEditorSelector.Type.KEY_FRAME, arrayOf(keyFrame), listOf(component))
   }
 
