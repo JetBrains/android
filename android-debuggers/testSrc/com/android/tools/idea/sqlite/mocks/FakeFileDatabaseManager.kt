@@ -21,7 +21,7 @@ import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.mock.MockVirtualFile
 
-class FakeFileDatabaseManager : FileDatabaseManager {
+open class FakeFileDatabaseManager : FileDatabaseManager {
   val databaseFileData = DatabaseFileData(MockVirtualFile("mock virtual file"))
 
   val cleanedUpFiles = mutableListOf<DatabaseFileData>()

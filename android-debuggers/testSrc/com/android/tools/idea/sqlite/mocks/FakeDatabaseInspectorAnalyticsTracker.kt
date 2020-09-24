@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
-class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker {
+open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker {
   override fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind) {
   }
 
