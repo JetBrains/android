@@ -149,7 +149,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       val titleLabel = JBLabel("Project Type").apply {
         isOpaque = true
         background = UIUtil.getListBackground()
-        foreground = UIUtil.getListSelectionBackground(false)
+        foreground = UIUtil.getHeaderActiveColor()
         preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
         border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
       }
