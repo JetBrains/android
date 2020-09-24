@@ -116,6 +116,11 @@ interface ComposePreviewManager {
   var animationInspectionPreviewElementInstance: PreviewElementInstance?
 
   /**
+   * Returns true if the current preview has the live literals feature available.
+   */
+  val hasLiveLiterals: Boolean
+
+  /**
    * Enables/disables live literals in the preview.
    */
   var isLiveLiteralsEnabled: Boolean
