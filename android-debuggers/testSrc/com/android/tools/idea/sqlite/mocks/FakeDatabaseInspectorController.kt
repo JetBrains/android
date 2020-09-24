@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
@@ -50,12 +51,12 @@ open class FakeDatabaseInspectorController(private val repository: DatabaseRepos
 
   override fun showError(message: String, throwable: Throwable?) { }
 
-  override fun startAppInspectionSession(
+  override suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices
   ) { }
 
-  override fun stopAppInspectionSession() { }
+  override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) { }
 
   override fun dispose() { }
 }

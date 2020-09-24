@@ -55,7 +55,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
     fileDatabaseManager = FakeFileDatabaseManager()
-    offlineModeManager = OfflineModeManager(project, fileDatabaseManager)
+    offlineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager)
 
     processDescriptor = object : ProcessDescriptor {
       override val manufacturer = "manufacturer"
@@ -116,7 +116,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     // Prepare
     val fileDatabaseManager = mock<FileDatabaseManager>()
     `when`(fileDatabaseManager.loadDatabaseFileData(any(), any(), any())).thenThrow(FileDatabaseException::class.java)
-    offlineModeManager = OfflineModeManager(project, fileDatabaseManager)
+    offlineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager)
 
     var handleErrorInvoked = false
 

@@ -19,11 +19,14 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
-import com.android.tools.idea.sqlite.FileDatabaseManager
+import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -31,12 +34,15 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorExcept
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseConnection
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
 import com.android.tools.idea.sqlite.mocks.FakeSchemaProvider
 import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
+import com.android.tools.idea.sqlite.mocks.OpenOfflineModeManager
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -68,6 +74,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -77,7 +84,9 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancelAndJoin
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -87,6 +96,8 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.Mockito.verifyZeroInteractions
 import java.util.concurrent.Executor
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -122,9 +133,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var databaseInspectorModel: OpenDatabaseInspectorModel
   private lateinit var databaseRepository: OpenDatabaseRepository
-  private lateinit var fileDatabaseManager: FileDatabaseManager
+  private lateinit var fileDatabaseManager: FakeFileDatabaseManager
+  private lateinit var offlineModeManager: OfflineModeManager
 
-  private lateinit var trackerService: DatabaseInspectorAnalyticsTracker
+  private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
+
+  private lateinit var processDescriptor: ProcessDescriptor
+
+  private lateinit var scope: CoroutineScope
+  private lateinit var sqliteFile: VirtualFile
 
   override fun setUp() {
     super.setUp()
@@ -142,13 +159,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     edtDispatcher = edtExecutor.asCoroutineDispatcher()
     taskExecutor = SameThreadExecutor.INSTANCE
+    scope = CoroutineScope(edtDispatcher)
 
     databaseInspectorModel = spy(OpenDatabaseInspectorModel())
     databaseRepository = spy(OpenDatabaseRepository(project, edtExecutor))
 
-    fileDatabaseManager = mock(FileDatabaseManager::class.java)
+    fileDatabaseManager = spy(FakeFileDatabaseManager())
+    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager))
 
-    trackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    trackerService = spy(FakeDatabaseInspectorAnalyticsTracker())
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
 
     databaseInspectorController = DatabaseInspectorControllerImpl(
@@ -157,6 +176,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository,
       viewsFactory,
       fileDatabaseManager,
+      offlineModeManager,
       edtExecutor,
       edtExecutor
     )
@@ -176,8 +196,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
 
-    val mainFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
-    databaseFileData = DatabaseFileData(mainFile)
+    sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
+    databaseFileData = DatabaseFileData(sqliteFile)
     databaseIdFile = SqliteDatabaseId.fromFileDatabase(databaseFileData) as SqliteDatabaseId.FileSqliteDatabaseId
 
     runDispatching {
@@ -192,6 +212,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(testRootDisposable, databaseFileData.mainFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
+
+    processDescriptor = object : ProcessDescriptor {
+      override val manufacturer = "manufacturer"
+      override val model = "model"
+      override val serial = "serial"
+      override val processName = "processName"
+      override val isEmulator = false
+      override val isRunning = false
+    }
   }
 
   override fun tearDown() {
@@ -1280,7 +1309,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1298,7 +1327,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1325,7 +1354,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Act
-    databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock())
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
 
     // Assert
     assertEquals(listOf(false), invocations)
@@ -1445,5 +1474,128 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     orderVerifier.verify(databaseInspectorView).setRefreshButtonState(false)
     orderVerifier.verify(databaseInspectorView).setRefreshButtonState(true)
+  }
+
+  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
+    // Prepare
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(false)
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+    }
+
+    // Assert
+    verifyZeroInteractions(offlineModeManager)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testEnterOfflineModeSuccess() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val inOrderVerifier = inOrder(projectService, fileDatabaseManager)
+
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+    val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
+    val databaseId3 = SqliteDatabaseId.fromLiveDatabase("db3", 3) as SqliteDatabaseId.LiveSqliteDatabaseId
+    val databaseId4 = SqliteDatabaseId.fromLiveDatabase("db4", 4) as SqliteDatabaseId.LiveSqliteDatabaseId
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
+      databaseRepository.addDatabaseConnection(databaseId2, realDatabaseConnection)
+      databaseRepository.addDatabaseConnection(databaseId3, realDatabaseConnection)
+      databaseRepository.addDatabaseConnection(databaseId4, realDatabaseConnection)
+
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+      databaseInspectorController.addSqliteDatabase(databaseId2)
+      databaseInspectorController.addSqliteDatabase(databaseId3)
+      databaseInspectorController.addSqliteDatabase(databaseId4)
+
+      databaseInspectorController.closeDatabase(databaseId4)
+
+      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
+        .thenReturn(DatabaseFileData(sqliteFile))
+      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3))
+        .thenReturn(DatabaseFileData(sqliteFile))
+      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId4))
+        .thenReturn(DatabaseFileData(sqliteFile))
+    }
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+      databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.join()
+    }
+
+    // Assert
+    runDispatching {
+      inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1)
+      inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId3)
+      inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId4)
+      inOrderVerifier.verify(projectService, times(3)).openSqliteDatabase(any())
+    }
+    verifyNoMoreInteractions(fileDatabaseManager)
+
+    verify(databaseInspectorView).showEnterOfflineModePanel(0, 3)
+    verify(databaseInspectorView).showEnterOfflineModePanel(1, 3)
+    verify(databaseInspectorView).showEnterOfflineModePanel(2, 3)
+    verify(databaseInspectorView).showEnterOfflineModePanel(3, 3)
+
+    // metrics
+    val offlineModeMetadata = trackerService.metadata
+
+    assertNotNull(offlineModeMetadata)
+    assertEquals(sqliteFile.length*3, offlineModeMetadata!!.totalDownloadSizeBytes)
+    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testEnterOfflineModeCanceled() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    `when`(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+
+      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
+        .thenReturn(DatabaseFileData(sqliteFile))
+    }
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+    }
+    runDispatching {
+      databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.cancelAndJoin()
+    }
+
+    // Assert
+    verify(databaseInspectorView).showOfflineModeFailedPanel()
+
+    // metrics
+    val offlineModeMetadata = trackerService.metadata
+
+    assertNotNull(offlineModeMetadata)
+    assertEquals(sqliteFile.length, offlineModeMetadata!!.totalDownloadSizeBytes)
+    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 }

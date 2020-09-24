@@ -64,6 +64,12 @@ interface DatabaseInspectorView {
   /** If [state] is false, it prevents the refresh button from ever becoming enabled **/
   fun setRefreshButtonState(state: Boolean)
 
+  /** Shows a panel in the right side of the view that serves as loading indicator for offline mode */
+  fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int)
+
+  /** Shows a panel when offline mode fails, containing a message and a link to learn more about why offline mode could fail */
+  fun showOfflineModeFailedPanel()
+
   interface Listener {
     /** Called when the user wants to open a table */
     fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
@@ -75,6 +81,8 @@ interface DatabaseInspectorView {
     fun refreshAllOpenDatabasesSchemaActionInvoked()
     /** Called to request the on-device inspector to force database connections to remain open */
     fun toggleKeepConnectionOpenActionInvoked()
+    /** Called when the user wants to stop entering offline mode */
+    fun cancelOfflineModeInvoked()
   }
 }
 
