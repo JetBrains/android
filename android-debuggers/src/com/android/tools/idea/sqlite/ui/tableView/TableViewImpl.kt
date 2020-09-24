@@ -203,6 +203,7 @@ class TableViewImpl : TableView {
       override fun mouseClicked(e: MouseEvent) {
         if (isLoading) return
 
+        table.cellEditor?.cancelCellEditing()
         val columnIndex = table.columnAtPoint(e.point)
         if (columnIndex <= 0) return
 
@@ -211,6 +212,8 @@ class TableViewImpl : TableView {
     })
     table.addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
+        table.cellEditor?.cancelCellEditing()
+
         val mousePoint = Point(x, y)
         val viewRowIndex = table.rowAtPoint(mousePoint)
         val viewColumnIndex = table.columnAtPoint(mousePoint)
