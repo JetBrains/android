@@ -16,6 +16,9 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.classloading.ConstantRemapper
+import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
@@ -24,6 +27,13 @@ import com.intellij.openapi.actionSystem.ToggleAction
  */
 internal class LiveLiteralsAction : ToggleAction("Live literals tracking") {
   override fun displayTextInToolbar(): Boolean = true
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any { it.hasLiveLiterals }
+  }
+
   override fun isSelected(e: AnActionEvent): Boolean =
     findComposePreviewManagersForContext(e.dataContext).any { it.isLiveLiteralsEnabled }
 

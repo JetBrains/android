@@ -38,10 +38,15 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import java.awt.Font
 
+/**
+ * Time used to coalesce multiple changes without triggering onLiteralsHaveChanged calls.
+ */
+private const val DOCUMENT_CHANGE_COALESCE_TIME_MS = 200
+
 class LiveLiteralsManager(private val project: Project,
                           private val parentDisposable: Disposable,
                           private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-                          private val requestRefresh: () -> Unit) : Disposable {
+                          private val onLiteralsHaveChanged: () -> Unit) : Disposable {
   private val LOG = Logger.getInstance(LiveLiteralsManager::class.java)
   private val LITERAL_TEXT_ATTRIBUTE = TextAttributes(UIUtil.getActiveTextColor(),
                                                       null,
@@ -50,7 +55,7 @@ class LiveLiteralsManager(private val project: Project,
                                                       Font.BOLD)
 
   private val updateMergingQueue = MergingUpdateQueue("Live literals change queue",
-                                                      200,
+                                                      DOCUMENT_CHANGE_COALESCE_TIME_MS,
                                                       true,
                                                       null,
                                                       parentDisposable,
@@ -86,7 +91,7 @@ class LiveLiteralsManager(private val project: Project,
     }
 
     if (requestRefresh) {
-      requestRefresh()
+      onLiteralsHaveChanged()
     }
   }
 
@@ -146,7 +151,7 @@ class LiveLiteralsManager(private val project: Project,
       Disposer.dispose(it)
     }
     activationDisposable = null
-    requestRefresh()
+    onLiteralsHaveChanged()
   }
 
   override fun dispose() {

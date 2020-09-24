@@ -17,6 +17,8 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.idea.editors.literals.LiteralUsageReference
 import com.android.tools.idea.run.util.StopWatch
+import com.intellij.openapi.util.TextRange
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -26,6 +28,7 @@ import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -36,6 +39,8 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Duration
 
+annotation class FileInfo(val file: String)
+annotation class KeyInfo(val key: String, val offset: Int)
 /**
  * Base interface for the test to log the constants.
  */
@@ -44,70 +49,52 @@ interface Receiver {
 }
 
 class TestClass : Receiver {
-  private val a1 = "A1"
-  val a2 = "A2" + "Added"
+  @FileInfo(file = "Test.kt")
+  object `LiveLiterals$TestClass` {
+    private val a1 = "A1"
+    private val a2 = "A2"
+    private val a3 =  2
+    private val a4 =  3f
+    private val a5 =  null
+    private val a6 = 0 // This is the default value for int so there is no initialization in the constructor
+
+    @KeyInfo(key = "a1", offset = 0)
+    fun a1(): String = a1
+    @KeyInfo(key = "a2", offset = 1)
+    fun a2(): String = a2
+    @KeyInfo(key = "a3", offset = 2)
+    fun a3(): Int = a3
+    @KeyInfo(key = "a4", offset = 3)
+    fun a4(): Float = a4
+    @KeyInfo(key = "a5", offset = 4)
+    fun a5(): Any? = a5
+    @KeyInfo(key = "a6", offset = 5)
+    fun a6(): Int = a6
+  }
+
+  private val a1
+    get() = `LiveLiterals$TestClass`.a1()
+  val concat = `LiveLiterals$TestClass`.a1() + `LiveLiterals$TestClass`.a2()
 
   // Small constants use ICONST
-  private val a3 = 1 + 2
-  private val a4 = 3f
-  private val a5 = null
-
-  private val arrayOfValues = arrayOf("AV" + "1", "AV2", "AV3", "AV4")
+  private val a3
+    get() = `LiveLiterals$TestClass`.a3()
+  private val a4
+    get() = `LiveLiterals$TestClass`.a4()
+  private val a5
+    get() = `LiveLiterals$TestClass`.a5()
+  private val a6
+    get() = `LiveLiterals$TestClass`.a6()
 
   override fun receive(receiver: (Any?) -> Unit) {
-    val b1 = "b1"
-
     receiver(a1)
     receiver(a3)
     receiver(a4)
     receiver(a5)
-    arrayOfValues.forEach { receiver(it) }
-
-    receiver(b1)
-    receiver(2000)
-    receiver("Hello")
+    receiver(a6)
   }
 }
 
-class OuterTestClass {
-  val oa1 = "OA1"
-  val oa2 = 1024
-
-  inner class InnerTestClass : Receiver {
-    private val ia1 = "IA3"
-    override fun receive(receiver: (Any?) -> Unit) {
-      receiver(oa1)
-      receiver(oa2)
-      receiver(ia1)
-      receiver("ia4")
-      receiver(2000)
-      receiver("Hello")
-    }
-  }
-}
-
-class LambdaTestClass : Receiver {
-  override fun receive(receiver: (Any?) -> Unit) {
-    val lambda = {
-      "LAMBDA" + "VALUE"
-    }
-    receiver(lambda())
-  }
-}
-
-class StaticTestClass : Receiver {
-  override fun receive(receiver: (Any?) -> Unit) {
-    StaticBase.staticCall(receiver)
-  }
-
-  object StaticBase {
-    @JvmStatic
-    fun staticCall(receiver: (Any?) -> Unit) {
-      val s = "STATIC" + "VALUE"
-      receiver(s)
-    }
-  }
-}
 
 class LiveLiteralsTransformTest {
   /** [StringWriter] that stores the decompiled classes after they've been transformed. */
@@ -143,7 +130,7 @@ class LiveLiteralsTransformTest {
    * We take the already compiled classes in the test project, and save it to a byte array, applying the
    * transformations.
    */
-  private fun setupTestClassLoader(classDefinitions: Map<String, Class<*>>): TestClassLoader {
+  private fun setupTestClassLoader(classDefinitions: Map<String, Class<*>>, onHasLiveLiterals: () -> Unit = {}): TestClassLoader {
     // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
     // names to the new ones.
     val classNameRemapper = SimpleRemapper(
@@ -155,7 +142,13 @@ class LiveLiteralsTransformTest {
       val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
       // Apply the live literals rewrite to all classes/methods
       val liveLiteralsRewriter = LiveLiteralsTransform(
-        TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))) { _, _ -> true }
+        HasLiveLiteralsTransform(
+          TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace)),
+          fileInfoAnnotationName = FileInfo::class.java.name,
+          onLiveLiteralsFound = onHasLiveLiterals
+        ),
+        fileInfoAnnotationName = FileInfo::class.java.name,
+        infoAnnotationName = KeyInfo::class.java.name)
       // Move the class
       val remapper = ClassRemapper(liveLiteralsRewriter, classNameRemapper)
       classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
@@ -175,17 +168,14 @@ class LiveLiteralsTransformTest {
 
       override fun clearConstants(classLoader: ClassLoader?) = DefaultConstantRemapper.clearConstants(classLoader)
 
-      override fun remapConstant(source: Any?, isStatic: Boolean, methodName: String, initialValue: Any?): Any? {
-        val result = DefaultConstantRemapper.remapConstant(source, isStatic, methodName, initialValue)
-        val classType = normalizeClassName(source?.let {
-          if (isStatic)
-            Type.getInternalName(it as Class<*>)
-          else
-            Type.getInternalName(it.javaClass)
-        } ?: "<null>")
-        constantAccessLogger.println("Access ($classType.$methodName, $initialValue) -> $result")
+      override fun remapConstant(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any? {
+        val result = DefaultConstantRemapper.remapConstant(source, fileName, offset, initialValue)
+        val shortFileName = fileName.substringAfter(File.separator)
+        constantAccessLogger.println("Access ($shortFileName:$offset, $initialValue) -> $result")
         return result
       }
+
+      override fun hasConstants(): Boolean = DefaultConstantRemapper.hasConstants()
 
       override fun getModificationCount(): Long = DefaultConstantRemapper.modificationCount
     })
@@ -196,27 +186,31 @@ class LiveLiteralsTransformTest {
     ConstantRemapperManager.restoreDefaultRemapper()
   }
 
-  private fun usageReference(className: String, method: String? = null): LiteralUsageReference {
-    val normalizedMethodName = if (method.isNullOrEmpty())
-      "" // Omit method if not passed. This can happen in lambda invocations, we omit "invoke".
-    else
-      ".$method"
+  private fun usageReference(fileName: String, offset: Int): LiteralUsageReference {
     return LiteralUsageReference(
-      FqName("${normalizeClassName(className)}$normalizedMethodName"),
+      FqName("Unused.method"),
+      fileName,
+      TextRange.create(offset, offset + 4), // The endoffset is not relevant for the constant mapping right now.
       -1)
   }
 
   @Test
   fun `regular top class instrumented successfully`() {
-    val testClassLoader = setupTestClassLoader(mapOf("Test" to TestClass::class.java))
+    var hasLiveLiterals = false
+    val testClassLoader = setupTestClassLoader(mapOf(
+      "Test" to TestClass::class.java,
+      "LiveLiterals${'$'}Test" to TestClass.`LiveLiterals$TestClass`::class.java
+    )) { hasLiveLiterals = true }
 
     DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference("Test", "<init>"), "A1", "Remapped A1")
+      testClassLoader, usageReference("Test.kt", 0), "A1", "Remapped A1")
     DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference("Test", "<init>"), 3.0f, 90f)
+      testClassLoader, usageReference("Test.kt", 3), 3.0f, 90f)
     DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference("Test", "<init>"), "AV1", "Remapped AV1")
+      testClassLoader, usageReference("Test.kt", 5), 0, 999)
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
+
+    assertTrue(hasLiveLiterals)
 
     val constantOutput = StringBuilder()
     newTestClassInstance.receive {
@@ -224,102 +218,10 @@ class LiveLiteralsTransformTest {
     }
     assertEquals("""
         Remapped A1
-        3
+        2
         90.0
         null
-        Remapped AV1
-        AV2
-        AV3
-        AV4
-        b1
-        2000
-        Hello
-
-      """.trimIndent(),
-                 constantOutput.toString())
-  }
-
-  @Test
-  fun `check lambda is instrumented successfully`() {
-    val lambdaClass = Class.forName("${LambdaTestClass::class.java.canonicalName}${'$'}receive${'$'}lambda${'$'}1")
-    val testClassLoader = setupTestClassLoader(
-      mapOf(
-        "Test" to LambdaTestClass::class.java,
-        "Test${'$'}receive${'$'}lambda${'$'}1" to lambdaClass
-      ))
-
-    DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference("Test${'$'}receive${'$'}lambda${'$'}1"), "LAMBDAVALUE", "Remapped")
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
-
-    val constantOutput = StringBuilder()
-    newTestClassInstance.receive {
-      constantOutput.append(it).append('\n')
-    }
-    assertEquals("""
-        Remapped
-
-      """.trimIndent(),
-                 constantOutput.toString())
-  }
-
-  @Test
-  fun `inner class is remapped successfully`() {
-    val newOuterClassName = "OuterTestClass"
-    val newInnerClassName = "$newOuterClassName${'$'}InnerTestClass"
-    val testClassLoader = setupTestClassLoader(
-      mapOf(
-        newOuterClassName to OuterTestClass::class.java,
-        newInnerClassName to OuterTestClass.InnerTestClass::class.java
-      ))
-
-    DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference(newInnerClassName, "<init>"), "IA3", "Remapped IA3")
-    DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference(newOuterClassName, "<init>"), 1024, 4201)
-    DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference(newOuterClassName, "<init>"), "OA1", "Remapped OA1")
-    val outerClassType = testClassLoader.load(newOuterClassName)
-    val newOuterClassInstance = outerClassType.newInstance()
-    val newTestClassInstance = testClassLoader.load(newInnerClassName)
-      .getDeclaredConstructor(outerClassType)
-      .newInstance(newOuterClassInstance) as Receiver
-
-    val constantOutput = StringBuilder()
-    newTestClassInstance.receive {
-      constantOutput.append(it).append('\n')
-    }
-    assertEquals("""
-        Remapped OA1
-        4201
-        Remapped IA3
-        ia4
-        2000
-        Hello
-
-      """.trimIndent(),
-                 constantOutput.toString())
-
-  }
-
-  @Test
-  fun `check static is instrumented successfully`() {
-    val testClassLoader = setupTestClassLoader(
-      mapOf(
-        "Test" to StaticTestClass::class.java,
-        "Test${'$'}StaticBase" to StaticTestClass.StaticBase::class.java
-      ))
-
-    DefaultConstantRemapper.addConstant(
-      testClassLoader, usageReference("Test${'$'}StaticBase", "staticCall"), "STATICVALUE", "Remapped")
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
-
-    val constantOutput = StringBuilder()
-    newTestClassInstance.receive {
-      constantOutput.append(it).append('\n')
-    }
-    assertEquals("""
-        Remapped
+        999
 
       """.trimIndent(),
                  constantOutput.toString())
@@ -347,7 +249,7 @@ class LiveLiteralsTransformTest {
     })
 
     val testClassLoader = setupTestClassLoader(mapOf("Test" to TestClass::class.java))
-    DefaultConstantRemapper.addConstant(testClassLoader, usageReference("Test", "<init>"), "A1", "Remapped A1")
+    DefaultConstantRemapper.addConstant(testClassLoader, usageReference("Test", 0), "A1", "Remapped A1")
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
 
     println(time {

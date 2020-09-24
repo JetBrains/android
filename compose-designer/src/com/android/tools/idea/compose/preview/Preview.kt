@@ -66,11 +66,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -93,7 +95,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.problems.WolfTheProblemSolver
-import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
@@ -158,15 +159,19 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
  * the device configuration and with the frame decorations.
  * @param isInteractive whether the scene displays an interactive preview.
  * @param requestPrivateClassLoader whether the scene manager should use a private ClassLoader.
+ * @param isLiveLiteralsEnabled if true, the classes will be instrumented with live literals support.
+ * @param onLiveLiteralsFound callback called when the classes have compiler live literals support. This callback will only be called if
+ *  [isLiveLiteralsEnabled] is false. If true, the classes are assumed to have this support.
+ * @param forceReinflate forces re-inflating the layout.
  */
 private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            showDecorations: Boolean,
                                            isInteractive: Boolean,
                                            requestPrivateClassLoader: Boolean,
-                                           liveLiteralsClasses: Set<String>,
+                                           isLiveLiteralsEnabled: Boolean,
+                                           onLiveLiteralsFound: () -> Unit,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
-    val isLiveLiteralsEnabled = liveLiteralsClasses.isNotEmpty()
     val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
     val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
@@ -176,11 +181,14 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
     isUsePrivateClassLoader = usePrivateClassLoader
     if (isLiveLiteralsEnabled) {
       setProjectClassesTransform {
-        LiveLiteralsTransform(it) {
-          // For now, we only instrument the currently open class and inner classes. However, if we want to allow changes in
-          // other files, we would need to instrument all.
-          className, _ -> liveLiteralsClasses.contains(className.substringBefore('$'))
-        }
+        LiveLiteralsTransform(it)
+      }
+    }
+    else {
+      // Live literals is not enabled but we pass the [HasLiveLiteralsTransform] to identify if the current project
+      // has live literals enabled.
+      setProjectClassesTransform {
+        HasLiveLiteralsTransform(it, onLiveLiteralsFound = onLiveLiteralsFound)
       }
     }
     setQuality(0.7f)
@@ -331,10 +339,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val liveLiteralsManager = LiveLiteralsManager(project, this, psiFilePointer) {
     surface.layoutlibSceneManagers.forEach {
-      it.forceReinflate()
       it.requestRender()
     }
   }
+
+  override var hasLiveLiterals: Boolean = false
+    private set
 
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
@@ -342,11 +352,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       liveLiteralsManager.isEnabled = value
       forceRefresh()
     }
-
-  /**
-   * List of classes to instrument for Live Literals. For now, we only instrument the classes that are part of the current editor.
-   */
-  private var cachedLiveLiteralsClasses = emptySet<String>()
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -365,7 +370,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener())
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()).apply {
+        addRenderListener(object : RenderListener {
+          override fun onInflateStarted() {
+            // Reset to false since we don't know if there are live literals available. Once the inflation happens, we will be able to know
+            // if there were live literals when we instrumented the code.
+            // If live literals is already enabled, we assume there hasLiveLiterals is true.
+            hasLiveLiterals = isLiveLiteralsEnabled
+          }
+
+          override fun onRenderCompleted() {}
+        })
+      }
     }
     .setEditable(true)
     .setDelegateDataProvider {
@@ -678,15 +694,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     } ?: return
 
-    // If Live Literals is enabled, fine the list of classes in the current open file and cached them.
-    // We will only instrument these classes. Changes in literals in other classes will not refresh the preview.
-    cachedLiveLiteralsClasses = if (isLiveLiteralsEnabled && psiFile is PsiClassOwner) {
-      ReadAction.compute<Set<String>, Throwable> {
-        (psiFile as? PsiClassOwner)?.classes?.mapNotNull { it.qualifiedName?.replace('.', '/') }?.toSet() ?: emptySet()
-      }
-    }
-    else emptySet()
-
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
@@ -709,6 +716,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+          .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
           .apply {
             if (animationInspection.get()) {
               // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
@@ -751,7 +759,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
                                          requestPrivateClassLoader = usePrivateClassLoader(),
-                                         liveLiteralsClasses = cachedLiveLiteralsClasses,
+                                         isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                         onLiveLiteralsFound = { hasLiveLiterals = true },
                                          forceReinflate = forceReinflate)
           reusedModel
         }
@@ -775,7 +784,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureLayoutlibSceneManager(surface.addModelWithoutRender(newModel) as LayoutlibSceneManager,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
-                                         liveLiteralsClasses = cachedLiveLiteralsClasses,
+                                         isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                         onLiveLiteralsFound = { hasLiveLiterals = true },
                                          requestPrivateClassLoader = usePrivateClassLoader())
           newModel
         }
@@ -896,7 +906,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                                showDecorations = previewElement.displaySettings.showDecoration,
                                                isInteractive = interactiveMode.isStartingOrReady(),
                                                requestPrivateClassLoader = usePrivateClassLoader(),
-                                               liveLiteralsClasses = cachedLiveLiteralsClasses,
+                                               isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                               onLiveLiteralsFound = { hasLiveLiterals = true },
                                                forceReinflate = false)
                   .requestComposeRender()
                   .await()

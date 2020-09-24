@@ -22,27 +22,31 @@ package com.android.tools.idea.rendering.classloading;
  */
 @SuppressWarnings("ConstantConditions")
 public class PrimitiveTypeRemapper {
-  public static float remapFloat(Object source, boolean isStatic, String methodName, float value) {
-    return (Float)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static float remapFloat(Object source, String fileName, int offset, float value) {
+    return (Float)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 
-  public static double remapDouble(Object source, boolean isStatic, String methodName, double value) {
-    return (Double)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static double remapDouble(Object source, String fileName, int offset, double value) {
+    return (Double)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 
-  public static short remapShort(Object source, boolean isStatic, String methodName, short value) {
-    return (Short)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static short remapShort(Object source, String fileName, int offset, short value) {
+    return (Short)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 
-  public static int remapInt(Object source, boolean isStatic, String methodName, int value) {
-    return (Integer)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static int remapInt(Object source, String fileName, int offset, int value) {
+    return (Integer)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 
-  public static long remapLong(Object source, boolean isStatic, String methodName, long value) {
-    return (Long)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static long remapLong(Object source, String fileName, int offset, long value) {
+    return (Long)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 
-  public static char remapChar(Object source, boolean isStatic, String methodName, char value) {
-    return (Character)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static char remapChar(Object source, String fileName, int offset, char value) {
+    return (Character)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+  }
+
+  public static boolean remapBoolean(Object source, String fileName, int offset, boolean value) {
+    return (Boolean)ConstantRemapperManager.remapAny(source, fileName, offset, value);
   }
 }

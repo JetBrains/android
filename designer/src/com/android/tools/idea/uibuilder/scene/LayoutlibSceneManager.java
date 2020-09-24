@@ -953,6 +953,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
     }
 
+    fireOnInflateStart();
     // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
     // external changes
     AndroidFacet facet = getModel().getFacet();
@@ -1032,7 +1033,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
         return result;
       })
-      .thenApply(result -> logIfSuccessful(result, null, true));
+      .thenApply(result -> {
+        fireOnInflateComplete();
+        return logIfSuccessful(result, null, true);
+      });
   }
 
   @GuardedBy("myRenderResultLock")
@@ -1451,6 +1455,12 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  protected void fireOnInflateStart() {
+    myRenderListeners.forEach(RenderListener::onInflateStarted);
+  }
+  protected void fireOnInflateComplete() {
+    myRenderListeners.forEach(RenderListener::onInflateCompleted);
+  }
   protected void fireOnRenderStart() {
     myRenderListeners.forEach(RenderListener::onRenderStarted);
   }

@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneManager;
+
 /**
  * Interface for listeners to be notified about render requests
  */
 public interface RenderListener {
   /**
-   * Called when the [SceneManager] starts a new render request.
+   * Called when the @link SceneManager} starts a new inflate.
+   */
+  default void onInflateStarted() {}
+
+  /**
+   * Called when the @link SceneManager} has finished inflating the layout.
+   */
+  default void onInflateCompleted() {}
+
+  /**
+   * Called when the {@link SceneManager} starts a new render request.
    */
   default void onRenderStarted() {}
 
