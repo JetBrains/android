@@ -290,15 +290,21 @@ class TableController(
       closeTabInvoked()
     }
 
-    override fun rowCountChanged(rowCount: Int) {
-      if (rowCount < 0) {
-        view.reportError("Row count must be non-negative", null)
-        return
+    override fun rowCountChanged(rowCount: String) {
+      val errorMessage = "Row count must be a positive integer."
+      try {
+        val intRowCount = rowCount.toInt()
+        if (intRowCount <= 0) {
+          view.reportError(errorMessage, null)
+          return
+        }
+
+        rowBatchSize = intRowCount
+        updateDataAndButtonsWithLoadingScreens()
+
+      } catch (e: NumberFormatException) {
+        view.reportError(errorMessage, null)
       }
-
-      rowBatchSize = rowCount
-
-      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadPreviousRowsInvoked() {

@@ -797,7 +797,7 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(5)
+    tableView.listeners.first().rowCountChanged("5")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -833,7 +833,7 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(11)
+    tableView.listeners.first().rowCountChanged("11")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -866,7 +866,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().rowCountChanged(1)
+    tableView.listeners.first().rowCountChanged("1")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -900,7 +900,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().rowCountChanged(100)
+    tableView.listeners.first().rowCountChanged("100")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -934,9 +934,9 @@ class TableControllerTest : LightPlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(tableController.setUp())
-    tableView.listeners.first().rowCountChanged(100)
+    tableView.listeners.first().rowCountChanged("100")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(1)
+    tableView.listeners.first().rowCountChanged("1")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -975,7 +975,7 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(5)
+    tableView.listeners.first().rowCountChanged("5")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1016,7 +1016,7 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(5)
+    tableView.listeners.first().rowCountChanged("5")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1057,11 +1057,11 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(2)
+    tableView.listeners.first().rowCountChanged("2")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(10)
+    tableView.listeners.first().rowCountChanged("10")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1176,7 +1176,7 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadFirstRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(5)
+    tableView.listeners.first().rowCountChanged("5")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1306,7 +1306,7 @@ class TableControllerTest : LightPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    tableView.listeners.first().rowCountChanged(5)
+    tableView.listeners.first().rowCountChanged("5")
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadFirstRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -2365,6 +2365,41 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
     verify(tableView, times(3)).setEditable(false)
+  }
+
+  fun testRowCountInputValidation() {
+    // Prepare
+    val sqliteResultSet = FakeSqliteResultSet(50)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      mockDatabaseConnectionId,
+      { sqliteTable },
+      databaseRepository,
+      SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    tableView.listeners.first().rowCountChanged("0")
+    tableView.listeners.first().rowCountChanged("-1")
+    tableView.listeners.first().rowCountChanged("nan")
+
+    // Assert
+    assertEquals(
+      listOf(
+        Pair("Row count must be a positive integer.", null),
+        Pair("Row count must be a positive integer.", null),
+        Pair("Row count must be a positive integer.", null)
+      ),
+      tableView.errorReported
+    )
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
