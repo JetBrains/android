@@ -34,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -145,6 +146,11 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
     isBorderPainted = false
   }
+  val myRetentionHelperLabel = JLabel(AllIcons.General.ContextHelp).apply {
+    HelpTooltip().setDescription(
+      "Debug from the retentio state will load the snapshot at the point of failure, and attach to the debugger."
+    ).installOn(this)
+  }
   val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
     alignmentX = 0.0f
     alignmentY = 0.0f
@@ -172,7 +178,10 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
   private val myLayoutPanel = panel {
     row {
-      myRetentionDebugButton()
+      cell {
+        myRetentionDebugButton()
+        myRetentionHelperLabel()
+      }
     }
     row {
       scrollPane(myInnerPanel)
