@@ -105,7 +105,7 @@ interface TableView {
     /**
      * Invoked when the user changes the number of rows to display per page.
      */
-    fun rowCountChanged(rowCount: Int)
+    fun rowCountChanged(rowCount: String)
 
     /**
      * Invoked when the user wants to order the data by a specific column

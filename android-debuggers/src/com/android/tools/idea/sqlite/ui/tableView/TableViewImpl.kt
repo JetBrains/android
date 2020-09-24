@@ -161,7 +161,7 @@ class TableViewImpl : TableView {
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
     pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
     pagingControlsPanel.add(pageSizeComboBox)
-    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
+    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
 
     nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
     nextRowsPageButton.toolTipText = "Go to next page"
