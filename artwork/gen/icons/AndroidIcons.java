@@ -15,7 +15,7 @@ public final class AndroidIcons {
     return IconManager.getInstance().loadRasterizedIcon(path, AndroidIcons.class, cacheKey, flags);
   }
   /** 16x16 */ public static final @NotNull Icon Activity = load("/icons/activity.png", 0L, 1);
-  /** 16x16 */ public static final @NotNull Icon Android = load("/icons/android.svg", 5779710186715642370L, 0);
+  /** 16x16 */ public static final @NotNull Icon Android = load("/icons/android.svg", 7539975312323470635L, 0);
   /** 16x16 */ public static final @NotNull Icon AndroidFile = load("/icons/android_file.png", 0L, 1);
 
   public static final class Assistant {
@@ -110,7 +110,7 @@ public final class AndroidIcons {
   /** 13x13 */ public static final @NotNull Icon ThemesPreview = load("/icons/themesPreview.png", 0L, 0);
 
   public static final class Toolwindows {
-    /** 13x13 */ public static final @NotNull Icon ToolWindowWarning = load("/icons/toolwindows/toolWindowWarning.svg", 6728171476021695319L, 2);
+    /** 13x13 */ public static final @NotNull Icon ToolWindowWarning = load("/icons/toolwindows/toolWindowWarning.svg", 5553613674871854018L, 2);
   }
 
   /** 16x16 */ public static final @NotNull Icon Variant = load("/icons/variant.png", 0L, 1);
