@@ -2412,15 +2412,10 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
  * Returns the [XmlAttributeValue] defining the given resource item. This is only defined for resource items which are not file
  * based.
  *
- *
- * [org.jetbrains.android.AndroidFindUsagesHandlerFactory.createFindUsagesHandler] assumes references to value resources
- * resolve to the "name" [XmlAttributeValue], that's how they are found when looking for usages of a resource.
- *
  * TODO(b/113646219): store enough information in [ResourceItem] to find the attribute and get the tag from there, not the other
  * way around.
  *
  * @see ResourceItem.isFileBased
- * @see org.jetbrains.android.AndroidFindUsagesHandlerFactory.createFindUsagesHandler
  */
 fun getDeclaringAttributeValue(project: Project, item: ResourceItem): XmlAttributeValue? {
   if (item.isFileBased) {
