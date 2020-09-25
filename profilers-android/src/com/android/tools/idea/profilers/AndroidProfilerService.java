@@ -27,6 +27,7 @@ import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
@@ -131,8 +132,20 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
           .setSamplingRate(
             Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
           .build())
-      .setCpuApiTracingEnabled(true)
-      .setStartupProfilingEnabled(runConfig != null);
+      .setCpuApiTracingEnabled(true);
+    if (runConfig != null && runConfig.getProfilerState().isNativeMemoryStartupProfilingEnabled()) {
+      // Delay JVMTI instrumentation until the user stops the native heap sample recording.
+      // This prevents a bug in heapprofd from terminating early.
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+    } else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
+      // Delay JVMTI instrumentation when a user is doing a startup cpu capture.
+      // This is for consistency with native memory recording.
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    } else {
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);
+    }
   }
 
   private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
