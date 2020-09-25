@@ -104,142 +104,126 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/137919011
   @Test
   public void testCreateNewFragmentFromWizard() throws Exception {
-    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
-    try {
-      NlEditorFixture layout = guiTest
-        .importProjectAndWaitForProjectSyncToFinish("Navigation")
-        .getEditor()
-        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-        .getLayoutEditor();
+    NlEditorFixture layout = guiTest
+      .importProjectAndWaitForProjectSyncToFinish("Navigation")
+      .getEditor()
+      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor();
 
-      AddDestinationMenuFixture menuFixture = layout
-        .waitForRenderToFinish()
-        .getNavSurface()
-        .openAddDestinationMenu()
-        .waitForContents();
+    AddDestinationMenuFixture menuFixture = layout
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .waitForContents();
 
-      assertEquals(3, menuFixture.visibleItemCount());
-      menuFixture.clickCreateNewFragment()
-        .waitUntilStepErrorMessageIsGone()
-        .chooseFragment("Fullscreen Fragment")
-        .clickNextFragment()
-        .waitUntilStepErrorMessageIsGone()
-        .clickFinishAndWaitForSyncToFinish();
+    assertEquals(3, menuFixture.visibleItemCount());
+    menuFixture.clickCreateNewFragment()
+      .waitUntilStepErrorMessageIsGone()
+      .chooseFragment("Fullscreen Fragment")
+      .clickNextFragment()
+      .waitUntilStepErrorMessageIsGone()
+      .clickFinishAndWaitForSyncToFinish();
 
-      List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
-      assertEquals(1, selectedComponents.size());
-      assertEquals("fullscreenFragment", selectedComponents.get(0).getId());
-    } finally {
-      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
-    }
+    List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
+    assertEquals(1, selectedComponents.size());
+    assertEquals("fullscreenFragment", selectedComponents.get(0).getId());
   }
 
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
-    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
-    try {
-      IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
-      // Open file as XML and switch to design tab, wait for successful render
-      final String file = "app/src/main/res/navigation/mobile_navigation.xml";
-      NlEditorFixture layout = guiTest
-        .ideFrame()
-        .getEditor()
-        .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor();
+    IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
+    // Open file as XML and switch to design tab, wait for successful render
+    final String file = "app/src/main/res/navigation/mobile_navigation.xml";
+    NlEditorFixture layout = guiTest
+      .ideFrame()
+      .getEditor()
+      .open(file, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor();
 
-      layout
-        .waitForRenderToFinish()
-        .getNavSurface()
-        .openAddDestinationMenu()
-        .waitForContents()
-        .clickCreateNewFragment()
-        .chooseFragment("Fragment (Blank)")
-        .clickNextFragment()
-        .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name", "TestSingleVariantSync")
-        .selectComboBoxItem("Source Language", "Java")
-        .wizard()
-        .clickFinishAndWaitForSyncToFinish();
+    layout
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .waitForContents()
+      .clickCreateNewFragment()
+      .chooseFragment("Fragment (Blank)")
+      .clickNextFragment()
+      .getConfigureTemplateParametersStep()
+      .enterTextFieldValue("Fragment Name", "TestSingleVariantSync")
+      .selectComboBoxItem("Source Language", "Java")
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish();
 
-      // The below verifies that there isn't an exception when interacting with the nav editor after a sync.
-      // See b/112451835
-      frame
-        .getEditor()
-        // Open the file again in case build.gradle is open after gradle sync
-        .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor()
-        .waitForRenderToFinish()
-        .getNavSurface()
-        .findDestination("testSingleVariantSync")
-        .click();
+    // The below verifies that there isn't an exception when interacting with the nav editor after a sync.
+    // See b/112451835
+    frame
+      .getEditor()
+      // Open the file again in case build.gradle is open after gradle sync
+      .open(file, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor()
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .findDestination("testSingleVariantSync")
+      .click();
 
-      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
-    }
-    finally {
-      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
-    }
+     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
   }
 
   @Test
   public void testCreateAndCancel() throws Exception {
-    StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
-    try {
-      final String file = "app/src/main/res/navigation/mobile_navigation.xml";
-      IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
-      // Open file as XML and switch to design tab, wait for successful render
-      NlEditorFixture layout = guiTest
-        .ideFrame()
-        .getEditor()
-        .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor();
+    final String file = "app/src/main/res/navigation/mobile_navigation.xml";
+    IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
+    // Open file as XML and switch to design tab, wait for successful render
+    NlEditorFixture layout = guiTest
+      .ideFrame()
+      .getEditor()
+      .open(file, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor();
 
-      layout
-        .waitForRenderToFinish()
-        .getNavSurface()
-        .openAddDestinationMenu()
-        .waitForContents()
-        .clickCreateNewFragment()
-        .chooseFragment("Fragment (Blank)")
-        .clickNextFragment()
-        .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment")
-        .selectComboBoxItem("Source Language", "Java")
-        .wizard()
-        .clickFinishAndWaitForSyncToFinish();
+    layout
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .waitForContents()
+      .clickCreateNewFragment()
+      .chooseFragment("Fragment (Blank)")
+      .clickNextFragment()
+      .getConfigureTemplateParametersStep()
+      .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment")
+      .selectComboBoxItem("Source Language", "Java")
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish();
 
-      long matchingComponents = frame
-        .getEditor()
-        // Open the file again in case build.gradle is open after gradle sync
-        .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor()
-        .waitForRenderToFinish()
-        .getAllComponents().stream()
-        .filter(component -> "testCreateAndCancelFragment".equals(component.getComponent().getId()))
-        .count();
+    long matchingComponents = frame
+      .getEditor()
+      // Open the file again in case build.gradle is open after gradle sync
+      .open(file, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor()
+      .waitForRenderToFinish()
+      .getAllComponents().stream()
+      .filter(component -> "testCreateAndCancelFragment".equals(component.getComponent().getId()))
+      .count();
 
-      assertEquals(1, matchingComponents);
+    assertEquals(1, matchingComponents);
 
-      int countAfterAdd = layout.getAllComponents().size();
+    int countAfterAdd = layout.getAllComponents().size();
 
-      layout
-        .getNavSurface()
-        .openAddDestinationMenu()
-        .clickCreateNewFragment()
-        .chooseFragment("Fragment (Blank)")
-        .clickNextFragment()
-        .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment2")
-        .selectComboBoxItem("Source Language", "Java")
-        .wizard()
-        .clickCancel();
+    layout
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .clickCreateNewFragment()
+      .chooseFragment("Fragment (Blank)")
+      .clickNextFragment()
+      .getConfigureTemplateParametersStep()
+      .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment2")
+      .selectComboBoxItem("Source Language", "Java")
+      .wizard()
+      .clickCancel();
 
       ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
       layout.waitForRenderToFinish();
 
       assertEquals(countAfterAdd, layout.getAllComponents().size());
-    } finally {
-      StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
-    }
   }
 
   @Test

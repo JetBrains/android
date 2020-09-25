@@ -29,9 +29,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import java.io.File
 
 /**
  * An action to launch the fragment wizard to create a fragment from a template.
@@ -51,37 +54,46 @@ class NewAndroidFragmentAction
     val dataContext = e.dataContext
     val module = LangDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
-    var targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext)
+    val targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext)
     if (facet == null || AndroidModel.get(facet) == null || targetDirectory == null) {
       return
     }
-
-    // If the user selected a simulated folder entry (eg "Manifests"), there will be no target directory
-    if (!targetDirectory.isDirectory) {
-      targetDirectory = targetDirectory.parent
-    }
-    val directory = targetDirectory!!
-
-    val moduleTemplates = facet.getModuleTemplates(targetDirectory)
-    assert(moduleTemplates.isNotEmpty())
-
-    val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
-    val project = module.project
-
-    val dialogTitle = AndroidBundle.message("android.wizard.new.fragment.title")
-
-    val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-    val renderModel = RenderTemplateModel.fromFacet(
-      facet, initialPackageSuggestion, moduleTemplates[0], AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
-      projectSyncInvoker, shouldOpenFiles, FRAGMENT_GALLERY)
-
-    val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
-    val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()
-
-    val dialog = StudioWizardDialogBuilder(wizard, dialogTitle).setProject(project).build()
-    dialog.show()
     val createdFiles = dataContext.getData(CREATED_FILES)
-    createdFiles?.addAll(renderModel.createdFiles)
+    openNewFragmentWizard(facet, module.project, targetDirectory, createdFiles, shouldOpenFiles)
+  }
+
+  companion object {
+    fun openNewFragmentWizard(facet: AndroidFacet,
+                              project: Project,
+                              targetDirectory: VirtualFile,
+                              createdFiles: MutableList<File>?,
+                              shouldOpenFiles: Boolean) {
+      if (AndroidModel.get(facet) == null) {
+        return
+      }
+
+      // If the user selected a simulated folder entry (eg "Manifests"), there will be no target directory
+      val directory = if (!targetDirectory.isDirectory) targetDirectory.parent else targetDirectory
+
+      val moduleTemplates = facet.getModuleTemplates(targetDirectory)
+      assert(moduleTemplates.isNotEmpty())
+
+      val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
+
+      val dialogTitle = AndroidBundle.message("android.wizard.new.fragment.title")
+
+      val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
+      val renderModel = RenderTemplateModel.fromFacet(
+        facet, initialPackageSuggestion, moduleTemplates[0], AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
+        projectSyncInvoker, shouldOpenFiles, FRAGMENT_GALLERY)
+
+      val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
+      val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()
+
+      val dialog = StudioWizardDialogBuilder(wizard, dialogTitle).setProject(project).build()
+      dialog.show()
+      createdFiles?.addAll(renderModel.createdFiles)
+    }
   }
 }
 
