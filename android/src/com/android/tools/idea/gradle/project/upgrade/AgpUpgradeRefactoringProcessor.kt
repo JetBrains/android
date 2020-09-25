@@ -530,6 +530,18 @@ class AgpUpgradeRefactoringProcessor(
   fun setCommandName(value: String) { myCommandName = value }
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
+
+  /**
+   * Parsing models is potentially expensive, so client code can call this method on a background thread before changing the modality
+   * state or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
+   */
+  fun ensureParsedModels() {
+    // this may look like a property access but it is in fact a call to retrieve (from cache or, if empty, by parsing) the complete
+    // project Build Dsl model.
+    // TODO(b/169667833): add methods that explicitly compute and cache the list or retrieve it from cache (computeAllIncluded... /
+    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... method).
+    buildModel.allIncludedBuildModels
+  }
 }
 
 /**
