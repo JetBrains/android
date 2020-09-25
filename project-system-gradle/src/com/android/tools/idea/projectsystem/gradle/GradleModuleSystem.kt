@@ -541,6 +541,10 @@ class GradleModuleSystem(
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
 
+  override val applicationRClassConstantIds: Boolean get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true
+
+  override val testRClassConstantIds: Boolean get() = readFromAgpFlags { it.testRClassConstantIds } ?: true
+
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
    * Some incompatibilities are indirect incompatibilities i.e. from the dependencies of [conflict1] and [conflict2].

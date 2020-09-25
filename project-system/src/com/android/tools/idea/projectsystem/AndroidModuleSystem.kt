@@ -235,6 +235,24 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   /** Whether the ML model binding feature is enabled for this module. */
   @JvmDefault
   val isMlModelBindingEnabled: Boolean get() = false
+
+  /**
+   * Whether the R class in applications and dynamic features are constant.
+   *
+   * If they are constant they can be inlined by the java compiler and used in places that
+   * require constants such as annotations and cases of switch statements.
+   */
+  @JvmDefault
+  val applicationRClassConstantIds: Boolean get() = true
+
+  /**
+   * Whether the R class in instrumentation tests are constant.
+   *
+   * If they are constant they can be inlined by the java compiler and used in places that
+   * require constants such as annotations and cases of switch statements.
+   */
+  @JvmDefault
+  val testRClassConstantIds: Boolean get() = true
 }
 
 /**
