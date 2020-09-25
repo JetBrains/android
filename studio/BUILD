@@ -361,9 +361,10 @@ android_studio(
     },
     searchable_options = "searchable-options",
     tags = ["manual"],
-    version = "0.0.0.0",
     version_eap = True,
     version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(
@@ -424,6 +425,7 @@ py_binary(
 py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
+    python_version = "PY2",  # The custom rule runs under py2
     tags = [
         "no_mac",
         "no_windows",
@@ -463,18 +465,6 @@ java_binary(
         "//tools/base/annotations:studio.android.sdktools.android-annotations.jar",
         "//tools/base/common:studio.android.sdktools.common.jar",
     ],
-)
-
-py_binary(
-    name = "process_plugin",
-    srcs = ["process_plugin.py"],
-    visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "arg_maker",
-    srcs = ["arg_maker.py"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build [unb]

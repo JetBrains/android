@@ -268,100 +268,46 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_win = 
         **kwargs
     )
 
-def _stamp_plugin(ctx, build_txt, in_xml, stamped_xml):
-    args = ["--build_file", build_txt.path]
-    args += ["--info_file", ctx.info_file.path]
-    args += ["--version_file", ctx.version_file.path]
-    args += ["--stamp_plugin", in_xml.path, stamped_xml.path]
-    ctx.actions.run(
-        inputs = [in_xml, build_txt, ctx.info_file, ctx.version_file],
-        outputs = [stamped_xml],
-        executable = ctx.executable._stamper,
-        arguments = args,
-        progress_message = "Stamping plugin xml...",
-        mnemonic = "stamper",
-    )
-
-def _extract(ctx, zip, file, target):
-    ctx.actions.run(
-        inputs = [zip],
-        outputs = [target],
-        executable = ctx.executable._unzipper,
-        arguments = [zip.path, file + ":" + target.path],
-        progress_message = "Extracting file from zip...",
-        mnemonic = "extract",
-    )
-
-def _stamp_build(ctx, build_txt, src, dst):
-    args = ["--build_file", build_txt.path]
+def _stamp(ctx, platform, zip, extra, srcs, out):
+    args = ["--platform", zip.path]
+    args += ["--os", platform.name]
     args += ["--version_file", ctx.version_file.path]
     args += ["--info_file", ctx.info_file.path]
-    args += ["--stamp_build", src.path, dst.path]
-    ctx.actions.run(
-        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
-        outputs = [dst],
-        executable = ctx.executable._stamper,
-        arguments = args,
-        progress_message = "Stamping %s file..." % src.basename,
-        mnemonic = "stamper",
-    )
-
-def _stamp_app_info(ctx, build_txt, src, dst):
-    args = ["--build_file", build_txt.path]
-    args += ["--version_file", ctx.version_file.path]
-    args += ["--info_file", ctx.info_file.path]
-    args += ["--version", ctx.attr.version]
-    args += ["--version_full", ctx.attr.version_full]
     args += ["--eap", "true" if ctx.attr.version_eap else "false"]
-    args += ["--stamp_app_info", src.path, dst.path]
+    args += ["--version_micro", str(ctx.attr.version_micro)]
+    args += ["--version_patch", str(ctx.attr.version_patch)]
+    args += ["--version_full", ctx.attr.version_full]
+    args += extra
     ctx.actions.run(
-        inputs = [src, build_txt, ctx.info_file, ctx.version_file],
-        outputs = [dst],
+        inputs = [zip, ctx.info_file, ctx.version_file] + srcs,
+        outputs = [out],
         executable = ctx.executable._stamper,
         arguments = args,
-        progress_message = "Stamping %s file..." % src.basename,
+        progress_message = "Stamping %s file..." % zip.basename,
         mnemonic = "stamper",
     )
 
-def _process_app_info(ctx, platform, platform_files):
-    build_txt = None
-    app_info_xml = None
-    for rel_path, file in platform_files:
-        if rel_path == platform.resource_path + "build.txt":
-            if build_txt:
-                fail("Unexpected duplicate build file in %s and %s", build_txt, file)
-            build_txt = file
-        if rel_path == platform.base_path + "lib/resources.jar":
-            if app_info_xml:
-                fail("Unexpected duplicate of lib/resources.jar")
-            app_info_xml = ctx.actions.declare_file(ctx.attr.name + ".%s.app_info.xml" % platform.name)
-            _extract(ctx, file, "idea/AndroidStudioApplicationInfo.xml", app_info_xml)
+def _stamp_platform(ctx, platform, zip, out):
+    args = ["--stamp_platform", out.path]
+    _stamp(ctx, platform, zip, args, [], out)
 
-    if not build_txt:
-        fail("build.txt not found in %s platform distribution" % platform.name)
-    if not app_info_xml:
-        fail("lib/resources.jar!idea/AndroidStudioApplicationInfo.xml not found")
+def _stamp_platform_plugin(ctx, platform, zip, src, dst):
+    args = ["--stamp_platform_plugin", src.path, dst.path]
+    _stamp(ctx, platform, zip, args, [src], dst)
 
-    stamped_app_info_xml = ctx.actions.declare_file(ctx.attr.name + "stamped.%s.app_info.xml" % platform.name)
-    _stamp_app_info(ctx, build_txt, app_info_xml, stamped_app_info_xml)
-    return stamped_app_info_xml, build_txt
+def _stamp_plugin(ctx, platform, zip, src, dst):
+    args = ["--stamp_plugin", src.path, dst.path]
+    _stamp(ctx, platform, zip, args, [src], dst)
 
-def _make_arg_file(ctx, zips, files, overrides, out):
-    data = [f for (d, f) in zips + files + overrides]
-    args = [r + "=+" + f.path + "\n" for r, f in zips]
-    args += [r + "=" + f.path + "\n" for r, f in files]
-    args += [r + "=" + f.path + "\n" for r, f in overrides]
-    arg_file = create_option_file(ctx, out.basename + ".res.lst", "".join(args))
-    return arg_file, data
-
-def _zip_merger(ctx, arg_files, out):
+def _zip_merger(ctx, zips, overrides, out):
+    files = [f for (p, f) in zips + overrides]
+    zipper_files = [r + "=" + f.path + "\n" for r, f in zips]
+    zipper_files += [r + "=+" + f.path + "\n" for r, f in overrides]
     zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
-    all_files = []
-    for arg_file, files in arg_files:
-        all_files += files + [arg_file]
-        zipper_args += ["@" + arg_file.path]
+    zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
+    zipper_args += ["@" + zipper_list.path]
     ctx.actions.run(
-        inputs = all_files,
+        inputs = files + [zipper_list],
         outputs = [out],
         executable = ctx.executable._zip_merger,
         arguments = zipper_args,
@@ -369,52 +315,29 @@ def _zip_merger(ctx, arg_files, out):
         mnemonic = "zipmerger",
     )
 
-# Creates an argument file with the override arguments
-# needed to update the stamped platform plugin xmls.
-def _make_override_arguments_file(ctx, platform, list):
-    arg_file = ctx.actions.declare_file("%s.overrides.%s" % (ctx.label.name, platform.name))
-    args = ["--output", arg_file.path]
-    inputs = []
-    xmls = []
-    for plugin, txt, xml in list:
-        inputs += [txt]
-        xmls += [xml]
-        args += ["--prefix", "#%splugins/%s/lib/" % (platform.base_path, plugin), "--data", txt.path, "--suffix", "!META-INF/plugin.xml=" + xml.path]
-
-    ctx.actions.run(
-        inputs = inputs,
-        outputs = [arg_file],
-        executable = ctx.executable._arg_maker,
-        arguments = args,
-        progress_message = "Generating argument file...",
-        mnemonic = "argmaker",
-    )
-    return arg_file, xmls
-
 def _android_studio_os(ctx, platform, out):
-    zips = []
     files = []
+    zips = []
+    overrides = []
 
-    platform_zip = ctx.actions.declare_file(ctx.attr.name + ".platform.%s.zip" % platform.name)
-    platform_files = [(ctx.attr.platform.mappings[f], f) for f in platform.get(ctx.attr.platform)]
+    platform_zip = platform.get(ctx.attr.platform)[0]
 
-    stamped_app_info_xml, build_txt = _process_app_info(ctx, platform, platform_files)
-    overrides = [("#%slib/resources.jar!idea/AndroidStudioApplicationInfo.xml" % platform.base_path, stamped_app_info_xml)]
-
-    platform_overrides = []
-    for plugin, plugin_xml, path_file in ctx.attr.platform.plugins.linux:
-        stamped_xml = ctx.actions.declare_file("%s.stamped.%s.%s.xml" % (ctx.label.name, plugin, platform.name))
-        _stamp_build(ctx, build_txt, plugin_xml, stamped_xml)
-        platform_overrides += [(plugin, path_file, stamped_xml)]
-
-    _zipper(ctx, "%s platform" % platform.name, platform_files, platform_zip)
-
-    zips += [("", platform_zip)]
+    platform_plugins = platform.get(ctx.attr.platform.plugins)
+    zips += [("", zip) for zip in [platform_zip] + platform_plugins]
     if ctx.attr.jre:
         jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
         jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
         _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
         zips += [(platform.base_path + platform.jre, jre_zip)]
+
+    # Stamp the platform and its plugins
+    platform_stamp = ctx.actions.declare_file(ctx.attr.name + ".%s.platform.stamp.zip" % platform.name)
+    _stamp_platform(ctx, platform, platform_zip, platform_stamp)
+    overrides += [("", platform_stamp)]
+    for plugin in platform_plugins:
+        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin.basename)
+        _stamp_platform_plugin(ctx, platform, platform_zip, plugin, stamp)
+        overrides += [("", stamp)]
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
     files += [(platform.base_path + d, f) for (d, f) in res]
@@ -423,23 +346,21 @@ def _android_studio_os(ctx, platform, out):
     ctx.actions.write(dev01, "")
     files += [(platform.base_path + "license/dev01_license.txt", dev01)]
 
-    for p in ctx.attr.plugins:
-        stamped_xml = ctx.actions.declare_file("%s.stamped.%s.%s.xml" % (ctx.label.name, p.label.name, platform.name))
-        _stamp_plugin(ctx, build_txt, p.xml, stamped_xml)
-        overrides += [("#%s%s!META-INF/plugin.xml" % (platform.base_path, p.xml_jar), stamped_xml)]
-        zips += [(platform.base_path, platform.get(p)[0])]
-
     module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
-    for dep, spec in ctx.attr.searchable_options.items():
-        plugin, jar = spec.split("/")
-        file = dep.files.to_list()[0]
-        overrides += [("#%splugins/%s/lib/%s!search/%s" % (platform.base_path, plugin, jar, file.basename), file)]
+    extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
+    _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
+    zips += [("", extras_zip)]
 
-    arg_file = _make_arg_file(ctx, zips, files, overrides, out)
-    stampled_platform_plugin_xmls = _make_override_arguments_file(ctx, platform, platform_overrides)
-    _zip_merger(ctx, [arg_file, stampled_platform_plugin_xmls], out)
+    for p in ctx.attr.plugins:
+        plugin_zip = platform.get(p)[0]
+        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin_zip.basename)
+        _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
+        overrides += [(platform.base_path, stamp)]
+        zips += [(platform.base_path, plugin_zip)]
+
+    _zip_merger(ctx, zips, overrides, out)
 
 def _android_studio_impl(ctx):
     plugins = [plugin.directory for plugin in ctx.attr.plugins]
@@ -462,7 +383,8 @@ _android_studio = rule(
         "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
         "searchable_options": attr.label_keyed_string_dict(allow_files = True),
-        "version": attr.string(),
+        "version_micro": attr.int(),
+        "version_patch": attr.int(),
         "version_eap": attr.bool(),
         "version_full": attr.string(),
         "compress": attr.bool(),
@@ -473,11 +395,6 @@ _android_studio = rule(
         ),
         "_zip_merger": attr.label(
             default = Label("//tools/base/bazel:zip_merger"),
-            cfg = "host",
-            executable = True,
-        ),
-        "_arg_maker": attr.label(
-            default = Label("//tools/adt/idea/studio:arg_maker"),
             cfg = "host",
             executable = True,
         ),
@@ -542,60 +459,61 @@ def android_studio(
         **kwargs
     )
 
-def _process_plugins(ctx, platform, data):
+def _intellij_platform_impl_os(ctx, platform, data):
     files = platform.get(data)
     plugin_dir = "%splugins/" % platform.base_path
+    base = []
     plugins = {}
     for file in files:
         rel = data.mappings[file]
         if not rel.startswith(plugin_dir):
-            continue  # This is not a plugin jar
-        if not rel.endswith(".jar"):
-            continue  # This is not a jar
+            # This is not a plugin file
+            base.append((rel, file))
+            continue
         parts = rel[len(plugin_dir):].split("/")
-        if len(parts) != 3 or parts[1] != "lib":
-            continue  # This is not a jar directly on the lib directory
+        if len(parts) == 0:
+            fail("Unexpected plugin file: " + rel)
         plugin = parts[0]
-        jar = parts[2]
         if plugin not in plugins:
             plugins[plugin] = []
-        plugins[plugin].append(file)
+        plugins[plugin].append((rel, file))
 
-    ret = []
-    for plugin, jars in plugins.items():
-        xml = ctx.actions.declare_file("%s.plugin.%s.%s.xml" % (ctx.label.name, plugin, platform.name))
-        txt = ctx.actions.declare_file("%s.jar.%s.%s.txt" % (ctx.label.name, plugin, platform.name))
-        args = ["--jar=%s" % jar.path for jar in jars]
-        args += ["--plugin_xml", xml.path, "--txt_path", txt.path]
-        ctx.actions.run(
-            inputs = jars,
-            outputs = [xml, txt],
-            executable = ctx.executable._process_plugin,
-            arguments = args,
-            progress_message = "Processing plugin %s..." % plugin,
-            mnemonic = "processplugin",
-        )
-        ret += [(plugin, xml, txt)]
-    return ret
+    base_zip = ctx.actions.declare_file("%s.platform.%s.zip" % (ctx.label.name, platform.name))
+    _zipper(ctx, "base %s platform zip" % platform.name, base, base_zip)
+
+    plugin_zips = []
+    for plugin, files in plugins.items():
+        plugin_zip = ctx.actions.declare_file("%s.platform.plugin.%s.%s.zip" % (ctx.label.name, plugin, platform.name))
+        _zipper(ctx, "platform plugin %s %s zip" % (plugin, platform.name), files, plugin_zip)
+        plugin_zips.append(plugin_zip)
+    return base_zip, plugin_zips
 
 def _intellij_platform_impl(ctx):
-    plugins_linux = _process_plugins(ctx, LINUX, ctx.attr.data)
+    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.data)
+    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.data)
+    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.data)
+
     return struct(
-        files = ctx.attr.data.files,
-        files_linux = ctx.attr.data.files_linux,
-        files_mac = ctx.attr.data.files_mac,
-        files_win = ctx.attr.data.files_win,
-        mappings = ctx.attr.data.mappings,
+        files = depset([]),
+        files_linux = depset([base_linux]),
+        files_mac = depset([base_mac]),
+        files_win = depset([base_win]),
+        mappings = {},
         plugins = struct(
-            linux = plugins_linux,
+            files = depset([]),
+            files_linux = depset(plugins_linux),
+            files_mac = depset(plugins_mac),
+            files_win = depset(plugins_win),
+            mappings = {},
         ),
     )
 
 _intellij_platform = rule(
     attrs = {
         "data": attr.label(),
-        "_process_plugin": attr.label(
-            default = Label("//tools/adt/idea/studio:process_plugin"),
+        "compress": attr.bool(),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
             executable = True,
         ),
@@ -659,6 +577,7 @@ def intellij_platform(
 
     _intellij_platform(
         name = name + ".platform",
+        compress = _is_release(),
         data = name + ".data",
         visibility = ["//visibility:public"],
     )
