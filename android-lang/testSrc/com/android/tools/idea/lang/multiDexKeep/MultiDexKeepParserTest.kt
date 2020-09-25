@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.lang.multiDexKeep
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.intellij.psi.TokenType
 
 class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTANCE.defaultExtension, MultiDexKeepParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   private fun check(input: String) {
     assert(getErrorMessage(input) == null, lazyMessage = { toParseTreeText(input) })
