@@ -19,8 +19,11 @@ package com.android.tools.idea.gradle.util
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.plugins.gradle.execution.GradleRunnerUtil
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.io.File
+import java.io.IOException
 
 /**
  * Returns a name that should be used when displaying a [Module] to the user. This method should be used unless there is a very
@@ -29,7 +32,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
  *   2 - If the [Module] directly corresponds to a Gradle source set, then the name of the source set is returned.
  *   3 - If the [Module] represents the root Gradle project then the projects name is returned.
  *   4 - If the [Module] represents any other module then the root project, the last part of the Gradle path is used.
- *   5 - If any of 2 to 4 fail, for any reason then we aways fall back to just using the [Module]'s name.
+ *   5 - If any of 2 to 4 fail, for any reason then we always fall back to just using the [Module]'s name.
  */
 fun getDisplayNameForModule(module: Module): String {
   fun getNameFromGradlePath(module: Module) : String? {
@@ -46,4 +49,26 @@ fun getDisplayNameForModule(module: Module): String {
     return if (isRootModule || shortName == null) shortName else StringUtil.getShortName(shortName, ':')
   }
   return getNameFromGradlePath(module) ?: module.name
+}
+
+data class GradleProjectPath(val projectRoot: File, val gradleProjectPath: String)
+
+@JvmName("getModuleGradleProjectPath")
+fun Module.getGradleProjectPath(): GradleProjectPath? {
+  // The external system projectId is:
+  // <projectName> for the root module of a main or only build in a composite build
+  // :gradle:path for a non-root module of a main or only build in a composite build
+  // <projectName> for the root module of an included build
+  // <projectName>:gradle:path for a non-root module of an included build
+  val externalSystemProjectId = ExternalSystemApiUtil.getExternalProjectId(this) ?: return null
+  val gradleProjectPath = ":" + externalSystemProjectId.substringAfter(':', "")
+  val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null).let {
+    try {
+      it.canonicalFile
+    }
+    catch (e: IOException) {
+      it
+    }
+  }
+  return GradleProjectPath(rootFolder, gradleProjectPath)
 }
