@@ -96,8 +96,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbDimFl1Release")
       switchVariant(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
-      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
-      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
     }
   }
 

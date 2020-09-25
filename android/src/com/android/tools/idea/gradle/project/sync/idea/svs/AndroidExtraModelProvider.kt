@@ -372,11 +372,31 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     val variantDiffChange = VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
     val abi = syncAndAddNativeVariantAbi(controller, module, variant.name, moduleConfiguration.abi)
 
+    fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
+      val dependencyModule = modulesById[dependencyModuleId] ?: return null
+      val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
+      val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
+
+      val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(variantDiffChange ?: VariantSelectionChange.EMPTY)
+                                      ?: return null
+
+      // Make sure the variant name we guessed in fact exists.
+      if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
+
+      return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abi)
+    }
+
     fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
       return variant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
         val dependencyProject = moduleDependency.projectPath ?: return@mapNotNull null
-        val dependencyVariant = moduleDependency.variant ?: return@mapNotNull null
-        ModuleConfiguration(createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject), dependencyVariant, abi)
+        val dependencyModuleId = createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
+        val dependencyVariant = moduleDependency.variant
+        if (dependencyVariant != null) {
+          ModuleConfiguration(dependencyModuleId, dependencyVariant, abi)
+        }
+        else {
+          propagateVariantSelectionChangeFallback(dependencyModuleId)
+        }
       }
     }
 
@@ -388,21 +408,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val rootProjectGradleDirectory = controller.buildModel.rootProject.projectIdentifier.buildIdentifier.rootDir
       return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
         val featureModuleId = createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
-        val featureModule = modulesById[featureModuleId] ?: return@mapNotNull null
-        val featureModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[featureModuleId]
-        val featureModuleSelectedVariantDetails = featureModuleCurrentlySelectedVariant?.details
-
-        val newSelectedVariantDetails = featureModuleSelectedVariantDetails?.applyChange(variantDiffChange ?: VariantSelectionChange.EMPTY)
-                                        ?: return@mapNotNull null
-
-        // Make sure the variant name we guessed in fact exists.
-        if (featureModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return@mapNotNull null
-
-        ModuleConfiguration(featureModuleId, newSelectedVariantDetails.name, abi)
+        propagateVariantSelectionChangeFallback(featureModuleId)
       }
     }
 
-    return generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
+    return (generateDirectModuleDependencies() + generateDynamicFeatureDependencies())
   }
 
   /**
