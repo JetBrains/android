@@ -31,9 +31,12 @@ import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Files
 
+@RunWith(JUnit4::class)
 class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -116,7 +119,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { project ->
       switchVariant(project, ":app", "release")
-      expect.thatModuleVariantIs(project, ":app", /* TODO(b/166240410): "release"*/ "debug")
+      expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", /* TODO(b/166240410): "release"*/ "debug")
     }
   }
