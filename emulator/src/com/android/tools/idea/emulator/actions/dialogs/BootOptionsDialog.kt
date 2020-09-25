@@ -16,10 +16,6 @@
 package com.android.tools.idea.emulator.actions.dialogs
 
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.emulator.actions.BootMode
-import com.android.tools.idea.emulator.actions.BootType
-import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
 import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.RevealFileAction
