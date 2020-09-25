@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -56,9 +57,7 @@ class AgpUpgradeRequiredIssueChecker : GradleIssueChecker {
     // TODO: Consult UX and see if we can remove this dialog auto-triggering.
     val project = (issueData.error as AgpUpgradeRequiredException).project
     if (project != null) {
-      AndroidExecutors.getInstance().ioThreadExecutor.execute {
-        updateAndRequestSync(project, modelVersion)
-      }
+      updateAndRequestSync(project, modelVersion)
     }
 
     return object : BuildIssue {
@@ -81,10 +80,8 @@ private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : BuildIs
   override val id: String = "android.gradle.plugin.forced.update"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-    val future = CompletableFuture<Boolean>()
-    AndroidExecutors.getInstance().ioThreadExecutor.execute {
-      future.complete(updateAndRequestSync(project, currentAgpVersion))
-    }
+    val future = CompletableFuture<Unit>()
+    updateAndRequestSync(project, currentAgpVersion, future)
     return future
   }
 }
@@ -92,15 +89,13 @@ private class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : BuildIs
 /**
  * Helper method to trigger the forced upgrade prompt and then request a sync if it was successful.
  */
-private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion) : Boolean {
-  val success = performForcedPluginUpgrade(project, currentAgpVersion)
-  if (success) {
-    val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion, future: CompletableFuture<Unit>? = null) {
+  AndroidExecutors.getInstance().ioThreadExecutor.execute {
+    val success = performForcedPluginUpgrade(project, currentAgpVersion)
+    if (success) {
+      val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+    }
+    future?.complete(Unit)
   }
-  // TODO(b/159995302): the return value of performForcedPluginUpgrade() above is used to indicate both: "should a sync be triggered", and
-  //  whether the update was successful... except that (a) we don't check to see if the sync is successful before returning true, and
-  //  (b) nothing uses the return value anyway.  We could probably simplify a lot of things by moving to a fully-asynchronous model
-  //  and not attempting to track return codes like this.
-  return success
 }

@@ -16,6 +16,7 @@
 @file:JvmName("DeprecatedConfigurationsUpgrade")
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 
+@Slow
 fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
   val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
   val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
@@ -34,6 +36,7 @@ fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement
   processor.setCommandName("Replace Deprecated Configurations")
   val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor, null, "Upgrading deprecated configurations")
   processor.targets.add(wrappedElement)
+  processor.ensureParsedModels()
   val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
     dialog.showAndGet()
