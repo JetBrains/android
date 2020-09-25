@@ -23,9 +23,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.project.DefaultModuleSystem
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
@@ -41,11 +39,12 @@ import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -59,6 +58,7 @@ import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContribut
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -593,6 +593,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         <resources>
           <string name="appString">Hello from app</string>
           <string name="anotherAppString">Hello from app</string>
+          <id name="basicID"/>
         </resources>
         """.trimIndent()
       )
@@ -805,6 +806,85 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.moveCaret("mylib.R.string.|libString")
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
+    }
+
+    fun testNonFinalResourceIds() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).applicationRClassConstantIds = false
+      myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
+
+      myFixture.loadNewFile(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              int id = R.id.basi${caret}cID;
+              switch (id) {
+                  case <error descr="Constant expression required">R.id.basicID</error>: break;
+                  case <error descr="Constant expression required">R.string.appString</error>: break;
+                  case <error descr="Constant expression required">R.drawable.foo</error>: break;
+              }
+          }
+      }
+      """.trimIndent()
+      )
+
+      myFixture.checkHighlighting()
+
+      val elementAtCaret = myFixture.elementAtCaret
+      assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
+      assertThat((elementAtCaret as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isFalse()
+    }
+
+    fun testFinalResourceIds() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).applicationRClassConstantIds = true
+      myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
+
+      myFixture.loadNewFile(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              int id = R.id.basi${caret}cID;
+              switch (id) {
+                  case R.id.basicID: break;
+                  case R.string.appString: break;
+                  case R.drawable.foo: break;
+              }
+          }
+      }
+      """.trimIndent()
+      )
+
+      myFixture.checkHighlighting()
+
+      with (myFixture.elementAtCaret) {
+        assertThat(this).isInstanceOf(ResourceLightField::class.java)
+        assertThat((this as ResourceLightField).resourceName).isEqualTo("basicID")
+        assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
+      }
+
+      myFixture.moveCaret("case R.string.app|String")
+      with (myFixture.elementAtCaret) {
+        assertThat(this).isInstanceOf(ResourceLightField::class.java)
+        assertThat((this as ResourceLightField).resourceName).isEqualTo("appString")
+        assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
+      }
     }
 
     fun testUseScope() {
