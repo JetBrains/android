@@ -120,7 +120,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     openPreparedProject("project") { project ->
       switchVariant(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", /* TODO(b/166240410): "release"*/ "debug")
+      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
     }
   }
 
