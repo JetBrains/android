@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.android.AndroidFindUsagesTest;
+import org.jetbrains.android.AndroidResourcesFindUsagesTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
@@ -170,7 +170,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     refreshProjectFiles();
 
     DumbService.getInstance(getProject()).runReadActionInSmartMode(() -> {
-      Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
+      Collection<UsageInfo> usages = AndroidResourcesFindUsagesTest.findUsages(file, myFixture);
       List<UsageInfo> result = new ArrayList<>();
       for (UsageInfo usage : usages) {
         if (!usage.isNonCodeUsage) {

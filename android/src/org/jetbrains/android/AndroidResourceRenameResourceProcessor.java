@@ -640,7 +640,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       String message = String.format("Resource @%1$s/%2$s already exists", type, newName);
       if (resourceFields.length > 0) {
         // Use find usages to find the actual declaration location such that they can be shown in the conflicts view
-        AndroidFindUsagesHandlerFactory factory = new AndroidFindUsagesHandlerFactory();
+        AndroidResourcesFindUsagesHandlerFactory factory = new AndroidResourcesFindUsagesHandlerFactory();
         if (factory.canFindUsages(originalElement)) {
           FindUsagesHandler handler = factory.createFindUsagesHandler(resourceFields[0], false);
           if (handler != null) {
