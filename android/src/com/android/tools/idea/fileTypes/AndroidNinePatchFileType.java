@@ -30,6 +30,9 @@ public final class AndroidNinePatchFileType implements FileType {
   public static final String EXTENSION = SdkConstants.DOT_9PNG.substring(1);
   public static final AndroidNinePatchFileType INSTANCE = new AndroidNinePatchFileType();
 
+  private AndroidNinePatchFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

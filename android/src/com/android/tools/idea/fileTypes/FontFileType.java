@@ -29,6 +29,9 @@ public class FontFileType implements FileType {
   public static final FontFileType INSTANCE = new FontFileType();
   @NonNls private static final String TTF_EXTENSION = "ttf";
 
+  private FontFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

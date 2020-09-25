@@ -27,6 +27,8 @@ import javax.swing.*;
  * Represents a binary file that can be imported into in Android Profiler.
  */
 public abstract class AndroidProfilerCaptureFileType implements FileType {
+  AndroidProfilerCaptureFileType() {
+  }
 
   @Override
   public boolean isBinary() {
