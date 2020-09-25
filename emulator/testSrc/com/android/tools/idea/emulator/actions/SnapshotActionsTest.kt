@@ -28,6 +28,10 @@ import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.emulator.actions.dialogs.BootMode
+import com.android.tools.idea.emulator.actions.dialogs.BootType
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotInfo
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotManager
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

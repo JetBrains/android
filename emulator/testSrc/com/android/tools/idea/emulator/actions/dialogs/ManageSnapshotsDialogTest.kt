@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions.dialogs
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
@@ -23,10 +23,13 @@ import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.emulator.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
-import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
-import com.android.tools.idea.emulator.actions.dialogs.ManageSnapshotsDialog
+import com.android.tools.idea.emulator.FakeEmulator
+import com.android.tools.idea.emulator.FakeEmulatorRule
+import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -446,7 +449,7 @@ class ManageSnapshotsDialogTest {
 
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+    return TestUtils.getWorkspaceRoot().toPath().resolve("$GOLDEN_FILE_PATH/${name}.png").toFile()
   }
 }
 

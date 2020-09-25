@@ -26,12 +26,6 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.emulator.EmulatorView
-import com.android.tools.idea.emulator.actions.BootMode
-import com.android.tools.idea.emulator.actions.BootType
-import com.android.tools.idea.emulator.actions.QUICK_BOOT_SNAPSHOT_ID
-import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
-import com.android.tools.idea.emulator.actions.createBootMode
 import com.android.tools.idea.emulator.logger
 import com.google.common.html.HtmlEscapers
 import com.intellij.CommonBundle
