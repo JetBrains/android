@@ -18,6 +18,10 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider
+import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -40,13 +44,16 @@ import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Cursor
 import java.awt.HeadlessException
 import java.awt.Point
 import javax.swing.JLabel
@@ -81,6 +88,10 @@ class CpuCaptureStageViewTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
+
+    ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
   }
 
   @Test

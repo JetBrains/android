@@ -55,13 +55,18 @@ import javax.swing.JTextField
 class SnapshotActionsTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
-  private var nullableEmulator: FakeEmulator? = null
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  private var nullableEmulator: FakeEmulator? = null
+  private var nullableEmulatorController: EmulatorController? = null
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
+
+  private var emulatorController: EmulatorController
+    get() = nullableEmulatorController ?: throw IllegalStateException()
+    set(value) { nullableEmulatorController = value }
 
   private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
@@ -75,9 +80,9 @@ class SnapshotActionsTest {
   @Test
   fun testSnapshotActions() {
     val view = createEmulatorView()
-
-    val defaultBootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
-    assertThat(SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()).isEqualTo(defaultBootMode)
+    val snapshotManager = SnapshotManager(emulatorController)
+    val defaultBootMode = snapshotManager.readBootMode()
+    assertThat(snapshotManager.readBootMode()).isEqualTo(defaultBootMode)
 
     val configIni = emulator.avdFolder.resolve("config.ini")
     val oldSize = Files.size(configIni)
@@ -102,7 +107,7 @@ class SnapshotActionsTest {
     call.completion.get(5, TimeUnit.SECONDS)
 
     waitForCondition(2, TimeUnit.SECONDS) { Files.size(configIni) != oldSize }
-    val bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
+    val bootMode = snapshotManager.readBootMode()
     assertThat(bootMode).isEqualTo(BootMode(BootType.SNAPSHOT, "first snapshot"))
 
     // Check switching to the quick boot mode.
@@ -125,7 +130,7 @@ class SnapshotActionsTest {
     }
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()?.bootType == BootType.QUICK
+      snapshotManager.readBootMode()?.bootType == BootType.QUICK
     }
   }
 
@@ -147,7 +152,7 @@ class SnapshotActionsTest {
     emulator.start()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
-    val emulatorController = emulators.first()
+    emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, testRootDisposable, false)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.

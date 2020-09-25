@@ -54,7 +54,7 @@ object ComponentTreeLoader : TreeLoader {
     resourceLookup: ResourceLookup,
     client: InspectorClient,
     project: Project
-  ): Triple<ViewNode, Long, Int>? {
+  ): Pair<AndroidWindow?, Int>? {
     return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
   }
 
@@ -64,10 +64,16 @@ object ComponentTreeLoader : TreeLoader {
     client: InspectorClient,
     skiaParser: SkiaParserService,
     project: Project
-  ): Triple<ViewNode, Long, Int>? {
+  ): Pair<AndroidWindow?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    val root = ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
-    return Triple(root, root.drawId, event.tree.generation)
+    val window: AndroidWindow? =
+      if (event.tree.hasRoot()) {
+        ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+      }
+      else {
+        null
+      }
+    return Pair(window, event.tree.generation)
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
@@ -92,7 +98,7 @@ private class ComponentTreeLoaderImpl(
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
   @Slow
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -101,22 +107,25 @@ private class ComponentTreeLoaderImpl(
     }
     return try {
       val rootView = loadRootView() ?: return null
-      rootView.imageType = tree.payloadType
-      val bytes = defaultClient.getPayload(tree.payloadId)
-      if (bytes.isNotEmpty()) {
-        try {
-          when (tree.payloadType) {
-            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, client)
-            SKP -> processSkp(bytes, skiaParser, project, client, rootView)
-            else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) { scale, window ->
+        val bytes = defaultClient.getPayload(window.payloadId)
+        if (bytes.isNotEmpty()) {
+          val root = window.root
+          root.flatten().forEach { it.drawChildren.clear() }
+          try {
+            when (window.imageType) {
+              PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, root, client)
+              SKP -> processSkp(bytes, skiaParser, project, client, root, scale)
+              else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+            }
+          }
+          catch (ex: Exception) {
+            // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
+            Logger.getInstance(LayoutInspector::class.java).warn(ex)
           }
         }
-        catch (ex: Exception) {
-          // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
-          Logger.getInstance(LayoutInspector::class.java).warn(ex)
-        }
       }
-      rootView
+      window
     }
     finally {
       loadStartTime.set(0)
@@ -128,7 +137,8 @@ private class ComponentTreeLoaderImpl(
     skiaParser: SkiaParserService,
     project: Project,
     client: DefaultInspectorClient,
-    rootView: ViewNode
+    rootView: ViewNode,
+    scale: Double
   ) {
     val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
     val surfaceOriginX = rootView.x - tree.rootSurfaceOffsetX
@@ -142,7 +152,7 @@ private class ComponentTreeLoaderImpl(
     if (requestedNodeInfo.isEmpty()) {
       return
     }
-    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser)
+    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
@@ -160,7 +170,7 @@ private class ComponentTreeLoaderImpl(
 
   private fun processPng(bytes: ByteArray, rootView: ViewNode, client: InspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      rootView.drawChildren.add(DrawViewImage(it, rootView.x, rootView.y, rootView))
+      rootView.drawChildren.add(DrawViewImage(it, rootView))
     }
     rootView.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
 
@@ -170,11 +180,12 @@ private class ComponentTreeLoaderImpl(
   private fun getViewTree(
     bytes: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
-    skiaParser: SkiaParserService
+    skiaParser: SkiaParserService,
+    scale: Double
   ): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes, requestedNodes) { isInterrupted }
+      val root = skiaParser.getViewTree(bytes, requestedNodes, scale) { isInterrupted }
 
       if (root == null) {
         // We were unable to parse the skia image. Allow the user to interact with the component tree.
@@ -188,6 +199,7 @@ private class ComponentTreeLoaderImpl(
     }
     catch (ex: Exception) {
       errorMessage = "Problem launching renderer. Rotation disabled."
+      Logger.getInstance(ComponentTreeLoaderImpl::class.java).warn(ex)
       null
     }
     return Pair(inspectorView, errorMessage)
@@ -255,7 +267,7 @@ class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: S
         for (childSkiaNode in skiaNode.children) {
           val image = childSkiaNode.image
           if (image != null) {
-            node.drawChildren.add(DrawViewImage(image, node.transformedBounds.bounds.x, node.transformedBounds.bounds.y, node))
+            node.drawChildren.add(DrawViewImage(image, node))
           }
           else {
             val viewForSkiaChild = nodeMap[childSkiaNode.id] ?: continue

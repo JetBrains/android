@@ -18,9 +18,12 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all the repository models.
@@ -48,5 +51,17 @@ public abstract class RepositoryModelImpl implements RepositoryModel {
   @Override
   public ResolvedPropertyModel name() {
     return GradlePropertyModelBuilder.create(myDslElement, NAME).withDefault(myDefaultRepoName).buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public GradleDslElement getDslElement() {
+    return myDslElement;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getPsiElement() {
+    return myDslElement.getPsiElement();
   }
 }

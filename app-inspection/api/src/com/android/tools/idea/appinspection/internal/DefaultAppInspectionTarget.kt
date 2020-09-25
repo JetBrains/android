@@ -24,11 +24,14 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchExc
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
@@ -79,7 +82,7 @@ internal class DefaultAppInspectionTarget(
   val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier,
   parentScope: CoroutineScope
-) : AppInspectionTarget {
+) : AppInspectionTarget() {
   private val scope = parentScope.createChildScope(true)
 
   private val messengers = ConcurrentHashMap<String, Deferred<AppInspectorMessenger>>()
@@ -91,7 +94,7 @@ internal class DefaultAppInspectionTarget(
   internal val inspectorDisposableJobs = ConcurrentHashMap<String, Job>()
 
   override suspend fun launchInspector(
-    params: AppInspectorLauncher.LaunchParameters
+    params: LaunchParameters
   ): AppInspectorMessenger {
     val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
       scope.async {
@@ -99,11 +102,11 @@ internal class DefaultAppInspectionTarget(
         val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
           .setLaunchedByName(params.projectName)
           .setForce(params.force)
-        if (params.targetLibrary != null) {
+        if (params.libraryCoordinate != null) {
           launchMetadata.setVersionParams(
             AppInspection.VersionParams.newBuilder()
-              .setVersionFileName(params.targetLibrary!!.versionFileName)
-              .setMinVersion(params.targetLibrary!!.minVersion)
+              .setVersionFileName(params.libraryCoordinate!!.toVersionFileName())
+              .setMinVersion(params.libraryCoordinate!!.version)
               .build()
           ).build()
         }
@@ -160,6 +163,26 @@ internal class DefaultAppInspectionTarget(
     scope.cancel()
     messengers.clear()
   }
+
+  override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryVersionResponse> {
+    val libraryVersions = libraryCoordinates.map {
+      AppInspection.VersionParams.newBuilder().setMinVersion(it.version).setVersionFileName(it.toVersionFileName()).build()
+    }
+    val getLibraryVersionsCommand = AppInspection.GetLibraryVersionsCommand.newBuilder().addAllTargetVersions(libraryVersions).build()
+    val commandId = AppInspectionTransport.generateNextCommandId()
+    val appInspectionCommand = AppInspectionCommand.newBuilder().setCommandId(commandId).setGetLibraryVersionsCommand(
+      getLibraryVersionsCommand).build()
+    val streamQuery = StreamEventQuery(
+      eventKind = APP_INSPECTION_RESPONSE,
+      filter = { it.appInspectionResponse.commandId == commandId }
+    )
+    val response = transport.executeCommand(appInspectionCommand, streamQuery)
+    // The API call should always return a list of the same size.
+    assert(libraryCoordinates.size == response.appInspectionResponse.libraryVersionsResponse.responsesCount)
+    return response.appInspectionResponse.libraryVersionsResponse.responsesList.mapIndexed { i, result ->
+      result.toLibraryVersionResponse(libraryCoordinates[i])
+    }
+  }
 }
 
 @VisibleForTesting
@@ -183,3 +206,19 @@ private fun AppInspection.AppInspectionResponse.getException(inspectorId: String
     else -> AppInspectionLaunchException(message)
   }
 }
+
+@VisibleForTesting
+internal fun AppInspection.LibraryVersionResponse.toLibraryVersionResponse(artifactCoordinate: ArtifactCoordinate): LibraryVersionResponse {
+  val responseStatus = when (status) {
+    AppInspection.LibraryVersionResponse.Status.COMPATIBLE -> LibraryVersionResponse.Status.COMPATIBLE
+    AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE -> LibraryVersionResponse.Status.INCOMPATIBLE
+    AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING -> LibraryVersionResponse.Status.LIBRARY_MISSING
+    else -> LibraryVersionResponse.Status.ERROR
+  }
+  return LibraryVersionResponse(artifactCoordinate, responseStatus, errorMessage)
+}
+
+/**
+ * Constructs the name of the version file located in an app's APK's META-INF folder.
+ */
+private fun ArtifactCoordinate.toVersionFileName() = "${groupId}_${artifactId}.version"

@@ -788,7 +788,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
     List<String> actualNames = PluginModel.extractNames(models);
-    assertSameElements(names, actualNames);
+    assertSameElements(actualNames, names);
   }
 
   @NotNull

@@ -16,38 +16,28 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcechooser.CompactResourcePicker
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
 import java.awt.Component
-import java.awt.FlowLayout
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
-import javax.swing.BoxLayout
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JTable
-import javax.swing.SwingConstants
 
 /**
  * Returns a [ResourcePickerDialog], may list sample data, project, library, android and theme attributes resources for the given
@@ -73,10 +63,19 @@ fun createResourcePickerDialog(
   defaultResourceType: ResourceType?,
   showColorStateLists: Boolean,
   showSampleData: Boolean,
+  showThemeAttributes: Boolean,
   file: VirtualFile?
 ): ResourcePickerDialog {
   // TODO(139313381): Implement showColorStateLists
-  return ResourcePickerDialog(facet, currentValue, resourceTypes, defaultResourceType, showSampleData, file).apply { title = dialogTitle }
+  return ResourcePickerDialog(
+    facet = facet,
+    initialResourceUrl = currentValue,
+    supportedTypes = resourceTypes,
+    preferredType = defaultResourceType,
+    showSampleData = showSampleData,
+    showThemeAttributes = showThemeAttributes,
+    currentFile = file
+  ).apply { title = dialogTitle }
 }
 
 /**
@@ -97,6 +96,7 @@ fun createAndShowColorPickerPopup(
   initialColor: Color?,
   initialColorResource: ResourceReference?,
   configuration: Configuration?,
+  resourcePickerSources: List<ResourcePickerSources>,
   restoreFocusComponent: Component?,
   locationToShow: Point?,
   colorPickedCallback: ((Color) -> Unit)?,
@@ -135,6 +135,7 @@ fun createAndShowColorPickerPopup(
       configuration,
       configuration.resourceResolver,
       ResourceType.COLOR,
+      resourcePickerSources,
       colorResourcePickedCallback,
       popupDialog::close,
       disposable
@@ -187,6 +188,7 @@ fun createAndShowResourcePickerPopup(
     configuration,
     configuration.resourceResolver,
     resourceType,
+    ResourcePickerSources.allSources(),
     resourcePickedCallback,
     popupDialog::close,
     disposable

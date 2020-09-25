@@ -93,28 +93,24 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
         var variableCount = 0
         val index = FileBasedIndex.getInstance()
 
-        index.processAllKeys(
-          NAME,
-          { key ->
-            index.processValues(
-              NAME,
-              key,
-              null,
-              { _, layoutInfo ->
-                if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
-                  dataBindingLayoutCount++
-                  importCount += layoutInfo.imports.size
-                  variableCount += layoutInfo.variables.size
-                } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
-                  viewBindingLayoutCount++
-                }
-                true
-              },
-              GlobalSearchScope.projectScope(project)
-            )
-          },
-          project
-        )
+        index.getAllKeys(NAME, project).forEach {key ->
+          index.processValues(
+            NAME,
+            key,
+            null,
+            { _, layoutInfo ->
+              if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
+                dataBindingLayoutCount++
+                importCount += layoutInfo.imports.size
+                variableCount += layoutInfo.variables.size
+              } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
+                viewBindingLayoutCount++
+              }
+              true
+            },
+            GlobalSearchScope.projectScope(project)
+          )
+        }
         trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
                           DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
                             dataBindingEnabled = isDataBindingEnabled()

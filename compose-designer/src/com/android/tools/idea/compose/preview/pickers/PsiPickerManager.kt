@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers
 
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
@@ -23,8 +24,12 @@ import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.Disposer
-import java.awt.Component
+import com.intellij.util.ui.JBUI
 import java.awt.Point
+import javax.swing.BoxLayout
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 object PsiPickerManager {
   /**
@@ -33,14 +38,14 @@ object PsiPickerManager {
   fun showForEvent(e: AnActionEvent, model: PsiPropertyModel) {
     val disposable = Disposer.newDisposable()
     val popup = createPopup(disposable)
-    val propertiesPanel = createPropertiesPanel(disposable, model)
+    val previewPickerPanel = createPreviewPickerPanel(disposable, model)
 
     val owner = e.inputEvent.component
     val location = owner.locationOnScreen
     // Center the picker in the middle of the parent width, usually a button. The popup will show up at the bottom of the owner.
     location.translate(owner.width / 2, owner.height)
 
-    popup.show(propertiesPanel.component, null, location)
+    popup.show(previewPickerPanel, null, location)
   }
 
   /**
@@ -49,15 +54,29 @@ object PsiPickerManager {
   fun show(location: Point, model: PsiPropertyModel) {
     val disposable = Disposer.newDisposable()
     val popup = createPopup(disposable)
-    val propertiesPanel = createPropertiesPanel(disposable, model)
+    val previewPickerPanel = createPreviewPickerPanel(disposable, model)
 
-    popup.show(propertiesPanel.component, null, location)
+    popup.show(previewPickerPanel, null, location)
   }
 }
 
 private fun createPopup(disposable: Disposable) = LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) },
                                                                     cancelCallBack = { Disposer.dispose(disposable) })
 
-private fun createPropertiesPanel(disposable: Disposable, model: PsiPropertyModel) = PropertiesPanel<PsiPropertyItem>(disposable).also {
-  it.addView(PsiPropertyView(model))
+private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyModel): JPanel {
+  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model)) }
+
+  return JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    isOpaque = false
+    border = JBUI.Borders.empty(0, 4)
+    add(JLabel(message("picker.preview.title")).apply {
+      border = JBUI.Borders.empty(8, 0)
+    })
+    add(JSeparator())
+    add(propertiesPanel.component.apply {
+      isOpaque = false
+      border = JBUI.Borders.empty(0, 0, 8, 0)
+    })
+  }
 }

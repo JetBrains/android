@@ -114,6 +114,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
@@ -205,6 +206,16 @@ public class LayoutlibSceneManager extends SceneManager {
    * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
    */
   private float quality = 1f;
+
+  /**
+   * Additional bytecode transform to apply to project classes when loaded.
+   */
+  private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+
+  /**
+   * Additional bytecode transform to apply to non project classes when loaded.
+   */
+  private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -1079,6 +1090,10 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.usePrivateClassLoader();
     }
 
+    taskBuilder
+      .setProjectClassesTransform(myAdditionalProjectTransform)
+      .setNonProjectClassesTransform(myAdditionalNonProjectTransform);
+
     return taskBuilder;
   }
 
@@ -1579,6 +1594,22 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public boolean isUsePrivateClassLoader() {
     return myUsePrivateClassLoader;
+  }
+
+  /**
+   * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
+   */
+  @NotNull
+  public void setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    myAdditionalProjectTransform = transform;
+  }
+
+  /**
+   * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
+   */
+  @NotNull
+  public void setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    myAdditionalNonProjectTransform = transform;
   }
 
   @Override

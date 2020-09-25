@@ -21,10 +21,13 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -92,7 +95,7 @@ private const val TIMELINE_HANDLE_HALF_HEIGHT = 5;
  * that can be controlled by scrubbing or through a set of controllers, such as play/pause and jump to end. The [AnimationInspectorPanel]
  * therefore allows a detailed inspection of Compose animations.
  */
-class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
+class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
 
   /**
    * [TabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but
@@ -144,7 +147,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   internal var animationClock: AnimationClock? = null
 
   init {
-    name = "Animation Inspector"
+    name = "Animation Preview"
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
     noAnimationsPanel.startLoading()
@@ -156,9 +159,11 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
    */
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>) {
     animationTabs[animation]?.let { tab ->
+      tab.isUpdatingAnimationStates = true
       tab.updateStateComboboxes(states.toTypedArray())
       tab.updateSeekableAnimation()
       tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
+      tab.isUpdatingAnimationStates = false
     }
     timeline.jumpToStart()
     timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
@@ -231,6 +236,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     tabNamesCount.clear()
   }
 
+  private fun logAnimationInspectorEvent(type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) {
+    AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
+  }
+
   /**
    * Content of a tab representing an animation. All the elements that aren't shared between tabs and need to be exposed should be defined
    * in this class, e.g. from/to state combo boxes.
@@ -238,16 +247,31 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
   private inner class AnimationTab(val animation: ComposeAnimation) : JPanel(TabularLayout("Fit,*,Fit", "Fit,*")) {
 
     /**
-     * Listens to changes in either [startStateComboBox] ot [endStateComboBox].
+     * Listens to [startStateComboBox] changes.
      */
-    private val stateChangeListener = object : ActionListener {
+    private val startStateChangeListener = object : ActionListener {
       override fun actionPerformed(e: ActionEvent?) {
         if (isSwappingStates) {
-          // The is no need to trigger the callback, since we're going to make a follow up call to update the other state.
-          isSwappingStates = false
+          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
+          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
           return
         }
+        if (!isUpdatingAnimationStates) {
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+        }
+        updateSeekableAnimation()
+      }
+    }
 
+    /**
+     * Listens to [endStateComboBox] changes.
+     */
+    private val endStateChangeListener = object : ActionListener {
+      override fun actionPerformed(e: ActionEvent?) {
+        if (!isUpdatingAnimationStates && !isSwappingStates) {
+          // Only log end state changes if not swapping states, which has its own tracking.
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+        }
         updateSeekableAnimation()
       }
     }
@@ -259,6 +283,12 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
      */
     private var isSwappingStates = false
+
+    /**
+     * Flag to be used when updating the available start and end states, since it might trigger changes in the comboboxes that we don't want
+     * to track, as they're not performed by the user.
+     */
+    var isUpdatingAnimationStates = false
 
     /**
      * Displays the animated properties and their value at the current timeline time.
@@ -277,8 +307,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
     }
 
     init {
-      startStateComboBox.addActionListener(stateChangeListener)
-      endStateComboBox.addActionListener(stateChangeListener)
+      startStateComboBox.addActionListener(startStateChangeListener)
+      endStateComboBox.addActionListener(endStateChangeListener)
 
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
       add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
@@ -335,7 +365,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
      * TODO(b/157895086): Disable toolbar actions while build is in progress
      */
     private fun createPlaybackControllers(): JComponent = ActionManager.getInstance().createActionToolbar(
-      "Animation inspector",
+      "Animation Preview",
       DefaultActionGroup(listOf(
         timelineLoopAction,
         GoToStartAction(),
@@ -463,6 +493,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         val startState = startStateComboBox.selectedItem
         startStateComboBox.selectedItem = endStateComboBox.selectedItem
         endStateComboBox.selectedItem = startState
+        isSwappingStates = false
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -478,6 +510,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       : AnActionButton(message("animation.inspector.action.go.to.start"), StudioIcons.LayoutEditor.Motion.GO_TO_START) {
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToStart()
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_START_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -493,6 +526,7 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
       : AnActionButton(message("animation.inspector.action.go.to.end"), StudioIcons.LayoutEditor.Motion.GO_TO_END) {
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToEnd()
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -528,7 +562,14 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
     private var isPlaying = false
 
-    override fun actionPerformed(e: AnActionEvent) = if (isPlaying) pause() else play()
+    override fun actionPerformed(e: AnActionEvent) = if (isPlaying) {
+      pause()
+      logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
+    }
+    else {
+      play()
+      logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PLAY_ACTION)
+    }
 
     override fun updateButton(e: AnActionEvent) {
       super.updateButton(e)
@@ -604,6 +645,9 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
         timeline.speed = speed
+        val changeSpeedEvent = AnimationToolingEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED)
+          .withAnimationMultiplier(speed.speedMultiplier)
+        AnimationToolingUsageTracker.getInstance(surface).logEvent(changeSpeedEvent)
       }
     }
   }
@@ -627,6 +671,10 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         // Reset the loop when leaving playInLoop mode.
         timeline.loopCount = 0
       }
+      logAnimationInspectorEvent(
+        if (state) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION
+        else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION
+      )
     }
   }
 
@@ -857,6 +905,8 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
        */
       private inner class TimelineTrackListener : TrackListener() {
 
+        private var isDragging = false
+
         override fun mousePressed(e: MouseEvent) {
           // We override the parent class behavior completely because it executes more operations than we need, being less performant than
           // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
@@ -867,6 +917,16 @@ class AnimationInspectorPanel(private val surface: DesignSurface) : JPanel(Tabul
         override fun mouseDragged(e: MouseEvent) {
           super.mouseDragged(e)
           updateThumbLocationAndSliderValue()
+          isDragging = true
+        }
+
+        override fun mouseReleased(e: MouseEvent?) {
+          super.mouseReleased(e)
+          logAnimationInspectorEvent(
+            if (isDragging) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE
+            else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE
+          )
+          isDragging = false
         }
 
         fun updateThumbLocationAndSliderValue() {

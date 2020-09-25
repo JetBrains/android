@@ -110,7 +110,7 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
       verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
       horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
       viewport.background = background
-      viewport.addChangeListener { event ->
+      viewport.addChangeListener {
         val view = viewport.view
         // Remove the explicitly set preferred view size if it does not exceed the viewport size.
         if (view != null && view.isPreferredSizeSet &&

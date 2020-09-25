@@ -69,6 +69,7 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
         // So we need to listen to sort events and sort the entire data set instead.
         addRowSorterListener { event ->
           if (event.type == RowSorterEvent.Type.SORT_ORDER_CHANGED) {
+            clearSelection()
             tableModel.sortData(event.source.sortKeys)
             allRowsChanged()
           }

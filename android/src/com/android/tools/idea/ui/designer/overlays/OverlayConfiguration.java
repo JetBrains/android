@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.ui.designer.overlays;
 
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.imageio.ImageIO;
 
 /**
  * A class containing the overlay configuration as well as helper methods for handling the overlays
@@ -35,7 +32,8 @@ import javax.imageio.ImageIO;
 public final class OverlayConfiguration {
   public static final ExtensionPointName<OverlayProvider>
     EP_NAME = ExtensionPointName.create("com.android.tools.idea.ui.designer.overlays.overlayProvider");
-  private static final OverlayData PLACEHOLDER_OVERLAY = new OverlayData(new OverlayEntry("", null), "", null);
+  private static final OverlayData PLACEHOLDER_OVERLAY =
+    new OverlayData(new OverlayEntry("", null), "", null);
   //TODO: make this customisable
   private float myOverlayAlpha = 0.5f;
   private final List<OverlayData> myOverlays = new ArrayList<>();
@@ -48,7 +46,6 @@ public final class OverlayConfiguration {
    */
   public OverlayConfiguration() {
     loadOverlayList();
-    loadPlaceholderOverlay();
   }
 
   /**
@@ -100,8 +97,10 @@ public final class OverlayConfiguration {
       int index = myOverlays.indexOf(overlayData);
       if(index != -1) {
         myOverlays.get(index).setOverlayName(overlayData.getOverlayName());
-        OverlayPersistentStateService overlayPersistentStateService = OverlayPersistentStateService.getInstance();
-        overlayPersistentStateService.updateOverlayName(myCurrentOverlayEntry, overlayData.getOverlayName());
+        OverlayPersistentStateService overlayPersistentStateService
+          = OverlayPersistentStateService.getInstance();
+        overlayPersistentStateService
+          .updateOverlayName(myCurrentOverlayEntry, overlayData.getOverlayName());
       } else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
@@ -122,10 +121,6 @@ public final class OverlayConfiguration {
     myCurrentOverlayEntry = null;
     myOverlayImage = null;
     myOverlayVisible = false;
-  }
-
-  public void toggleCachedOverlay() {
-    myOverlayVisible = !getOverlayVisibility();
   }
 
   /**
@@ -183,17 +178,10 @@ public final class OverlayConfiguration {
   }
 
   /**
-   * Loads the placeholder overlay from resources
+   *  Returns whether an overlay is displayed/ cache
    */
-  private static void loadPlaceholderOverlay() {
-    try {
-      //TODO: have fitting placeholders for the different device types.
-      PLACEHOLDER_OVERLAY.setOverlayImage(ImageIO.read(EditorDesignSurface.class.getResource("/overlay/placeholder.png")));
-    }
-    catch (Exception e) {
-      //TODO: Handle this exception better
-      Logger.getInstance(OverlayConfiguration.class).warn(e);
-    }
+  public boolean isOverlayPresent() {
+    return myOverlayImage != null || isPlaceholderVisible();
   }
 
   /**
@@ -211,7 +199,7 @@ public final class OverlayConfiguration {
    * Removes a single overlay from the list of existing overlays, and it also removes it
    * from the persisted data.
    *
-   * @param overlay the {@link Overlay} of the overlay to be removed
+   * @param overlayEntry the {@link OverlayEntry} of the overlay to be removed
    */
   public void removeOverlayFromList(OverlayEntry overlayEntry) {
     myOverlays.removeIf(overlayData -> overlayData.getOverlayEntry().equals(overlayEntry));

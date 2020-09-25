@@ -1504,6 +1504,18 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "AddCppToModuleActionTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "CLionIntegrationTest",
@@ -2224,7 +2236,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",

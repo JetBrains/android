@@ -1,5 +1,6 @@
 import filecmp
 import os
+import platform
 import re
 import shutil
 import unittest
@@ -23,8 +24,13 @@ class SearchableOptionTests(unittest.TestCase):
     plugin_list = update_searchable_options.generate_searchable_options(work_dir, expected_dir)
 
     # Create actual tree
+    plugin_path = {
+      "Windows": "android-studio/plugins",
+      "Linux": "android-studio/plugins",
+      "Darwin": "Android Studio.app/Contents/plugins",
+    }
     actual_dir = os.path.join(work_dir, "actual")
-    plugins_dir = os.path.join(work_dir, "android-studio", "plugins")
+    plugins_dir = os.path.join(work_dir, plugin_path[platform.system()])
     for plugin in os.listdir(plugins_dir):
       if plugin in plugin_list:
         lib_dir = os.path.join(plugins_dir, plugin, "lib")

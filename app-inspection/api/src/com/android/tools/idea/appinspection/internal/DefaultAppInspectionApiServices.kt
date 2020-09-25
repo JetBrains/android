@@ -16,9 +16,12 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
-import com.android.tools.idea.appinspection.api.process.ProcessNotifier
-import kotlinx.coroutines.CoroutineScope
+import com.android.tools.idea.appinspection.api.JarCopierCreator
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 
 /**
  * This serves as the entry point to all public AppInspection API services, specifically:
@@ -27,12 +30,29 @@ import kotlinx.coroutines.CoroutineScope
  */
 internal class DefaultAppInspectionApiServices internal constructor(
   private val targetManager: AppInspectionTargetManager,
-  override val processNotifier: ProcessNotifier,
-  override val launcher: AppInspectorLauncher,
-  override val scope: CoroutineScope
+  private val createJarCopier: JarCopierCreator,
+  private val discovery: AppInspectionProcessDiscovery
 ) : AppInspectionApiServices {
+  override val processNotifier = discovery
 
   override suspend fun disposeClients(project: String) {
     targetManager.disposeClients(project)
+  }
+
+  private suspend fun doAttachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
+    val processDescriptor = process.toTransportImpl()
+    val jarCopierCreator = createJarCopier(processDescriptor.stream.device) ?: throw RuntimeException("Cannot find ADB device.")
+    val streamChannel = discovery.getStreamChannel(processDescriptor.stream.streamId)
+                        ?: throw AppInspectionProcessNoLongerExistsException(
+                          "Cannot attach to process because the device does not exist. Process: ${process}")
+    return targetManager.attachToProcess(processDescriptor, jarCopierCreator, streamChannel, projectName)
+  }
+
+  override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
+    return doAttachToProcess(process, projectName)
+  }
+
+  override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
+    return doAttachToProcess(params.processDescriptor, params.projectName).launchInspector(params)
   }
 }

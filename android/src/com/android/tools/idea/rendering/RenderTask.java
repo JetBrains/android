@@ -103,6 +103,7 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -202,7 +203,9 @@ public class RenderTask {
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
-             boolean privateClassLoader) {
+             boolean privateClassLoader,
+             @NotNull Function<ClassVisitor, ClassVisitor> additionalProjectTransform,
+             @NotNull Function<ClassVisitor, ClassVisitor> additionalNonProjectTransform) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -226,7 +229,10 @@ public class RenderTask {
     Module module = facet.getModule();
     ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
     if (privateClassLoader) {
-      myModuleClassLoader = manager.getPrivate(myLayoutLib.getClassLoader(), module, this);
+      myModuleClassLoader = manager.getPrivate(
+        myLayoutLib.getClassLoader(),
+        module,
+        this, additionalProjectTransform, additionalNonProjectTransform);
     } else {
       myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(), module, this);
     }

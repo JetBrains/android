@@ -45,9 +45,9 @@ fun RecipeExecutor.generateBasicJniBindings(
   }
 }
 
-private fun jniBindingJava(escapcedPackageName: String, className: String): String = //language=JAVA
+private fun jniBindingJava(escapedPackageName: String, className: String): String = //language=JAVA
   """
-package $escapcedPackageName
+package $escapedPackageName;
 
 public class $className {
 
@@ -64,9 +64,9 @@ public class $className {
 }
 """
 
-private fun jniBindingKotlin(escapcedPackageName: String, className: String): String = //language=kotlin
+private fun jniBindingKotlin(escapedPackageName: String, className: String): String = //language=kotlin
   """
-package $escapcedPackageName
+package $escapedPackageName
 
 class $className {
 

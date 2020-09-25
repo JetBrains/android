@@ -27,30 +27,17 @@ import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CompletableFuture
 
 /** Impl of [LayoutScannerControl] configured with [LayoutScannerAction] */
-class NlLayoutScannerControl: LayoutScannerControl {
+class NlLayoutScannerControl(
+  private val surface: NlDesignSurface,
+  disposable: Disposable
+): LayoutScannerControl {
 
-  constructor(designSurface: NlDesignSurface) {
-    surface = designSurface
-    metricTracker = NlLayoutScannerMetricTracker(surface)
-    myScanner = NlLayoutScanner(surface.issueModel, surface, metricTracker)
-    init()
-  }
+  /** Metric tracker for scanner */
+  private val metricTracker = NlLayoutScannerMetricTracker(surface)
+  /** The main scanner logic that parses atf results and creates lint issues */
+  override val scanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
 
-  /** For testing purposes. Mocked values cannot be disposed in junit it seems. */
-  @TestOnly
-  constructor(designSurface: NlDesignSurface, disposable: Disposable) {
-    surface = designSurface
-    metricTracker = NlLayoutScannerMetricTracker(surface)
-    myScanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
-    init()
-  }
-
-  override val scanner get() = myScanner
-
-  private lateinit var myScanner: NlLayoutScanner
-  private lateinit var surface: NlDesignSurface
-  private lateinit var metricTracker: NlLayoutScannerMetricTracker
-
+  /** Placeholder for result of [runLayoutScanner] */
   private var scannerResult: CompletableFuture<Boolean>? = null
 
   /** Listener for issue panel open/close */
@@ -72,34 +59,36 @@ class NlLayoutScannerControl: LayoutScannerControl {
     }
   }
 
+  /** Listener when individual issues are expanded */
   private val issueExpandListener = IssuePanel.ExpandListener {issue, expanded ->
     if (scanner.issues.contains(issue)) {
       metricTracker.trackIssueExpanded(issue, expanded)
     }
   }
 
-  private val scannerListener = object : NlLayoutScanner.Listener {
+  /** Listener for when [scanner] has finished parsing and creating issues */
+  @VisibleForTesting
+  val scannerListener = object : NlLayoutScanner.Listener {
     override fun lintUpdated(result: ValidatorResult?) {
-      if (result != null) {
-        try {
-          if (!hasA11yIssue()) {
-            // Nothing to show to users.
-            scannerResult?.complete(false)
-            return
-          }
-          // Has result to display
-          surface.analyticsManager.trackShowIssuePanel()
-          surface.setShowIssuePanel(true, false)
-          scannerResult?.complete(true)
-        } finally {
-          scanner.removeListener(this)
-          scannerResult = null
+      try {
+        // TODO: If result is null, we need to probably render / compile again. Show appropriate msg.
+        if (!hasA11yIssue()) {
+          // Nothing to show to users.
+          scannerResult?.complete(false)
+          return
         }
+        // Has result to display
+        surface.analyticsManager.trackShowIssuePanel()
+        surface.setShowIssuePanel(true, false)
+        scannerResult?.complete(true)
+      } finally {
+        scanner.removeListener(this)
+        scannerResult = null
       }
     }
   }
 
-  private fun init() {
+  init {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
     surface.issuePanel.expandListener = issueExpandListener
   }

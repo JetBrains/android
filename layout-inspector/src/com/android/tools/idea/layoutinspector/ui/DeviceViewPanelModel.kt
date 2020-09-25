@@ -109,15 +109,15 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val pictureType
     get() =
       when {
-        model.root.children.any { it.imageType == PNG_AS_REQUESTED } -> {
+        model.windows.values.any { it.imageType == PNG_AS_REQUESTED } -> {
           // If we find that we've requested and received a png, that's what we'll use first
           PNG_AS_REQUESTED
         }
-        model.root.children.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
+        model.windows.values.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
           // We got a PNG because the SKP we would have gotten was too big.
           PNG_SKP_TOO_LARGE
         }
-        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE } -> {
+        model.windows.values.all { it.imageType == PNG_SKP_TOO_LARGE } -> {
           // If everything is an SKP (or a dimmer we added) then the type is SKP
           SKP
         }
@@ -204,6 +204,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     modificationListeners.forEach { it() }
   }
 
+  // TODO: move this off the UI thread
   private fun buildLevelLists(root: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int) {

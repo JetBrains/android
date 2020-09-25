@@ -94,7 +94,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
-    false);
+    true);
   //endregion
 
   //region Profiler
@@ -256,6 +256,12 @@ public final class StudioFlags {
     NELE, "sceneview.bottom.bar", "Enable the per SceneView bottom bar.",
     "Enable the per SceneView bottom bar that displays the SceneView contextual actions.",
     false);
+
+  public static final Flag<Boolean> NELE_SCENEVIEW_LEFT_BAR = Flag.create(
+    NELE, "sceneview.left.bar", "Enable SceneView left bar for overlay actions.",
+    "Enable the SceneView left bar that displays the overlay actions.",
+    true);
+
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -443,6 +449,13 @@ public final class StudioFlags {
     "applychanges.swap.fastrestartonswapfail",
     "Allow fast restart on swap failure.",
     "Eliminate the need to build again when auto re-run checkbox is turned on.",
+    true);
+
+  public static final Flag<Boolean> APPLY_CHANGES_KEEP_CONNECTION_ALIVE = Flag.create(
+    RUNDEBUG,
+    "applychanges.connection.keepalive",
+    "Keep connection to device alive.",
+    "Eliminate the cost of opening a connection and spawning a process when using Apply Changes.",
     true);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
@@ -865,12 +878,6 @@ public final class StudioFlags {
     "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +
     "render correctly.",
     false);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
-    COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
-    "If enable, the preview will support Preview data sources",
-    true);
-
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",

@@ -103,7 +103,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  private static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
+  static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     visitor -> new ThreadLocalRenameTransform(visitor),
@@ -111,7 +111,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
 
-  private static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
+  static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     visitor -> new ThreadLocalRenameTransform(visitor),
@@ -157,12 +157,18 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return StringUtil.trimStart(name, INTERNAL_PACKAGE);
   }
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    super(parent, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, ModuleClassLoader::nonProjectClassNameLookup);
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
+                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
+                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations) {
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
 
     registerResources(module);
+  }
+
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
+    this(parent, module, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS);
   }
 
   @NotNull

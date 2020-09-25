@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -67,6 +66,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -382,6 +382,16 @@ public class RenderService implements Disposable {
      */
     private boolean privateClassLoader = false;
 
+    /**
+     * Additional bytecode transform to apply to project classes when loaded.
+     */
+    private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+
+    /**
+     * Additional bytecode transform to apply to non project classes when loaded.
+     */
+    private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
+
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
                               @NotNull Configuration configuration,
@@ -527,6 +537,24 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
+     */
+    @NotNull
+    public RenderTaskBuilder setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+      myAdditionalProjectTransform = transform;
+      return this;
+    }
+
+    /**
+     * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
+     */
+    @NotNull
+    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+      myAdditionalNonProjectTransform = transform;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -586,7 +614,7 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

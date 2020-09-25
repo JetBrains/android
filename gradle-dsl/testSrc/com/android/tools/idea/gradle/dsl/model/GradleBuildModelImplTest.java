@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -35,7 +34,7 @@ import org.junit.Test;
 public class GradleBuildModelImplTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
-    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK);
+    writeToBuildFile(TestFile.REMOVE_REPOSITORIES_SINGLE_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -49,7 +48,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
-    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
+    writeToBuildFile(TestFile.REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -63,7 +62,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesWithBuildscriptRepositories() throws IOException {
-    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES);
+    writeToBuildFile(TestFile.REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
@@ -79,12 +78,12 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(2);
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED);
   }
 
   @Test
   public void testRemoveRepositoriesWithAllprojectsBlock() throws IOException {
-    writeToBuildFile(GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK);
+    writeToBuildFile(TestFile.REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -95,5 +94,52 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, "");
+  }
+
+  @Test
+  public void testPluginsBlockPsi() throws IOException {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_PSI);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertThat(buildModel.getPluginsPsiElement()).isNotNull();
+    String expectedText;
+    if (isGroovy()) {
+      expectedText = "{\n  id 'java'\n}";
+    }
+    else {
+      expectedText = "id(\"java\")"; // is a KtBlock, not just a method call
+    }
+    assertThat(buildModel.getPluginsPsiElement().getText()).isEqualTo(expectedText);
+  }
+
+  @Test
+  public void testApplyPluginNoPluginsBlockPsi() throws IOException {
+    writeToBuildFile(TestFile.APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertThat(buildModel.getPluginsPsiElement()).isNull();
+  }
+
+  enum TestFile implements TestFileName {
+    REMOVE_REPOSITORIES_SINGLE_BLOCK("removeRepositoriesSingleBlock"),
+    REMOVE_REPOSITORIES_MULTIPLE_BLOCKS("removeRepositoriesMultipleBlocks"),
+    REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES("removeRepositoriesWithBuildscriptRepositories"),
+    REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED("removeRepositoriesWithBuildscriptRepositoriesExpected"),
+    REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK("removeRepositoriesWithAllprojectsBlock"),
+    PLUGINS_BLOCK_PSI("pluginsBlockPsi"),
+    APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI("applyPluginNoPluginsBlockPsi")
+    ;
+
+    @NotNull private @SystemDependent String path;
+
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/gradleBuildModelImpl/" + path, extension);
+    }
   }
 }

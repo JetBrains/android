@@ -34,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -42,6 +43,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.SwingHelper
+import com.intellij.util.ui.UIUtil
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
@@ -67,6 +69,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
+import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -134,13 +137,19 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var packageName = ""
-  val myRetentionDebugButton: JButton = JButton("Debug Retention Snapshot", AllIcons.Actions.Execute).apply {
+  val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
         AnActionEvent.createFromDataContext("", null, dataContext))
     }
+    isBorderPainted = false
+  }
+  val myRetentionHelperLabel = JLabel(AllIcons.General.ContextHelp).apply {
+    HelpTooltip().setDescription(
+      "Debug from the retentio state will load the snapshot at the point of failure, and attach to the debugger."
+    ).installOn(this)
   }
   val myInfoText = SwingHelper.createHtmlViewer(true, null, null, null).apply {
     alignmentX = 0.0f
@@ -157,12 +166,22 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   private val myInnerPanel = panel {
     row {
       myImageLabel()
-      myInfoText(grow)
+      myInfoText(pushX, growY)
     }
+  }.apply {
+    background = UIUtil.getTableBackground()
+    border =
+      BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(UIUtil.CONTRAST_BORDER_COLOR),
+        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+      )
   }
   private val myLayoutPanel = panel {
     row {
-      myRetentionDebugButton()
+      cell {
+        myRetentionDebugButton()
+        myRetentionHelperLabel()
+      }
     }
     row {
       scrollPane(myInnerPanel)
@@ -216,44 +235,11 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     myInnerPanel.revalidate()
   }
 
-  fun isSystemImageCompatible(snapshotHardwareIni: Ini,
-                              snapshotSystemImageBuildId: String): Boolean {
-    val snapshotSystemImagePath = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("disk.systemPartition.initPath")
-    if (snapshotSystemImagePath.isNullOrEmpty()) {
-      return false
-    }
-    val snapshotSdkRoot = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("android.sdk.root")
-    val newSystemImagePath = if (snapshotSdkRoot == null || androidSdkHandler.location?.path.isNullOrEmpty()) {
-      snapshotSystemImagePath
-    } else {
-      snapshotSystemImagePath.replace(snapshotSdkRoot,
-                                      androidSdkHandler.location?.path ?: "")
-    }
-    val systemImageBuildPropertyPath = File(File(newSystemImagePath).parent).resolve(BUILD_PROP_FILE_NAME)
-    if (!systemImageBuildPropertyPath.isFile) {
-      return false
-    }
-    if (!snapshotSystemImageBuildId.isNullOrEmpty()) {
-      Ini().also {
-        it.config = Config.getGlobal().apply {
-          isGlobalSection = true
-          globalSectionName = INI_GLOBAL_SECTION_NAME
-          fileEncoding = Charset.defaultCharset()
-        }
-        it.load(systemImageBuildPropertyPath)
-        if (snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.id")
-            && snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.display.id")) {
-          return false
-        }
-      }
-    }
-    return true
-  }
-
   fun setSnapshotFile(snapshotFile: File?) {
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
     myRetentionDebugButton.isEnabled = false
+    myRetentionDebugButton.toolTipText = null
     updateInfoText()
     myImageLabel.icon = null
     image = null
@@ -300,18 +286,24 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           }
           myRetentionPanel.snapshotProto = snapshotProto
           if (snapshotProto == null) {
+            myRetentionDebugButton.toolTipText = "Snapshot protobuf broken, expected path: ${snapshotFile.name}:snapshot.pb"
             return@execute
           }
           val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
           if (emulatorPackage == null) {
+            myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
             return@execute
           }
           // TODO(b/166826352): validate snapshot version
           if (hardwareIni == null) {
+            myRetentionDebugButton.toolTipText = "Missing snapshot hardware.ini, expected path: ${snapshotFile.name}:hardware.ini"
             return@execute
           }
-          if (!isSystemImageCompatible(hardwareIni, snapshotProto.systemImageBuildId)) {
-            return@execute
+          isSystemImageCompatible(hardwareIni, snapshotProto.systemImageBuildId, androidSdkHandler).also {
+            if (!it.compatible) {
+              myRetentionDebugButton.toolTipText = "Snapshot system image incompatible, reason: ${it.reason}"
+              return@execute
+            }
           }
           myRetentionDebugButton.isEnabled = true
         }
@@ -368,3 +360,43 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(this))
 
 private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
+
+data class CompatibleResult(val compatible: Boolean, val reason: String? = null)
+
+fun isSystemImageCompatible(snapshotHardwareIni: Ini,
+                            snapshotSystemImageBuildId: String,
+                            androidSdkHandler: AndroidSdkHandler): CompatibleResult {
+  val snapshotSystemImagePath = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("disk.systemPartition.initPath")
+  if (snapshotSystemImagePath.isNullOrEmpty()) {
+    return CompatibleResult(false, "Cannot find snapshot system image path.")
+  }
+  val snapshotSdkRoot = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("android.sdk.root")
+  val newSystemImagePath = if (snapshotSdkRoot == null || androidSdkHandler.location?.path.isNullOrEmpty()) {
+    snapshotSystemImagePath
+  } else {
+    snapshotSystemImagePath.replace(snapshotSdkRoot,
+                                    androidSdkHandler.location?.path ?: "")
+  }
+  val systemImageBuildPropertyPath = File(File(newSystemImagePath).parent).resolve(BUILD_PROP_FILE_NAME)
+  if (!systemImageBuildPropertyPath.isFile) {
+    return CompatibleResult(false,
+                            "Failed to find system image build property, expected path: ${systemImageBuildPropertyPath}")
+  }
+  if (!snapshotSystemImageBuildId.isNullOrEmpty()) {
+    Ini().also {
+      it.config = Config.getGlobal().apply {
+        isGlobalSection = true
+        globalSectionName = INI_GLOBAL_SECTION_NAME
+        fileEncoding = Charset.defaultCharset()
+      }
+      it.load(systemImageBuildPropertyPath)
+      if (snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.id")
+          && snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.display.id")) {
+        return CompatibleResult(false,
+                                "System image version mismatch. Please manually download the system image with build ID"
+                                + "${snapshotSystemImageBuildId} to folder ${File(newSystemImagePath).parent}")
+      }
+    }
+  }
+  return CompatibleResult(true)
+}

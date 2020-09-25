@@ -37,7 +37,7 @@
         </intentionAction>
 
         <intentionAction>
-            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidget</className>
+            <className>org.jetbrains.android.compose.intentions.ComposeSurroundWithWidgetActionGroup</className>
             <category>Compose Android</category>
         </intentionAction>
 
@@ -113,7 +113,7 @@
         <syntheticResolveExtension implementation="org.jetbrains.kotlin.android.parcel.IDEParcelableResolveExtension"/>
         <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
         <quickFixContributor implementation="org.jetbrains.kotlin.android.parcel.quickfixes.ParcelableQuickFixContributor"/>
-        <quickFixContributor implementation="org.jetbrains.android.compose.ComposeDelegateStateImportFixContributor"/>
+        <quickFixContributor implementation="org.jetbrains.android.compose.intentions.ComposeDelegateStateImportFixContributor"/>
 
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -38,7 +39,7 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     DataContext dataContext = e.getDataContext();
-    boolean enable = isValidAndroidGradleModuleSelected(dataContext);
+    boolean enable = isValidAndroidGradleModuleSelected(dataContext) && !StudioFlags.NPW_NEW_NATIVE_MODULE.get();
 
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(enable);

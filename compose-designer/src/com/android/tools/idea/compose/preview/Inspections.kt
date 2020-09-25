@@ -105,8 +105,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
  */
 private fun KtParameter.isAcceptableForPreview(): Boolean =
   hasDefaultValue() ||
-  // When data sources are enabled, we also accept parameters with the @PreviewParameter annotation
-  (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get() && annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQNS) })
+  // We also accept parameters with the @PreviewParameter annotation
+  annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQNS) }
 
 /**
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
@@ -116,12 +116,8 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
     if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
-      val description = if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get())
-        message("inspection.no.parameters.or.provider.description")
-      else
-        message("inspection.no.parameters.description")
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
-                             description,
+                             message("inspection.no.parameters.or.provider.description"),
                              ProblemHighlightType.ERROR)
     }
   }

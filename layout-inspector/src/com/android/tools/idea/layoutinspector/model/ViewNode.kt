@@ -82,9 +82,6 @@ open class ViewNode(
   // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
   val drawChildren = mutableListOf<DrawViewNode>()
 
-  // The type of image we received from the device.
-  var imageType: LayoutInspectorProto.ComponentTreeEvent.PayloadType = SKP
-
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {

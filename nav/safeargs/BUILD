@@ -178,7 +178,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
@@ -229,7 +228,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",

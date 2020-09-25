@@ -41,6 +41,14 @@ class ScannerTestHelper {
   /** Returns the [View.getId] of the last generated [NlComponent] by [buildNlComponent] */
   val lastUsedViewId get() = viewId
 
+  private var validatorIssueId = 0L
+
+  /**
+   * Returns [ValidatorData.Issue.mSrcId] that is used by the last
+   * issue created by the helper thru [generateResult].
+   */
+  val lastUsedIssueId get() = validatorIssueId
+
   /**
    * Create a default component useful for testing.
    * It contains mocked view information.
@@ -69,23 +77,14 @@ class ScannerTestHelper {
     return viewInfo
   }
 
-  /** Create a default issue builder with all the requirements. */
-  fun createIssueBuilder(): ValidatorData.Issue.IssueBuilder {
-    return ValidatorData.Issue.IssueBuilder()
-      .setCategory("category")
-      .setType(ValidatorData.Type.ACCESSIBILITY)
-      .setMsg("Message")
-      .setLevel(ValidatorData.Level.ERROR)
-      .setSourceClass("SourceClass")
-  }
-
   /**
    * Generate the [RenderResult] with appropriate [ViewInfo] as well as
    * matching [ValidatorResult] based on [NlModel].
    *
    * It creates a [ValidatorData.Issue] per [NlModel.flattenComponents]
    */
-  fun mockRenderResult(model: NlModel): RenderResult {
+  fun mockRenderResult(model: NlModel, injectedResult: ValidatorResult? = null):
+    RenderResult {
     val result = Mockito.mock(RenderResult::class.java)
     val validatorResult = ValidatorResult.Builder()
     val viewInfos = ImmutableList.Builder<ViewInfo>()
@@ -93,12 +92,16 @@ class ScannerTestHelper {
     model.components.forEach {
       generateResult(it, validatorResult)
       validatorResult.mIssues.add(
-        createIssueBuilder().setSrcId(lastUsedIssueId).build()
+        createTestIssueBuilder().setSrcId(lastUsedIssueId).build()
       )
 
       it?.viewInfo?.let { viewInfo -> viewInfos.add(viewInfo) }
     }
-    Mockito.`when`(result.validatorResult).thenReturn(validatorResult.build())
+    if (injectedResult != null) {
+      Mockito.`when`(result.validatorResult).thenReturn(injectedResult)
+    } else {
+      Mockito.`when`(result.validatorResult).thenReturn(validatorResult.build())
+    }
     Mockito.`when`(result.rootViews).thenReturn(viewInfos.build())
 
     val renderResult = Mockito.mock(Result::class.java)
@@ -142,14 +145,6 @@ class ScannerTestHelper {
     return model
   }
 
-  private var validatorIssueId = 0L
-
-  /**
-   * Returns [ValidatorData.Issue.mSrcId] that is used by the last
-   * issue created by the helper thru [generateResult].
-   */
-  val lastUsedIssueId get() = validatorIssueId
-
   /**
    * Create a scanner(aka validator) result derived from the passed components.
    * Created result will have source map created.
@@ -161,5 +156,20 @@ class ScannerTestHelper {
     validatorIssueId += 1L
     builder.mSrcMap[validatorIssueId] = component.viewInfo?.viewObject as View
     return builder
+  }
+
+  companion object {
+
+    /** Create a default issue builder with all the requirements. */
+    fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
+      return ValidatorData.Issue.IssueBuilder()
+        .setCategory("")
+        .setType(ValidatorData.Type.ACCESSIBILITY)
+        .setMsg("Test")
+        .setLevel(ValidatorData.Level.ERROR)
+        .setSrcId(-1)
+        .setFix(ValidatorData.Fix(""))
+        .setSourceClass("")
+    }
   }
 }

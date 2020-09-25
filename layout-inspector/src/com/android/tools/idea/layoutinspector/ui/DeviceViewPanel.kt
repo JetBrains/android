@@ -21,7 +21,8 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -106,7 +107,7 @@ class DeviceViewPanel(
 
     private fun showGrab() {
       if (isPanning) {
-        cursor = AdtUiCursors.GRAB
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
       }
       else {
         cursor = Cursor.getDefaultCursor()
@@ -116,7 +117,7 @@ class DeviceViewPanel(
     override fun mousePressed(e: MouseEvent) {
       contentPanel.requestFocus()
       if (currentlyPanning(e)) {
-        cursor = AdtUiCursors.GRABBING
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
         e.consume()
       }
@@ -128,7 +129,7 @@ class DeviceViewPanel(
       val newLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
       lastPanMouseLocation = newLocation
       if (currentlyPanning(e) && lastLocation != null) {
-        cursor = AdtUiCursors.GRABBING
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         val extent = scrollPane.viewport.extentSize
         val view = scrollPane.viewport.viewSize
         val p = scrollPane.viewport.viewPosition
@@ -143,7 +144,7 @@ class DeviceViewPanel(
 
     override fun mouseReleased(e: MouseEvent) {
       if (lastPanMouseLocation != null) {
-        cursor = if (isPanning) AdtUiCursors.GRAB else Cursor.getDefaultCursor()
+        cursor = if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB) else Cursor.getDefaultCursor()
         lastPanMouseLocation = null
         e.consume()
       }
@@ -217,9 +218,15 @@ class DeviceViewPanel(
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     // Zoom to fit on initial connect
-    layoutInspector.layoutInspectorModel.modificationListeners.add { old, _, _ ->
+    layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
       if (old == null) {
         zoom(ZoomType.FIT)
+      }
+      else {
+        // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
+        // images upon first connecting.
+        new?.refreshImages(viewSettings.scaleFraction)
+        contentPanel.model.refresh()
       }
     }
     var prevZoom = viewSettings.scalePercent
@@ -227,6 +234,10 @@ class DeviceViewPanel(
       if (prevZoom != viewSettings.scalePercent) {
         deviceViewPanelActionsToolbar.zoomChanged()
         prevZoom = viewSettings.scalePercent
+        layoutInspector.layoutInspectorModel.windows.values.forEach {
+          it.refreshImages(viewSettings.scaleFraction)
+        }
+        contentPanel.model.refresh()
       }
     }
   }
@@ -255,6 +266,7 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
+    viewSettings.scalePercent = viewSettings.scalePercent.coerceIn(MIN_ZOOM, MAX_ZOOM)
     contentPanel.revalidate()
 
     return true

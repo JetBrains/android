@@ -152,10 +152,11 @@ data class ProjectChecker(
     val appTitle = "Template Test App Title"
 
     val language = moduleState.projectTemplateDataBuilder.language
+    val addJetifierSupport = moduleState.projectTemplateDataBuilder.addJetifierSupport
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
         data as ProjectTemplateData, "Template Test project",
-        language!!, true, false
+        language!!, true, addJetifierSupport, false
       )
     }
 

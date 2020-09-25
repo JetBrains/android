@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS;
+
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.crashlytics.FirebaseCrashlyticsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -99,6 +104,13 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel zipAlignEnabled() {
     return getModelForProperty(ZIP_ALIGN_ENABLED);
+  }
+
+  @Override
+  @NotNull
+  public FirebaseCrashlyticsModel firebaseCrashlytics() {
+    FirebaseCrashlyticsDslElement firebaseCrashlyticsDslElement = myDslElement.ensurePropertyElement(FIREBASE_CRASHLYTICS);
+    return new FirebaseCrashlyticsModelImpl(firebaseCrashlyticsDslElement);
   }
 
 }

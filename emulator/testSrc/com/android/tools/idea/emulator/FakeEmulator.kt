@@ -27,6 +27,8 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.SnapshotDetails
+import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
@@ -44,6 +46,7 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
 import io.grpc.ForwardingServerCall.SimpleForwardingServerCall
@@ -116,6 +119,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  /** Ids of snapshots that were marked "invalid" by calling the [markSnapshotInvalid] method. */
+  private val invalidSnapshots = ContainerUtil.newConcurrentSet<String>()
 
   val serialPort
     get() = grpcPort - 3000 // Just like a real emulator.
@@ -211,6 +216,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     grpcCallLog.clear()
   }
 
+  fun markSnapshotInvalid(snapshotId: String) {
+    invalidSnapshots.add(snapshotId)
+  }
+
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
@@ -258,7 +267,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     return image
   }
 
-  private fun createSnapshot(snapshotId: String) {
+  fun createSnapshot(snapshotId: String) {
     val snapshotFolder = avdFolder.resolve("snapshots").resolve(snapshotId)
     Files.createDirectories(snapshotFolder)
 
@@ -278,6 +287,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       snapshotMessage.writeTo(codedStream)
       codedStream.flush()
     }
+  }
+
+  fun createInvalidSnapshot(snapshotId: String) {
+    createSnapshot(snapshotId)
+    markSnapshotInvalid(snapshotId)
   }
 
   private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
@@ -428,6 +442,41 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
+
+    override fun listSnapshots(request: Empty, responseObserver: StreamObserver<SnapshotList>) {
+      executor.execute {
+        val response = SnapshotList.newBuilder()
+        val snapshotsFolder = avdFolder.resolve("snapshots")
+        try {
+          Files.list(snapshotsFolder).use { stream ->
+            stream.forEach { snapshotFolder ->
+              val snapshotId = snapshotFolder.fileName.toString()
+              if (snapshotId !in invalidSnapshots) {
+                val snapshotProtoFile = snapshotFolder.resolve("snapshot.pb")
+                val snapshotMessage = Files.newInputStream(snapshotProtoFile).use {
+                  Snapshot.parseFrom(it)
+                }
+                val snapshotDetails = SnapshotDetails.newBuilder()
+                snapshotDetails.snapshotId = snapshotId
+                val details = Snapshot.newBuilder()
+                details.logicalName = snapshotMessage.logicalName
+                details.description = snapshotMessage.description
+                details.rotation = snapshotMessage.rotation
+                details.creationTime = snapshotMessage.creationTime
+                snapshotDetails.setDetails(details)
+                response.addSnapshots(snapshotDetails)
+              }
+            }
+          }
+        }
+        catch (_: NoSuchFileException) {
+          // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
+        }
+
+        sendResponse(responseObserver, response.build())
+      }
+    }
+
     override fun loadSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
       executor.execute {
         sendDefaultSnapshotPackage(responseObserver)

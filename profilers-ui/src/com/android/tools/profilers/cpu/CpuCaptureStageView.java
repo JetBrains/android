@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
@@ -28,7 +30,6 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
-import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -329,7 +330,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void setPanningMode(boolean isPanningMode, @NotNull TrackGroupListPanel trackGroupListPanel) {
     myIsPanningMode = isPanningMode;
     trackGroupListPanel.setEnabled(!isPanningMode);
-    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursors.GRABBING : null);
+    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING) : null);
   }
 
   private static JComponent createBottomAxisPanel(@NotNull Range range) {

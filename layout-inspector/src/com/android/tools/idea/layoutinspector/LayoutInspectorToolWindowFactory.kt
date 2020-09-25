@@ -51,7 +51,7 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
  * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
  */
 fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
-  toolWindow.contentManager?.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
+  toolWindow.contentManager.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
 
 /**
  * Create a [DataProvider] for the specified [layoutInspector].
@@ -78,7 +78,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
     val layoutInspector = LayoutInspector(model, workbench)
-    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
+    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, workbench)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
@@ -89,7 +89,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
     DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
     contentManager.addContent(content)
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
+    project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
 }
 

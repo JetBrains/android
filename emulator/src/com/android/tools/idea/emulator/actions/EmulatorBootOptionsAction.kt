@@ -32,8 +32,7 @@ class EmulatorBootOptionsAction : AbstractEmulatorAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
     val emulatorController = getEmulatorController(event) ?: return
-    val emulatorId = emulatorController.emulatorId
-    val snapshotManager = SnapshotManager(emulatorId.avdFolder, emulatorId.avdId)
+    val snapshotManager = SnapshotManager(emulatorController)
     executeOnPooledThread {
       val bootMode = snapshotManager.readBootMode() ?: return@executeOnPooledThread
       val snapshotsFuture: SettableFuture<List<SnapshotInfo>> = SettableFuture.create()

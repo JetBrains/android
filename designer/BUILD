@@ -79,6 +79,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/idea/.idea/libraries:jaxb-api",
         "//tools/idea/.idea/libraries:Trove4j",
+        "//tools/idea/.idea/libraries:ASM",
     ],
 )
 
@@ -211,7 +212,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/assistant[module]",
@@ -281,7 +281,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/assistant[module]",

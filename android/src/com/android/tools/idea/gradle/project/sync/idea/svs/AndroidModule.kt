@@ -60,7 +60,6 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
 
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
-      println("Consuming ${T::class.simpleName} for ${gradleProject.path}")
       buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
     }
   }
@@ -73,7 +72,7 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
 class AndroidModule private constructor(
   val modelVersion: GradleVersion?,
   gradleProject: BasicGradleProject,
-  private val androidProject: IdeAndroidProject,
+  val androidProject: IdeAndroidProject,
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,

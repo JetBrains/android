@@ -342,7 +342,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       finally {
         if (buildError != null) {
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildFailure();
+            buildAttributionManager.onBuildFailure(attributionFileDir);
           }
 
           if (wasBuildCanceled(buildError)) {
@@ -460,7 +460,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(new File(jdkHome))));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {ideSdks.setJdkPath(new File(jdkHome));}));
         }
       }
     };

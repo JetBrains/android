@@ -24,7 +24,7 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -54,7 +54,7 @@ class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspe
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
   INSPECTOR_ID_2,
   LibraryInspectorLaunchParams(TEST_JAR,
-                               AppInspectorLauncher.TargetLibrary(AppInspectorLauncher.LibraryArtifact("groupId", "artifactId"), "0.0.0")))
+                               ArtifactCoordinate("groupId", "artifactId", "0.0.0")))
 
 class AppInspectionViewTest {
   private val timer = FakeTimer()
@@ -396,8 +396,9 @@ class AppInspectionViewTest {
 
         assertThat(emptyPanel.reasonText)
           .isEqualTo(
-            AppInspectionBundle.message("incompatible.version",
-                                        (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate))
+            AppInspectionBundle.message(
+              "incompatible.version",
+              (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
 
         tabsAdded.complete(Unit)
       }
@@ -462,8 +463,9 @@ class AppInspectionViewTest {
           TreeWalker(inspectionView.inspectorTabs.getComponentAt(0)).descendants().filterIsInstance<EmptyStatePanel>().first()
 
         assertThat(emptyPanel.reasonText)
-          .isEqualTo(AppInspectionBundle.message("incompatible.version",
-                                                 (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).targetLibrary.coordinate))
+          .isEqualTo(AppInspectionBundle.message(
+            "incompatible.version",
+            (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
 
         tabsAdded.complete(Unit)
       }

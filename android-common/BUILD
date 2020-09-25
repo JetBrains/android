@@ -83,6 +83,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
+        "//tools/idea/.idea/libraries:fastutil-min",
     ],
 )
 
@@ -100,7 +101,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",

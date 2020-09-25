@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.PopupHandler
 import com.intellij.util.ui.JBUI
 import java.awt.AlphaComposite
@@ -174,7 +174,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun modelChanged(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
+  private fun modelChanged(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     model.refresh()
     repaint()
   }

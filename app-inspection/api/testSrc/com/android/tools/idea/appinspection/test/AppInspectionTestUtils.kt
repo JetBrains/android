@@ -18,7 +18,8 @@ package com.android.tools.idea.appinspection.test
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorLauncher
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.protobuf.ByteString
@@ -34,8 +35,8 @@ val TEST_JAR = AppInspectorJar("test")
 
 const val TEST_PROJECT = "test.project"
 
-val TEST_ARTIFACT = AppInspectorLauncher.LibraryArtifact("test_group_id", "test_artifact_id")
 const val MIN_VERSION = "0.0.0-dev"
+val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION)
 
 /**
  * A collection of utility functions for inspection tests.
@@ -70,8 +71,7 @@ object AppInspectionTestUtils {
     inspectorId: String = INSPECTOR_ID,
     jar: AppInspectorJar = TEST_JAR,
     project: String = TEST_PROJECT
-  ) = AppInspectorLauncher.LaunchParameters(descriptor, inspectorId, jar, project,
-                                            AppInspectorLauncher.TargetLibrary(TEST_ARTIFACT, MIN_VERSION))
+  ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_ARTIFACT)
 
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.

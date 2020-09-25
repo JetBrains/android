@@ -65,7 +65,7 @@
               icon="StudioIcons.Emulator.SNAPSHOTS"
               text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
-              icon="StudioIcons.Emulator.MORE"
+              icon="AllIcons.Actions.More"
               text="Extended Controls" description="Show extended controls"/>
     </group>
   </actions>

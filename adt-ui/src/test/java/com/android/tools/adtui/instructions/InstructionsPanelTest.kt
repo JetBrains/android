@@ -73,7 +73,7 @@ class InstructionsPanelTest {
     val instructions = InstructionsPanel.Builder(
       TextInstruction(metrics, "Line 1"),
       NewRowInstruction(0),
-      UrlInstruction(metrics.font, "Line 2", "www.google.com"),
+      HyperlinkInstruction(metrics.font, "Line 2", "www.google.com"),
       NewRowInstruction(0),
       TextInstruction(metrics, "Line 3"))
       .setPaddings(0, 0)
@@ -109,5 +109,33 @@ class InstructionsPanelTest {
 
     fakeUi.mouse.moveTo(20, yLine2Url)
     assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+  }
+
+  @Test
+  fun instructionsPanelCLickOnUrlRunsAction() {
+    val panel = JPanel(TabularLayout("Fit-"))
+    val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
+
+    var actionPerformed = false
+    val action = Runnable { actionPerformed = true }
+
+    val instructions = InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
+      .setPaddings(0, 0)
+      .build()
+    panel.add(instructions, TabularLayout.Constraint(0, 0))
+
+    val fakeUi = FakeUi(panel)
+    panel.size = panel.minimumSize // Force size just to make the test work
+    val rowHeight = instructions.renderer.rowHeight
+    val yHyperlink = (rowHeight * 0.5f).roundToInt()
+
+    assertThat(fakeUi.mouse.focus).isNull()
+
+    fakeUi.mouse.moveTo(20, yHyperlink)
+    val instructionsComponent = fakeUi.mouse.focus!!
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    fakeUi.mouse.click(20, yHyperlink)
+    assertThat(actionPerformed).isTrue()
   }
 }

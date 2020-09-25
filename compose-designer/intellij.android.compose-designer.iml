@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-plugin-java" level="project" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
@@ -37,5 +37,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="ASM" level="project" />
   </component>
 </module>

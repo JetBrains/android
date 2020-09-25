@@ -23,7 +23,6 @@ import static icons.StudioIcons.LayoutInspector.LOAD_OVERLAY;
 import static icons.StudioIcons.LayoutInspector.MODE_3D;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
@@ -34,8 +33,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Toggleable;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.concurrency.Promise;
@@ -56,17 +53,15 @@ public class OverlayMenuAction extends DropDownAction {
 
   @Override
   protected boolean updateActions(@NotNull DataContext context) {
-    //TODO: Implement caching of overlays
-    List<OverlayProvider> providers = OverlayConfiguration.EP_NAME.getExtensionsIfPointIsRegistered();
+    List<OverlayProvider> providers =
+      OverlayConfiguration.EP_NAME.getExtensionsIfPointIsRegistered();
 
     removeAll();
     if (!providers.isEmpty()) {
       DefaultActionGroup overlayGroup = DefaultActionGroup.createPopupGroup(() -> "Overlays");
 
-      boolean overlayListEmpty = true;
       OverlayEntry currentOverlay = mySurface.getOverlayConfiguration().getCurrentOverlayEntry();
       for (OverlayData overlay : mySurface.getOverlayConfiguration().getAllOverlays()) {
-        overlayListEmpty = false;
         boolean isCurrentlySelected = false;
         if (overlay.getOverlayEntry().equals(currentOverlay)) {
           isCurrentlySelected = true;
@@ -83,9 +78,7 @@ public class OverlayMenuAction extends DropDownAction {
         add(new AddOverlayAction(mySurface, provider));
       }
 
-      if (!overlayListEmpty) {
-        add(new DeleteOverlayAction(mySurface));
-      }
+      add(new DeleteOverlayAction(mySurface));
 
       addSeparator();
 
@@ -127,15 +120,16 @@ public class OverlayMenuAction extends DropDownAction {
       }
       else {
         overlayConfiguration.showPlaceholder();
-        Promise <OverlayData> promise =  myOverlayEntry.getOverlayProvider().getOverlay(myOverlayEntry.getId());
+        Promise<OverlayData> promise =
+          myOverlayEntry.getOverlayProvider().getOverlay(myOverlayEntry.getId());
         promise.onSuccess(result -> {
-          if(mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
+          if (mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
             result.setOverlayProvider(myOverlayEntry.getOverlayProvider());
             overlayConfiguration.updateOverlay(result);
           }
         });
         promise.onError(t -> {
-          if(mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
+          if (mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
             overlayConfiguration.hidePlaceholder();
 
             if (t instanceof OverlayNotFoundException) {
@@ -168,26 +162,32 @@ public class OverlayMenuAction extends DropDownAction {
   /**
    * Class for toggling the visibility of a cached overlay on/off.
    */
-  @VisibleForTesting
-  static class ToggleCachedOverlayAction extends AnAction  {
+  public static class ToggleCachedOverlayAction extends AnAction {
     EditorDesignSurface mySurface;
 
-    ToggleCachedOverlayAction(@NotNull EditorDesignSurface surface) {
+    public ToggleCachedOverlayAction(@NotNull EditorDesignSurface surface) {
       super("Toggle Overlay", "Toggle current overlay on/off", LAYER);
       mySurface = surface;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setVisible(mySurface.getOverlayConfiguration().isOverlayPresent());
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       OverlayConfiguration configuration = mySurface.getOverlayConfiguration();
       if (configuration.getOverlayImage() != null && !configuration.isPlaceholderVisible()) {
-        if(!configuration.getOverlayVisibility()) {
+        if (!configuration.getOverlayVisibility()) {
           configuration.showCachedOverlay();
-        } else {
+        }
+        else {
           configuration.hideCachedOverlay();
         }
         mySurface.repaint();
-      } else {
+      }
+      else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
                            null,
@@ -200,14 +200,13 @@ public class OverlayMenuAction extends DropDownAction {
     }
   }
 
-  static class AddOverlayAction extends AnAction {
+  public static class AddOverlayAction extends AnAction {
     @NotNull
     private final OverlayProvider myOverlayProvider;
     @NotNull
     private final EditorDesignSurface mySurface;
 
-    AddOverlayAction(
-                     @NotNull EditorDesignSurface surface,
+    AddOverlayAction(@NotNull EditorDesignSurface surface,
                      @NotNull OverlayProvider provider) {
       super("Add " + provider.getPluginName() + " Overlay...", null, LOAD_OVERLAY);
       myOverlayProvider = provider;
@@ -220,13 +219,13 @@ public class OverlayMenuAction extends DropDownAction {
       overlayConfiguration.showPlaceholder();
       Promise<OverlayData> promise = myOverlayProvider.addOverlay();
       promise.onSuccess(result -> {
-        if(overlayConfiguration.isPlaceholderVisible()) {
+        if (overlayConfiguration.isPlaceholderVisible()) {
           result.setOverlayProvider(myOverlayProvider);
           overlayConfiguration.addOverlay(result);
         }
       });
       promise.onError(t -> {
-        if(overlayConfiguration.isPlaceholderVisible()) {
+        if (overlayConfiguration.isPlaceholderVisible()) {
           overlayConfiguration.hidePlaceholder();
           Notifications.Bus.notify(
             new Notification("Manage Overlays",
@@ -241,30 +240,37 @@ public class OverlayMenuAction extends DropDownAction {
     }
   }
 
-  static class UpdateOverlayAction extends AnAction {
+  public static class UpdateOverlayAction extends AnAction {
     @NotNull
-    private EditorDesignSurface mySurface;
+    private final EditorDesignSurface mySurface;
 
-    UpdateOverlayAction(@NotNull EditorDesignSurface surface) {
+    public UpdateOverlayAction(@NotNull EditorDesignSurface surface) {
       super("Reload Overlay", "Reload the current overlay", LOOP);
       mySurface = surface;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setVisible(mySurface.getOverlayConfiguration().isOverlayPresent());
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       OverlayConfiguration overlayConfiguration = mySurface.getOverlayConfiguration();
       OverlayEntry currentOverlay = overlayConfiguration.getCurrentOverlayEntry();
-      if(overlayConfiguration.getOverlayImage() != null && !overlayConfiguration.isPlaceholderVisible()) {
+      if (overlayConfiguration.getOverlayImage() != null
+          && !overlayConfiguration.isPlaceholderVisible()) {
         overlayConfiguration.showPlaceholder();
-        Promise<OverlayData> promise =  currentOverlay.getOverlayProvider().getOverlay(currentOverlay.getId());
+        Promise<OverlayData> promise =
+          currentOverlay.getOverlayProvider().getOverlay(currentOverlay.getId());
         promise.onSuccess(result -> {
-          if(mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
+          if (mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
             result.setOverlayProvider(currentOverlay.getOverlayProvider());
             overlayConfiguration.updateOverlay(result);
           }
         });
         promise.onError(t -> {
-          if(mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
+          if (mySurface.getOverlayConfiguration().isPlaceholderVisible()) {
             overlayConfiguration.hidePlaceholder();
 
             if (t instanceof OverlayNotFoundException) {
@@ -290,7 +296,8 @@ public class OverlayMenuAction extends DropDownAction {
             }
           }
         });
-      } else {
+      }
+      else {
         Notifications.Bus.notify(
           new Notification("Manage Overlays",
                            null,
@@ -306,7 +313,7 @@ public class OverlayMenuAction extends DropDownAction {
   @VisibleForTesting
   static class DeleteOverlayAction extends AnAction {
     @NotNull
-    EditorDesignSurface mySurface;
+    private final EditorDesignSurface mySurface;
 
     DeleteOverlayAction(@NotNull EditorDesignSurface surface) {
       super("Delete Overlay...", null, DELETE);
@@ -314,15 +321,19 @@ public class OverlayMenuAction extends DropDownAction {
     }
 
     @Override
+    public void update(AnActionEvent e) {
+      e.getPresentation()
+        .setVisible(!mySurface.getOverlayConfiguration().getAllOverlays().isEmpty());
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       List<OverlayData> overlays = mySurface.getOverlayConfiguration().getAllOverlays();
-      if(overlays.isEmpty()) {
-        Logger.getInstance(OrientationMenuAction.class).warn("There are no overlays");
-      }
       //TODO:  Not sure what dialog is normally used for picking objects/files
-      ChooseOverlayDialog chooser = new ChooseOverlayDialog(overlays,
-                                                            "Choose overlay",
-                                                            "Choose the overlay you want to delete");
+      ChooseOverlayDialog chooser =
+        new ChooseOverlayDialog(overlays,
+                                "Choose overlay",
+                                "Choose the overlay you want to delete");
       chooser.show();
 
       List<OverlayData> chosen = chooser.getChosenElements();
@@ -333,9 +344,8 @@ public class OverlayMenuAction extends DropDownAction {
   /**
    * Class for clearing an overlay/ cancelling an overlay method
    */
-  @VisibleForTesting
-  static class CancelOverlayAction extends AnAction {
-    private EditorDesignSurface mySurface;
+  public static class CancelOverlayAction extends AnAction {
+    private final EditorDesignSurface mySurface;
 
     /**
      * Creates the action and sets the boolean isClearOverlayActionAdded to true.
@@ -343,10 +353,16 @@ public class OverlayMenuAction extends DropDownAction {
      *
      * @param surface - the design surface of the action
      */
-    CancelOverlayAction(@NotNull EditorDesignSurface surface) {
+    public CancelOverlayAction(@NotNull EditorDesignSurface surface) {
       super("Cancel Overlay", "Disable current overlay", CLEAR_OVERLAY);
       mySurface = surface;
     }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setVisible(mySurface.getOverlayConfiguration().isOverlayPresent());
+    }
+
 
     /**
      * Clears the current overlay. If the placeholder was being displayed, it is cleared.
@@ -357,7 +373,7 @@ public class OverlayMenuAction extends DropDownAction {
      */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      if (mySurface.getOverlayConfiguration().getOverlayVisibility()) {
+      if (mySurface.getOverlayConfiguration().isOverlayPresent()) {
         mySurface.getOverlayConfiguration().clearCurrentOverlay();
         mySurface.repaint();
       }

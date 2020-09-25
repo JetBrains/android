@@ -99,10 +99,10 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {

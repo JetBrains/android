@@ -19,9 +19,12 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
@@ -49,6 +52,9 @@ object ComposePreviewAnimationManager {
   @Slow
   fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
     newInspectorOpenedCallback = onNewInspectorOpen
+    AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(
+      ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR
+    ))
     return invokeAndWaitIfNeeded {
       val animationInspectorPanel = AnimationInspectorPanel(surface)
       Disposer.register(parent, animationInspectorPanel)
@@ -58,7 +64,12 @@ object ComposePreviewAnimationManager {
   }
 
   fun closeCurrentInspector() {
-    currentInspector?.let { Disposer.dispose(it) }
+    currentInspector?.let {
+      Disposer.dispose(it)
+      AnimationToolingUsageTracker.getInstance(it.surface).logEvent(AnimationToolingEvent(
+        ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLOSE_ANIMATION_INSPECTOR
+      ))
+    }
     currentInspector = null
     newInspectorOpenedCallback = null
     subscribedAnimations.clear()

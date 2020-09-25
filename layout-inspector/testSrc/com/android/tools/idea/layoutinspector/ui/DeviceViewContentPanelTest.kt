@@ -27,7 +27,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.window
 import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
@@ -76,9 +76,9 @@ class DeviceViewContentPanelTest {
     assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
-      view(ROOT, 0, 0, 100, 200) {
+      window(ROOT, ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
-      }, ROOT, listOf(ROOT), 0)
+      }, listOf(ROOT), 0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -253,11 +253,11 @@ class DeviceViewContentPanelTest {
     }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate levels in the drawing.
-    val window2 = view(VIEW2, 60, 60, 30, 30) {
+    val window2 = window(VIEW2, VIEW2, 60, 60, 30, 30) {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
+    model.update(window2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -295,11 +295,11 @@ class DeviceViewContentPanelTest {
     }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate levels in the drawing.
-    val window2 = view(VIEW2, 60, 60, 30, 30, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
+    val window2 = window(VIEW2, VIEW2, 60, 60, 30, 30, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
       view(VIEW3, 70, 70, 10, 10)
     }
 
-    model.update(window2, VIEW2, listOf(ROOT, VIEW2), 0)
+    model.update(window2, listOf(ROOT, VIEW2), 0)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
@@ -485,28 +485,28 @@ class DeviceViewContentPanelTest {
   @Test
   @Suppress("UndesirableClassUsage")
   fun testPaintTransformed() {
-    val image1 = BufferedImage(150, 150, TYPE_INT_ARGB)
+    val image1 = BufferedImage(220, 220, TYPE_INT_ARGB)
     (image1.graphics as Graphics2D).run {
-      paint = GradientPaint(20f, 40f, Color.RED, 130f, 110f, Color.BLUE)
-      fill(Polygon(intArrayOf(20, 110, 130, 40), intArrayOf(40, 20, 110, 130), 4))
+      paint = GradientPaint(0f, 40f, Color.RED, 220f, 180f, Color.BLUE)
+      fill(Polygon(intArrayOf(0, 180, 220, 40), intArrayOf(40, 0, 180, 220), 4))
     }
 
     val model = model {
-      view(ROOT, 0, 0, 200, 300) {
-        view(VIEW1, 25, 50, 150, 150, bounds = Polygon(intArrayOf(45, 135, 155, 65), intArrayOf(90, 70, 160, 180), 4)) {
+      view(ROOT, 0, 0, 400, 600) {
+        view(VIEW1, 50, 100, 300, 300, bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)) {
           image(image1)
         }
       }
     }
 
-    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(400, 600, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffUtil.getDefaultFont()
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    panel.setSize(200, 300)
+    panel.setSize(400, 600)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed.png"), generatedImage,

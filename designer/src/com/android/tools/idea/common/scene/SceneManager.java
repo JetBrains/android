@@ -64,12 +64,12 @@ abstract public class SceneManager implements Disposable {
    * Listener that allows performing additional operations affected by the scene root component when updating the scene.
    */
   public interface SceneUpdateListener {
-    void onUpdate(@NotNull NlComponent component);
+    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface);
   }
 
   public static class DefaultSceneUpdateListener implements SceneUpdateListener {
     @Override
-    public void onUpdate(@NotNull NlComponent component) {
+    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface) {
       // By default, don't do anything extra when updating the scene.
     }
   }
@@ -189,7 +189,7 @@ abstract public class SceneManager implements Disposable {
       scene.removeAllComponents();
       scene.setRoot(null);
     }
-    mySceneUpdateListener.onUpdate(rootComponent);
+    mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);

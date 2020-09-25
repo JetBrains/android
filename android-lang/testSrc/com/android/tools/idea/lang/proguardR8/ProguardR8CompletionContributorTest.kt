@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
+import com.intellij.codeInsight.lookup.Lookup
 import org.jetbrains.android.AndroidTestCase
 
 class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
@@ -546,6 +547,27 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
                                         "allowshrinking",
                                         "allowoptimization",
                                         "allowobfuscation")
+  }
+
+  fun testInsertInit() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class * {
+          <in<caret>
+        }
+      """.trimIndent()
+    )
+    val elements = myFixture.completeBasic()
+    val element = elements.find { it.lookupString == "<init>" }!!
+    myFixture.lookup.currentItem = element
+    myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
+    myFixture.checkResult(
+      """
+      -keep class * {
+        <init>
+      }
+    """.trimIndent())
   }
 }
 

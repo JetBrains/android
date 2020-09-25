@@ -44,7 +44,7 @@ class SkiaParserTest {
   @Test
   fun testInvalidSkp() {
     try {
-      SkiaParser.getViewTree("foobarbaz".toByteArray(), emptyList())
+      SkiaParser.getViewTree("foobarbaz".toByteArray(), emptyList(), 1.0)
       fail()
     }
     catch (expected: InvalidPictureException) {}

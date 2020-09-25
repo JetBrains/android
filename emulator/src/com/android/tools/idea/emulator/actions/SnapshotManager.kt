@@ -16,8 +16,11 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.SnapshotList
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.emulator.EmptyStreamObserver
+import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.emulator.readKeyValueFile
 import com.android.tools.idea.emulator.updateKeyValueFile
@@ -28,15 +31,21 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.streams.asSequence
 
 /**
  * Manages emulator snapshots and boot mode.
  */
-class SnapshotManager(val avdFolder: Path, val avdId: String) {
+class SnapshotManager(val emulatorController: EmulatorController) {
 
   val snapshotsFolder: Path = avdFolder.resolve("snapshots")
+
+  val avdFolder: Path
+    get() = emulatorController.emulatorId.avdFolder
+  private val avdId: String
+    get() = emulatorController.emulatorId.avdId
 
   /**
    * Fetches and returns a list of snapshots by reading the "snapshots" subfolder of the AVD folder.
@@ -45,14 +54,38 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
    */
   @Slow
   fun fetchSnapshotList(excludeQuickBoot: Boolean = false): List<SnapshotInfo> {
+    val validSnapshotsReady = CountDownLatch(1)
+    val validSnapshotIds = hashSetOf<String>()
+    emulatorController.listSnapshots(object : EmptyStreamObserver<SnapshotList>() {
+      override fun onNext(response: SnapshotList) {
+        for (snapshot in response.snapshotsList) {
+          validSnapshotIds.add(snapshot.snapshotId)
+        }
+      }
+
+      override fun onError(t: Throwable) {
+        validSnapshotsReady.countDown()
+      }
+
+      override fun onCompleted() {
+        validSnapshotsReady.countDown()
+      }
+    })
+
     try {
-      return Files.list(snapshotsFolder).use { stream ->
+      val snapshots = Files.list(snapshotsFolder).use { stream ->
         stream.asSequence()
           .mapNotNull { folder ->
             if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
           }
           .toList()
       }
+
+      validSnapshotsReady.await()
+      for (snapshot in snapshots) {
+        snapshot.isValid = validSnapshotIds.contains(snapshot.snapshotId)
+      }
+      return snapshots
     }
     catch (_: NoSuchFileException) {
       // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
@@ -69,9 +102,6 @@ class SnapshotManager(val avdFolder: Path, val avdId: String) {
     try {
       val snapshot = Files.newInputStream(snapshotProtoFile).use {
         Snapshot.parseFrom(it)
-      }
-      if (snapshot.imagesCount == 0) {
-        return null // Incomplete snapshot.
       }
       return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder))
     }
@@ -206,10 +236,16 @@ class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot, val sizeOnD
     get() = snapshot.description
 
   /**
-   * Indicates that the last attempt to load the snapshot was unsuccessful.
+   * True if the snapshot is compatible with the current emulator configuration.
    */
-  val failedToLoad: Boolean
-    get() = snapshot.failedToLoadReasonCode != 0L
+  val isCreated: Boolean
+    get() = snapshot.creationTime != 0L
+
+  /**
+   * True if the snapshot is compatible with the current emulator configuration.
+   */
+  var isValid: Boolean = true
+
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

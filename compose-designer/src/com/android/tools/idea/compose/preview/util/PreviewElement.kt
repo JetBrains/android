@@ -19,6 +19,8 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_MIN_HEIGHT
+import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
@@ -338,6 +340,9 @@ abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
       .setRootTagName(composeLibraryNamespace.composableAdapterName)
       .androidAttribute(ATTR_LAYOUT_WIDTH, width)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
+      // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min 1x1 parent (b/169230467).
+      .androidAttribute(ATTR_MIN_WIDTH, "1px")
+      .androidAttribute(ATTR_MIN_HEIGHT, "1px")
       // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
       .toolsAttribute("composableName", composableMethodFqn)
 

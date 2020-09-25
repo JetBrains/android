@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RepositoryModel {
   enum RepositoryType {
@@ -32,4 +35,10 @@ public interface RepositoryModel {
 
   @NotNull
   RepositoryType getType();
+
+  @NotNull
+  GradleDslElement getDslElement();
+
+  @Nullable
+  PsiElement getPsiElement();
 }

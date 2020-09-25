@@ -17,8 +17,10 @@ package com.android.tools.idea.layoutinspector.memory
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.stats.MemoryProbe
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
@@ -56,7 +58,7 @@ class InspectorMemoryProbe(private val model: InspectorModel) {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun modelChanged(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
+  private fun modelChanged(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
       run(model.lastGeneration)
     }

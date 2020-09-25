@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant
 
+import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.io.File
+import java.nio.file.Files
 
 class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @get:Rule
@@ -52,9 +54,26 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   }
 
   @Test
+  fun testSwitchVariants_symlinks() {
+    assumeNotWindows()
+
+    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val suffix = "_sm"
+    val symlink_path = File(path.path + suffix)
+    Files.createSymbolicLink(symlink_path.toPath(), path.toPath())
+    openPreparedProject("project$suffix") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+    }
+  }
+
+  @Test
   fun testSwitchVariantsWithDependentModules() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
     openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "basicDebug")
+      expect.thatModuleVariantIs(project, ":lib", "debug")
       switchVariant(project, ":app", "basicRelease")
       expect.thatModuleVariantIs(project, ":app", "basicRelease")
       expect.thatModuleVariantIs(project, ":lib", "release")
@@ -62,9 +81,29 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   }
 
   @Test
+  fun testSwitchVariantsWithFeatureModules() {
+    prepareGradleProject(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS, "project")
+    openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "fl1AbDebug")
+      expect.thatModuleVariantIs(project, ":feature1", "fl1AbDebug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl1AbDimFl1Debug")
+      switchVariant(project, ":app", "fl2AbRelease")
+      expect.thatModuleVariantIs(project, ":app", "fl2AbRelease")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2AbRelease")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbDimFl1Release")
+      switchVariant(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
+      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
+      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
+    }
+  }
+
+  @Test
   fun testSwitchVariantsWithDependentModules_fromLib() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
     openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "basicDebug")
+      expect.thatModuleVariantIs(project, ":lib", "debug")
       switchVariant(project, ":lib", "release")
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       // TODO(b/166244122): Consider propagating variant selection in both directions (even though it might not yield the correct results).
