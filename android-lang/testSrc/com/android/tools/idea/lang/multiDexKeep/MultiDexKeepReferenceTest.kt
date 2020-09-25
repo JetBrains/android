@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.multiDexKeep
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
@@ -24,9 +23,7 @@ import org.jetbrains.android.AndroidTestCase
 
 class MultiDexKeepReferenceTest : AndroidTestCase() {
   override fun setUp() {
-   super.setUp()
-    StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.override(true)
-
+    super.setUp()
     PsiTestUtil.addLibrary(myModule, "mylib", "", myFixture.testDataPath + "/maven/myjar/myjar-1.0.jar")
 
     myFixture.addClass(
@@ -49,15 +46,6 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
 
       """.trimIndent()
     )
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   fun testResolve() {

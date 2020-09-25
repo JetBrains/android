@@ -733,13 +733,6 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
-    EDITOR, "multidexkeepfile.support.enabled",
-    "Enable support for MultiDexKeepFile format",
-    "If enabled, it offers support (such as code completion) for the MultiDexKeepFile format.",
-    true
-  );
-
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
     EDITOR, "advanced.jni.assistance",
     "Enable advanced JNI assistance",
