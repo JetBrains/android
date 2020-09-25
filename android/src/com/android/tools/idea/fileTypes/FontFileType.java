@@ -32,6 +32,9 @@ public class FontFileType implements FileType {
   @NonNls private static final String OTF_EXTENSION = "otf";
   @NonNls private static final String TTF_EXTENSION = "ttf";
 
+  private FontFileType() {
+  }
+
   public static FileNameMatcher[] fileNameMatchers() {
     return new FileNameMatcher[]{
       new ExtensionFileNameMatcher(TTF_EXTENSION),

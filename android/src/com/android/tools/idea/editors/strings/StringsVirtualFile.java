@@ -94,6 +94,9 @@ public class StringsVirtualFile extends LightVirtualFile {
   private static class StringsResourceFileType extends FakeFileType {
     public static final StringsResourceFileType INSTANCE = new StringsResourceFileType();
 
+    private StringsResourceFileType() {
+    }
+
     @Override
     public boolean isMyFileType(@NotNull VirtualFile file) {
       return file.getFileType() instanceof StringsResourceFileType;
