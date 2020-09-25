@@ -1231,6 +1231,7 @@ iml_module(
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
         "//tools/adt/idea/android:unb.android-core-proto",
+        "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
     ],
 )
 
