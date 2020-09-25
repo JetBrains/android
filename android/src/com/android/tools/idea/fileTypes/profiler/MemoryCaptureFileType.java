@@ -27,6 +27,9 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
 
   private static final MemoryCaptureFileType myInstance = new MemoryCaptureFileType();
 
+  private MemoryCaptureFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

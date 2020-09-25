@@ -24,7 +24,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +92,9 @@ public final class StringsVirtualFile extends LightVirtualFile {
 
   private static class StringsResourceFileType extends FakeFileType {
     public static final StringsResourceFileType INSTANCE = new StringsResourceFileType();
+
+    private StringsResourceFileType() {
+    }
 
     @Override
     public boolean isMyFileType(@NotNull VirtualFile file) {

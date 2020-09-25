@@ -27,6 +27,9 @@ public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
 
   private static final CpuCaptureFileType myInstance = new CpuCaptureFileType();
 
+  private CpuCaptureFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {
