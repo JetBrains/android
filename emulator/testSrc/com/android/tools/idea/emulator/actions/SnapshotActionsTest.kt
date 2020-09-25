@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.swing.FakeUi
@@ -21,10 +21,13 @@ import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.emulator.actions.BootMode
-import com.android.tools.idea.emulator.actions.BootType
-import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
+import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.FakeEmulator
+import com.android.tools.idea.emulator.FakeEmulatorRule
+import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
