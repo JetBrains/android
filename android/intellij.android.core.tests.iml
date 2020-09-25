@@ -127,9 +127,9 @@
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module-library">
       <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.2-dev" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.4-dev" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.2-dev/core-proto-0.0.2-dev.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.4-dev/core-proto-0.0.4-dev.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
