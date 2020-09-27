@@ -31,7 +31,6 @@ import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -123,24 +122,35 @@ class TaskViewDetailPagesFactory(
       val pluginInfoText = """
         <b>${descriptor.pluginData.name}</b><br/>
         Total duration: ${descriptor.filteredPluginTime.toTimeWithPercentage().durationString()}<br/>
-        Number of tasks: $tasksNumber ${StringUtil.pluralize("task", tasksNumber)}<br/>
+        Number of tasks: ${tasksNumber.withPluralization("task")}<br/>
         <br/>
-        <b>Warnings</b>
       """.trimIndent()
       add(htmlTextLabelWithFixedLines(pluginInfoText), BorderLayout.NORTH)
-      descriptor.filteredTaskNodes.filter { it.hasWarning }.let { tasksWithWarnings ->
-        if (tasksWithWarnings.isEmpty()) {
-          add(JBLabel("No warnings detected for this plugin."), BorderLayout.CENTER)
+      add(JPanel().apply {
+        name = "plugin-warnings"
+        layout = BorderLayout()
+        val tasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
+        val warningsPanelHeaderHtml =
+          "<b>Warnings</b><br/>" +
+          if (tasksWithWarnings.isEmpty())
+            "No warnings detected for this plugin."
+          else
+            "${tasksWithWarnings.size.withPluralization("task")} with warnings associated with this plugin.<br/>" +
+            if (tasksWithWarnings.size > 10) "Top 10 tasks shown below, you can find the full list in the tree on the left.<br/>"
+            else ""
+        val warningsPanelHeader = htmlTextLabelWithFixedLines(warningsPanelHeaderHtml)
+        val warningsListPanel = JPanel().apply {
+          name = "plugin-warnings-list"
+          layout = TabularLayout("*")
+          tasksWithWarnings.take(10).forEachIndexed { index, task ->
+            add(inlinedTaskInfo(task), TabularLayout.Constraint(index, 0))
+          }
         }
-        else {
-          add(JPanel().apply {
-            layout = TabularLayout("*")
-            tasksWithWarnings.forEachIndexed { index, task ->
-              add(inlinedTaskInfo(task), TabularLayout.Constraint(index, 0))
-            }
-          }, BorderLayout.CENTER)
-        }
-      }
+        add(warningsPanelHeader, BorderLayout.NORTH)
+        add(warningsListPanel, BorderLayout.CENTER)
+      }, BorderLayout.CENTER)
     }
   }
+
+  private fun Int.withPluralization(base: String): String = "${this} ${StringUtil.pluralize(base, this)}"
 }
