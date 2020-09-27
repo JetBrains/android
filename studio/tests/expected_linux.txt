@@ -2598,6 +2598,7 @@ android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
+android-studio/plugins/android/resources/app-inspection/workmanager-inspection.jar
 android-studio/plugins/android/resources/images/asset_studio/ic_banner_image.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_background.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_foreground.xml
