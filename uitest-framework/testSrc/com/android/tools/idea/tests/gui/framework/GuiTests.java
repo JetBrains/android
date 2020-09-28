@@ -328,9 +328,12 @@ public final class GuiTests {
         return rootDirPath;
       }
     }
-    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
-    assertThat(homeDirPath).isNotEmpty();
-    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
+    String testDir = System.getenv("TEST_TMPDIR");
+    if (testDir == null) {
+      testDir = toSystemDependentName(PathManager.getHomePath());
+    }
+    assertThat(testDir).isNotEmpty();
+    File rootDirPath = new File(testDir, join("androidStudio", "gui-tests"));
     ensureExists(rootDirPath);
     return rootDirPath;
   }
@@ -360,7 +363,7 @@ public final class GuiTests {
     if (GuiTestOptions.INSTANCE.isRunningOnRelease()) {
       testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/uitest-framework").getPath();
     } else {
-      testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
+      testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/android-uitests").getAbsolutePath();
     }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
     return new File(testDataPath, "testData");

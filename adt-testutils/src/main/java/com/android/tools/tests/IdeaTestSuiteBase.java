@@ -192,7 +192,7 @@ public class IdeaTestSuiteBase {
   }
 
   /** @return true if the current Bazel test uses unbundled SDK. */
-  private static boolean isUnbundledBazelTestTarget() {
+  public static boolean isUnbundledBazelTestTarget() {
     String classPath = System.getProperty("java.class.path", "");
     if (!classPath.endsWith("classpath.jar")) {
       return containsPrebuiltSdk(classPath);
