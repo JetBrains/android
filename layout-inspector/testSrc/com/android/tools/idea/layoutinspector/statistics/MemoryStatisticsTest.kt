@@ -24,12 +24,14 @@ class MemoryStatisticsTest {
   @Test
   fun testStart() {
     val memory = MemoryStatistics()
-    memory.recordModelSize(1000L, 1000L)
+    memory.recordModelSize(true, 1000L * ONE_MB, 1000L)
     memory.start()
     val data = DynamicLayoutInspectorMemory.newBuilder()
     memory.save(data)
+    assertThat(data.initialSnapshot.skiaImage).isFalse()
     assertThat(data.initialSnapshot.captureSizeMb).isEqualTo(0L)
     assertThat(data.initialSnapshot.measurementDurationMs).isEqualTo(0L)
+    assertThat(data.initialSnapshot.skiaImage).isFalse()
     assertThat(data.largestSnapshot.captureSizeMb).isEqualTo(0L)
     assertThat(data.largestSnapshot.measurementDurationMs).isEqualTo(0L)
   }
@@ -37,14 +39,16 @@ class MemoryStatisticsTest {
   @Test
   fun testKeepLargestMemorySize() {
     val memory = MemoryStatistics()
-    memory.recordModelSize(1000L * ONE_MB, 1000L)
-    memory.recordModelSize(10000L * ONE_MB, 500L)
-    memory.recordModelSize(100L * ONE_MB, 10000L)
-    memory.recordModelSize(1000L * ONE_MB, 1000L)
+    memory.recordModelSize(true, 1000L * ONE_MB, 1000L)
+    memory.recordModelSize(false, 10000L * ONE_MB, 500L)
+    memory.recordModelSize(true, 100L * ONE_MB, 10000L)
+    memory.recordModelSize(false, 1000L * ONE_MB, 1000L)
     val data = DynamicLayoutInspectorMemory.newBuilder()
     memory.save(data)
+    assertThat(data.initialSnapshot.skiaImage).isTrue()
     assertThat(data.initialSnapshot.captureSizeMb).isEqualTo(1000L)
     assertThat(data.initialSnapshot.measurementDurationMs).isEqualTo(1000L)
+    assertThat(data.largestSnapshot.skiaImage).isFalse()
     assertThat(data.largestSnapshot.captureSizeMb).isEqualTo(10000L)
     assertThat(data.largestSnapshot.measurementDurationMs).isEqualTo(500L)
   }

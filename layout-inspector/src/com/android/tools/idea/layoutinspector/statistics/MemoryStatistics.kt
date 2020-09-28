@@ -24,6 +24,11 @@ const val ONE_MB = 1000000
 
 class MemoryStatistics {
   /**
+   * True if the initial display used skia images.
+   */
+  private var initialHasSkiaImages = false
+
+  /**
    * The size in bytes required by the model on the initial display.
    */
   private var initialModelSize: Long = 0
@@ -32,6 +37,11 @@ class MemoryStatistics {
    * The time in milliseconds it took to compute the size of the model on the initial display.
    */
   private var initialModelTime: Long = 0
+
+  /**
+   * True if the largest model used skia images.
+   */
+  private var largestHasSkiaImages = false
 
   /**
    * The size in bytes required by the largest model in the session.
@@ -46,8 +56,10 @@ class MemoryStatistics {
   private var largestModelTime: Long = 0
 
   fun start() {
+    initialHasSkiaImages = false
     initialModelSize = 0L
     initialModelTime = 0L
+    largestHasSkiaImages = false
     largestModelSize = 0L
     largestModelTime = 0L
   }
@@ -56,18 +68,22 @@ class MemoryStatistics {
    * Save the session data recorded since [start].
    */
   fun save(data: DynamicLayoutInspectorMemory.Builder) {
+    data.initialSnapshotBuilder.skiaImage = initialHasSkiaImages
     data.initialSnapshotBuilder.captureSizeMb = initialModelSize / ONE_MB
     data.initialSnapshotBuilder.measurementDurationMs = initialModelTime
+    data.largestSnapshotBuilder.skiaImage = largestHasSkiaImages
     data.largestSnapshotBuilder.captureSizeMb = largestModelSize / ONE_MB
     data.largestSnapshotBuilder.measurementDurationMs = largestModelTime
   }
 
-  fun recordModelSize(size: Long, time: Long) {
+  fun recordModelSize(hasSkiaImages: Boolean, size: Long, time: Long) {
     if (size > 0 && initialModelSize == 0L) {
+      initialHasSkiaImages = hasSkiaImages
       initialModelSize = size
       initialModelTime = time
     }
     if (size > largestModelSize) {
+      largestHasSkiaImages = hasSkiaImages
       largestModelSize = size
       largestModelTime = time
     }

@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.stats.MemoryProbe
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -75,7 +76,8 @@ class InspectorMemoryProbe(private val model: InspectorModel) {
     val size = probe.check(model.root)
     val elapsed = System.currentTimeMillis() - startTime
     if (!probe.wasCancelled) {
-      model.stats.memory.recordModelSize(size, elapsed)
+      val hasSkiaImages = model.windows.values.any { it.imageType == PayloadType.SKP }
+      model.stats.memory.recordModelSize(hasSkiaImages, size, elapsed)
       Logger.getInstance(InspectorMemoryProbe::class.java).debug("Layout Inspector Memory Use: ${size / 1024 / 1024}mb time: ${elapsed}ms")
     }
   }
