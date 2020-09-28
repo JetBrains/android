@@ -52,7 +52,7 @@ import javax.swing.SwingConstants
 import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
 
 
-private const val TABLE_CELL_WIDTH = 240
+private const val TABLE_CELL_WIDTH = 250
 private const val TABLE_CELL_HEIGHT = 32
 private const val TABLE_CELL_LEFT_PADDING = 16
 
