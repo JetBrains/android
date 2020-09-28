@@ -165,7 +165,6 @@ public class FileResourceReader {
 
     try (ZipRepo zipRepo = new ZipRepo(zipMap)) {
       ByteBuffer entryContent = zipRepo.getContent(zipEntryPath);
-      entryContent.rewind();
       byte[] bytes = new byte[entryContent.remaining()];
       entryContent.get(bytes);
       return bytes;
