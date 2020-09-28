@@ -31,6 +31,8 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.`when`
@@ -45,6 +47,8 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
   private lateinit var fileDatabaseId: SqliteDatabaseId.FileSqliteDatabaseId
 
   private lateinit var fileDatabaseManager: FileDatabaseManager
+
+  private val edtDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
   override fun setUp() {
     super.setUp()
@@ -70,6 +74,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
     fileDatabaseManager = FileDatabaseManagerImpl(
       project,
+      edtDispatcher,
       deviceFileDownloaderService
     )
   }

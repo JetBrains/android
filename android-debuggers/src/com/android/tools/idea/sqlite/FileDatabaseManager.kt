@@ -23,11 +23,15 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
@@ -53,7 +57,8 @@ interface FileDatabaseManager {
 
 class FileDatabaseManagerImpl(
   private val project: Project,
-  private val deviceFileDownloaderService: DeviceFileDownloaderService = DeviceFileDownloaderService.getInstance(project)
+  private val edtDispatcher: CoroutineDispatcher,
+  private val deviceFileDownloaderService: DeviceFileDownloaderService = DeviceFileDownloaderService.getInstance(project),
 ) : FileDatabaseManager {
 
   override suspend fun loadDatabaseFileData(
@@ -102,7 +107,11 @@ class FileDatabaseManagerImpl(
    * 1. the file belongs to an app different from the one open in the studio project
    * 2. the project comes from a prebuilt apk
    */
-  private fun isFileDownloadAllowed(packageName: String): Boolean {
+  private suspend fun isFileDownloadAllowed(packageName: String): Boolean = withContext(edtDispatcher) {
+    if (DumbService.isDumb(project)) {
+      throw DownloadNotAllowedWhileIndexing("It's not possible to download files while indexing is in progress.")
+    }
+
     val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
       project,
       packageName,
@@ -110,8 +119,7 @@ class FileDatabaseManagerImpl(
     )
 
     val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }
-
-    return androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
+    androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
   }
 
   private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {
@@ -129,3 +137,4 @@ class FileDatabaseManagerImpl(
 
 class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
 class DeviceNotFoundException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
+data class DownloadNotAllowedWhileIndexing(override val message: String?, override val cause: Throwable? = null) : RuntimeException()

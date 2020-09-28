@@ -78,6 +78,8 @@ class OfflineModeManagerImpl(project: Project, private val fileDatabaseManager: 
               downloadedFiles.toList(),
               databasesToDownload.size
             ))
+          } catch (e: DownloadNotAllowedWhileIndexing) {
+            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
           } catch (e: FileDatabaseException) {
             databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
             handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
