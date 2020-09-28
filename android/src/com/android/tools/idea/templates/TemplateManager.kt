@@ -29,7 +29,9 @@ import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
@@ -212,7 +214,8 @@ class TemplateManager private constructor() {
         else -> throw RuntimeException("Invalid category name: $category")
       }
       val wizard = ModelWizard.Builder().addStep(chooseTypeStep).build()
-      StudioWizardDialogBuilder(wizard, dialogTitle).build().show()
+      val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+      StudioWizardDialogBuilder(wizard, dialogTitle).build(wizardLayout).show()
     }
 
     private fun setPresentation(category: Category, categoryGroup: AnAction) {
