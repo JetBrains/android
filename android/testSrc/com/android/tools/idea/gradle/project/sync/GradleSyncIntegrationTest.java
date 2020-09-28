@@ -60,6 +60,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -101,6 +103,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
@@ -778,6 +781,49 @@ b/154962759 */
     assertThat(areGradleDaemonsRunning()).isTrue();
     GradleDaemonServices.stopDaemons();
     assertThat(areGradleDaemonsRunning()).isFalse();
+  }
+
+  public void testSyncWithAARDependencyAddsSources() throws Exception {
+    Project project = getProject();
+
+    loadProject(SIMPLE_APPLICATION);
+
+    Module appModule = getModule("app");
+
+    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
+      project, () -> {
+        try {
+          VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+          VirtualFile buildGradle =  com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile(projectDir);
+
+          String currentBuildFileContents = VfsUtilCore.loadText(buildGradle);
+
+          String newBuildFileContents =
+            currentBuildFileContents +
+            "\nallprojects { repositories { maven { url \"file://" + getTestDataPath() + "/res/aar-lib-sources/maven/\" }}}";
+
+          VfsUtil.saveText(buildGradle, newBuildFileContents);
+
+          GradleBuildModel gradleBuildModel = ProjectBuildModel.get(project).getModuleBuildModel(appModule);
+          gradleBuildModel.dependencies().addArtifact("implementation", "com.test:bar:0.1@aar");
+
+          gradleBuildModel.applyChanges();
+        } catch (Exception e) {
+          e.printStackTrace(System.out);
+          fail(e.getMessage());
+        }
+      }));
+
+    requestSyncAndWait();
+
+    // Verify that the library has sources.
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    String libraryNameRegex = "Gradle: com.test:bar:0.1@aar";
+    Library library = libraries.findMatchingLibrary(libraryNameRegex);
+
+    assertNotNull("Library com.test:bar:0.1 is missing", library);
+    VirtualFile[] files = library.getFiles(SOURCES);
+    assertThat(files).asList().hasSize(1);
   }
 
   private boolean isModulePerSourceSet() {
