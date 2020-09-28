@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -84,11 +85,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.Label
+import com.intellij.ui.layout.CCFlags
+import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
 import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
@@ -136,6 +141,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private val templateDescriptionLabel = JLabel().apply {
     font = Font("Default", Font.PLAIN, 11)
   }
+  private val templateTitleLabel: JLabel = Label("", bold = true)
+  // TODO: When StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR is removed, this field can be removed.
   private val templateThumbLabel = JLabel().apply {
     horizontalTextPosition = SwingConstants.CENTER
     verticalAlignment = SwingConstants.TOP
@@ -144,15 +151,35 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   }
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  // TODO(b/142107543) Replace it with TabularLayout for more readability
-  private val rootPanel = JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
-    val anySize = Dimension(-1, -1)
-    val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
-    add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
-    add(parametersPanel,
-        GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
-                        anySize, anySize, anySize))
-    add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+  private val rootPanel = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+    panel {
+      row {
+        templateTitleLabel()
+      }
+      row {
+        cell(isVerticalFlow = true, isFullWidth = true) {
+          templateDescriptionLabel()
+        }
+      }
+      row {
+        cell(isFullWidth = true) {
+          parametersPanel(constraints = arrayOf(CCFlags.growX))
+        }
+      }
+    }.apply {
+      border = JBUI.Borders.emptyTop(32)
+    }
+  } else {
+    // TODO(b/142107543) Replace it with TabularLayout for more readability
+    JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
+      val anySize = Dimension(-1, -1)
+      val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
+      add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
+      add(parametersPanel,
+          GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
+                          anySize, anySize, anySize))
+      add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    }
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrapWithVScroll(rootPanel))
@@ -197,7 +224,12 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
     }
     thumbPath.set(thumbnailPath)
-    templateThumbLabel.text = newTemplate.name
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      templateTitleLabel.text = newTemplate.name
+    }
+    else {
+      templateThumbLabel.text = newTemplate.name
+    }
 
     for (widget in model.newTemplate.widgets) {
       if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNewModule || model.projectTemplateDataBuilder.isNewProject)) {
