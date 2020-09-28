@@ -937,7 +937,7 @@ public class AvdManagerConnection {
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
     }
-    if (device.getId().equals(("7.3in Foldable"))) {
+    if (device.getId().equals(("7.6in Foldable"))) {
       hardwareProperties.put(AVD_INI_HINGE, "yes");
       hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
       hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
