@@ -19,6 +19,7 @@ import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,12 +99,23 @@ public final class DeployableFile {
   }
 
   @NotNull
+  private File getDir(@NotNull String parent, @NotNull String child) {
+    File childFile = new File(child);
+    if (childFile.isAbsolute()) {
+      return childFile;
+    } else {
+      return new File(parent, child);
+    }
+  }
+
+  @NotNull
   public File getDir() {
     if (myIsRunningFromSourcesSupplier.get()) {
       // Development mode
-      return new File(mySourcesRootSupplier.get(), myDevDir);
+      return getDir(mySourcesRootSupplier.get(), myDevDir);
     } else {
-      return new File(myHomePathSupplier.get(), myReleaseDir);
+      // Prod mode
+      return getDir(myHomePathSupplier.get(), myReleaseDir);
     }
   }
 
