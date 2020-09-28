@@ -95,10 +95,9 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     val flow = offlineModeManager.downloadFiles(listOf(liveDb1, liveDb2), processDescriptor, null) { _, _ -> }
     val job = scope.launch {
       try {
-        val deferred = CompletableDeferred<Unit>()
-        var i = 0
         // immediately get first one and delay others
-        results = flow.onEach { if (i > 0) deferred.await() else i++ }.toList(mutableListOf())
+        results = flow.onEach { if (it.filesDownloaded.isNotEmpty()) CompletableDeferred<Unit>().await() }.toList(mutableListOf())
+        fail()
       } catch (e: CancellationException) {
         hasBeenCanceled = true
       }
@@ -106,7 +105,6 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     runDispatching { job.cancelAndJoin() }
 
     // Assert
-    assertNull(results)
     assertTrue(hasBeenCanceled)
 
     assertEquals(listOf(fileDatabaseManager.databaseFileData), fileDatabaseManager.cleanedUpFiles)
