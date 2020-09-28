@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
+import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.TOOLS_NS_NAME
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -94,6 +95,7 @@ class FavoritesInspectorBuilder(
       val attrName = attr.substring(index + 1)
       val namespace = when (attrPackage) {
         TOOLS_NS_NAME -> ResourceNamespace.TOOLS
+        APP_PREFIX -> ResourceNamespace.RES_AUTO
         "" -> ResourceNamespace.ANDROID
         else -> ResourceNamespace.fromPackageName(attrPackage)
       }
@@ -110,9 +112,12 @@ class FavoritesInspectorBuilder(
       val attrPackage = when (attr.namespace) {
         ResourceNamespace.ANDROID -> ""
         ResourceNamespace.TOOLS -> TOOLS_NS_NAME
+        ResourceNamespace.RES_AUTO -> APP_PREFIX
         else -> attr.namespace.packageName
       }
-      newFavoritesAsString += "$attrPackage:${attr.name}$FAVORITE_SEPARATOR_CHAR"
+      if (attrPackage != null) {
+        newFavoritesAsString += "$attrPackage:${attr.name}$FAVORITE_SEPARATOR_CHAR"
+      }
     }
     PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, newFavoritesAsString)
     favorites.clear()
