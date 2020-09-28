@@ -565,6 +565,7 @@ class DatabaseInspectorControllerImpl(
     }
 
     override fun cancelOfflineModeInvoked() {
+      databaseInspectorAnalyticsTracker.trackEnterOfflineModeUserCanceled()
       projectScope.launch { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
     }
   }
