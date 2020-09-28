@@ -36,6 +36,10 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    if (DesignerActionUtils.isActionEventFromJTextField(e)) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
     e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null);
   }
 
