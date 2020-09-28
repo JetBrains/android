@@ -270,12 +270,10 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
@@ -1317,12 +1315,10 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
