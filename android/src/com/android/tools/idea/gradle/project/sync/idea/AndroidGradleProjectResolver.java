@@ -67,6 +67,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
+import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -623,17 +624,36 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       additionalArtifactsMap = ImmutableMap.of();
     }
 
+
+    Project project = myProjectFinder.findProject(resolverCtx);
+    LibraryFilePaths libraryFilePaths;
+    if (project == null) {
+      libraryFilePaths = null;
+    } else {
+      libraryFilePaths = LibraryFilePaths.getInstance(project);
+    }
+
     DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, (id) -> {
       if (workspace != null) {
         return workspace.findModuleDataByModuleId(id);
       }
       return null;
     }, (artifactId, artifactPath) -> {
+      // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
+      // or contain an imcomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
       AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
-      if (artifacts == null) {
-        return null;
+      if (artifacts != null) {
+        new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
       }
-      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
+
+      // Then check to see whether we already have the library cached.
+      if (libraryFilePaths != null) {
+        ArtifactPaths cachedPaths = libraryFilePaths.getCachedPathsForArtifact(artifactId);
+        if (cachedPaths != null) {
+          return new AdditionalArtifactsPaths(cachedPaths.sources, cachedPaths.javaDoc, cachedPaths.sampleSource);
+        }
+      }
+      return null;
     });
   }
 
