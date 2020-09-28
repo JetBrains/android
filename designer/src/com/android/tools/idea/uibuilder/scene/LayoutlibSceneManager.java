@@ -1158,10 +1158,16 @@ public class LayoutlibSceneManager extends SceneManager {
 
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl(trigger)
+      return renderImpl()
         .handle((result, exception) -> {
           if (exception != null) {
             return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+          }
+          return result;
+        })
+        .thenApply(result -> {
+          if (result != null && result.getRenderResult().isSuccess()) {
+            CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, result.getRenderDuration(), false);
           }
           return result;
         })
@@ -1247,7 +1253,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private CompletableFuture<RenderResult> renderImpl() {
     return inflate(myForceInflate.getAndSet(false))
       .whenCompleteAsync((result, ex) -> {
         if (ex != null) {
@@ -1264,9 +1270,7 @@ public class LayoutlibSceneManager extends SceneManager {
         synchronized (myRenderingTaskLock) {
           if (myRenderTask == null) {
             getDesignSurface().updateErrorDisplay();
-            // The render task was not initialized, this means that inflate did not succeed. Return the inflation
-            // result.
-            return CompletableFuture.completedFuture(inflateResult);
+            return CompletableFuture.completedFuture(null);
           }
           long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {
@@ -1281,11 +1285,6 @@ public class LayoutlibSceneManager extends SceneManager {
               return result.createWithDuration(System.currentTimeMillis() - startRenderTimeMs);
             }
             return null;
-          }).thenApply(result -> {
-            if (result != null) {
-              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, result.getRenderDuration(), false);
-            }
-            return result;
           });
         }
       });
