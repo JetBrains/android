@@ -149,7 +149,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     myQImageDescription = new SystemImageDescription(QImage);
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
-    myFoldable = devMgr.getDevice("7.3in Foldable", "Generic");
+    myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
