@@ -1559,9 +1559,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
-  fun testEnterOfflineModeCanceled() {
+  fun testEnterOfflineModeJobCanceled() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
+    // return future that never completes
     `when`(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
@@ -1585,6 +1586,47 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.cancelAndJoin()
     }
+
+    // Assert
+    verify(databaseInspectorView).showOfflineModeFailedPanel()
+
+    // metrics
+    val offlineModeMetadata = trackerService.metadata
+
+    assertNotNull(offlineModeMetadata)
+    assertEquals(sqliteFile.length, offlineModeMetadata!!.totalDownloadSizeBytes)
+    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testEnterOfflineModeUserCanceled() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    // return future that never completes
+    `when`(projectService.openSqliteDatabase(any())).thenReturn(SettableFuture.create())
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+
+      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
+        .thenReturn(DatabaseFileData(sqliteFile))
+    }
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+    }
+
+    databaseInspectorView.viewListeners.first().cancelOfflineModeInvoked()
+    runDispatching { databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.join() }
 
     // Assert
     verify(databaseInspectorView).showOfflineModeFailedPanel()
