@@ -1283,12 +1283,28 @@
     <option name="when" hit="    a, a:link {color:#589df6;} a:visited {color:#800080;} a:hover {color:#589df6;} a:active {color:#f00000;}      Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles or system images. The Emulator's extended controls are not available when launched in a tool window.   " />
     <option name="will" hit="    a, a:link {color:#589df6;} a:visited {color:#800080;} a:hover {color:#589df6;} a:active {color:#f00000;}      Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles or system images. The Emulator's extended controls are not available when launched in a tool window.   " />
     <option name="window" hit="    a, a:link {color:#589df6;} a:visited {color:#800080;} a:hover {color:#589df6;} a:active {color:#f00000;}      Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles or system images. The Emulator's extended controls are not available when launched in a tool window.   " />
+    <option name="ask" hit="Ask before deleting" />
+    <option name="before" hit="Ask before deleting" />
+    <option name="deleting" hit="Ask before deleting" />
+    <option name="automatically" hit="Delete automatically" />
+    <option name="delete" hit="Delete automatically" />
+    <option name="delete" hit="Do not delete" />
+    <option name="do" hit="Do not delete" />
+    <option name="not" hit="Do not delete" />
     <option name="emulator" hit="Emulator" />
     <option name="a" hit="Launch in a tool window" />
     <option name="in" hit="Launch in a tool window" />
     <option name="launch" hit="Launch in a tool window" />
     <option name="tool" hit="Launch in a tool window" />
     <option name="window" hit="Launch in a tool window" />
+    <option name="configuration" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="current" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="encountering" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="incompatible" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="snapshots" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="the" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit="  Note:  These settings are for features that are considered  experimental . " />
