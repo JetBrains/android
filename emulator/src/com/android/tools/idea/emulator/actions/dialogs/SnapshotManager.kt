@@ -83,7 +83,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
 
       validSnapshotsReady.await()
       for (snapshot in snapshots) {
-        snapshot.isValid = validSnapshotIds.contains(snapshot.snapshotId)
+        snapshot.isValid = validSnapshotIds.contains(snapshot.snapshotId) || snapshot.isQuickBoot && !snapshot.isCreated
       }
       return snapshots
     }
