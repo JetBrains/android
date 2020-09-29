@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
@@ -179,7 +180,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
       is ExtDslElement -> {
         if (extraArraySyntax) externalName.append("[\"")
       }
-      null -> Unit
+      null, is BuildScriptDslElement -> Unit
       // TODO(xof): this conditional (on isNotEmpty) should be unconditional, but we sometimes have spurious parents in resolutionElements
       //  (see the note by the declaration of resolutionElements above)
       else -> if (externalName.isNotEmpty()) externalName.append(".")

@@ -3277,6 +3277,22 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyFileContents(myBuildFile, TestFile.WRITE_REFERENCE_TO_MAP_EXPECTED)
   }
 
+  @Test
+  fun testWriteReferenceToBuildscriptExt() {
+    writeToBuildFile(TestFile.WRITE_REFERENCE_TO_BUILDSCRIPT_EXT)
+    writeToSubModuleBuildFile(TestFile.WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP)
+    writeToSettingsFile(subModuleSettingsText)
+
+
+    val mainBuildModel = gradleBuildModel
+    val appBuildModel = subModuleGradleBuildModel
+
+    val kotlinVersionModel = mainBuildModel.ext().findProperty("kotlin_version")
+    appBuildModel.dependencies().artifacts().get(0).version().setValue(ReferenceTo(kotlinVersionModel))
+    applyChangesAndReparse(appBuildModel)
+    verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -3886,7 +3902,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     DUPLICATE_MAP_KEY("duplicateMapKey"),
     PARSE_MAP_WITH_SPACES_IN_KEYS("parseMapWithSpacesInKeys"),
     WRITE_REFERENCE_TO_MAP("writeReferenceToMap"),
-    WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected")
+    WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected"),
+    WRITE_REFERENCE_TO_BUILDSCRIPT_EXT("writeReferenceToBuildscriptExt"),
+    WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP("writeReferenceToBuildscriptExtApp"),
+    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
