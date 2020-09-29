@@ -19,7 +19,6 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
@@ -28,10 +27,12 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -59,18 +60,6 @@ class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspe
 class AppInspectionViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-
-  private val ATTACH_HANDLER = object : CommandHandler(timer) {
-    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      events.add(
-        Common.Event.newBuilder()
-          .setKind(Common.Event.Kind.AGENT)
-          .setPid(FakeTransportService.FAKE_PROCESS.pid)
-          .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
-          .build()
-      )
-    }
-  }
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
@@ -100,8 +89,7 @@ class AppInspectionViewTest {
 
   @Before
   fun setup() {
-    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
   }
 
   @Test
@@ -294,8 +282,10 @@ class AppInspectionViewTest {
 
     // Overwrite the handler to simulate a launch error, e.g. an inspector was left over from a previous crash
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
-                                       TestInspectorCommandHandler(timer, false, "error",
-                                                                   AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR))
+                                       TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+                                         AppInspection.AppInspectionResponse.Status.ERROR,
+                                         AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR, "error"))
+    )
 
     val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
     ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
@@ -324,7 +314,7 @@ class AppInspectionViewTest {
     assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
     // Restore the working command handler, which emulates relaunching with force == true
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
 
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
@@ -405,8 +395,10 @@ class AppInspectionViewTest {
     }
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
-                                       TestInspectorCommandHandler(timer, false, "error",
-                                                                   AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE))
+                                       TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+                                         AppInspection.AppInspectionResponse.Status.ERROR,
+                                         AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE, "error"))
+    )
 
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
@@ -434,8 +426,9 @@ class AppInspectionViewTest {
     }
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
-                                       TestInspectorCommandHandler(timer, false, "error",
-                                                                   AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR))
+                                       TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+                                         AppInspection.AppInspectionResponse.Status.ERROR,
+                                         AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR, "error")))
 
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
@@ -472,8 +465,9 @@ class AppInspectionViewTest {
     }
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION,
-                                       TestInspectorCommandHandler(timer, false, "error",
-                                                                   AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING))
+                                       TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+                                         AppInspection.AppInspectionResponse.Status.ERROR,
+                                         AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING, "error")))
 
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)

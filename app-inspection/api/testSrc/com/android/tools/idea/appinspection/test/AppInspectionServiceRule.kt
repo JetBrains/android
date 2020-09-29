@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.test
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
@@ -120,7 +119,7 @@ class AppInspectionServiceRule(
   internal suspend fun launchTarget(
     process: ProcessDescriptor,
     project: String = TEST_PROJECT,
-    commandHandler: CommandHandler = TestInspectorCommandHandler(timer)
+    commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer)
   ): AppInspectionTarget {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also {
@@ -135,7 +134,7 @@ class AppInspectionServiceRule(
    */
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
-    commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
+    commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer),
     parentScope: CoroutineScope = scope
   ): AppInspectorMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
