@@ -423,6 +423,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tree.isRootVisible = true
     tree.showsRootHandles = true
     tree.cellRenderer = object: ColoredTreeCellRenderer() {
+      private val mySelectedTextAttributes =
+        SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getTreeSelectionForeground(true))
       override fun customizeCellRenderer(tree: JTree,
                                          value: Any?,
                                          selected: Boolean,
@@ -431,7 +433,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
                                          row: Int,
                                          hasFocus: Boolean) {
         val results = value as? AndroidTestResults ?: return
-        append(when {
+        val text = when {
           results.methodName.isNotBlank() -> {
             results.methodName
           }
@@ -441,7 +443,16 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           else -> {
             "Test Results"
           }
-        })
+        }
+        // This cell renderer is used inside the TreeTableView, so we need
+        // to check the TableView's focus.
+        val reallyHasFocus = this@AndroidTestResultsTableViewComponent.hasFocus()
+        val textAttributes = if(selected && reallyHasFocus) {
+          mySelectedTextAttributes
+        } else {
+          SimpleTextAttributes.REGULAR_ATTRIBUTES
+        }
+        append(text, textAttributes)
         icon = getIconFor(results.getTestResultSummary())
       }
     }
@@ -868,7 +879,11 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
     icon = null
     horizontalTextPosition = CENTER
     horizontalAlignment = CENTER
-    foreground = SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+    foreground = if(isSelected && table.hasFocus()) {
+      UIUtil.getTreeSelectionForeground(true)
+    } else {
+      SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
+    }
     font = RelativeFont.SMALL.derive(font)
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
@@ -903,7 +918,11 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
     icon = null
     horizontalTextPosition = CENTER
     horizontalAlignment = CENTER
-    foreground = getColorFor(results.getTestResultSummary())
+    foreground = if(isSelected && table.hasFocus()) {
+      UIUtil.getTreeSelectionForeground(true)
+    } else {
+      getColorFor(results.getTestResultSummary())
+    }
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
   }
@@ -970,7 +989,11 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
     icon = null
-    foreground = getColorFor(stats.getSummaryResult())
+    foreground = if(isSelected && table.hasFocus()) {
+      UIUtil.getTreeSelectionForeground(true)
+    } else {
+      getColorFor(stats.getSummaryResult())
+    }
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     setValue("${stats.passed + stats.skipped}/${stats.total}")
     return this
