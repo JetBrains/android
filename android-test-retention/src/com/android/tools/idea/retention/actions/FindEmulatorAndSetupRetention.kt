@@ -86,14 +86,15 @@ class FindEmulatorAndSetupRetention : AnAction() {
           indicator.fraction = 0.0
           val deviceName = dataContext.getData(DEVICE_NAME_KEY)
           val catalog = RunningEmulatorCatalog.getInstance()
-          val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
-          val avdInfo = AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(LOG))
-            ?.getAvd(deviceName, true)
+          val androidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+          val logWrapper = LogWrapper(LOG)
+          val avdManager = AvdManager.getInstance(androidSdkHandler, logWrapper)
+          val avdInfo = avdManager?.getAvd(deviceName, true)
           if (avdInfo == null) {
             showErrorMessage(project, "Cannot find valid AVD with name: ${deviceName}")
             return
           }
-          if (!avdManagerConnection.isAvdRunning(avdInfo)) {
+          if (!avdManager.isAvdRunning(avdInfo, logWrapper)) {
             val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
             val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
             ProgressIndicatorUtils.awaitWithCheckCanceled { device.isOnline }
