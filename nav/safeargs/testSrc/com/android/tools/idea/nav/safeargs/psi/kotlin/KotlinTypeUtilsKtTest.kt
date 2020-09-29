@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.types.UnresolvedType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.typeUtil.TypeNullability
+import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.kotlin.types.typeUtil.nullability
 import org.junit.Before
 import org.junit.Rule
@@ -170,6 +171,7 @@ class KotlinTypeUtilsKtTest {
       moduleDescriptor = moduleDescriptor
     ) as UnresolvedType
 
+    assertThat(type.nullability()).isEqualTo(TypeNullability.NOT_NULL)
     assertThat(type.presentableName).isEqualTo("test.safeargs.MyCustomType")
   }
 
@@ -280,8 +282,30 @@ class KotlinTypeUtilsKtTest {
       defaultValue = "@null",
       moduleDescriptor = moduleDescriptor,
       isNonNull = false
-    ) as UnresolvedType
+    )
 
+    assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
+  }
+
+  @Test
+  fun checkNullableStringArray() {
+    val type = builtIn.getKotlinType(
+      typeStr = "string[]",
+      defaultValue = null,
+      moduleDescriptor = moduleDescriptor,
+      isNonNull = false
+    )
+    assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
+  }
+
+  @Test
+  fun checkNullableCustomTypeArray() {
+    val type = builtIn.getKotlinType(
+      typeStr = "test.safeargs.MyCustomType[]",
+      defaultValue = null,
+      moduleDescriptor = moduleDescriptor,
+      isNonNull = false
+    )
     assertThat(type.nullability()).isEqualTo(TypeNullability.NULLABLE)
   }
 }

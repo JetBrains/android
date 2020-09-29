@@ -47,7 +47,7 @@ fun KotlinBuiltIns.getKotlinType(
   // array type
   if (resolvedTypeStr.endsWith("[]")) {
     val type = resolvedTypeStr.removeSuffix("[]")
-    return try {
+    val arrayType = try {
       JvmPrimitiveType.get(type).primitiveType.let {
         getPrimitiveArrayKotlinType(it)
       }
@@ -55,6 +55,8 @@ fun KotlinBuiltIns.getKotlinType(
     catch (e: AssertionError) {
       this.getArrayType(Variance.INVARIANT, getKotlinClassType(FqName(type), moduleDescriptor))
     }
+    if (isNonNull) return arrayType
+    else return arrayType.makeNullable()
   }
 
   return try {
