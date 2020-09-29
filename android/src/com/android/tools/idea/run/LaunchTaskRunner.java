@@ -255,7 +255,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                                      result.getConsoleHyperlinkInfo());
           }
 
-          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, null)
+          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, myErrorNotificationListener)
             .setImportant(true).notify(myProject);
 
           // Show the tool window when we have an error.
