@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.FULL_SYNC_KEY
 import com.android.tools.idea.gradle.project.upgrade.ForcedPluginPreviewVersionUpgradeDialog
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
@@ -56,7 +57,11 @@ class AgpUpgradeRequiredIssueChecker : GradleIssueChecker {
 
     // TODO: Consult UX and see if we can remove this dialog auto-triggering.
     val project = (issueData.error as AgpUpgradeRequiredException).project
-    if (project != null) {
+    // TODO(b/159995302): this check is intended to mean "is this a sync under Android Studio's control", as opposed to syncs
+    //  that might be triggered by some other process (e.g. from the platform's project import).  At the moment, there are
+    //  circumstances where we get multiple syncs on open/import, and we should ideally interrupt the user's flow by showing
+    //  a modal dialog only once.
+    if (project?.getUserData(FULL_SYNC_KEY) != null) {
       updateAndRequestSync(project, modelVersion)
     }
 
