@@ -142,9 +142,9 @@ class TestTaskUiData(
   override val taskType: String = "CompilationType"
   override val executedIncrementally: Boolean = true
   override val executionMode: String = "FULL"
-  override val onLogicalCriticalPath: Boolean = true
+  override var onLogicalCriticalPath: Boolean = true
   override val onExtendedCriticalPath: Boolean = true
-  override val sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
+  override var sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
   override val reasonsToRun: List<String> = emptyList()
   override var issues: List<TaskIssueUiData> = emptyList()
 }
