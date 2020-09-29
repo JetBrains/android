@@ -1,27 +1,66 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
+SYNC_PERFGATE_TAGS = [
+    "block-network",
+    "no_test_mac",
+    "no_test_windows",
+    "perfgate",
+]
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
     split_test_targets = {
+        # Smoke tests
+        "AverageSmoke": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AverageSmokeTest",
+            "timeout": "long",
+        },
+        "Base100Smoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        "DolphinSmoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        "SantaTrackerSmoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerSmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        # Perfgate tests
         "Base100": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
         },
         "Dolphin": {
+            "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "SantaTracker": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
         },
         # This split test target contains AveragePerfTest, and other unspecified tests if
         # they exist. Additional targets should be made if this one begins taking a long time.
         "other": {
+            "tags": SYNC_PERFGATE_TAGS,
         },
     },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
         ":test_deps.zip",
-        "//prebuilts/studio/buildbenchmarks:Base100_project",
-        "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -37,10 +76,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-        "perfgate",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -58,6 +93,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
