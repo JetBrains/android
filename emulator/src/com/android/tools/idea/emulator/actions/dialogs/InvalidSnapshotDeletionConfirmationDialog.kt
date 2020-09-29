@@ -40,8 +40,9 @@ internal class InvalidSnapshotDeletionConfirmationDialog(private val invalidSnap
     return panel {
       row {
         val snapshotsClause = if (invalidSnapshotCount == 1) "There is 1 snapshot" else "There are ${invalidSnapshotCount} snapshots"
+        val pronoun = if (invalidSnapshotCount == 1) "it" else "them"
         label("""${snapshotsClause} incompatible with the current configuration occupying
-|                ${getHumanizedSize(invalidSnapshotSize)} of disk space. Do you want to permanently delete them?
+|                ${getHumanizedSize(invalidSnapshotSize)} of disk space. Do you want to permanently delete ${pronoun}?
 |             """.trimMargin())
       }
       row {
