@@ -349,6 +349,25 @@ def _android_studio_os(ctx, platform, out):
     module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
+    searchable_options = {}
+    for dep, spec in ctx.attr.searchable_options.items():
+        plugin, jar = spec.split("/")
+        if plugin not in searchable_options:
+            searchable_options[plugin] = {}
+        if jar not in searchable_options[plugin]:
+            searchable_options[plugin][jar] = []
+        searchable_options[plugin][jar] += dep.files.to_list()
+
+    so_jars = []
+    for plugin, jars in searchable_options.items():
+        for jar, so_files in jars.items():
+            so_jar = ctx.actions.declare_file(ctx.attr.name + ".so.%s.%s.%s.zip" % (platform.name, plugin, jar))
+            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/%s" % f.basename, f) for f in so_files], so_jar)
+            so_jars += [("%splugins/%s/lib/%s" % (platform.base_path, plugin, jar), so_jar)]
+    so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
+    _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
+    overrides += [("", so_extras)]
+
     extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
     _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
     zips += [("", extras_zip)]
