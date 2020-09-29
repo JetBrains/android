@@ -1159,12 +1159,6 @@ public class LayoutlibSceneManager extends SceneManager {
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl()
-        .handle((result, exception) -> {
-          if (exception != null) {
-            return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
-          }
-          return result;
-        })
         .thenApply(result -> {
           if (result != null && result.getRenderResult().isSuccess()) {
             CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, result.getRenderDuration(), false);
@@ -1287,6 +1281,12 @@ public class LayoutlibSceneManager extends SceneManager {
             return null;
           });
         }
+      })
+      .handle((result, exception) -> {
+        if (exception != null) {
+          return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+        }
+        return result;
       });
   }
 
