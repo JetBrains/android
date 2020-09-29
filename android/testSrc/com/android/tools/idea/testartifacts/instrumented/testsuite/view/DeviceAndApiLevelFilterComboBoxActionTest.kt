@@ -148,6 +148,34 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     verify(mockListener).onFilterUpdated()
   }
 
+  @Test
+  fun selectorIsInvisibleWhenSingleDevice() {
+    val comboBox = DeviceAndApiLevelFilterComboBoxAction()
+    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+
+    comboBox.addDevice(device1)
+
+    val actionEvent = TestActionEvent()
+    comboBox.update(actionEvent)
+
+    assertThat(actionEvent.presentation.isVisible).isFalse()
+  }
+
+  @Test
+  fun selectorIsVisibleWhenMultipleDevices() {
+    val comboBox = DeviceAndApiLevelFilterComboBoxAction()
+    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+    val device2 = AndroidDevice("id2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+
+    comboBox.addDevice(device1)
+    comboBox.addDevice(device2)
+
+    val actionEvent = TestActionEvent()
+    comboBox.update(actionEvent)
+
+    assertThat(actionEvent.presentation.isVisible).isTrue()
+  }
+
   private fun ActionGroup.flattenedActions(): Sequence<AnAction> = sequence {
     getChildren(null).forEach {
       if (it is ActionGroup) {

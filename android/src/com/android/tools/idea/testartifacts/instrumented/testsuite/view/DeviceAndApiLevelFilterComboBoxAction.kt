@@ -49,6 +49,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
     super.update(e)
     e.presentation.text = myText
     e.presentation.icon = myIcon
+    e.presentation.isVisible = (myAvailableDevices.size > 1)
   }
 
   override fun createPopupActionGroup(button: JComponent): DefaultActionGroup = createActionGroup()
