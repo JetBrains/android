@@ -43,7 +43,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
-    val sfManager = SystemTraceSurfaceflingerManager(model)
+    val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
                                  cpuCounters, memoryCounters, frameManager, sfManager)
