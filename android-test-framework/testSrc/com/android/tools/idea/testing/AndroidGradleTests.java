@@ -105,10 +105,12 @@ public class AndroidGradleTests {
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
+  private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
+  private static Long overriddenTimeout = null;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
-      PlatformTestUtil.waitForFuture(future, 1000);
+      PlatformTestUtil.waitForFuture(future, (overriddenTimeout != null) ? overriddenTimeout : DEFAULT_TIMEOUT_MILLIS);
       return null;
     });
   }
@@ -579,7 +581,7 @@ public class AndroidGradleTests {
     if (issueFilter != null) {
       errorStream = errorStream.filter(data -> !issueFilter.ignoreIssue(data));
     }
-    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("/n"));
+    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }
@@ -640,5 +642,13 @@ public class AndroidGradleTests {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
     return jdkRootPath.getCanonicalPath();
+  }
+
+  public static void overrideWaitForSourceFolderTimeout(long timeoutMillis) {
+    overriddenTimeout = timeoutMillis;
+  }
+
+  public static void resetWaitForSourceFolderTimeout() {
+    overriddenTimeout = null;
   }
 }

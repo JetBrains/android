@@ -19,6 +19,7 @@ public final class TestProjectPaths {
   public static final String BASE100 = "projects/sync/android-studio-gradle-test";
   public static final String DOLPHIN_PROJECT_ROOT = "projects/sync/dolphin";
   public static final String DOLPHIN_PROJECT_ANDROID_ROOT = DOLPHIN_PROJECT_ROOT + "/Source/Android";
+  public static final String SANTA_TRACKER = "projects/sync/santa-tracker";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SYNC_AVERAGE_PERF_PROJECT = "projects/sync/averagePerfProject";
 }
