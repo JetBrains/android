@@ -43,6 +43,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.apache.commons.lang.StringUtils
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -114,7 +115,9 @@ class TableViewImpl : TableView {
   // variable used to restore focus to the table after the loading screen is shown
   private var tableHadFocus: Boolean = false
 
-  private var orderBy: OrderBy = OrderBy.NotOrdered
+  var orderBy: OrderBy = OrderBy.NotOrdered
+    private set
+    @TestOnly get
 
   // if false, the live updates checkbox should never become enabled
   private var liveUpdatesEnabled = true
@@ -262,6 +265,7 @@ class TableViewImpl : TableView {
     columns = null
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
+    orderBy = OrderBy.NotOrdered
 
     setEditable(true)
 
