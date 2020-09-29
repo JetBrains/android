@@ -466,11 +466,10 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Service (IntentService)")
   }
 
-  // TODO(b/166679323) Update test to work on SDK 30
-  // @TemplateCheck
-  // fun testNewIntentServiceWithKotlin() {
-  //  checkCreateTemplate("Service (IntentService)", withKotlin)
-  // }
+  @TemplateCheck
+  fun testNewIntentServiceWithKotlin() {
+    checkCreateTemplate("Service (IntentService)", withKotlin)
+  }
 
   @TemplateCheck
   fun testNewService() {
