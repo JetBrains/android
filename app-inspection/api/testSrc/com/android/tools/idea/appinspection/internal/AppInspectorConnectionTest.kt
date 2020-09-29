@@ -16,14 +16,17 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
-import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
+import com.android.tools.idea.appinspection.test.createRawResponse
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -70,7 +73,9 @@ class AppInspectorConnectionTest {
   @Test
   fun disposeFailsButInspectorIsDisposedAnyway() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(
-      commandHandler = TestInspectorCommandHandler(timer, false, "error")
+      commandHandler = TestAppInspectorCommandHandler(timer, createInspectorResponse = createCreateInspectorResponse(
+        AppInspection.AppInspectionResponse.Status.ERROR,
+        AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR))
     )
 
     connection.scope.cancel()
@@ -86,7 +91,8 @@ class AppInspectorConnectionTest {
   @Test
   fun sendRawCommandFailWithCallback() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(
-      commandHandler = TestInspectorCommandHandler(timer, false, "error")
+      commandHandler = TestAppInspectorCommandHandler(timer, rawInspectorResponse = createRawResponse(
+        AppInspection.AppInspectionResponse.Status.ERROR, "error"))
     )
 
     assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
@@ -335,7 +341,7 @@ class AppInspectorConnectionTest {
     }
 
     sendRawCommandCalled.join()
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
     appInspectionRule.scope.cancel()
 
     client.awaitForDisposal()
