@@ -15,24 +15,29 @@
  */
 package com.android.tools.idea.ui.wizard
 
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.util.PlatformIcons
+import com.intellij.util.SmartList
 import java.io.File
+import java.nio.file.Files
 import javax.swing.Icon
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
+import kotlin.streams.toList
 
 /**
  * Default [Icon] that [ProposedFileTreeModel] marks non-directory [File]s
  * with when a proposedFileToIcon mapping isn't specified.
  */
-val DEFAULT_ICON = AllIcons.FileTypes.Any_type!!
+val DEFAULT_ICON: Icon = AllIcons.FileTypes.Any_type
 
 /**
  * The [Icon] that [ProposedFileTreeModel] uses to mark directories.
  */
-val DIR_ICON = PlatformIcons.FOLDER_ICON!!
+val DIR_ICON: Icon = PlatformIcons.FOLDER_ICON
 
 /**
  * A [TreeModel] representing the sub-tree of the file system relevant to a pre-determined set of
@@ -66,6 +71,29 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
    */
   fun hasConflicts() = rootNode.hasConflicts()
 
+  override fun getRoot() = rootNode
+
+  override fun isLeaf(node: Any?) = (node as Node).isLeaf()
+
+  override fun getChildCount(parent: Any?) = (parent as Node).getChildCount()
+
+  override fun getIndexOfChild(parent: Any?, child: Any?) = (parent as Node).getIndexOfChild(child as Node)
+
+  override fun getChild(parent: Any?, index: Int) = (parent as Node).getChild(index)
+
+  override fun valueForPathChanged(path: TreePath?, newValue: Any?) {}
+
+  override fun removeTreeModelListener(l: TreeModelListener?) {}
+
+  override fun addTreeModelListener(l: TreeModelListener?) {}
+
+  /**
+   * Returns the conflicting files that are not overwritten by the new files.
+   */
+  fun getShadowConflictedFiles(): List<File> {
+    return rootNode.getShadowConflictedFiles()
+  }
+
   /**
    * A vertex in a [ProposedFileTreeModel]'s underlying tree structure. Each node corresponds either
    * to a directory, in which case it will also keep track of a list of nodes corresponding to that
@@ -76,19 +104,18 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
    * a [conflictedTree]), and [Node]s corresponding to normal (non-directory) files can have no children.
    *
    * @property file The proposed [File] corresponding to this node
+   * @property conflictedFiles the list of existing files this proposed file conflicts with
    * @property icon The [Icon] with which the [File] should be marked
    * @property children If this node corresponds to a directory, a list of nodes corresponding
    *           to the directory's children. Otherwise, this list is empty.
-   * @property conflicted true if this node corresponds to a proposed [File] that already exists
-   *           as a normal (non-directory) file.
    * @property conflictedTree true if this node or any of its descendants correspond to a proposed
    *           [File] that already exists as a normal (non-directory) file.
    */
   data class Node(val file: File,
-                  val conflicted: Boolean,
+                  val conflictedFiles: List<File>,
                   private var icon: Icon,
                   private val children: MutableList<Node> = mutableListOf(),
-                  private var conflictedTree: Boolean = conflicted) {
+                  private var conflictedTree: Boolean = conflictedFiles.isNotEmpty()) {
 
     fun hasConflicts() = conflictedTree
 
@@ -122,7 +149,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
      * @param icon the [Icon] with which the proposed [File] should be marked, or null if the
      *             proposed [File] should be marked with a default [Icon].
      */
-    private fun addDescendant(relativePath: List<String>, icon: Icon?) {
+    private fun addDescendant(relativePath: List<String>, icon: Icon?, conflictChecker: ConflictChecker?) {
       if (relativePath.isEmpty()) return
 
       val childFile = file.resolve(relativePath[0])
@@ -138,26 +165,50 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
           }
         }
         else {
-          childNode = Node(childFile, childFile.isFile, when {
+          val nodeIcon = when {
             icon != null -> icon
             childFile.isDirectory -> DIR_ICON
             else -> DEFAULT_ICON
-          })
+          }
+          val conflicts = conflictChecker?.findConflictingFiles(childFile) ?: emptyList()
+          childNode = Node(childFile, conflicts, nodeIcon)
           addChild(childNode)
         }
       }
       else {
         if (childNode == null) {
           // If a node for the intermediate directory doesn't exist yet, make one.
-          childNode = Node(childFile, false, DIR_ICON)
+          childNode = Node(childFile, emptyList(), DIR_ICON)
           addChild(childNode)
         }
 
-        childNode.addDescendant(relativePath.drop(1), icon)
+        childNode.addDescendant(relativePath.drop(1), icon, conflictChecker)
       }
 
       if (childNode.conflictedTree) {
         conflictedTree = true
+      }
+    }
+
+    fun getShadowConflictedFiles(): List<File> {
+      if (hasConflicts()) {
+        val shadowConflicts = mutableListOf<File>()
+        getShadowConflictedFiles(shadowConflicts)
+        return shadowConflicts
+      }
+      return emptyList()
+    }
+
+    private fun getShadowConflictedFiles(conflictedFiles: MutableList<File>) {
+      if (hasConflicts()) {
+        for (conflict in this.conflictedFiles) {
+          if (!filesEqual(conflict, file)) {
+            conflictedFiles.add(conflict)
+          }
+        }
+        for (child in children) {
+          child.getShadowConflictedFiles(conflictedFiles)
+        }
       }
     }
 
@@ -175,14 +226,15 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
        *         of [rootDir]
        */
       fun makeTree(rootDir: File, proposedFiles: Set<File>, getIconForFile: (File) -> Icon?): Node {
-        val rootNode = Node(rootDir, false, DIR_ICON)
+        val rootNode = Node(rootDir, emptyList(), DIR_ICON)
+        val conflictChecker = ConflictChecker(rootDir)
 
         for (file in proposedFiles) {
           val icon = getIconForFile(file)
           val relativeFile = if (file.isAbsolute) file.relativeTo(rootDir) else file.normalize()
 
           if (relativeFile.startsWith("..")) throw IllegalArgumentException("$rootDir is not an ancestor of $file")
-          rootNode.addDescendant(relativeFile.invariantSeparatorsPath.split("/"), icon)
+          rootNode.addDescendant(relativeFile.invariantSeparatorsPath.split("/"), icon, conflictChecker)
         }
 
         return rootNode
@@ -190,19 +242,52 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
     }
   }
 
-  override fun getRoot() = rootNode
+  private class ConflictChecker(private val rootDir: File) {
+    private val subdirectoryCache = mutableMapOf<File, List<File>>()
 
-  override fun isLeaf(node: Any?) = (node as Node).isLeaf()
+    fun findConflictingFiles(file: File): List<File> {
+      val conflicts = SmartList<File>()
+      if (file.isFile) {
+        conflicts.add(file)
+      }
+      val parent = file.parentFile
+      if (parent != null) {
+        val grandParent = parent.parentFile
+        if (filesEqual(grandParent?.parentFile, rootDir)) {
+          val fileName = file.name
+          val thisConfig = FolderConfiguration.getConfigForFolder(parent.name)
+          if (thisConfig != null) {
+            for (dir in getSubdirectories(grandParent)) {
+              if (!filesEqual(dir, parent)) {
+                val config = FolderConfiguration.getConfigForFolder(dir.name) ?: continue
+                if (thisConfig.isMatchFor(config)) {
+                  val potentialConflict = dir.resolve(fileName)
+                  if (potentialConflict.isFile) {
+                    conflicts.add(potentialConflict)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return conflicts
+    }
 
-  override fun getChildCount(parent: Any?) = (parent as Node).getChildCount()
-
-  override fun getIndexOfChild(parent: Any?, child: Any?) = (parent as Node).getIndexOfChild(child as Node)
-
-  override fun getChild(parent: Any?, index: Int) = (parent as Node).getChild(index)
-
-  override fun valueForPathChanged(path: TreePath?, newValue: Any?) {}
-
-  override fun removeTreeModelListener(l: TreeModelListener?) {}
-
-  override fun addTreeModelListener(l: TreeModelListener?) {}
+    fun getSubdirectories(dir: File): List<File> {
+      return subdirectoryCache.computeIfAbsent(dir) {
+        try {
+          return@computeIfAbsent Files.list(dir.toPath()).use { stream ->
+            stream
+              .filter { Files.isDirectory(it) }
+              .map { it.toFile() }
+              .toList()
+          }
+        }
+        catch (e: NoSuchFileException) {
+          return@computeIfAbsent emptyList()
+        }
+      }
+    }
+  }
 }
