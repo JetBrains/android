@@ -39,8 +39,6 @@ class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel, ProfilerTrackR
     }
     val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT).apply {
       setShowAxisLine(false)
-      setShowMax(true)
-      setShowUnitAtMax(true)
       setHideTickAtMin(true)
     }
     return JPanel(TabularLayout("*", "*")).apply {
