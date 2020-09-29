@@ -995,7 +995,7 @@ public final class StudioFlags {
     COMPOSE, "preview.blueprint",
     "Enable the blueprint mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
@@ -1009,7 +1009,7 @@ public final class StudioFlags {
     COMPOSE, "preview.colorblind",
     "Enable the colorblind mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
-    false
+    true
   );
   //endregion
 
