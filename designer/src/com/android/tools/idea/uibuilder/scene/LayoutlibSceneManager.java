@@ -1076,6 +1076,15 @@ public class LayoutlibSceneManager extends SceneManager {
     return taskBuilder;
   }
 
+  private void notifyModelUpdateIfSuccessful(@Nullable RenderResult result, @Nullable Throwable exception) {
+    if (exception != null) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
+    }
+    if (result != null && result.getRenderResult().isSuccess()) {
+      notifyListenersModelUpdateComplete();
+    }
+  }
+
   /**
    * Asynchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
@@ -1085,7 +1094,7 @@ public class LayoutlibSceneManager extends SceneManager {
       return CompletableFuture.completedFuture(null);
     }
     return inflate(true)
-      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), PooledThreadExecutor.INSTANCE)
+      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE)
       .thenApply(result -> null);
   }
 
@@ -1229,14 +1238,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   private CompletableFuture<RenderResult> renderImpl() {
     return inflate(myForceInflate.getAndSet(false))
-      .whenCompleteAsync((result, ex) -> {
-        if (ex != null) {
-          Logger.getInstance(LayoutlibSceneManager.class).warn(ex);
-        }
-        if (result != null && result.getRenderResult().isSuccess()) {
-          notifyListenersModelUpdateComplete();
-        }
-      }, PooledThreadExecutor.INSTANCE)
+      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, PooledThreadExecutor.INSTANCE)
       .thenCompose(inflateResult -> {
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
