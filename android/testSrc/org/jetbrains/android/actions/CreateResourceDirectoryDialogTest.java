@@ -37,34 +37,41 @@ public final class CreateResourceDirectoryDialogTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    Project project = myModule.getProject();
     VirtualFile resVirtualFile = Iterables.getOnlyElement(ResourceFolderManager.getInstance(myFacet).getFolders());
-
-    myResDirectory = PsiManager.getInstance(project).findDirectory(resVirtualFile);
-
-    Application application = ApplicationManager.getApplication();
-    ValidatorFactory factory = Mockito.mock(ValidatorFactory.class);
-
-    application.invokeAndWait(() -> myDialog = new CreateResourceDirectoryDialog(project, myModule, null, myResDirectory, null, factory));
+    myResDirectory = PsiManager.getInstance(myModule.getProject()).findDirectory(resVirtualFile);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
+      if (myDialog != null) {
+        ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
+      }
     }
     finally {
       super.tearDown();
     }
   }
 
-  public void testDoValidateWhenSubdirectoryDoesntExist() {
+  private void initDialog(boolean forceDirectoryDoesNotExist) {
+    Project project = myModule.getProject();
+    Application application = ApplicationManager.getApplication();
+    ValidatorFactory factory = Mockito.mock(ValidatorFactory.class);
+
+    application.invokeAndWait(() -> myDialog =
+      new CreateResourceDirectoryDialog(project, myModule, null, myResDirectory, null, factory, forceDirectoryDoesNotExist));
+  }
+
+  public void testDoValidateWhenSubdirectoryDoesNotExist() {
+    initDialog(false);
+
     myDialog.getDirectoryNameTextField().setText("layout");
     assertNull(myDialog.doValidate());
   }
 
   public void testDoValidateWhenSubdirectoryExists() {
+    initDialog(false);
+
     Computable<PsiFileSystemItem> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
     PsiFileSystemItem subdirectory = ApplicationManager.getApplication().runWriteAction(createLayoutSubdirectory);
 
@@ -72,5 +79,15 @@ public final class CreateResourceDirectoryDialogTest extends AndroidTestCase {
 
     String expected = subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.";
     assertEquals(expected, myDialog.doValidate().message);
+  }
+
+  public void testCanIgnoreSubdirectoryCreation() {
+    initDialog(true);
+
+    Computable<PsiFileSystemItem> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
+    PsiFileSystemItem subdirectory = ApplicationManager.getApplication().runWriteAction(createLayoutSubdirectory);
+
+    myDialog.getDirectoryNameTextField().setText("layout");
+    assertNull(myDialog.doValidate());
   }
 }

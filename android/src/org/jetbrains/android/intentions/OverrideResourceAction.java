@@ -451,7 +451,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
     CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
       project, null, folderType, directory, null,
-      resDirectory -> new ResourceDirectorySelector(project, resDirectory));
+      resDirectory -> new ResourceDirectorySelector(project, resDirectory), true);
     dialog.setTitle("Select Resource Directory");
     if (!dialog.showAndGet()) {
       return null;
