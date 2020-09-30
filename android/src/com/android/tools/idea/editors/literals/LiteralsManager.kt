@@ -217,7 +217,7 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
                                    usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
                                    override val initialConstantValue: Any,
                                    private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
-  private val elementPointer: SmartPsiElementPointer<PsiElement> = SmartPointerManager.createPointer(originalElement)
+  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement)
   override val fileName = originalElement.containingFile.name
   override val usages = findUsages(originalElement, usageReferenceProvider)
   override val initialTextRange: TextRange = originalElement.textRange

@@ -286,4 +286,47 @@ class LiteralsTest {
       assertEquals(children1Id, SimplePsiElementUniqueIdProvider.getUniqueId(children[1].element!!))
     }
   }
+
+
+  @Test
+  fun `test literal deletion and reattach`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val STR = "S1"
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+    ReadAction.run<Throwable> {
+      assertFalse(file.hasErrorElementInRange(file.textRange))
+    }
+    val snapshot = literalsManager.findLiterals(file)
+    assertEquals(
+      "text='S1' location='LiteralsTest.kt (66,68)' value='S1' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.all.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      // Delete the literal. This will invalidate the current value.
+      replaceText("S1", "")
+    }
+    assertEquals(
+      "text='<null>' location='LiteralsTest.kt (66,68)' value='null' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.modified.toDebugString())
+    projectRule.fixture.editor.executeAndSave {
+      // Delete the literal
+      replaceText("\"\"", "\"S3\"")
+    }
+    // Now we will have reattached to the new literal that is in the same position.
+    assertEquals(
+      "text='S3' location='LiteralsTest.kt (66,68)' value='S3' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.modified.toDebugString())
+  }
 }
