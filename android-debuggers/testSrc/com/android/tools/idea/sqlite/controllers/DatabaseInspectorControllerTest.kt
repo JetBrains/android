@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -1631,6 +1632,37 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     assertNotNull(offlineModeMetadata)
     assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testShowOfflineModeErrorPanelIfNoDbsAreDownloaded() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+
+      `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, databaseId1))
+        .thenThrow(FileDatabaseException::class.java)
+    }
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+      databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.join()
+    }
+
+    // Assert
+    verify(databaseInspectorView).showOfflineModeFailedPanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }

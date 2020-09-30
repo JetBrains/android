@@ -79,7 +79,7 @@ class FileDatabaseManagerImpl(
     val files = try {
       deviceFileDownloaderService.downloadFiles(processDescriptor.serial, pathsToDownload, disposableDownloadProgress).await()
     } catch (e: IllegalArgumentException) {
-      throw FileDatabaseException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
+      throw DeviceNotFoundException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
     }
 
     val mainFile = files[path] ?: throw FileDatabaseException("Can't download database '${databaseToDownload.path}'")
@@ -128,3 +128,4 @@ class FileDatabaseManagerImpl(
 }
 
 class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
+class DeviceNotFoundException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
