@@ -21,18 +21,19 @@ import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
-import com.android.tools.idea.databinding.index.BindingXmlIndex.Companion.NAME
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.indexing.FileBasedIndex
 
 /**
  * Class for logging data binding and view binding related metrics.
@@ -91,26 +92,21 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
         var viewBindingLayoutCount = 0
         var importCount = 0
         var variableCount = 0
-        val index = FileBasedIndex.getInstance()
 
-        index.getAllKeys(NAME, project).forEach {key ->
-          index.processValues(
-            NAME,
-            key,
-            null,
-            { _, layoutInfo ->
-              if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
-                dataBindingLayoutCount++
-                importCount += layoutInfo.imports.size
-                variableCount += layoutInfo.variables.size
-              } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
-                viewBindingLayoutCount++
-              }
-              true
-            },
-            GlobalSearchScope.projectScope(project)
-          )
-        }
+        FileTypeIndex
+          .getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+          .filter { BindingXmlIndex.acceptsFile(it) }
+          .mapNotNull { BindingXmlIndex.getDataForFile(project, it) }
+          .forEach { layoutInfo ->
+            if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
+              dataBindingLayoutCount++
+              importCount += layoutInfo.imports.size
+              variableCount += layoutInfo.variables.size
+            } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
+              viewBindingLayoutCount++
+            }
+          }
+
         trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
                           DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
                             dataBindingEnabled = isDataBindingEnabled()
