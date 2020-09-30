@@ -757,6 +757,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-safe-args-gradle-plugin/2.3.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-ui-ktx/2.3.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-ui/2.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/palette/palette-ktx/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/palette/palette/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/preference/preference/1.0.0:aar",
