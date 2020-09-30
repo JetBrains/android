@@ -52,12 +52,16 @@ import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionButtonLook
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
@@ -99,6 +103,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JProgressBar
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
@@ -155,6 +160,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     setHonorComponentsMinimumSize(false)
     dividerWidth = 1
     divider.background = UIUtil.CONTRAST_BORDER_COLOR
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
 
   @VisibleForTesting val myResultsTableView: AndroidTestResultsTableView
@@ -215,6 +222,22 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       myExportTestResultsAction
     )
 
+    val myFocusableActionToolbar: ActionToolbar = object: ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE,
+                                                                            testFilterActionGroup, true) {
+      override fun createToolbarButton(action: AnAction,
+                                       look: ActionButtonLook?,
+                                       place: String,
+                                       presentation: Presentation,
+                                       minimumSize: Dimension): ActionButton {
+        return super.createToolbarButton(action, look, place, presentation, minimumSize).apply {
+          // Toolbar buttons are not accessible by tab key in IntelliJ's default implementation
+          // when the screen reader is disabled. We override the behavior here and make it
+          // always focusable so that you can navigate through buttons by tab key.
+          isFocusable = true
+        }
+      }
+    }
+
     val contentPanel = JPanel(BorderLayout()).apply {
       add(JPanel().apply {
         layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
@@ -236,9 +259,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
           add(Box.createRigidArea(Dimension(10, 0)))
           add(JBLabel("Filter tests:"))
-          add(ActionManager.getInstance().createActionToolbar(
-            ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-            testFilterActionGroup, true).component)
+          add(myFocusableActionToolbar.component)
         })
       }, BorderLayout.NORTH)
       add(myResultsTableView.getComponent(), BorderLayout.CENTER)
