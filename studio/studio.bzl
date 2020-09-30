@@ -555,10 +555,23 @@ def intellij_platform(
         visibility = ["//visibility:public"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
-        data = native.glob(
-            include = [src + "/linux/android-studio/**"],
-            exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
-        ),
+        data = select({
+            "//tools/base/bazel:windows":
+                native.glob(
+                  include = [src + "/windows/android-studio/**"],
+                  exclude = [src + "/windows/android-studio/plugins/textmate/lib/bundles/**"],
+                ),
+            "//tools/base/bazel:darwin":
+                native.glob(
+                  include = [src + "/darwin/android-studio/**"],
+                  exclude = [src + "/darwin/android-studio/plugins/textmate/lib/bundles/**"],
+                ),
+            "//conditions:default": 
+                native.glob(
+                  include = [src + "/linux/android-studio/**"],
+                  exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
+                ),
+        })
     )
 
     studio_data(
