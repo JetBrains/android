@@ -157,6 +157,7 @@ public class StudioIcons {
     public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_THINGS = load("/studio/icons/device-explorer/physical-device-things.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_TV = load("/studio/icons/device-explorer/physical-device-tv.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_WEAR = load("/studio/icons/device-explorer/physical-device-wear.svg"); // 16x16
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.svg"); // 16x16
