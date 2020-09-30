@@ -98,6 +98,7 @@ class ChooseModuleTypeWizard(
         val cellLabel = JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
+          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
           border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
 
           val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
