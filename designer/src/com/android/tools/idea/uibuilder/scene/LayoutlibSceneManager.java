@@ -479,16 +479,7 @@ public class LayoutlibSceneManager extends SceneManager {
         Logger.getInstance(LayoutlibSceneManager.class).warn(t);
       }
     }
-    myRenderResultLock.writeLock().lock();
-    try {
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-      myRenderResult = null;
-    }
-    finally {
-      myRenderResultLock.writeLock().unlock();
-    }
+    updateCachedRenderResult(null);
   }
 
   @NotNull
@@ -1007,18 +998,7 @@ public class LayoutlibSceneManager extends SceneManager {
           return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
       })
-      .thenApply(result -> {
-        // Could be simplified even more in the future (just updates the RenderResult)
-        myRenderResultLock.writeLock().lock();
-        try {
-          updateCachedRenderResult(result);
-        }
-        finally {
-          myRenderResultLock.writeLock().unlock();
-        }
-
-        return result;
-      })
+      .thenApply(this::updateCachedRenderResultIfNotNull)
       .thenApply(result -> {
         // Updates hierarchy if applicable or noop
         if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
@@ -1035,12 +1015,27 @@ public class LayoutlibSceneManager extends SceneManager {
       });
   }
 
-  @GuardedBy("myRenderResultLock")
-  private void updateCachedRenderResult(@NotNull RenderResult result) {
-    if (myRenderResult != null && myRenderResult != result) {
-      myRenderResult.dispose();
+  @Nullable
+  private RenderResult updateCachedRenderResultIfNotNull(@Nullable RenderResult result) {
+    if (result != null) {
+      return updateCachedRenderResult(result);
     }
-    myRenderResult = result;
+    return null;
+  }
+
+  @Nullable
+  private RenderResult updateCachedRenderResult(@Nullable RenderResult result) {
+    myRenderResultLock.writeLock().lock();
+    try {
+      if (myRenderResult != null && myRenderResult != result) {
+        myRenderResult.dispose();
+      }
+      myRenderResult = result;
+      return result;
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
   }
 
   @VisibleForTesting
@@ -1164,29 +1159,15 @@ public class LayoutlibSceneManager extends SceneManager {
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl()
         .thenApply(result -> logIfSuccessful(result, trigger, false))
+        .thenApply(this::updateCachedRenderResultIfNotNull)
         .thenApply(result -> {
-          myRenderResultLock.writeLock().lock();
-          try {
-            if (result != null) {
-              updateCachedRenderResult(result);
-            }
-            // Downgrade the write lock to read lock
-            myRenderResultLock.readLock().lock();
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
-          try {
-            if (myRenderResult != null) {
-              long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-              NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                          myRenderResult.getRenderedImage().getWidth() *
-                                                                          myRenderResult.getRenderedImage().getHeight() *
-                                                                          4L);
-            }
-          }
-          finally {
-            myRenderResultLock.readLock().unlock();
+          if (result != null) {
+            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+            // In an unlikely event when result is disposed we can still safely request the size of the image
+            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                        result.getRenderedImage().getWidth() *
+                                                                        result.getRenderedImage().getHeight() *
+                                                                        4L);
           }
 
           UIUtil.invokeLaterIfNeeded(() -> {
