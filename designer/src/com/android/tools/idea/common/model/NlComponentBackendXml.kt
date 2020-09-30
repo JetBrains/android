@@ -37,7 +37,7 @@ open class NlComponentBackendXml private constructor(
   private lateinit var myTagPointer: SmartPsiElementPointer<XmlTag>
 
   companion object {
-    val DEBUG = false
+    const val DEBUG = false
   }
 
   internal constructor(project: Project, tag: XmlTag) : this(project) {
