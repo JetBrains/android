@@ -297,16 +297,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     if (myError == null) {
       myStats.success();
     }
-    else {
-      myStats.fail();
-      LaunchUtils.showNotification(
-        myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR, myErrorNotificationListener);
-    }
   }
 
   @Override
   public void onFinished() {
     super.onFinished();
+    if (myError != null) {
+      myStats.fail();
+    }
     for (Runnable runnable : myOnFinished) {
       ApplicationManager.getApplication().invokeLater(runnable);
     }
