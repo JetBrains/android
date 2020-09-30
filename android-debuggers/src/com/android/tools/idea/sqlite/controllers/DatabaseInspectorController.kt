@@ -266,14 +266,20 @@ class DatabaseInspectorControllerImpl(
         when (it.downloadState) {
           OfflineModeManager.DownloadState.IN_PROGRESS -> { view.showEnterOfflineModePanel(it.filesDownloaded.size, it.totalFiles) }
           OfflineModeManager.DownloadState.COMPLETED -> {
-            it.filesDownloaded.forEach { databaseFileData ->
-              totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { file -> file.length }.sum()
+            // all download failed
+            if (it.filesDownloaded.isEmpty() && it.totalFiles > 0) {
+              view.showOfflineModeFailedPanel()
+            }
+            else {
+              it.filesDownloaded.forEach { databaseFileData ->
+                totalSizeDownloaded += databaseFileData.mainFile.length + databaseFileData.walFiles.map { file -> file.length }.sum()
 
-              // we open dbs only after all downloads are completed because if the user opens a tab before all downloads are done,
-              // they would hide the download progress
-              // TODO(b/168969287)
-              // TODO(b/169319781) we shouldn't call DatabaseInspectorProjectService from here.
-              DatabaseInspectorProjectService.getInstance(project).openSqliteDatabase(databaseFileData).await()
+                // we open dbs only after all downloads are completed because if the user opens a tab before all downloads are done,
+                // they would hide the download progress
+                // TODO(b/168969287)
+                // TODO(b/169319781) we shouldn't call DatabaseInspectorProjectService from here.
+                DatabaseInspectorProjectService.getInstance(project).openSqliteDatabase(databaseFileData).await()
+              }
             }
           }
         }

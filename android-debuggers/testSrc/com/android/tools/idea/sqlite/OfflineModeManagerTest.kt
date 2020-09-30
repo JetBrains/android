@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
+import junit.framework.TestCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import kotlin.coroutines.EmptyCoroutineContext
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
@@ -42,9 +44,9 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   private lateinit var fileDatabaseManager: FakeFileDatabaseManager
   private lateinit var offlineModeManager: OfflineModeManager
 
-  private val liveDb1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
-  private val liveDb2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
-  private val inMemoryDb = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 3)
+  private val liveDb1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+  private val liveDb2 = SqliteDatabaseId.fromLiveDatabase("db2", 2) as SqliteDatabaseId.LiveSqliteDatabaseId
+  private val inMemoryDb = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 3) as SqliteDatabaseId.LiveSqliteDatabaseId
 
   private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
 
@@ -110,20 +112,30 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     assertEquals(listOf(fileDatabaseManager.databaseFileData), fileDatabaseManager.cleanedUpFiles)
   }
 
-  fun testDownloadFailedMetrics() = runBlocking {
+  fun testDownloadFailed() = runBlocking {
     // Prepare
     val fileDatabaseManager = mock<FileDatabaseManager>()
-    `when`(fileDatabaseManager.loadDatabaseFileData(any(), any(), any())).thenThrow(FileDatabaseException::class.java)
+    `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb1))
+      .thenThrow(FileDatabaseException::class.java)
+    `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb2))
+      .thenThrow(DeviceNotFoundException::class.java)
     offlineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager)
 
     var handleErrorInvoked = false
+    var handleErrorInvokeCount = 0
 
     // Act
-    val flow = offlineModeManager.downloadFiles(listOf(liveDb1), processDescriptor, null) { _, _ -> handleErrorInvoked = true }
+    val flow = offlineModeManager.downloadFiles(listOf(liveDb1, liveDb2), processDescriptor, null) { _, _ ->
+      handleErrorInvoked = true
+      handleErrorInvokeCount += 1
+    }
     runDispatching { flow.toList(mutableListOf()) }
 
     // Assert
     assertTrue(handleErrorInvoked)
+    assertEquals(2, handleErrorInvokeCount)
+
     assertTrue(trackerService.offlineDownloadFailed!!)
+    assertEquals(1, trackerService.offlineDownloadFailedCount)
   }
 }
