@@ -31,7 +31,7 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(BenchmarkModuleTemplateGalleryEntry())
 
   private class BenchmarkModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Shell.Menu.PROFILER else AndroidIcons.Wizards.BenchmarkModule
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.BENCHMARK else AndroidIcons.Wizards.BenchmarkModule
     override val name: String = message("android.wizard.module.new.benchmark.module.app")
     override val description: String = message("android.wizard.module.new.benchmark.module.description")
     override fun toString(): String = name
