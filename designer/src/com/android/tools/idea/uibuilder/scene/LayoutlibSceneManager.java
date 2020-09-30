@@ -1032,13 +1032,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
         return result;
       })
-      .thenApply(result -> {
-        // Reports metrics if applicable or noop
-        if (result.getRenderResult().isSuccess()) {
-          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, result.getRenderDuration(), true);
-        }
-        return result;
-      });
+      .thenApply(result -> logIfSuccessful(result, null, true));
   }
 
   @GuardedBy("myRenderResultLock")
@@ -1134,6 +1128,16 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @Nullable
+  private RenderResult logIfSuccessful(@Nullable RenderResult result,
+                                       @Nullable LayoutEditorRenderResult.Trigger trigger,
+                                       boolean wasInflated) {
+    if (result != null && result.getRenderResult().isSuccess()) {
+      CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, wasInflated);
+    }
+    return result;
+  }
+
   /**
    * Renders the current model asynchronously. Once the render is complete, the render callbacks will be called.
    * <p/>
@@ -1159,12 +1163,7 @@ public class LayoutlibSceneManager extends SceneManager {
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl()
-        .thenApply(result -> {
-          if (result != null && result.getRenderResult().isSuccess()) {
-            CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, result.getRenderDuration(), false);
-          }
-          return result;
-        })
+        .thenApply(result -> logIfSuccessful(result, trigger, false))
         .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
