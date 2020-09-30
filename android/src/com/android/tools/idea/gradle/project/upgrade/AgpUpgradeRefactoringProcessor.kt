@@ -81,24 +81,16 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
-import com.intellij.navigation.ItemPresentation
-import com.intellij.navigation.NavigationItem
-import com.intellij.navigation.PsiElementNavigationItem
-import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.pluralize
-import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -112,10 +104,7 @@ import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
-import com.intellij.usages.ConfigurableUsageTarget
-import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.Usage
-import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageInfoSearcherAdapter
 import com.intellij.usages.UsageSearcher
@@ -127,9 +116,6 @@ import com.intellij.usages.impl.UsageViewImpl
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.rules.PsiElementUsage
-import com.intellij.usages.rules.SingleParentUsageGroupingRule
-import com.intellij.usages.rules.UsageGroupingRule
-import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.Processor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
@@ -144,7 +130,6 @@ import java.util.HashSet
 import java.util.UUID
 import javax.swing.AbstractAction
 import javax.swing.Action
-import javax.swing.Icon
 
 private val LOG = Logger.getInstance("Upgrade Assistant")
 
@@ -1719,108 +1704,6 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
 }
 
 /**
- * This class is a [PsiElement] wrapper with additional fields to store [AgpUpgradeComponentRefactoringProcessor] metadata.
- *
- * We can't use the existing user data slot on the PsiElement, because an upgrade refactoring will in general have multiple
- * Usages with the same PsiElement, and some of the protocol functions offer us nothing but the element to distinguish -- so
- * we can't tell which of the usages a particular call corresponds to without something equivalent to this breaking of object
- * identity.
- */
-class WrappedPsiElement(
-  val realElement: PsiElement,
-  val processor: AgpUpgradeComponentRefactoringProcessor,
-  val usageType: UsageType?,
-  val presentableText: String = ""
-) : PsiElement by realElement, PsiElementNavigationItem {
-  // We override this PsiElement method in order to have it stored in the PsiElementUsage (UsageInfo stores the navigation element, not
-  // necessarily the element we pass to the UsageInfo constructor).
-  override fun getNavigationElement(): PsiElement = this
-  // We need to make sure that we wrap copies of us.
-  override fun copy(): PsiElement = WrappedPsiElement(realElement.copy(), processor, usageType)
-  // This is not the PsiElement we would get from parsing the text range in the element's file.
-  override fun isPhysical(): Boolean = false
-
-  // These Navigatable and NavigationItem methods can't just operate by delegation.
-  override fun navigate(requestFocus: Boolean) = (realElement as? Navigatable)?.navigate(requestFocus) ?: Unit
-  override fun canNavigate(): Boolean = (realElement as? Navigatable)?.canNavigate() ?: false
-  override fun canNavigateToSource(): Boolean = (realElement as? Navigatable)?.canNavigateToSource() ?: false
-
-  override fun getName(): String? = (realElement as? NavigationItem)?.getName()
-  override fun getPresentation(): ItemPresentation? = object : ItemPresentation {
-    override fun getPresentableText(): String? = this@WrappedPsiElement.presentableText
-    override fun getLocationString(): String? = (realElement as? NavigationItem)?.presentation?.locationString
-    override fun getIcon(unused: Boolean): Icon? = (realElement as? NavigationItem)?.presentation?.getIcon(unused)
-  }
-
-  // The target of our navigation will be the realElement.
-  override fun getTargetElement(): PsiElement = realElement
-}
-
-/**
- * The UsageView (preview) window includes a toolbar ribbon, which itself includes a settings button if:
- * - the refactoring usageViewDescriptor contains at least one target, and;
- * - the target is a ConfigurableUsageTarget.
- *
- * In order to work around the bug in the UsageView leading to inconsistent tree views when findUsages is re-executed, we always have
- * a target, generating [PsiElement2UsageTargetAdapter]s from our [WrappedPsiElement]s.  However: the PsiElement2UsageTargetAdapter
- * implements [ConfigurableUsageTarget], which leads to a settings icon even if our refactoring has no meaningful settings; and the
- * implementation of showSettings() on [PsiElement2UsageTargetAdapter] in any case does not do what we want, in a non-overrideable way.
- *
- * Therefore, instead of using raw [PsiElement2UsageTargetAdapter]s, we wrap them in one of these delegating classes: one which implements
- * [UsageTarget], for use when there is no suitable showSettings() action, and one which implements [ConfigurableUsageTarget], when there
- * is.
- */
-private class WrappedUsageTarget(
-  private val usageTarget: PsiElement2UsageTargetAdapter
-): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
-   PsiElementNavigationItem by usageTarget,
-   ItemPresentation by usageTarget,
-   UsageTarget by usageTarget {
-  // We need these overrides (here and in WrappedConfigurableUsageTarget) because of multiple implementations
-  override fun canNavigate() = usageTarget.canNavigate()
-  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
-  override fun getName() = usageTarget.getName()
-  override fun findUsages() = usageTarget.findUsages()
-  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
-  override fun isValid() = usageTarget.isValid()
-  override fun getPresentation() = usageTarget.getPresentation()
-  // We need these because otherwise the default methods get called
-  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
-  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
-    usageTarget.highlightUsages(file, editor, clearHighlights)
-  override fun isReadOnly() = usageTarget.isReadOnly()
-  override fun getFiles() = usageTarget.getFiles()
-  override fun update() = usageTarget.update()
-}
-
-private class WrappedConfigurableUsageTarget(
-  private val usageTarget: PsiElement2UsageTargetAdapter,
-  private val showSettingsAction: Action
-): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
-   PsiElementNavigationItem by usageTarget,
-   ItemPresentation by usageTarget,
-   ConfigurableUsageTarget by usageTarget {
-  override fun canNavigate() = usageTarget.canNavigate()
-  override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
-  override fun getName() = usageTarget.getName()
-  override fun findUsages() = usageTarget.findUsages()
-  override fun canNavigateToSource() = usageTarget.canNavigateToSource()
-  override fun isValid() = usageTarget.isValid()
-  override fun getPresentation() = usageTarget.getPresentation()
-
-  override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
-  override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
-    usageTarget.highlightUsages(file, editor, clearHighlights)
-  override fun isReadOnly() = usageTarget.isReadOnly()
-  override fun getFiles() = usageTarget.getFiles()
-  override fun update() = usageTarget.update()
-
-  override fun showSettings() = showSettingsAction.actionPerformed(null)
-}
-
-/**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
  *
  * This usage type provider will only provide a usage type if the element in question is a [WrappedPsiElement], which is not
@@ -1830,65 +1713,6 @@ private class WrappedConfigurableUsageTarget(
 class AgpComponentUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement?): UsageType? =
     if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) (element as? WrappedPsiElement)?.usageType else null
-}
-
-/**
- * Usage Grouping by component.
- *
- * In [UsageView] and related classes (e.g. [UsageViewDescriptor], [UsageViewDescriptorAdapter]) there is the notion of grouping by
- * various attributes: file, module, and so on.
- *
- * Superficially, the grouping by Usage Type looks like we could adapt or override it to our purpose: to provide a grouping of usages
- * by component (on the assumption that that is a more meaningful grouping for the kind of whole-project refactoring that we are aiming
- * to provide.  However, the UsageView apparatus allows us only to compute a UsageType from [PsiElement]s, not [UsageInfo]s, and in general
- * we can have an arbitrary number of different [UsageInfo]s, with different semantics, related to the same [PsiElement].
- *
- * Therefore, we need our own [UsageGroupingRuleProvider].
- *
- * Unfortunately, the groups that providers can create cannot replace or interpose themselves between other provided rules.  We cannot
- * replace, as far as I can tell, the Usage Type grouping -- at least not without re-implementing everything (or the "gross hack" as in
- * ASwB's UsageGroupingRuleProviderOverride).  This is fine, in that it probably makes sense for the component grouping to be outermost,
- * but it does render the default [UsageViewDescriptorAdapter.getCodeReferencesText] meaningless, as the usagesCount/filesCount arguments
- * are apparently over the whole refactoring, not the group.
- */
-class ComponentGroupingRuleProvider : UsageGroupingRuleProvider {
-  override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
-    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) arrayOf(ComponentGroupingRule()) else UsageGroupingRule.EMPTY_ARRAY
-  // TODO(xof): do we need createGroupingActions()?
-}
-
-class ComponentGroupingRule : SingleParentUsageGroupingRule() {
-  override fun getParentGroupFor(usage: Usage, targets: Array<out UsageTarget>?): UsageGroup? {
-    // TODO(xof): arguably we should have AgpComponentUsageInfo here
-    val usageInfo = (usage as? UsageInfo2UsageAdapter)?.usageInfo as? GradleBuildModelUsageInfo ?: return null
-    val wrappedElement = (usageInfo as? GradleBuildModelUsageInfo)?.element as? WrappedPsiElement ?: return null
-    return ComponentUsageGroup(wrappedElement.processor.groupingName)
-  }
-
-  // The rank for this grouping rule is somewhat arbitrary.  It affects how the rule composes with other rules, but the
-  // other rules that we expect to be applicable to our usages are the built-in ones (e.g. groups by module, by file, by
-  // usage type), and the built-in ones all have an effective rank of Integer.MAX_VALUE, so as long as the rank we return
-  // here is less than that, we will get the desired behaviour of the component groups being closer to the tree root than
-  // built-in ones.  -42 is whimsically defensive against some other grouping rule coming along with a rank of 0, while
-  // allowing smaller and larger ranks if necessary.
-  override fun getRank(): Int = -42
-}
-
-data class ComponentUsageGroup(val usageName: String) : UsageGroup {
-  override fun navigate(requestFocus: Boolean) {}
-  override fun getIcon(isOpen: Boolean): Icon? = null
-  override fun getFileStatus(): FileStatus? = null
-  override fun update() {}
-  override fun canNavigate(): Boolean = false
-  override fun canNavigateToSource(): Boolean = false
-  override fun isValid(): Boolean = true
-
-  override fun getText(view: UsageView?): String = usageName
-
-  override fun compareTo(other: UsageGroup?): Int = when (other) {
-    is ComponentUsageGroup -> usageName.compareTo(other.usageName)
-    else -> -1
-  }
 }
 
 /**
