@@ -419,6 +419,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   protected abstract boolean supportMultipleDevices();
 
+  /**
+   * @return true iff this configuration can run while out of sync with the build system.
+   */
+  public boolean canRunWithoutSync() {
+    return false;
+  }
+
   public void updateExtraRunStats(RunStats runStats) {
 
   }
