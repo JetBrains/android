@@ -61,22 +61,21 @@ class LayoutScannerAction: DumbAwareAction(
     e.getData(LAYOUT_SCANNER_KEY)?.runLayoutScanner()?.thenAccept { result ->
       // Scanner finished
       notificationControl?.hideNotification()
-      if (!result) {
-        // No result to show.
-        displayBalloon(e)
-      }
+      displayBalloon(e, result)
     }
   }
 
-  private fun displayBalloon(e: AnActionEvent) {
+  private fun displayBalloon(e: AnActionEvent, result: Boolean) {
     val project = e.getData(CommonDataKeys.PROJECT) ?: return
     // No result to show.
     if (e.inputEvent is MouseEvent) {
       val pos = (e.inputEvent as MouseEvent).locationOnScreen
       val messageType = MessageType.INFO
+      val msg = if (result) "Scanning finished, displaying issues."
+      else "Scanning finished, no accessibility issues found"
 
       val balloon = JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(
-        "Scanning finished, no accessibility issues found",
+        msg,
         null,
         messageType.titleForeground,
         messageType.popupBackground,
