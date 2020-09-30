@@ -74,7 +74,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Shell.Filetree.ANDROID_PROJECT else AndroidIcons.Wizards.ThingsModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_THINGS else AndroidIcons.Wizards.ThingsModule,
     FormFactor.Things
   )
 
