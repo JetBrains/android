@@ -58,19 +58,10 @@ class EmulatorConfiguration private constructor(
       val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
-      val initialOrientation: SkinRotation
-      val displayWidth: Int
-      val displayHeight: Int
-      if (configIni["hw.initialOrientation"].equals("landscape", ignoreCase = true)) {
-        initialOrientation = SkinRotation.LANDSCAPE
-        displayWidth = parseInt(configIni["hw.lcd.height"], 0)
-        displayHeight = parseInt(configIni["hw.lcd.width"], 0)
-      }
-      else {
-        initialOrientation = SkinRotation.PORTRAIT
-        displayWidth = parseInt(configIni["hw.lcd.width"], 0)
-        displayHeight = parseInt(configIni["hw.lcd.height"], 0)
-      }
+      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
+      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      val initialOrientation = if ("landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true))
+          SkinRotation.LANDSCAPE  else SkinRotation.PORTRAIT
       val density = parseInt(configIni["hw.lcd.density"], 0)
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
@@ -89,7 +80,7 @@ class EmulatorConfiguration private constructor(
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
-      if (configIni["showDeviceFrame"]?.equals("no", ignoreCase = true) == true) {
+      if ("no".equals(configIni["showDeviceFrame"], ignoreCase = true)) {
         return null
       }
       val skinPath = configIni["skin.path"]
