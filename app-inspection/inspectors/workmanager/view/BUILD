@@ -167,3 +167,31 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.app-inspection.inspectors.workmanager.view.tests",
+    iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.tests.iml"],
+    project = "unb",
+    test_class = "com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorViewTestSuite",
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model[module, test]",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:unb.workmanager-inspector-proto[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:intellij.android.app-inspection.inspectors.workmanager.view[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+    ],
+)

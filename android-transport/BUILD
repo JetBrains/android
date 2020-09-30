@@ -84,6 +84,7 @@ iml_module(
     iml_files = ["intellij.android.transport.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     project = "unb",
+    test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -108,5 +109,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto",
         "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
