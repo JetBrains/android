@@ -83,10 +83,13 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
+import junit.framework.TestCase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -164,23 +167,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorModel = spy(OpenDatabaseInspectorModel())
     databaseRepository = spy(OpenDatabaseRepository(project, edtExecutor))
 
-    fileDatabaseManager = spy(FakeFileDatabaseManager())
-    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager))
-
     trackerService = spy(FakeDatabaseInspectorAnalyticsTracker())
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
-
-    databaseInspectorController = DatabaseInspectorControllerImpl(
-      project,
-      databaseInspectorModel,
-      databaseRepository,
-      viewsFactory,
-      fileDatabaseManager,
-      offlineModeManager,
-      edtExecutor,
-      edtExecutor
-    )
-    databaseInspectorController.setUp()
 
     sqliteResultSet = mock(SqliteResultSet::class.java)
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(emptyList()))
@@ -199,6 +187,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
     databaseFileData = DatabaseFileData(sqliteFile)
     databaseIdFile = SqliteDatabaseId.fromFileDatabase(databaseFileData) as SqliteDatabaseId.FileSqliteDatabaseId
+
+    fileDatabaseManager = spy(FakeFileDatabaseManager(sqliteFile))
+    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager))
 
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, mockDatabaseConnection)
@@ -221,6 +212,18 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       override val isEmulator = false
       override val isRunning = false
     }
+
+    databaseInspectorController = DatabaseInspectorControllerImpl(
+      project,
+      databaseInspectorModel,
+      databaseRepository,
+      viewsFactory,
+      fileDatabaseManager,
+      offlineModeManager,
+      edtExecutor,
+      edtExecutor
+    )
+    databaseInspectorController.setUp()
   }
 
   override fun tearDown() {
@@ -1520,14 +1523,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId4)
 
       databaseInspectorController.closeDatabase(databaseId4)
-
-      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
-        .thenReturn(DatabaseFileData(sqliteFile))
-      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3))
-        .thenReturn(DatabaseFileData(sqliteFile))
-      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId4))
-        .thenReturn(DatabaseFileData(sqliteFile))
     }
+
+    fileDatabaseManager.downloadTime = 100
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1554,7 +1552,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     assertNotNull(offlineModeMetadata)
     assertEquals(sqliteFile.length*3, offlineModeMetadata!!.totalDownloadSizeBytes)
-    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+    assertTrue(offlineModeMetadata.totalDownloadTimeMs >= 300)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
@@ -1574,10 +1572,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(databaseId1)
-
-      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
-        .thenReturn(DatabaseFileData(sqliteFile))
     }
+
+    fileDatabaseManager.downloadTime = 100
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1594,8 +1591,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val offlineModeMetadata = trackerService.metadata
 
     assertNotNull(offlineModeMetadata)
-    assertEquals(sqliteFile.length, offlineModeMetadata!!.totalDownloadSizeBytes)
-    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
@@ -1615,10 +1611,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(databaseId1)
-
-      `when`(fileDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1))
-        .thenReturn(DatabaseFileData(sqliteFile))
     }
+
+    fileDatabaseManager.downloadTime = 100
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1635,8 +1630,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val offlineModeMetadata = trackerService.metadata
 
     assertNotNull(offlineModeMetadata)
-    assertEquals(sqliteFile.length, offlineModeMetadata!!.totalDownloadSizeBytes)
-    assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
+    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
