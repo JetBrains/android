@@ -85,7 +85,7 @@ class TasksPageView(
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
     selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-    cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
+    BuildAnalyzerMasterTreeCellRenderer.install(this)
     TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
       comparator = SpeedSearchComparator(false)
     }
