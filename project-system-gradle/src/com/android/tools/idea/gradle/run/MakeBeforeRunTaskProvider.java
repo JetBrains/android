@@ -390,7 +390,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       getLog().warn("Error generating command line arguments for Gradle task", e);
       return false;
     }
-    AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getVersion() : null;
+    AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getCommonVersion() : null;
     BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
@@ -474,10 +474,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     List<String> properties = new ArrayList<>(3);
-    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.getVersion())) {
+    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.getMinVersion())) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
-      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.getVersion());
+      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.getMinVersion());
       File deviceSpecFile = AndroidDeviceSpecUtil.writeToJsonTempFile(deviceSpec, collectListOfLanguages);
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
@@ -497,10 +497,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     else {
       // For non bundle tool deploy tasks, we have one argument per device spec property
-      AndroidVersion version = deviceSpec.getVersion();
-      properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
-      if (version.getCodename() != null) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.getCodename()));
+      AndroidVersion version = deviceSpec.getCommonVersion();
+      if (version != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
+        if (version.getCodename() != null) {
+          properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.getCodename()));
+        }
       }
 
       if (deviceSpec.getDensity() != null) {
@@ -544,7 +546,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    int minFeatureLevel = targetDeviceSpec.getVersion().getFeatureLevel();
+    int minFeatureLevel = targetDeviceSpec.getMinVersion().getFeatureLevel();
     List<String> arguments = new LinkedList<>();
     ProfilerState state = configuration.getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= AndroidVersion.VersionCodes.LOLLIPOP &&
@@ -609,9 +611,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @Nullable AndroidVersion targetDeviceVersion) {
+                                                        @Nullable AndroidVersion minTargetDeviceVersion) {
     return Arrays.stream(modules)
-      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDeviceVersion));
+      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, minTargetDeviceVersion));
   }
 
   private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
