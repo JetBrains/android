@@ -16,7 +16,13 @@
 package com.android.tools.idea.fileTypes.profiler;
 
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
+import com.intellij.openapi.util.io.ByteSequence;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Represents a heap dump file that can be imported into memory profiler.
@@ -50,5 +56,25 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
 
   public static FileType getInstance() {
     return myInstance;
+  }
+
+  public static final class Detector implements FileTypeRegistry.FileTypeDetector {
+
+    @Override
+    public @Nullable FileType detect(@NotNull VirtualFile file,
+                                     @NotNull ByteSequence firstBytes,
+                                     @Nullable CharSequence firstCharsIfText) {
+      if (!EXTENSION.equalsIgnoreCase(file.getExtension())) {
+        return null;
+      }
+      byte[] magic = "JAVA PROFILE 1.0.3".getBytes(StandardCharsets.US_ASCII);
+      if (firstBytes.length() < magic.length) {
+        return null;
+      }
+      if (Arrays.equals(firstBytes.subSequence(0, magic.length).toBytes(), magic)) {
+        return myInstance;
+      }
+      return null;
+    }
   }
 }
