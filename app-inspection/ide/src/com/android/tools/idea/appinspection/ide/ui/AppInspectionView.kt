@@ -82,14 +82,13 @@ class AppInspectionView(
    * In its current form, this API is only designed for use by tests and allows only one flow consumer.
    */
   @VisibleForTesting
-  val tabsChangedFlow: Flow<Unit> by lazy {
+  val tabsChangedFlow: Flow<Unit> =
     callbackFlow {
       tabsChangedListener = {
         sendBlocking(Unit)
       }
       awaitClose { }
     }
-  }
 
   @VisibleForTesting
   val inspectorTabs = mutableListOf<AppInspectorTabMetadata>()
