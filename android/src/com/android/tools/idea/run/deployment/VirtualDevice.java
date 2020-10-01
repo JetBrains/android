@@ -46,9 +46,10 @@ final class VirtualDevice extends Device {
   static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
   /**
-   * Matches with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator in Version 30.0.18
+   * Either a VirtualDeviceNameAndSnapshotPath or a VirtualDeviceName. The virtual device names match with ConnectedDevices that don't
+   * support the avd path emulator console subcommand added to the emulator in Version 30.0.18.
    */
-  private final @Nullable VirtualDeviceName myNameKey;
+  private final @Nullable Key myNameKey;
 
   @Nullable
   private final Snapshot mySnapshot;
@@ -58,7 +59,7 @@ final class VirtualDevice extends Device {
                                           @NotNull KeyToConnectionTimeMap map,
                                           @Nullable VirtualDevice virtualDevice) {
     Device device;
-    VirtualDeviceName nameKey;
+    Key nameKey;
 
     if (virtualDevice == null) {
       device = connectedDevice;
@@ -84,7 +85,7 @@ final class VirtualDevice extends Device {
   }
 
   static final class Builder extends Device.Builder {
-    private @Nullable VirtualDeviceName myNameKey;
+    private @Nullable Key myNameKey;
 
     @Nullable
     private Snapshot mySnapshot;
@@ -126,7 +127,7 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setNameKey(@Nullable VirtualDeviceName nameKey) {
+    @NotNull Builder setNameKey(@Nullable Key nameKey) {
       myNameKey = nameKey;
       return this;
     }

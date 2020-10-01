@@ -98,7 +98,7 @@ public final class SelectDeviceActionTest {
       .setName("Pixel 3 API 29")
       .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
+      .setSnapshot(new Snapshot(fileSystem.getPath("/home/juancnuno/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));

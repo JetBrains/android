@@ -26,6 +26,7 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -75,6 +76,47 @@ public final class VirtualDevicesTaskTest {
     assertEquals(Collections.singletonList(device), future.get());
   }
 
+  @Test
+  public void getSnapshotIsntNull() throws Exception {
+    // Arrange
+    Collection<AvdInfo> avds = Collections.singletonList(mockAvd("Pixel 4 API 30",
+                                                                 "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
+                                                                 "Pixel_4_API_30"));
+
+    Files.createDirectories(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"));
+
+    AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
+      .setExecutorService(MoreExecutors.newDirectExecutorService())
+      .setGetAvds(() -> avds)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setFileSystem(myFileSystem)
+      .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .build();
+
+    // Act
+    Future<Collection<VirtualDevice>> future = task.get();
+
+    // Assert
+    Object device1 = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(myAndroidDevice)
+      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .build();
+
+    Object device2 = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePathAndSnapshotPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
+                                                   "/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
+      .setAndroidDevice(myAndroidDevice)
+      .setNameKey(new VirtualDeviceNameAndSnapshotPath("Pixel_4_API_30",
+                                                       "/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"))
+      .setSnapshot(new Snapshot(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot")))
+      .build();
+
+    assertEquals(Arrays.asList(device1, device2), future.get());
+  }
+
   private static @NotNull AvdInfo mockAvd(@NotNull @SuppressWarnings("SameParameterValue") String displayName,
                                           @NotNull @SuppressWarnings("SameParameterValue") String path,
                                           @NotNull @SuppressWarnings("SameParameterValue") String name) {
@@ -104,7 +146,7 @@ public final class VirtualDevicesTaskTest {
     Object snapshot = task.getSnapshot(directory);
 
     // Assert
-    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
+    assertEquals(new Snapshot(directory), snapshot);
   }
 
   @Test
@@ -143,13 +185,13 @@ public final class VirtualDevicesTaskTest {
       .addImages(Image.getDefaultInstance())
       .build();
 
-    Path directory = Snapshot.defaultBoot(myFileSystem);
+    Path directory = myFileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
 
     // Act
     Object snapshot = task.getSnapshot(protocolBufferSnapshot, directory);
 
     // Assert
-    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
+    assertEquals(new Snapshot(directory), snapshot);
   }
 
   @Test
