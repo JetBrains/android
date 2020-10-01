@@ -29,6 +29,10 @@ final class VirtualDeviceName extends Key {
     myValue = value;
   }
 
+  static @NotNull VirtualDeviceName parse(@NotNull String string) {
+    return new VirtualDeviceName(string.substring(PREFIX.length()));
+  }
+
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return new NonprefixedKey(myValue);

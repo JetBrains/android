@@ -29,6 +29,10 @@ public final class SerialNumber extends Key {
     myValue = value;
   }
 
+  static @NotNull SerialNumber parse(@NotNull String string) {
+    return new SerialNumber(string.substring(PREFIX.length()));
+  }
+
   @Override
   @NotNull NonprefixedKey asNonprefixedKey() {
     return new NonprefixedKey(myValue);
