@@ -34,7 +34,8 @@ import java.util.concurrent.TimeUnit
 
 
 data class AndroidDeviceSpecImpl @JvmOverloads constructor (
-  override val version: AndroidVersion,
+  override val commonVersion: AndroidVersion?,
+  override val minVersion: AndroidVersion,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
@@ -62,11 +63,14 @@ fun createSpec(
     return null
   }
 
+  val versions = devices.map { it.version }.toSet()
+  // Find the common value of the device version to pass to the build
+  val version = versions.singleOrNull()
   var density: Density? = null
   var abis: List<String> = emptyList()
 
-  // Find the minimum value of the build API level and pass it to Gradle as a property
-  val minVersion = devices.map { it.version }.minWith(Ordering.natural())!!
+  // Find the minimum value of the build API level for making other decisions
+  val minVersion = versions.minWith(Ordering.natural())!!
 
   // If we are building for only one device, pass the density and the ABI
   if (devices.size == 1) {
@@ -77,7 +81,7 @@ fun createSpec(
     abis = device.abis.map { it.toString() }
   }
 
-  return AndroidDeviceSpecImpl(minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
+  return AndroidDeviceSpecImpl(version, minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
 }
 
 /**
@@ -133,7 +137,9 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
 private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
-    writer.name("sdk_version").value(version.apiLevel.toLong())
+    commonVersion?.let {
+      writer.name("sdk_version").value(it.apiLevel.toLong())
+    }
     density?.let {
       if (it.dpiValue > 0) {
         writer.name("screen_density").value(it.dpiValue.toLong())
@@ -163,6 +169,7 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
 
 fun IDevice.createSpec(): AndroidDeviceSpec {
   return AndroidDeviceSpecImpl(
+    version,
     version,
     Density.getEnum(density),
     abis,

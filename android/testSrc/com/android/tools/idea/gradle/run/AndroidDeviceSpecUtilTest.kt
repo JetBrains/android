@@ -45,6 +45,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myDevice3: AndroidDevice
   @Mock
   private lateinit var myDevice4: AndroidDevice
+  @Mock
+  private lateinit var myDevice5: AndroidDevice
 
   @Mock
   private lateinit var myLaunchedDevice1: IDevice
@@ -54,6 +56,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myLaunchedDevice3: IDevice
   @Mock
   private lateinit var myLaunchedDevice4: IDevice
+  @Mock
+  private lateinit var myLaunchedDevice5: IDevice
 
   private var myFile: File? = null
 
@@ -87,6 +91,12 @@ class AndroidDeviceSpecUtilTest {
     `when`(myDevice4.abis).thenReturn(arrayListOf(Abi.MIPS))
     `when`(myDevice4.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice4))
 
+    `when`(myDevice5.version).thenReturn(AndroidVersion(22))
+    `when`(myLaunchedDevice5.version).thenReturn(AndroidVersion(22))
+    `when`(myDevice5.density).thenReturn(Density.DPI_260.dpiValue)
+    `when`(myDevice5.abis).thenReturn(arrayListOf(Abi.MIPS))
+    `when`(myDevice5.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice5))
+
   }
 
   private fun setupDeviceConfig(device: IDevice, config: String) {
@@ -118,10 +128,13 @@ class AndroidDeviceSpecUtilTest {
     assertThat(myDevice3.version.featureLevel).isEqualTo(16)
     assertThat(myDevice4.version.featureLevel).isEqualTo(17)
 
-    assertThat(createSpec(listOf(myDevice2, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.version.featureLevel)
-      .isEqualTo(17)
-    assertThat(createSpec(listOf(myDevice3, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.version.featureLevel)
-      .isEqualTo(16)
+    val spec2And4 = createSpec(listOf(myDevice2, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+    assertThat(spec2And4.minVersion.featureLevel).isEqualTo(17)
+    assertThat(spec2And4.commonVersion).isNull()
+
+    val spec3And4 = createSpec(listOf(myDevice3, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+    assertThat(spec3And4.minVersion.featureLevel).isEqualTo(16)
+    assertThat(spec3And4.commonVersion).isNull()
   }
 
   @Test
@@ -152,19 +165,13 @@ class AndroidDeviceSpecUtilTest {
   @Test
   fun jsonFileFromDevice1And2IsCorrect() {
     myFile = createJsonFile(true, myDevice1, myDevice2)
-    assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":20}")
+    assertThat(myFile!!.readText()).isEqualTo("{}")
   }
 
   @Test
-  fun jsonFileFromDevice1And2ShouldNotContainLanguages() {
-    myFile = createJsonFile(true, myDevice1, myDevice2)
-    assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":20}")
-  }
-
-  @Test
-  fun jsonFileFromDevice1And3IsCorrect() {
-    myFile = createJsonFile(true, myDevice1, myDevice3)
-    assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":16}")
+  fun jsonFileFromDevice2And5IsCorrectAndShouldNotContainLanguages() {
+    myFile = createJsonFile(true, myDevice2, myDevice5)
+    assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":22}")
   }
 
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
