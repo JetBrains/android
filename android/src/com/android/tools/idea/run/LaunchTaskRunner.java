@@ -186,27 +186,35 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       AtomicInteger completedStepsCount = new AtomicInteger(0);
       final int totalScheduledStepsCount = launchTaskMap.values().stream()
         .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask)).sum();
-      List<ListenableFuture<?>> asyncTasks = ContainerUtil.map(launchTaskMap.entrySet(), entry -> runLaunchTaskAsync(
-        entry.getValue(),
-        indicator,
-        new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
-        destroyProcessOnCancellation,
-        completedStepsCount,
-        totalScheduledStepsCount));
 
-      ListenableFuture<?> debugSessionTasks = Futures.whenAllSucceed(asyncTasks).run(() -> {
-        // A debug session task should be performed sequentially at last.
-        for (IDevice device : devices) {
-          if (debugSessionTask != null) {
-            debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
-            // Update the indicator progress bar.
-            completedStepsCount.addAndGet(debugSessionTask.getDuration());
-            indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
-          }
+      // Disable the parallel deployment. LaunchTasks need to be revisited to support
+      // parallel installation. See b/169887635.
+      for (Map.Entry<IDevice, List<LaunchTask>> entry : launchTaskMap.entrySet()) {
+        try {
+          runLaunchTaskAsync(
+            entry.getValue(),
+            indicator,
+            new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
+            destroyProcessOnCancellation,
+            completedStepsCount,
+            totalScheduledStepsCount).get();
+        } catch (CancellationException|InterruptedException e) {
+          return;
+        } catch (ExecutionException e) {
+          Logger.getInstance(LaunchTaskRunner.class).error(e);
+          return;
         }
-      }, AppExecutorUtil.getAppExecutorService());
+      }
 
-      ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionTasks, indicator);
+      // A debug session task should be performed sequentially at last.
+      for (IDevice device : devices) {
+        if (debugSessionTask != null) {
+          debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
+          // Update the indicator progress bar.
+          completedStepsCount.addAndGet(debugSessionTask.getDuration());
+          indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+        }
+      }
     } finally {
       myStats.endLaunchTasks();
     }
