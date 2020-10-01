@@ -47,6 +47,8 @@ import java.awt.Dimension
 import java.awt.event.ActionListener
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -121,7 +123,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       }
     })
 
-  private val myComponentsSplitter: JBSplitter = object: JBSplitter(){
+  private val myComponentsSplitter: JBSplitter = object: JBSplitter(false, 0.3f, 0.1f, 0.9f){
     private val MAX_FIRST_COMPONENT_WIDTH: Int = 200
     init {
       setHonorComponentsMinimumSize(false)
@@ -134,8 +136,8 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     }
 
     override fun doLayout() {
-      if (proportion * width > MAX_FIRST_COMPONENT_WIDTH) {
-        proportion = MAX_FIRST_COMPONENT_WIDTH.toFloat() / width
+      if (proportion * width > MAX_FIRST_COMPONENT_WIDTH && width > 0) {
+        proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
       }
       super.doLayout()
     }
