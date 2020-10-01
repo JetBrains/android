@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -73,6 +74,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.PREVIEW_REFACTORING
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_FAILED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SKIPPED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SUCCEEDED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
@@ -515,12 +519,17 @@ class AgpUpgradeRefactoringProcessor(
 
   override fun performPsiSpoilingRefactoring() {
     super.performPsiSpoilingRefactoring()
+    val listener = object : GradleSyncListener {
+      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
+      override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
+      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
+    }
     // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
     // sure why.
     //
-    // FIXME(xof): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
+    // FIXME(b/169838158): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
     //  if the refactoring action is undone.
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED), listener)
   }
 
   var myCommandName = "Upgrade AGP version from ${current} to ${new}"
