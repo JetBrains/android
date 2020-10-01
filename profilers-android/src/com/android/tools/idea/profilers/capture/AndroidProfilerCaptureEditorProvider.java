@@ -16,10 +16,11 @@
 package com.android.tools.idea.profilers.capture;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,12 +35,12 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     String extension = file.getExtension();
-    return !Strings.isNullOrEmpty(extension) &&
-           (extension.equals(CpuCaptureFileType.EXTENSION) ||
-            extension.equals(MemoryAllocationFileType.EXTENSION) ||
-            extension.equals(MemoryCaptureFileType.EXTENSION) ||
+    FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);
+    return (fileType instanceof CpuCaptureFileType ||
+            fileType instanceof MemoryAllocationFileType ||
+            fileType instanceof MemoryCaptureFileType ||
             PerfettoCaptureFileType.EXTENSIONS.contains(extension) ||
-           (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && extension.equals(HeapProfdMemoryCaptureFileType.EXTENSION)));
+           (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && fileType instanceof HeapProfdMemoryCaptureFileType));
   }
 
   @NotNull
