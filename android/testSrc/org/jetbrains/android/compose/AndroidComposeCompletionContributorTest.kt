@@ -53,7 +53,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       // "Foobar" is a unique prefix that no other lookup elements will match.
 
@@ -89,7 +89,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -111,7 +111,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       fun setContent(content: @Composable() () -> Unit) { TODO() }
 
@@ -140,7 +140,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -154,7 +154,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -173,7 +173,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -191,7 +191,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -205,7 +205,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -224,7 +224,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -241,7 +241,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -261,7 +261,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -279,7 +279,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
@@ -293,7 +293,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -312,7 +312,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -332,7 +332,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
@@ -346,7 +346,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -369,7 +369,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -388,7 +388,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -411,7 +411,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -432,7 +432,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(optional: String? = null, children: @Composable() () -> Unit) {}
@@ -446,7 +446,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -465,7 +465,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -485,7 +485,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun AppBarIcon(icon: String, onClick: () -> Unit) {}
@@ -499,7 +499,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -518,7 +518,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -536,7 +536,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -550,7 +550,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -570,7 +570,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {

@@ -40,7 +40,7 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun MyView() {}
