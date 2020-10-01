@@ -52,15 +52,6 @@
               icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
-      <group id="android.emulator.snapshot" class="com.android.tools.idea.emulator.actions.BootOptionsPopupActionGroup"
-             icon="StudioIcons.Emulator.SNAPSHOTS" text="Snapshots" description="Create or select an Emulator snapshot"
-             popup="true">
-        <action id="android.emulator.create.snapshot" class="com.android.tools.idea.emulator.actions.EmulatorCreateSnapshotAction"
-                text="Create Snapshot" description="Create a snapshot of the Emulator state"/>
-        <action id="android.emulator.boot.options" class="com.android.tools.idea.emulator.actions.EmulatorBootOptionsAction"
-                text="Boot Options" description="Select an Emulator boot mode"/>
-        <separator/>
-      </group>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.SNAPSHOTS"
               text="Snapshots" description="Create, load, rename or delete snapshots"/>

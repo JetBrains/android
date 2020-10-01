@@ -641,10 +641,6 @@ public final class StudioFlags {
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_NEW_SNAPSHOT_UI = Flag.create(
-    EMBEDDED_EMULATOR, "new.snapshot.ui", "Enable new snapshot UI",
-    "Enables the new snapshot management UI",
-    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
     EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
     "Enables the extended controls in the Embedded Emulator",

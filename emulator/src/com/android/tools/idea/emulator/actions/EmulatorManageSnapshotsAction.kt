@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.emulator.actions.dialogs.ManageSnapshotsDialog
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
@@ -31,10 +30,5 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
     val emulatorController = getEmulatorController(event) ?: return
     val dialog = ManageSnapshotsDialog(emulatorController, getEmulatorView(event))
     dialog.createWrapper(project).show()
-  }
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isVisible = StudioFlags.EMBEDDED_EMULATOR_NEW_SNAPSHOT_UI.get()
   }
 }

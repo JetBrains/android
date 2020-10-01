@@ -49,11 +49,9 @@ class SnapshotManager(val emulatorController: EmulatorController) {
 
   /**
    * Fetches and returns a list of snapshots by reading the "snapshots" subfolder of the AVD folder.
-   *
-   * @param excludeQuickBoot if true, the quick boot snapshot is not included in the returned list
    */
   @Slow
-  fun fetchSnapshotList(excludeQuickBoot: Boolean = false): List<SnapshotInfo> {
+  fun fetchSnapshotList(): List<SnapshotInfo> {
     val validSnapshotsReady = CountDownLatch(1)
     val validSnapshotIds = hashSetOf<String>()
     emulatorController.listSnapshots(object : EmptyStreamObserver<SnapshotList>() {
@@ -75,9 +73,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     try {
       val snapshots = Files.list(snapshotsFolder).use { stream ->
         stream.asSequence()
-          .mapNotNull { folder ->
-            if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
-          }
+          .mapNotNull { folder -> readSnapshotInfo(folder) }
           .toList()
       }
 
