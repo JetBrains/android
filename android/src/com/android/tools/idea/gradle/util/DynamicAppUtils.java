@@ -336,7 +336,7 @@ public class DynamicAppUtils {
    */
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull AndroidRunConfigurationBase configuration,
-                                                       @Nullable AndroidVersion targetDeviceVersion) {
+                                                       @Nullable AndroidVersion minTargetDeviceVersion) {
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
       if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
@@ -346,7 +346,7 @@ public class DynamicAppUtils {
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
-    if (targetDeviceVersion != null && targetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
+    if (minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
@@ -369,15 +369,15 @@ public class DynamicAppUtils {
    */
   public static boolean shouldCollectListOfLanguages(@NotNull Module module,
                                                      @NotNull AndroidRunConfigurationBase configuration,
-                                                     @Nullable AndroidVersion targetDeviceVersion) {
+                                                     @Nullable AndroidVersion minTargetDeviceVersion) {
     // Don't collect if not using the bundle tool
-    if (!useSelectApksFromBundleBuilder(module, configuration, targetDeviceVersion)) {
+    if (!useSelectApksFromBundleBuilder(module, configuration, minTargetDeviceVersion)) {
       return false;
     }
 
     // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
     // they don't support install on demand, meaning all languages should be installed.
-    return targetDeviceVersion == null || targetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
+    return minTargetDeviceVersion == null || minTargetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**
