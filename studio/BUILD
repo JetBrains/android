@@ -480,7 +480,6 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module]",
         "//tools/vendor/google/android-apk[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native[module]",
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
