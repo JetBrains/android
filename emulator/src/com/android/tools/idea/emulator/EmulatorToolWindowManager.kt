@@ -356,7 +356,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   private fun getToolWindow(): ToolWindow {
     return ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?:
-           throw IllegalStateException("Could not find Emulator tool window")
+           throw IllegalStateException("Could not find the $EMULATOR_TOOL_WINDOW_TITLE tool window")
   }
 
   private fun showLiveIndicator(toolWindow: ToolWindow) {
