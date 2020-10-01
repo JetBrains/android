@@ -708,17 +708,13 @@ public class LayoutlibSceneManager extends SceneManager {
       return requestLayout(animate);
     }
 
+    LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
     if (getDesignSurface().isRenderingSynchronously()) {
-      return render(getTriggerFromChangeType(getModel().getLastChangeType())).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return render(trigger).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
-      return doRequestLayoutAndRender(animate);
+      return requestRender(trigger)
+        .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
     }
-  }
-
-  @NotNull
-  CompletableFuture<Void> doRequestLayoutAndRender(boolean animate) {
-    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
-      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
   /**
