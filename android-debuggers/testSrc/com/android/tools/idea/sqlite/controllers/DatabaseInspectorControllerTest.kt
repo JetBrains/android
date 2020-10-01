@@ -1575,8 +1575,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    fileDatabaseManager.downloadTime = 100
-
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1587,12 +1585,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeFailedPanel()
-
-    // metrics
-    val offlineModeMetadata = trackerService.metadata
-
-    assertNotNull(offlineModeMetadata)
-    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
@@ -1614,8 +1606,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    fileDatabaseManager.downloadTime = 100
-
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1626,12 +1616,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeFailedPanel()
-
-    // metrics
-    val offlineModeMetadata = trackerService.metadata
-
-    assertNotNull(offlineModeMetadata)
-    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
