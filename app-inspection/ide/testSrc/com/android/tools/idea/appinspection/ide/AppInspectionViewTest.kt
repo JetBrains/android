@@ -26,11 +26,11 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
-import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -42,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
@@ -59,6 +60,7 @@ class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspe
   LibraryInspectorLaunchParams(TEST_JAR,
                                ArtifactCoordinate("groupId", "artifactId", "0.0.0")))
 
+@ExperimentalCoroutinesApi
 class AppInspectionViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
