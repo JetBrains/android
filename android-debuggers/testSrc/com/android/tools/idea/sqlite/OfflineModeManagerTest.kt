@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
@@ -24,7 +23,6 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import junit.framework.TestCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.verify
 import kotlin.coroutines.EmptyCoroutineContext
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
@@ -89,22 +86,27 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   fun testDownloadFilesCanceled() {
     // Prepare
     val scope = CoroutineScope(EmptyCoroutineContext)
-
-    var results: List<OfflineModeManager.DownloadProgress>? = null
     var hasBeenCanceled = false
+    val downloadFirstFile = CompletableDeferred<Unit>()
 
     // Act
     val flow = offlineModeManager.downloadFiles(listOf(liveDb1, liveDb2), processDescriptor, null) { _, _ -> }
     val job = scope.launch {
       try {
-        // immediately get first one and delay others
-        results = flow.onEach { if (it.filesDownloaded.isNotEmpty()) CompletableDeferred<Unit>().await() }.toList(mutableListOf())
+        flow.onEach {
+          // get first one and delay others
+          if (it.filesDownloaded.isNotEmpty()) CompletableDeferred<Unit>().await()
+          else downloadFirstFile.complete(Unit)
+        }.toList(mutableListOf())
         fail()
       } catch (e: CancellationException) {
         hasBeenCanceled = true
       }
     }
-    runDispatching { job.cancelAndJoin() }
+    runDispatching {
+      downloadFirstFile.await()
+      job.cancelAndJoin()
+    }
 
     // Assert
     assertTrue(hasBeenCanceled)
