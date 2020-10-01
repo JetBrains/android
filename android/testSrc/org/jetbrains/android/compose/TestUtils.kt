@@ -15,4 +15,4 @@
  */
 package org.jetbrains.android.compose
 
-const val ANDROIDX_COMPOSE_PACKAGE = "androidx.compose"
+const val ANDROIDX_COMPOSE_PACKAGE = "androidx.compose.runtime"

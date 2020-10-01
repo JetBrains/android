@@ -245,7 +245,7 @@ class ComposeColorReferenceAnnotatorTest:  AndroidTestCase() {
       """
       package p1.p2
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
       
       @Composable
       fun Foobar(required: Int) {

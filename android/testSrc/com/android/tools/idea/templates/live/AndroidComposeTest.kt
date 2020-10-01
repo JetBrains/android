@@ -51,7 +51,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun NewsStory() {
@@ -69,8 +69,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Row
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun NewsStory() {
@@ -91,7 +91,7 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun NewsStory() {
@@ -109,8 +109,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Column
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun NewsStory() {
