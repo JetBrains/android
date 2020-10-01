@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.plugins.idea
+package com.android.tools.compose
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement

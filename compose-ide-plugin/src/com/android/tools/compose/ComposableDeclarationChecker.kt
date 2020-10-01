@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package androidx.compose.plugins.idea
+package com.android.tools.compose
 
 
-import androidx.compose.plugins.idea.ComposeErrors.COMPOSABLE_PROPERTY_BACKING_FIELD
-import androidx.compose.plugins.idea.ComposeErrors.COMPOSABLE_SUSPEND_FUN
-import androidx.compose.plugins.idea.ComposeErrors.COMPOSABLE_VAR
+import com.android.tools.compose.ComposeErrors.COMPOSABLE_PROPERTY_BACKING_FIELD
+import com.android.tools.compose.ComposeErrors.COMPOSABLE_SUSPEND_FUN
+import com.android.tools.compose.ComposeErrors.COMPOSABLE_VAR
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor

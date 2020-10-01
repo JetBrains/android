@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.plugins.idea
+package com.android.tools.compose
 
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
@@ -35,7 +35,7 @@ class ComposeColorSettingsPage : ColorSettingsPage {
             TextAttributesKey> {
         val attributes = HashMap<String, TextAttributesKey>()
         attributes[ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME] =
-            ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+          ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
         attributes["ANNOTATION"] = KotlinHighlightingColors.ANNOTATION
         attributes["KEYWORD"] = KotlinHighlightingColors.KEYWORD
         attributes["FUNCTION_DECLARATION"] = KotlinHighlightingColors.FUNCTION_DECLARATION

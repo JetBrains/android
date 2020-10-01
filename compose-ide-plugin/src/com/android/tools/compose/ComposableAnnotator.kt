@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.plugins.idea
+package com.android.tools.compose
 
 import com.intellij.lang.annotation.Annotation
 import com.intellij.lang.annotation.AnnotationHolder
@@ -42,8 +42,8 @@ class ComposableAnnotator : Annotator {
 
         init {
             COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY = TextAttributesKey.createTextAttributesKey(
-                COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
-                DefaultLanguageHighlighterColors.FUNCTION_CALL)
+              COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
+              DefaultLanguageHighlighterColors.FUNCTION_CALL)
         }
     }
 
@@ -60,7 +60,7 @@ class ComposableAnnotator : Annotator {
             val ktFile = element.containingFile as? KtFile ?: return
             analysisResult = ktFile.analyzeWithAllCompilerChecks()
             holder.currentAnnotationSession.putUserData(
-                ANALYSIS_RESULT_KEY, analysisResult
+              ANALYSIS_RESULT_KEY, analysisResult
             )
         }
         if (analysisResult.isError()) {
