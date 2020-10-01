@@ -26,20 +26,20 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.TryCatchComposableChecker"/>
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableCallChecker"/>
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableDeclarationChecker"/>
-        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.ComposeDiagnosticSuppressor"/>
+        <storageComponentContainerContributor implementation="com.android.tools.compose.TryCatchComposableChecker"/>
+        <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
+        <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
+        <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
         <annotator
             language="kotlin"
-            implementationClass="androidx.compose.plugins.idea.ComposableAnnotator"/>
+            implementationClass="com.android.tools.compose.ComposableAnnotator"/>
         <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
-        <colorSettingsPage implementation="androidx.compose.plugins.idea.ComposeColorSettingsPage"/>
+        <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.ComposeTypeResolutionInterceptorExtension"/>
+        <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
     </extensions>
 </idea-plugin>
