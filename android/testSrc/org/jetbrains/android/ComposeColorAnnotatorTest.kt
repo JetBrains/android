@@ -44,14 +44,14 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
     myFixture.addClass(
       //language=kotlin
       """
-      package androidx.ui.graphics
+      package androidx.compose.ui.graphics
       class ColorSpace {}
       """)
     myFixture.addFileToProject(
-      "src/com/android/test/Color.kt",
+      "src/com/androidx/compose/ui/graphics/Color.kt",
       //language=kotlin
       """
-      package androidx.ui.graphics
+      package androidx.compose.ui.graphics
       fun Color(color: Int): Long = 1L
       fun Color(color: Long): Long = 1L
       fun Color(
@@ -81,7 +81,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(0xFFC20029)
         fun () {
@@ -104,7 +104,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(0xFFC20029)
         fun () {
@@ -122,7 +122,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(0xC20029)
         fun () {
@@ -144,7 +144,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(0xC20029)
         fun () {
@@ -170,7 +170,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(0.194f, 0f, 0.41f)
         fun () {
@@ -195,7 +195,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
       //language=kotlin
       """
       package com.android.test
-      import androidx.ui.graphics.Color
+      import androidx.compose.ui.graphics.Color
       class A {
         val other = Color(194, 0, 41)
         fun () {

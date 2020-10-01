@@ -190,7 +190,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
 }
 
 private const val COLOR_METHOD = "Color"
-private const val COMPOSE_COLOR_CLASS = "androidx.ui.graphics.ColorKt"
+private const val COMPOSE_COLOR_CLASS = "androidx.compose.ui.graphics.ColorKt"
 
 private fun getConstructorType(arguments: List<UExpression>): ComposeColorConstructor? {
   val paramType = arguments.firstOrNull()?.getExpressionType() ?: return null
