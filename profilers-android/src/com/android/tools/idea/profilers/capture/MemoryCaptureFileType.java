@@ -57,6 +57,8 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
 
   public static final class Detector implements FileTypeRegistry.FileTypeDetector {
 
+    private static final byte[] magic = "JAVA PROFILE 1.0.3".getBytes(StandardCharsets.US_ASCII);
+
     @Override
     public @Nullable FileType detect(@NotNull VirtualFile file,
                                      @NotNull ByteSequence firstBytes,
@@ -64,7 +66,6 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
       if (!EXTENSION.equalsIgnoreCase(file.getExtension())) {
         return null;
       }
-      byte[] magic = "JAVA PROFILE 1.0.3".getBytes(StandardCharsets.US_ASCII);
       if (firstBytes.length() < magic.length) {
         return null;
       }
@@ -72,6 +73,11 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
         return INSTANCE;
       }
       return null;
+    }
+
+    @Override
+    public int getDesiredContentPrefixLength() {
+      return magic.length;
     }
   }
 }
