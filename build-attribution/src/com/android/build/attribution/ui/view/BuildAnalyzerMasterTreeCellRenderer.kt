@@ -24,7 +24,7 @@ import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.tree.ui.DefaultTreeUI
+import com.intellij.ui.render.RenderingHelper
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -34,13 +34,16 @@ import java.awt.Graphics
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
+class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer() {
 
   private val rightAlignedFont = JBUI.Fonts.create(Font.MONOSPACED, 11)
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null
 
-  init {
-    putClientProperty(DefaultTreeUI.SHRINK_LONG_RENDERER, true)
+  companion object {
+    fun install(tree: JTree) {
+      tree.cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
+      tree.putClientProperty(RenderingHelper.SHRINK_LONG_RENDERER, true)
+    }
   }
 
   override fun customizeCellRenderer(
@@ -78,10 +81,13 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
 
     durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
       val metrics = getFontMetrics(rightAlignedFont)
+      val stringWidth = metrics.stringWidth(text)
+      val durationOffset = metrics.height / 2
+      ipad = JBUI.insetsRight(stringWidth + durationOffset + durationOffset / 2)
       RightAlignedDurationTextPresentation(
         durationText = text,
-        durationWidth = metrics.stringWidth(text),
-        durationOffset = metrics.height / 2,
+        durationWidth = stringWidth,
+        durationOffset = durationOffset,
         durationColor = if (selected) UIUtil.getTreeSelectionForeground(hasFocus)
         else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
       )
@@ -90,10 +96,8 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
 
   override fun paintComponent(g: Graphics) {
     setupAntialiasing(g)
-    val clipBounds = g.clipBounds
-    var width = clipBounds.width - (myTree.insets?.right ?: 0)
-    val height = clipBounds.height
-    g.clipRect(0, 0, width, height)
+    var width = this.width
+    val height = this.height
     if (isOpaque) {
       // paint background for expanded row
       g.color = background
