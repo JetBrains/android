@@ -1,4 +1,5 @@
-# Android Studio
+# Android Studio.
+Android Studio provides the fastest tools for building apps on every type of Android device.
 
 This is the source code of the Android plugin for IntelliJ platform, which is also the main part of Android Studio.
 
