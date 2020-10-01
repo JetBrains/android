@@ -35,7 +35,7 @@ import com.android.tools.profiler.proto.Common
  */
 class TestAppInspectorCommandHandler(
   timer: FakeTimer,
-  private val getLibraryVersionsResponse: (() -> AppInspection.GetLibraryVersionsResponse)? = null,
+  private val getLibraryVersionsResponse: ((AppInspection.GetLibraryVersionsCommand) -> AppInspection.GetLibraryVersionsResponse)? = null,
   private val rawInspectorResponse: (() -> AppInspection.AppInspectionResponse)? = null,
   private val disposeInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_DISPOSE_INSPECTOR_RESPONSE,
   private val createInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_CREATE_INSPECTOR_RESPONSE
@@ -53,10 +53,12 @@ class TestAppInspectorCommandHandler(
   override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
     when {
       command.appInspectionCommand.hasCreateInspectorCommand() -> {
-        events.add(createResponse(command, createInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
+        events.add(
+          createResponse(command, createInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
       }
       command.appInspectionCommand.hasDisposeInspectorCommand() -> {
-        events.add(createResponse(command, disposeInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
+        events.add(
+          createResponse(command, disposeInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
       }
       command.appInspectionCommand.hasRawInspectorCommand() -> {
         events.add(
@@ -74,7 +76,8 @@ class TestAppInspectorCommandHandler(
                          AppInspection.AppInspectionResponse.newBuilder()
                            .setCommandId(command.appInspectionCommand.commandId)
                            .setLibraryVersionsResponse(
-                             getLibraryVersionsResponse?.let { it() } ?: getDefaultLibraryVersionsResponse(command)
+                             getLibraryVersionsResponse?.let { it(command.appInspectionCommand.getLibraryVersionsCommand) }
+                             ?: getDefaultLibraryVersionsResponse(command)
                            )
                            .build()
           )
