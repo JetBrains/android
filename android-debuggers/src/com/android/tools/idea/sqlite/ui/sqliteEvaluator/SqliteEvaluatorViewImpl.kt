@@ -38,24 +38,15 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiManager
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.EditorCustomization
-import com.intellij.ui.EditorTextFieldProvider
-import com.intellij.ui.IdeBorderFactory
-import com.intellij.ui.SideBorder
+import com.intellij.ui.*
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
-import java.util.ArrayList
-import javax.swing.JButton
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.KeyStroke
-import javax.swing.LayoutFocusTraversalPolicy
+import java.util.*
+import javax.swing.*
 
 /**
  * @see SqliteEvaluatorView
@@ -128,6 +119,7 @@ class SqliteEvaluatorViewImpl(
     runButton.isEnabled = false
     runButton.addActionListener { evaluateSqliteExpression() }
     runButton.name = "run-button"
+    runButton.background = primaryContentBackground
     controlsRightPanel.add(runButton)
 
     val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
