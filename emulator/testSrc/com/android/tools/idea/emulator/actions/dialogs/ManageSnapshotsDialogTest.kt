@@ -118,7 +118,7 @@ class ManageSnapshotsDialogTest {
       val actionsPanel = ui.getComponent<CommonActionsPanel>()
       val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       // Check that there is only a QuickBoot snapshot, which is a placeholder since it doesn't exist on disk.
       assertThat(table.items).hasSize(2)
       val quickBootSnapshot = table.items[0]
@@ -349,7 +349,7 @@ class ManageSnapshotsDialogTest {
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
       // Close the "Manage Snapshots" dialog.
       ui1.clickOn(rootPane1.defaultButton)
@@ -373,7 +373,7 @@ class ManageSnapshotsDialogTest {
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(2, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       assertThat(table.items).hasSize(4) // The two invalid snapshots were deleted automatically.
       // Close the "Manage Snapshots" dialog.
       ui1.clickOn(rootPane1.defaultButton)
