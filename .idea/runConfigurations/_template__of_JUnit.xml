@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="JUnit" factoryName="JUnit">
+    <module name="intellij.android.core.tests" />
+    <shortenClasspath name="MANIFEST" />
+    <useClassPathOnly />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <option name="VM_PARAMETERS" value="-ea -XX:MaxPermSize=512m -Xms384m -Xmx4096m -Djava.io.tmpdir=$TEST_TEMP$ -Duser.home=$TEST_TEMP$/user/home -Didea.config.path=$TEST_TEMP$/config -Didea.system.path=$TEST_TEMP$/system -Didea.plugins.path=$TEST_TEMP$/plugins" />
+    <option name="PARAMETERS" value="" />
+    <option name="PASS_PARENT_ENVS" value="false" />
+    <envs>
+      <env name="NO_FS_ROOTS_ACCESS_CHECK" value="true" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
