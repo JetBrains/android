@@ -18,7 +18,9 @@ package com.android.tools.idea.npw.project;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.adb.wireless.UIColors;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.border.CustomLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import javax.swing.JPanel;
@@ -39,7 +41,7 @@ public class ChooseAndroidProjectPanel<T> {
   ChooseAndroidProjectPanel(@NotNull ASGallery<T> gallery) {
     myGallery = gallery;
     myGalleryPanel.setViewportView(gallery);
-
+    myGalleryPanel.setBorder(new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, 1, 0, 0));
     myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
   }
 }
