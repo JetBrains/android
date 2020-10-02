@@ -35,12 +35,9 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
-import com.google.common.util.concurrent.ListenableFutureTask
-import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBTabbedPane
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -216,7 +213,9 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private fun addTab(tabPane: JBTabbedPane, name: String, tabContainer: CapturePanelTabContainer, toolbarComponents: List<Component>) {
     toolbarTabPanels[name] = ToolbarComponents(JPanel(createToolbarLayout()), toolbarComponents)
     tabListeners.add(tabContainer)
-    tabPane.add(name, buildNonTabPanel(toolbarTabPanels[name]!!.toolbarPanel, tabContainer.component))
+    val body = buildNonTabPanel(toolbarTabPanels[name]!!.toolbarPanel, tabContainer.component)
+    tabPane.add(name, body)
+    body.border = JBUI.Borders.empty() // undo insets added by `JBTabbedPane.addTab`
   }
 
   private fun toolbarDefaults() = mutableListOf<Component>().apply {
