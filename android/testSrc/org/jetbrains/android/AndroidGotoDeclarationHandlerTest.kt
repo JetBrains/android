@@ -513,6 +513,29 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                  describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
+  fun testGotoFrameworkResourceKotlin() {
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                android.R.color.backg${caret}round_dark
+            }
+        }
+      """.trimIndent())
+    assertEquals("""
+                  values/colors.xml:44:
+                    <color name="background_dark">#ff000000</color>
+                                ~|~~~~~~~~~~~~~~~~                 
+
+                 """.trimIndent(),
+                 describeElements(getDeclarationsFrom(file.virtualFile)))
+  }
+
   fun testGotoStaticallyImportedResourceKotlin() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
