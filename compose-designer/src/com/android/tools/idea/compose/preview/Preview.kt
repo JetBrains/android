@@ -606,7 +606,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     animationInspectionPreviewElementInstance = null
   }
 
-  override var isBuildOnSaveEnabled: Boolean = COMPOSE_PREVIEW_BUILD_ON_SAVE.get()
+  override var isBuildOnSaveEnabled: Boolean = false
     get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
