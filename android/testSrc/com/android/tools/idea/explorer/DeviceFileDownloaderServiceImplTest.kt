@@ -32,7 +32,6 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.function.Supplier
 
 class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
@@ -56,14 +55,16 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
   private lateinit var progress: DownloadProgress
   private lateinit var orderVerifier: InOrder
 
+  private lateinit var downloadPath: Path
+
   override fun setUp() {
     super.setUp()
 
     edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
     taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
-    val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
-    val myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, Supplier<Path> { downloadPath.toPath() })
+    downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true).toPath()
+    val myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, { downloadPath })
 
     mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
     mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
@@ -101,7 +102,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDownloadFilesFromSameDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1", "/foo/bar2"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
@@ -120,7 +126,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDownloadFilesFromDifferentDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo2/bar1"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1", "/foo2/bar1"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
@@ -135,7 +146,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDownloadFilesMissingFile() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/barMissing"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1", "/foo/barMissing"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
@@ -148,7 +164,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDownloadFilesMissingDir() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/missingDir/bar"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1", "/missingDir/bar"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
@@ -161,7 +182,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDownloadEmptyList() {
     // Act
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", emptyList(), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      emptyList(),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
 
     // Assert
@@ -170,7 +196,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDeleteFile() {
     // Prepare
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
     val fileToDelete = virtualFiles.getValue("/foo/bar1")
 
@@ -183,7 +214,12 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
 
   fun testDeleteMultipleFiles() {
     // Prepare
-    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles("fileSystem", listOf("/foo/bar1", "/foo/bar2"), progress)
+    val virtualFilesFuture = deviceFileDownloaderService.downloadFiles(
+      "fileSystem",
+      listOf("/foo/bar1", "/foo/bar2"),
+      progress,
+      downloadPath
+    )
     val virtualFiles = pumpEventsAndWaitForFuture(virtualFilesFuture)
     val filesToDelete = virtualFiles.values.toList()
 

@@ -47,7 +47,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -107,8 +106,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @Override
   public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
     Path devicePath = getDefaultLocalPathForDevice(entry.getFileSystem());
-    Path relativePath = getEntryPath(entry);
-    return devicePath.resolve(relativePath);
+    return getPathForEntry(entry, devicePath);
   }
 
   @NotNull
@@ -244,21 +242,25 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   }
 
   @NotNull
-  private static Path mapName(String name) {
-    return Paths.get(PathUtilRt.suggestFileName(name, /*allowDots*/true, /*allowSpaces*/true));
+  private static String mapName(String name) {
+    return PathUtilRt.suggestFileName(name, /*allowDots*/true, /*allowSpaces*/true);
   }
 
+  @Override
   @NotNull
-  private static Path getEntryPath(@NotNull DeviceFileEntry file) {
-    List<Path> names = new ArrayList<>();
+  public Path getPathForEntry(@NotNull DeviceFileEntry file, @NotNull Path destinationPath) {
+    List<String> entryPathComponents = new ArrayList<>();
     for (DeviceFileEntry entry = file; entry != null; entry = entry.getParent()) {
-      names.add(mapName(entry.getName()));
+      entryPathComponents.add(mapName(entry.getName()));
     }
-    Collections.reverse(names);
+    Collections.reverse(entryPathComponents);
 
-    Optional<Path> path = names.stream().reduce(Path::resolve);
-    assert path.isPresent();
-    return path.get();
+    Path entryDestinationPath = destinationPath;
+    for (String name : entryPathComponents) {
+      entryDestinationPath = entryDestinationPath.resolve(name);
+    }
+
+    return entryDestinationPath;
   }
 
   private static void deleteTemporaryFile(@NotNull Path localPath) {

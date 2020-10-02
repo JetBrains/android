@@ -25,12 +25,15 @@ import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
+import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import java.nio.file.Paths
 
 class FileDatabaseManagerTest : LightPlatformTestCase() {
 
@@ -75,11 +78,11 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
   fun testOpenOfflineDatabases() {
     // Prepare
-    val file1 = mock<VirtualFile>()
-    val file2 = mock<VirtualFile>()
-    val file3 = mock<VirtualFile>()
+    val file1 = MockVirtualFile("f1")
+    val file2 = MockVirtualFile("f2")
+    val file3 = MockVirtualFile("f3")
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any())).thenReturn(
+    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
       Futures.immediateFuture(
         mapOf(
           "/data/data/com.example.package/databases/db-file" to file1,
@@ -100,7 +103,8 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
         "/data/data/com.example.package/databases/db-file-shm",
         "/data/data/com.example.package/databases/db-file-wal"
       )),
-      any(DownloadProgress::class.java)
+      any(DownloadProgress::class.java),
+      eq(Paths.get(PathManager.getSystemPath(), "database-inspector"))
     )
 
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)
@@ -111,7 +115,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
 
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any())).thenReturn(
+    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
       Futures.immediateFuture(
         mapOf(
           "/data/data/com.example.package/databases/db-file-shm" to file2,
