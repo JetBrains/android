@@ -50,7 +50,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     HelpManager.getInstance().invokeHelp(null)
 
     assertThat(TestBrowserLauncher.lastUrl)
-      .isEqualTo("https://www.jetbrains.com/idea/webhelp/0.0/?top")
+      .isEqualTo("https://www.jetbrains.com/idea/webhelp/4.3/?top")
   }
 
   object TestBrowserLauncher : BrowserLauncher() {
