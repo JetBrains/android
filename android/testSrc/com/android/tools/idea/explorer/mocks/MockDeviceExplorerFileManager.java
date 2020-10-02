@@ -88,6 +88,11 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     return myFileManagerImpl.deleteFile(virtualFile);
   }
 
+  @Override
+  public @NotNull Path getPathForEntry(@NotNull DeviceFileEntry entry, @NotNull Path destinationPath) {
+    return myFileManagerImpl.getPathForEntry(entry, destinationPath);
+  }
+
   @NotNull
   @Override
   public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {

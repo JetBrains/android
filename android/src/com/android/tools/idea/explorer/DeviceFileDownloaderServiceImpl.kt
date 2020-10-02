@@ -16,7 +16,11 @@
 package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.*
+import com.android.tools.idea.concurrency.catching
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.concurrency.transformAsyncNullable
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
@@ -34,7 +38,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.Callable
+import java.nio.file.Path
 
 @UiThread
 class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
@@ -55,7 +59,8 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   override fun downloadFiles(
     deviceSerialNumber: String,
     onDevicePaths: List<String>,
-    downloadProgress: DownloadProgress
+    downloadProgress: DownloadProgress,
+    localDestinationDirectory: Path
   ): ListenableFuture<Map<String, VirtualFile>> {
     if (onDevicePaths.isEmpty()) {
       return Futures.immediateFuture(emptyMap())
@@ -65,27 +70,28 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
         val deviceFileSystem = devices!!.find { it.deviceSerialNumber == deviceSerialNumber }
         require(deviceFileSystem != null)
-        doDownload(deviceFileSystem, onDevicePaths, downloadProgress)
+        doDownload(deviceFileSystem, onDevicePaths, downloadProgress, localDestinationDirectory)
       }
     }
   }
 
   override fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit> {
     val futures = virtualFiles.map { fileManager.deleteFile(it).transformNullable(taskExecutor) { Unit } }
-    return Futures.whenAllSucceed(futures).call(Callable { Unit }, taskExecutor)
+    return Futures.whenAllSucceed(futures).call( { Unit }, taskExecutor)
   }
 
   // TODO(b/170230430) downloading files seems to trigger indexing.
   private fun doDownload(
     deviceFileSystem: DeviceFileSystem,
     onDevicePaths: List<String>,
-    downloadProgress: DownloadProgress
+    downloadProgress: DownloadProgress,
+    localDestinationDirectory: Path
   ): ListenableFuture<Map<String, VirtualFile>> {
     val futureEntries = mapPathsToEntries(deviceFileSystem, onDevicePaths)
 
     return futureEntries.transformAsync(taskExecutor) { entries ->
       val futurePairs = entries.map { entry ->
-        val localPath = fileManager.getDefaultLocalPathForEntry(entry)
+        val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
         FileUtils.mkdirs(localPath.parent.toFile())
 
         fileManager
