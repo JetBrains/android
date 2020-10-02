@@ -34,7 +34,9 @@ import java.util.concurrent.TimeUnit
 
 
 data class AndroidDeviceSpecImpl @JvmOverloads constructor (
+  /** The common version of the device or devices, null when combining multiple devices with different versions */
   override val commonVersion: AndroidVersion?,
+  /** The minimum version of the device or devices, unlike [commonVersion] this is always defined. */
   override val minVersion: AndroidVersion,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
@@ -64,7 +66,7 @@ fun createSpec(
   }
 
   val versions = devices.map { it.version }.toSet()
-  // Find the common value of the device version to pass to the build
+  // Find the common value of the device version to pass to the build (null if there are multiple versions)
   val version = versions.singleOrNull()
   var density: Density? = null
   var abis: List<String> = emptyList()
