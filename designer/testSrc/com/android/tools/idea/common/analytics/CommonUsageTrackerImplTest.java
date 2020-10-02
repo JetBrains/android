@@ -95,7 +95,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
     when(result.getRenderDuration()).thenReturn(230L);
 
-    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, false);
+    tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, CommonUsageTracker.RenderResultType.RENDER);
     AndroidStudioEvent studioEvent = getLastLogUsage();
     LayoutEditorRenderResult loggedResult = studioEvent.getLayoutEditorEvent().getRenderResult();
     assertThat(loggedResult.getResultCode()).isEqualTo(Result.Status.SUCCESS.ordinal());
