@@ -56,4 +56,12 @@ public interface DeviceExplorerFileManager {
    * The returned future fails with IOException in case of problems during file deletion.
    */
   ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile);
+
+  /**
+   * Returns the {@link Path} to use on the local file system when saving/downloading the entry from the device to the local file system
+   *
+   * The relative path of the entry is resolved against {@code destinationPath}.
+   */
+  @NotNull
+  Path getPathForEntry(@NotNull DeviceFileEntry entry, @NotNull Path destinationPath);
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Paths
 import kotlin.coroutines.coroutineContext
 
 /** Class responsible for downloading and deleting file database data */
@@ -68,7 +70,14 @@ class FileDatabaseManagerImpl(
     Disposer.register(project, disposableDownloadProgress)
 
     val files = try {
-      deviceFileDownloaderService.downloadFiles(processDescriptor.serial, pathsToDownload, disposableDownloadProgress).await()
+      // store files in Studio caches
+      val downloadDestinationFolder = Paths.get(PathManager.getSystemPath(), "database-inspector")
+      deviceFileDownloaderService.downloadFiles(
+        processDescriptor.serial,
+        pathsToDownload,
+        disposableDownloadProgress,
+        downloadDestinationFolder
+      ).await()
     } catch (e: IllegalArgumentException) {
       throw DeviceNotFoundException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
     }
