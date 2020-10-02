@@ -90,6 +90,16 @@ class FindEmulatorAndSetupRetention : AnAction() {
           val logWrapper = LogWrapper(LOG)
           val avdManager = AvdManager.getInstance(androidSdkHandler, logWrapper)
           val avdInfo = avdManager?.getAvd(deviceName, true)
+          try {
+            AndroidDebugBridge.init(true)
+          } catch (exp: IllegalStateException) {
+            LOG.debug("ADB already initialized: ${exp}")
+          }
+          if (!AndroidDebugBridge.getClientSupport()) {
+            showErrorMessage(project, "Adb client support required. " +
+                                      "Please try to reboot adb by running \"adb kill-server\"")
+            return
+          }
           if (avdInfo == null) {
             showErrorMessage(project, "Cannot find valid AVD with name: ${deviceName}")
             return
