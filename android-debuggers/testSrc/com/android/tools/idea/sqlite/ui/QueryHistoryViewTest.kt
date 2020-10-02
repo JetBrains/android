@@ -24,7 +24,10 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.EditorTextFieldProvider
 import com.intellij.ui.components.JBList
+import org.mockito.Mockito.`when`
+import java.awt.Point
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 
 class QueryHistoryViewTest : LightPlatformTestCase() {
   private lateinit var editorTextField: EditorTextField
@@ -108,5 +111,29 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("query1", editorTextField.text)
+  }
+
+  fun testListItemSelectedOnMouseHover() {
+    // Prepare
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
+
+    assertEquals(-1, list.selectedIndex)
+
+    val mouseEvent = mock<MouseEvent>()
+    `when`(mouseEvent.point).thenReturn(Point(0,0))
+
+    // Act
+    list.mouseMotionListeners.forEach { it.mouseMoved(mouseEvent) }
+
+    // Assert
+    assertEquals(0, list.selectedIndex)
+
+    // Act
+    // remove focus from list
+    list.focusListeners.forEach { it.focusLost(mock()) }
+
+    // Assert
+    assertEquals(-1, list.selectedIndex)
   }
 }
