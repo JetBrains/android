@@ -332,8 +332,6 @@
     <option name="available" path="ActionManager" hit="Available devices" />
     <option name="devices" path="ActionManager" hit="Available devices" />
     <option name="back" path="ActionManager" hit="Back" />
-    <option name="boot" path="ActionManager" hit="Boot Options" />
-    <option name="options" path="ActionManager" hit="Boot Options" />
     <option name="apk" path="ActionManager" hit="Build APK(s)" />
     <option name="build" path="ActionManager" hit="Build APK(s)" />
     <option name="s" path="ActionManager" hit="Build APK(s)" />
@@ -394,8 +392,6 @@
     <option name="create" path="ActionManager" hit="Create New Project" />
     <option name="new" path="ActionManager" hit="Create New Project" />
     <option name="project" path="ActionManager" hit="Create New Project" />
-    <option name="create" path="ActionManager" hit="Create Snapshot" />
-    <option name="snapshot" path="ActionManager" hit="Create Snapshot" />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -405,13 +401,6 @@
     <option name="object" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="other" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="the" path="ActionManager" hit="Create a new Android object from the Other category" />
-    <option name="a" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="create" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="emulator" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="of" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="snapshot" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="state" path="ActionManager" hit="Create a snapshot of the Emulator state" />
-    <option name="the" path="ActionManager" hit="Create a snapshot of the Emulator state" />
     <option name="create" path="ActionManager" hit="Create new Sample Data directory" />
     <option name="data" path="ActionManager" hit="Create new Sample Data directory" />
     <option name="directory" path="ActionManager" hit="Create new Sample Data directory" />
@@ -421,12 +410,6 @@
     <option name="file" path="ActionManager" hit="Create new resource file" />
     <option name="new" path="ActionManager" hit="Create new resource file" />
     <option name="resource" path="ActionManager" hit="Create new resource file" />
-    <option name="an" path="ActionManager" hit="Create or select an Emulator snapshot" />
-    <option name="create" path="ActionManager" hit="Create or select an Emulator snapshot" />
-    <option name="emulator" path="ActionManager" hit="Create or select an Emulator snapshot" />
-    <option name="or" path="ActionManager" hit="Create or select an Emulator snapshot" />
-    <option name="select" path="ActionManager" hit="Create or select an Emulator snapshot" />
-    <option name="snapshot" path="ActionManager" hit="Create or select an Emulator snapshot" />
     <option name="create" path="ActionManager" hit="Create, load, rename or delete snapshots" />
     <option name="delete" path="ActionManager" hit="Create, load, rename or delete snapshots" />
     <option name="load" path="ActionManager" hit="Create, load, rename or delete snapshots" />
@@ -867,11 +850,6 @@
     <option name="devices" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="multiple" path="ActionManager" hit="Select Multiple Devices..." />
     <option name="select" path="ActionManager" hit="Select Multiple Devices..." />
-    <option name="an" path="ActionManager" hit="Select an Emulator boot mode" />
-    <option name="boot" path="ActionManager" hit="Select an Emulator boot mode" />
-    <option name="emulator" path="ActionManager" hit="Select an Emulator boot mode" />
-    <option name="mode" path="ActionManager" hit="Select an Emulator boot mode" />
-    <option name="select" path="ActionManager" hit="Select an Emulator boot mode" />
     <option name="android" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="retention" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="set" path="ActionManager" hit="Set up Android Test Retention" />
