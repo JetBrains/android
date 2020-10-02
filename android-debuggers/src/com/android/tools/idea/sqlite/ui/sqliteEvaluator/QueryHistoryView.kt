@@ -31,6 +31,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -80,6 +81,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
           editorTextField.text = editorPermanentQuery
         }
         editorTextField.editor?.selectionModel?.setSelection(0, 0)
+        list.clearSelection()
       }
     })
 
@@ -103,6 +105,16 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
         if (e.keyCode == KeyEvent.VK_ENTER) {
           selectEntryAndCloseQueryHistory()
         }
+      }
+    })
+
+    list.addMouseMotionListener(object : MouseMotionListener {
+      override fun mouseDragged(e: MouseEvent) { }
+
+      override fun mouseMoved(e: MouseEvent) {
+        val viewIndex = list.locationToIndex(e.point)
+        if (viewIndex < 0) return
+        list.selectedIndex = viewIndex
       }
     })
 
