@@ -112,6 +112,7 @@ class TraceProcessorDaemonManagerTest {
     val executor = Executors.newFixedThreadPool(2)
     val lockHolder = LockHolder(reader.getLock())
     val holderRunnable = executor.submit(lockHolder)
+    lockHolder.waitUntilLocked() // Wait until it's locked before firing the listener.
     val listenerRunnable = executor.submit(RunListener(listener))
 
     // As holderRunnable is holding reader's lock, so the reader can't return and will timeout.
@@ -140,11 +141,17 @@ class TraceProcessorDaemonManagerTest {
   // Holds {@code lock} until unlock() is called.
   private class LockHolder(private val lock: Any): Runnable {
     private val internalLock = Object()
+    private var locked = false
 
     override fun run() {
       synchronized(lock) {
         synchronized(internalLock) {
+          locked = true
+          // Notify here in case someone is waiting for waitUntilLocked
+          internalLock.notifyAll()
+          // Then wait, until we get a signal to unlock
           internalLock.wait()
+          locked = false
         }
       }
     }
@@ -152,6 +159,12 @@ class TraceProcessorDaemonManagerTest {
     fun unlock() {
       synchronized(internalLock) {
         internalLock.notifyAll()
+      }
+    }
+
+    fun waitUntilLocked() {
+      synchronized(internalLock) {
+        while (!locked) internalLock.wait()
       }
     }
   }
