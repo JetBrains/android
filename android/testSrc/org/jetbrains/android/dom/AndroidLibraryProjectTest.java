@@ -19,7 +19,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.project.DumbService;
@@ -182,9 +181,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
                                                          "res/values/styles.xml",
                                                          "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java",
                                                          "src/p1/p2/FindUsagesClass.java"));
-      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-        files.add(resourceDeclarationFilePath);
-      }
+      files.add(resourceDeclarationFilePath);
       assertThat(buildFileList(result)).containsExactlyElementsIn(files);
     });
 
