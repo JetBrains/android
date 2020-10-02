@@ -76,10 +76,13 @@ class TimeDistributionTreeChartTest {
     fakeUi.layoutAndDispatchEvents()
     fakeUi.render()
 
-    fakeUi.mouse.click(405, rowMidY(0))
+    val chart = TreeWalker(treeWithChart).descendants().filterIsInstance(TimeDistributionTreeChart::class.java).single()
+    val chartX = fakeUi.getPosition(chart).x
+
+    fakeUi.mouse.click(chartX + 2, rowMidY(0))
     expect.that(tree.leadSelectionRow).isEqualTo(0)
 
-    fakeUi.mouse.click(405, rowMidY(2))
+    fakeUi.mouse.click(chartX + 2, rowMidY(2))
     expect.that(tree.leadSelectionRow).isEqualTo(2)
   }
 
@@ -97,13 +100,14 @@ class TimeDistributionTreeChartTest {
     fakeUi.mouse.moveTo(550, 350)
     expect.that(chart.model.hoveredItem).isEqualTo(chart.model.chartItems[2])
 
-    fakeUi.mouse.moveTo(400, 350)
+    val chartX = fakeUi.getPosition(chart).x
+    fakeUi.mouse.moveTo(chartX + 5, 350)
     expect.that(chart.model.hoveredItem).isEqualTo(null)
 
-    fakeUi.mouse.moveTo(405, rowMidY(1))
+    fakeUi.mouse.moveTo(chartX + 5, rowMidY(1))
     expect.that(chart.model.hoveredItem).isEqualTo(chart.model.chartItems[1])
 
-    fakeUi.mouse.moveTo(305, rowMidY(1))
+    fakeUi.mouse.moveTo(chartX - 100, rowMidY(1))
     expect.that(chart.model.hoveredItem).isEqualTo(null)
   }
 
