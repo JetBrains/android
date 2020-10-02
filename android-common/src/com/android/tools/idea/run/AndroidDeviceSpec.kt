@@ -24,7 +24,7 @@ import com.android.sdklib.AndroidVersion
 interface AndroidDeviceSpec {
   /** The common version of the device or devices, null when combining multiple devices with different versions */
   val commonVersion: AndroidVersion?
-  /** The minimum version of the device or devices */
+  /** The minimum version of the device or devices, unlike [commonVersion] this is always defined. */
   val minVersion: AndroidVersion
   val density: Density?
   val abis: List<String>
