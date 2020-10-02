@@ -19,7 +19,6 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.addAarDependency
@@ -416,26 +415,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
         """.trimIndent()
     ).virtualFile
     val expectedResult =
-      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-        // In the new pipeline, the declare styleable name resolves to a ResourceReferencePsiElement. And the GotoDeclarationHandler can
-        // decide which element to point to, currently the declare-styleable name.
         """
           values/styles.xml:2:
             <declare-styleable name="MyView">
                                     ~|~~~~~~~
 
         """.trimIndent()
-      }
-      else {
-        // In the old pipeline, the declare styleable name does not resolve to a ResourceReferencePsiElement, instead to the corresponding
-        // class of the same name that extends View.java, if it exists, otherwise nothing.
-        """
-          MyView.java:8:
-            @SuppressWarnings("UnusedDeclaration")
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        """.trimIndent()
-      }
     assertEquals(expectedResult,
                  describeElements(getDeclarationsFrom(file)))
 

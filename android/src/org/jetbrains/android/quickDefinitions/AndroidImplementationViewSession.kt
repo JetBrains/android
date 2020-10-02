@@ -18,7 +18,6 @@ package org.jetbrains.android.quickDefinitions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.intellij.codeInsight.hint.ImplementationViewElement
@@ -49,7 +48,6 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
     isSearchDeep: Boolean,
     alwaysIncludeSelf: Boolean
   ): ImplementationViewSession? {
-    if (!StudioFlags.RESOLVE_USING_REPOS.get()) { return null }
     // createSession() is called on elements in editor. It is also called the first time you ask for quick definitions on a lookupElement.
     // For this reason, we use PsiImplementationViewSession.getElement to decide which element to use.
     val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
@@ -69,7 +67,6 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
     isSearchDeep: Boolean,
     alwaysIncludeSelf: Boolean
   ): ImplementationViewSession? {
-    if (!StudioFlags.RESOLVE_USING_REPOS.get()) { return null }
     // createSessionForLookupElement() is called on the second and subsequent requests for the quick definitions of lookup items.
     if (editor == null || file == null) { return null }
     val contextElement = PsiManager.getInstance(project).findFile(file)?.findElementAt(editor.caretModel.offset) ?: return null
