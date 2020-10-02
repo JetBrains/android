@@ -1437,8 +1437,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.commandName")
 
   companion object {
-    val IMPLEMENTATION_API_INTRODUCED = GradleVersion(3, 1, 0) // introduced in Gradle 3.4; AGP 3.0.0 already required Gradle 4.4
-    val COMPILE_REMOVED = GradleVersion(5, 0, 0) // Gradle 7.0
+    val IMPLEMENTATION_API_INTRODUCED = GradleVersion.parse("3.1.0")
+    val COMPILE_REMOVED = GradleVersion.parse("7.0.0-alpha03")
 
     val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
     val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
