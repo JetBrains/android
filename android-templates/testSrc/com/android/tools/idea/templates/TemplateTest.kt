@@ -265,7 +265,7 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
-  fun testComposeActivity() {
+  fun ignoreTestComposeActivity() { // Disabled in 4.2 stable
     checkCreateTemplate("Empty Compose Activity", withKotlin) // Compose is always Kotlin
   }
 
