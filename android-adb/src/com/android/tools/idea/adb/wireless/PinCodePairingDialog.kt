@@ -39,11 +39,22 @@ class PinCodePairingDialog(project: Project) {
                                       okButtonText = "Pair",
                                       centerPanelProvider = { createCenterPanel() },
                                       okActionHandler = { okButtonHandler() },
-                                      preferredFocusProvider = { pairingPanel.pinCodeComponent },
+                                      preferredFocusProvider = { pairingPanel.firstPinCodeComponent },
                                       validationHandler = { validationHandler() }
     )
     dialog = SimpleDialog(options)
     dialog.init()
+
+    // Install a custom focus traversal policy that ensures focus is set to the "Pair" button
+    // when the last digit of the pairing code is entered
+    val focusPolicy = OneTimeOverrideFocusTraversalPolicy.install(dialog.rootPane)
+    pairingPanel.lastPinCodeComponent.addListener(object: JSingleDigitTextField.Listener {
+      override fun onDigitEntered(event: JSingleDigitTextField.Event) {
+        focusPolicy.oneTimeComponentAfter.set(dialog.okButton)
+        event.component.transferFocus()
+        event.consumed = true
+      }
+    })
   }
 
   var validationHandler: () -> ValidationInfo? = { null }
@@ -54,7 +65,7 @@ class PinCodePairingDialog(project: Project) {
     get() = dialog.disposable
 
   val pinCodeComponent: JComponent
-    get() = pairingPanel.pinCodeComponent
+    get() = pairingPanel.firstPinCodeComponent
 
   val currentPinCode: String
     get() = pairingPanel.pinCode

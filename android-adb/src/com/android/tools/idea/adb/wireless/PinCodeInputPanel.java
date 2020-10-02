@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,13 +39,13 @@ public class PinCodeInputPanel {
   @NotNull private JBLabel myPairingProgressLabel;
   @NotNull private AsyncProcessIcon myPairingProgressAsyncIcon;
   @NotNull private JBLabel myStatusIconLabel;
-  @NotNull private JTextField myPinCodeDigit1;
-  @NotNull private JTextField myPinCodeDigit2;
-  @NotNull private JTextField myPinCodeDigit3;
-  @NotNull private JTextField myPinCodeDigit4;
-  @NotNull private JTextField myPinCodeDigit5;
-  @NotNull private JTextField myPinCodeDigit6;
-  @NotNull private final List<JTextField> myAllDigitTextFields;
+  @NotNull private JSingleDigitTextField myPinCodeDigit1;
+  @NotNull private JSingleDigitTextField myPinCodeDigit2;
+  @NotNull private JSingleDigitTextField myPinCodeDigit3;
+  @NotNull private JSingleDigitTextField myPinCodeDigit4;
+  @NotNull private JSingleDigitTextField myPinCodeDigit5;
+  @NotNull private JSingleDigitTextField myPinCodeDigit6;
+  @NotNull private final List<JSingleDigitTextField> myAllDigitTextFields;
 
   public PinCodeInputPanel(@NotNull Disposable parentDisposable) {
     myPairingProgressLabel.setText("");
@@ -79,7 +78,12 @@ public class PinCodeInputPanel {
   }
 
   @NotNull
-  public JComponent getPinCodeComponent() {
+  public JSingleDigitTextField getLastPinCodeComponent() {
+    return myAllDigitTextFields.get(myAllDigitTextFields.size() - 1);
+  }
+
+  @NotNull
+  public JSingleDigitTextField getFirstPinCodeComponent() {
     return myAllDigitTextFields.get(0);
   }
 
