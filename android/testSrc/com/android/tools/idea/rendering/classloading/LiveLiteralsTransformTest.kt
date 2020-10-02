@@ -20,11 +20,6 @@ import com.android.tools.idea.run.util.StopWatch
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.ClassWriter
-import org.jetbrains.org.objectweb.asm.Type
-import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
-import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -44,11 +39,11 @@ annotation class KeyInfo(val key: String, val offset: Int)
 /**
  * Base interface for the test to log the constants.
  */
-interface Receiver {
+interface LiveLiteralsInterface {
   fun receive(receiver: (Any?) -> Unit)
 }
 
-class TestClass : Receiver {
+class LiveLiteralsTestClass : LiveLiteralsInterface {
   @FileInfo(file = "Test.kt")
   object `LiveLiterals$TestClass` {
     private val a1 = "A1"
@@ -125,40 +120,19 @@ class LiveLiteralsTransformTest {
     }
   }
 
-  /**
-   * Sets up a new [TestClassLoader].
-   * We take the already compiled classes in the test project, and save it to a byte array, applying the
-   * transformations.
-   */
-  private fun setupTestClassLoader(classDefinitions: Map<String, Class<*>>, onHasLiveLiterals: () -> Unit = {}): TestClassLoader {
-    // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
+  private fun setupTestClassLoader(classDefinitions: Map<String, Class<*>>, onHasLiveLiterals: () -> Unit = {}): TestClassLoader =
+  // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
     // names to the new ones.
-    val classNameRemapper = SimpleRemapper(
-      classDefinitions.map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }.toMap())
-    val redefinedClasses = classDefinitions.map { (newClassName, clazz) ->
-      val testClassBytes = loadClassBytes(clazz)
-
-      val classReader = ClassReader(testClassBytes)
-      val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
-      // Apply the live literals rewrite to all classes/methods
-      val liveLiteralsRewriter = LiveLiteralsTransform(
-        HasLiveLiteralsTransform(
-          TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace)),
-          fileInfoAnnotationName = FileInfo::class.java.name,
-          onLiveLiteralsFound = onHasLiveLiterals
-        ),
+    setupTestClassLoaderWithTransformation(classDefinitions, beforeTransformTrace, afterTransformTrace) {
+      visitor -> LiveLiteralsTransform(
+      HasLiveLiteralsTransform(
+        visitor,
         fileInfoAnnotationName = FileInfo::class.java.name,
-        infoAnnotationName = KeyInfo::class.java.name)
-      // Move the class
-      val remapper = ClassRemapper(liveLiteralsRewriter, classNameRemapper)
-      classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
-
-      newClassName to classOutputWriter.toByteArray()
-    }.toMap()
-
-    return TestClassLoader(LiveLiteralsTransformTest::class.java.classLoader,
-                           redefinedClasses)
-  }
+        onLiveLiteralsFound = onHasLiveLiterals
+      ),
+      fileInfoAnnotationName = FileInfo::class.java.name,
+      infoAnnotationName = KeyInfo::class.java.name)
+    }
 
   @Before
   fun setup() {
@@ -198,8 +172,8 @@ class LiveLiteralsTransformTest {
   fun `regular top class instrumented successfully`() {
     var hasLiveLiterals = false
     val testClassLoader = setupTestClassLoader(mapOf(
-      "Test" to TestClass::class.java,
-      "LiveLiterals${'$'}Test" to TestClass.`LiveLiterals$TestClass`::class.java
+      "Test" to LiveLiteralsTestClass::class.java,
+      "LiveLiterals${'$'}Test" to LiveLiteralsTestClass.`LiveLiterals$TestClass`::class.java
     )) { hasLiveLiterals = true }
 
     DefaultConstantRemapper.addConstant(
@@ -208,7 +182,7 @@ class LiveLiteralsTransformTest {
       testClassLoader, usageReference("Test.kt", 3), 3.0f, 90f)
     DefaultConstantRemapper.addConstant(
       testClassLoader, usageReference("Test.kt", 5), 0, 999)
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
+    val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
 
     assertTrue(hasLiveLiterals)
 
@@ -238,7 +212,7 @@ class LiveLiteralsTransformTest {
   fun measurePerformance() {
     val iterations = 9500
 
-    val originalClass = TestClass()
+    val originalClass = LiveLiteralsTestClass()
     println(time {
       repeat(iterations) {
         val builder = StringBuilder()
@@ -248,9 +222,9 @@ class LiveLiteralsTransformTest {
       }
     })
 
-    val testClassLoader = setupTestClassLoader(mapOf("Test" to TestClass::class.java))
+    val testClassLoader = setupTestClassLoader(mapOf("Test" to LiveLiteralsTestClass::class.java))
     DefaultConstantRemapper.addConstant(testClassLoader, usageReference("Test", 0), "A1", "Remapped A1")
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as Receiver
+    val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
 
     println(time {
       repeat(iterations) {
