@@ -860,6 +860,7 @@ public class RenderTask {
       return CompletableFuture.completedFuture(null);
     }
 
+    long startInflateTimeMs = System.currentTimeMillis();
     // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
     // That's why, for inflating, we allow a more generous timeout than for rendering.
     return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
@@ -869,7 +870,7 @@ public class RenderTask {
 
       return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
-      .whenComplete((result, ex) -> {
+      .handle((result, ex) -> {
         if (ex != null) {
           String message = ex.getMessage();
           if (message == null) {
@@ -877,6 +878,7 @@ public class RenderTask {
           }
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
         }
+        return result.createWithInflateDuration(System.currentTimeMillis() - startInflateTimeMs);
       });
   }
 
@@ -986,8 +988,9 @@ public class RenderTask {
       inflateCompletableResult = CompletableFuture.completedFuture(null);
     }
 
-    return inflateCompletableResult.thenCompose(ignored -> {
+    return inflateCompletableResult.thenCompose(inflateResult -> {
       try {
+        long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
@@ -998,10 +1001,13 @@ public class RenderTask {
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
           return result;
-        }).whenComplete((result, ex) -> {
+        }).handle((result, ex) -> {
           clearComposeTables();
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
+          return result.createWithTotalRenderDuration(inflateResult != null ?
+                                                      inflateResult.getInflateDuration() : result.getInflateDuration(),
+                                                      System.currentTimeMillis() - startRenderTimeMs);
         });
       }
       catch (Exception e) {

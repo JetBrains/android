@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.google.common.annotations.VisibleForTesting
@@ -47,7 +46,7 @@ class NlLayoutScannerMetricTracker(
   fun trackResult(result: RenderResult) {
     val validatorResult = result.validatorResult as ValidatorResult?
 
-    metric.renderMs = result.renderDuration
+    metric.renderMs = result.totalRenderDuration
     metric.scanMs = validatorResult?.metric?.mElapsedMs ?: 0
     metric.componentCount = result.rootViews.stream().flatMap {
       Stream.concat(it.children.stream(), Stream.of(it)) }.count().toInt()

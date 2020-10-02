@@ -42,7 +42,8 @@ class ScannerMetricsTest : LayoutTestCase() {
 
       override fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?,
                                    result: RenderResult,
-                                   wasInflated: Boolean) { }
+                                   resultType: CommonUsageTracker.RenderResultType) {
+      }
 
       override fun logStudioEvent(eventType: LayoutEditorEvent.LayoutEditorEventType, consumer: Consumer<LayoutEditorEvent.Builder>?) {
 
