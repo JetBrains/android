@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
@@ -94,15 +95,28 @@ class PerfgateComposeTest {
     }
   }
 
-  @Ignore("b/151096668")
   @Test
   fun baselinePerf() {
     composeTimeBenchmark.measureOperation(listOf(
-      ElapsedTimeMeasurement(Metric("default_template_render_time")),
-      MemoryUseMeasurement(Metric("default_template_memory_use")))) {
-      val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
-                                               SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
-      assertNotNull(defaultRender)
+      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
+      ElapsedTimeMeasurement(Metric("default_template_end_to_end_time")),
+      // Measures the memory usage of the render operation end to end.
+      MemoryUseMeasurement(Metric("default_template_memory_use")),
+      // Measures just the inflate time.
+      InflateTimeMeasurement(Metric("default_template_inflate_time")),
+      // Measures just the render time.
+      RenderTimeMeasurement(Metric("default_template_render_time"))),
+      printSamples = true) {
+      val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
+                                                       SinglePreviewElementInstance.forTesting(
+                                                         "google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+      val image = renderResult!!.renderedImage
+      assertTrue(
+        "Valid result image is expected to be bigger than 10x10. It's ${image.width}x${image.height}",
+        image.width > 10 && image.height > 10)
+      assertNotNull(image.copy)
+
+      renderResult
     }
   }
 }
