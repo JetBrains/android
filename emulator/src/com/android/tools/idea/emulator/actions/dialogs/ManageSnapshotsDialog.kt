@@ -547,14 +547,8 @@ class ManageSnapshotsDialog(
             backgroundExecutor.shutdown()
             ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Saving changes", false) {
               override fun run(indicator: ProgressIndicator) {
-                // Wait for all icon futures to complete.
-                for (future in snapshotTableModel.snapshotIconMap.values) {
-                  try {
-                    future.get()
-                  }
-                  catch (ignore: Exception) {}
-                }
                 backgroundExecutor.awaitTermination(2, TimeUnit.SECONDS)
+                snapshotIoLock.write {} // Wait for all file read operations to complete.
               }
             })
           }
@@ -816,10 +810,9 @@ class ManageSnapshotsDialog(
     @Slow
     private fun createBaseSnapshotIcon(snapshot: SnapshotInfo): Icon {
       try {
-        val image = ImageIO.read(snapshot.screenshotFile.toFile()) ?: return EmptyIcon.ICON_16
-        if (Thread.interrupted()) {
-          return EmptyIcon.ICON_16
-        }
+        val image = snapshotIoLock.read {
+          if (Thread.interrupted()) null else ImageIO.read(snapshot.screenshotFile.toFile())
+        } ?: return EmptyIcon.ICON_16
         val imageScale = 16 * JBUIScale.sysScale(snapshotTable).toDouble() / max(image.width, image.height)
         val iconImage = ImageUtils.scale(image, imageScale)
         val iconSize = JBUIScale.scale(16)

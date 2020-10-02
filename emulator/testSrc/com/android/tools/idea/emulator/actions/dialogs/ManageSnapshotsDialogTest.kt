@@ -344,15 +344,15 @@ class ManageSnapshotsDialogTest {
     val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
-      val rootPane1 = dlg1.rootPane
-      val ui1 = FakeUi(rootPane1)
-      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg ->
+      val rootPane1 = dlg.rootPane
+      val ui = FakeUi(rootPane1)
+      val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
       waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
       // Close the "Manage Snapshots" dialog.
-      ui1.clickOn(rootPane1.defaultButton)
+      ui.clickOn(rootPane1.defaultButton)
     }
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -368,15 +368,15 @@ class ManageSnapshotsDialogTest {
     val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
-      val rootPane1 = dlg1.rootPane
-      val ui1 = FakeUi(rootPane1)
-      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg ->
+      val rootPane1 = dlg.rootPane
+      val ui = FakeUi(rootPane1)
+      val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
       waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
-      assertThat(table.items).hasSize(4) // The two invalid snapshots were deleted automatically.
+      assertThat(table.items).hasSize(4) // No snapshots were deleted.
       // Close the "Manage Snapshots" dialog.
-      ui1.clickOn(rootPane1.defaultButton)
+      ui.clickOn(rootPane1.defaultButton)
     }
 
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
