@@ -39,6 +39,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,7 @@ import java.util.concurrent.Callable;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidSdkInitializer implements Runnable {
@@ -63,8 +65,9 @@ public class AndroidSdkInitializer implements Runnable {
   };
   // Default install location from users home dir.
   @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR =
-    (SystemInfo.isWindows ? System.getenv("LOCALAPPDATA") : SystemProperties.getUserHome()) +
-    File.separator + "Android" + File.separator + "Sdk";
+    SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
+                         : SystemInfo.isMac ? FileUtil.join("Library", "Android", "sdk")
+                                            : FileUtil.join("Library", "Sdk");
 
   @Override
   public void run() {
@@ -116,7 +119,7 @@ public class AndroidSdkInitializer implements Runnable {
 
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
     ApplicationManager.getApplication().invokeLater(() -> {
-      File androidSdkPath = findOrGetAndroidSdkPath();
+      File androidSdkPath = findValidAndroidSdkPath();
       if (androidSdkPath == null) {
         return;
       }
@@ -159,7 +162,24 @@ public class AndroidSdkInitializer implements Runnable {
   }
 
   @Nullable
-  public static File findOrGetAndroidSdkPath() {
+  public static File findValidAndroidSdkPath() {
+    File candidate = getAndroidSdkPathOrDefault();
+    return AndroidSdkType.getInstance().isValidSdkHome(candidate.getPath()) ? candidate : null;
+  }
+
+  /**
+   * Tries to find a path to an Android SDK. Looks in:
+   * <p><ul>
+   * <li>ANDROID_HOME_ENV</li>
+   * <li>ANDROID_SDK_ROOT_ENV</li>
+   * <li>path saved in the very-obsolete ddms.cfg</li>
+   * <li>the platform-specific default path</li>
+   * </ul></p>
+   *
+   * @return The path to the SDK, or the default SDK path if none is found.
+   */
+  @NotNull
+  public static File getAndroidSdkPathOrDefault() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
@@ -186,12 +206,12 @@ public class AndroidSdkInitializer implements Runnable {
                               () -> System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV));
     sdkLocationCandidates.put("Last SDK used by Android tools",
                               () -> getLastSdkPathUsedByAndroidTools());
-    sdkLocationCandidates.put("Default install directory", () -> ANDROID_SDK_DEFAULT_INSTALL_DIR);
 
+    String sdkPath = null;
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
       try {
         String pathDescription = locationCandidate.getKey();
-        String sdkPath = locationCandidate.getValue().call();
+        sdkPath = locationCandidate.getValue().call();
         String msg;
         if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(sdkPath)) {
           msg = String.format("%1$s: '%2$s'", pathDescription, sdkPath);
@@ -209,8 +229,8 @@ public class AndroidSdkInitializer implements Runnable {
         LOG.info("Exception during SDK lookup", e);
       }
     }
-
-    return null;
+    LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
+    return toSystemDependentPath(ANDROID_SDK_DEFAULT_INSTALL_DIR);
   }
 
   /**
