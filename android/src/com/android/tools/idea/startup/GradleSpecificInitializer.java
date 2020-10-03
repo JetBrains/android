@@ -20,7 +20,6 @@ import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
-import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
@@ -314,7 +313,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
   @Nullable
   private static File getAndroidSdkPath() {
-    return AndroidSdkInitializer.findOrGetAndroidSdkPath();
+    return AndroidSdkInitializer.findValidAndroidSdkPath();
   }
 
   private static void checkAndSetAndroidSdkSources() {
