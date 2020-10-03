@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
@@ -41,7 +42,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
@@ -103,6 +103,7 @@ class AndroidProjectRule private constructor(
     private var fixtureName: String? = null)
   : NamedExternalResource() {
 
+  private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
   val module: Module get() = fixture.module
 
@@ -202,6 +203,12 @@ class AndroidProjectRule private constructor(
     else {
       createJavaCodeInsightTestFixture(description)
     }
+
+    userHome = System.getProperty("user.home")
+    val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
+    // Reset user home directory.
+    System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
+
     fixture.setUp()
     // Initialize an Android manifest
     if (initAndroid) {
@@ -321,6 +328,7 @@ class AndroidProjectRule private constructor(
       }
     }
     fixture.tearDown()
+    userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }
