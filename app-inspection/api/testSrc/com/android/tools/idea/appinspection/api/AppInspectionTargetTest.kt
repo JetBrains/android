@@ -251,10 +251,10 @@ class AppInspectionTargetTest {
 
     // These are the version files we are interested in targeting.
     val targets = listOf(
-      ArtifactCoordinate("1st", "file", "1.0.0"),
-      ArtifactCoordinate("2nd", "file", "1.0.0"),
-      ArtifactCoordinate("3rd", "file", "1.0.0"),
-      ArtifactCoordinate("4th", "file", "1.0.0")
+      ArtifactCoordinate("1st", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+      ArtifactCoordinate("2nd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+      ArtifactCoordinate("3rd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+      ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
     )
 
     // Add the fake process to transport so we can attach to it via apiServices.attachToProcess
