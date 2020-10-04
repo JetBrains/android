@@ -54,10 +54,12 @@ class AppInspectorTabLaunchSupportTest {
 
   private val frameworkInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
   private val incompatibleLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
-    override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, ArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE"))
+    override val inspectorLaunchParams = LibraryInspectorLaunchParams(
+      TEST_JAR, ArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR))
   }
   private val libraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
-    override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, ArtifactCoordinate("a", "b", "1.0.0"))
+    override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR,
+                                                                      ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))
   }
 
   /**

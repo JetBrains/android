@@ -58,7 +58,7 @@ class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspe
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
   INSPECTOR_ID_2,
   LibraryInspectorLaunchParams(TEST_JAR,
-                               ArtifactCoordinate("groupId", "artifactId", "0.0.0")))
+                               ArtifactCoordinate("groupId", "artifactId", "0.0.0", ArtifactCoordinate.Type.JAR)))
 
 @ExperimentalCoroutinesApi
 class AppInspectionViewTest {

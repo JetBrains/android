@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.app-inspection.ide.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
+    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
@@ -66,6 +67,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
+        "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
     ],
 )
 
@@ -88,7 +91,7 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
-    ],
+    ] + glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
@@ -144,6 +147,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-jdk8[test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
@@ -155,6 +159,7 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     project = "unb",
     resources = ["resources"],
+    test_resources = ["testData"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -177,6 +182,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )
 
@@ -199,7 +206,7 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
-    ],
+    ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -222,5 +229,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )

@@ -18,8 +18,8 @@ package com.android.tools.idea.appinspection.test
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.protobuf.ByteString
@@ -36,7 +36,7 @@ val TEST_JAR = AppInspectorJar("test")
 const val TEST_PROJECT = "test.project"
 
 const val MIN_VERSION = "0.0.0-dev"
-val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION)
+val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION, ArtifactCoordinate.Type.JAR)
 
 /**
  * A collection of utility functions for inspection tests.

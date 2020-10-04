@@ -194,7 +194,7 @@ class AppInspectionView(
     val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
     val incompatibleInspectorTabShells = applicableTabs
       .filter { it.status == AppInspectorTabLaunchParams.Status.INCOMPATIBLE }
-      .map { AppInspectorTabShell(it.provider) }
+      .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(shell.provider.toIncompatibleVersionMessage()) } }
     val inspectorTabShells = applicableTabs
       .filter { it.status == AppInspectorTabLaunchParams.Status.LAUNCH }
       .map { AppInspectorTabShell(it.provider) }
