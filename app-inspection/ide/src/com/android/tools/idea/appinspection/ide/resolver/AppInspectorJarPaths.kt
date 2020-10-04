@@ -101,10 +101,9 @@ class AppInspectorJarPaths(private val fileService: FileService) {
    */
   @WorkerThread
   private fun unzipInspectorJarFromLibrary(url: ArtifactCoordinate, libraryPath: Path): Path {
-    ZipUtil.extract(libraryPath.toFile(), scratchDir.toFile(),
-                    FilenameFilter { dir, name -> dir.name == "META-INF" && name == INSPECTOR_JAR })
+    ZipUtil.extract(libraryPath.toFile(), scratchDir.toFile()) { _, name -> name == INSPECTOR_JAR }
 
-    val srcFile = scratchDir.resolve("META-INF").resolve(INSPECTOR_JAR)
+    val srcFile = scratchDir.resolve(INSPECTOR_JAR)
     val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(url.groupId).resolve(url.artifactId).resolve(url.version)
     Files.createDirectories(destDir)
     val destFile = destDir.resolve(INSPECTOR_JAR)
