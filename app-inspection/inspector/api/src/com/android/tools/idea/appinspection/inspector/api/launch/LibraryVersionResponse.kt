@@ -21,7 +21,16 @@ package com.android.tools.idea.appinspection.inspector.api.launch
  * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is populated if the check resulted in
  * failure.
  */
-data class LibraryVersionResponse(val targetLibrary: ArtifactCoordinate, val status: Status, val errorMessage: String) {
+data class LibraryVersionResponse(
+  val targetLibrary: ArtifactCoordinate,
+  val status: Status,
+  /**
+   * This version string follows the gradle version format. See https://docs.gradle.org/current/userguide/single_versions.html
+   * Examples: 1.3, 1.3.0-beta3, 1.0-20150201.131010-1
+   */
+  val version: String,
+  val errorMessage: String
+) {
   enum class Status {
     /**
      * The target library is compatible with the inspector.
