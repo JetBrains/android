@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.device.FormFactor
@@ -75,7 +74,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   private var installLicenseRequests: List<RemotePackage> = listOf()
 
   protected val moduleName: JTextField = JBTextField()
-  protected val packageName: LabelWithEditButton = LabelWithEditButton()
+  protected val packageName: JTextField = JBTextField()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
   protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")

@@ -44,7 +44,7 @@ class ConfigureLibraryModuleStep(
       moduleName()
     }
     row {
-      labelFor("Package name:", packageName.textField)
+      labelFor("Package name:", packageName)
       packageName()
     }
     row {
