@@ -210,7 +210,8 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   @VisibleForTesting
   Validator.Result checkPath(@NotNull String path) {
     if (Strings.isNullOrEmpty(path)) {
-      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.no.location"));
+      // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
+      return Validator.Result.OK;
     }
     myVFile = VfsUtil.findFileByIoFile(new File(path), false);
     if (myVFile == null || !myVFile.exists()) {
