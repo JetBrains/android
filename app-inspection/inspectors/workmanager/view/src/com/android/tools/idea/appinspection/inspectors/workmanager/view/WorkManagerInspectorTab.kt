@@ -303,7 +303,7 @@ class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
     detailPanel.add(buildCategoryPanel("WorkContinuation", listOf(
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
       buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
-      buildKeyValuePair("Unique work chain", client.getWorkChain(work.id), idListProvider)
+      buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
     )))
 
     detailPanel.add(buildCategoryPanel("Results", listOf(
