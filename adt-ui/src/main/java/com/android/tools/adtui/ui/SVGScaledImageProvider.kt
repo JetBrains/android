@@ -26,7 +26,10 @@ import javax.swing.Icon
 /**
  * A [ScaledImageProvider] for SVG resources. Aspect ratio is preserved when scaling.
  */
-class SVGScaledImageProvider(private val url: URL) : ScaledImageProvider {
+class SVGScaledImageProvider(private val url: URL, private val image: Image?) : ScaledImageProvider {
+  override val initialImage: Image?
+    get() = image
+
   @Throws(java.io.IOException::class)
   @WorkerThread
   override fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image {
@@ -50,7 +53,7 @@ class SVGScaledImageProvider(private val url: URL) : ScaledImageProvider {
     fun create(cachedIcon: IconLoader.CachedImageIcon): SVGScaledImageProvider {
       val url = cachedIcon.url
       if (url != null) {
-        return SVGScaledImageProvider(url)
+        return SVGScaledImageProvider(url, cachedIcon.realIcon.image)
       }
       throw IllegalArgumentException("CachedImageIcon should have a valid URL")
     }
