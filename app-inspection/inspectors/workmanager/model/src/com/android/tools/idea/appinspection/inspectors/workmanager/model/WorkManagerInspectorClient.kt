@@ -88,14 +88,53 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
     filteredWorks.indexOfFirst(predicate)
   }
 
-  // TODO(b/165789713): Return work chain ids with topological order.
-  fun getWorkChain(id: String): List<String> = synchronized(lock) {
-    val work = works.first { it.id == id }
-    if (work.namesCount > 0) {
-      val name = work.getNames(0)!!
-      return works.filter { it.namesList.contains(name) }.map { it.id }.toList()
+
+  /**
+   * Returns a chain of works with topological ordering containing the selected work.
+   *
+   * @param id id of the selected work.
+   */
+  fun getOrderedWorkChain(id: String): List<WorkInfo> = synchronized(lock) {
+    val workMap = works.associateBy { it.id }
+    val work = workMap.get(id) ?: return listOf()
+    val connectedWorks = mutableListOf(work)
+    val visitedWorks = mutableSetOf(work)
+    val orderedWorks = mutableListOf<WorkInfo>()
+    // Number of prerequisites not loaded into [orderedWorks].
+    val degreeMap = mutableMapOf<WorkInfo, Int>()
+    var index = 0
+
+    // Find works connected with the selected work and load works without prerequisites.
+    while (index < connectedWorks.size) {
+      val currentWork = connectedWorks[index]
+      val previousWorks = currentWork.prerequisitesList.mapNotNull { workMap[it] }
+      val nextWorks = currentWork.dependentsList.mapNotNull { workMap[it] }
+      degreeMap[currentWork] = previousWorks.size
+      if (previousWorks.isEmpty()) {
+        orderedWorks.add(currentWork)
+      }
+      for (connectedWork in (previousWorks + nextWorks)) {
+        if (!visitedWorks.contains(connectedWork)) {
+          visitedWorks.add(connectedWork)
+          connectedWorks.add(connectedWork)
+        }
+      }
+      index += 1
     }
-    return listOf(id)
+    // Load works with topological ordering.
+    index = 0
+    while (index < orderedWorks.size) {
+      val currentWork = orderedWorks[index]
+      val nextWorks = currentWork.dependentsList.mapNotNull { workMap[it] }
+      for (nextWork in nextWorks) {
+        degreeMap[nextWork] = degreeMap[nextWork]!! - 1
+        if (degreeMap[nextWork] == 0) {
+          orderedWorks.add(nextWork)
+        }
+      }
+      index += 1
+    }
+    return orderedWorks
   }
 
   fun cancelWorkById(id: String) {
