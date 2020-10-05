@@ -433,7 +433,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
-    return hasCause(buildError, BuildCancelledException.class);
+    return hasCause(buildError, BuildCancelledException.class) || hasCause(buildError, ProcessCanceledException.class);
   }
 
   private void handleTaskExecutionError(@NotNull Throwable e) {
