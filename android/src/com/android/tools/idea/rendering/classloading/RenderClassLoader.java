@@ -23,7 +23,9 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.base.Suppliers;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +34,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jetbrains.android.uipreview.ClassBinaryCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -49,8 +52,9 @@ public abstract class RenderClassLoader extends ClassLoader {
   private final Object myJarClassLoaderLock = new Object();
   private final Function<String, String> myNonProjectClassNameLookup;
   @GuardedBy("myJarClassLoaderLock")
-  private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
+  private final Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
+  private final ClassBinaryCache myClassCache;
 
   /**
    * Creates a new {@link RenderClassLoader}.
@@ -65,15 +69,18 @@ public abstract class RenderClassLoader extends ClassLoader {
    *                                  correctly loaded from the file system. For example, if the class loader is renaming classes to names
    *                                  that do not exist on disk, this allows the {@link RenderClassLoader} to lookup the correct name and
    *                                  load it from disk.
+   * @param cache a binary class representation cache to speed up jar file reads where possible.
    */
   public RenderClassLoader(@Nullable ClassLoader parent,
                            @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
                            @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider,
-                           @NotNull Function<String, String> nonProjectClassNameLookup) {
+                           @NotNull Function<String, String> nonProjectClassNameLookup,
+                           @NotNull ClassBinaryCache cache) {
     super(parent);
     myProjectClassesTransformationProvider = projectClassesTransformationProvider;
     myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
     myNonProjectClassNameLookup = nonProjectClassNameLookup;
+    myClassCache = cache;
   }
 
 
@@ -86,7 +93,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    */
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
-    this(parent, transformationProvider, transformationProvider, Function.identity());
+    this(parent, transformationProvider, transformationProvider, Function.identity(), ClassBinaryCache.NO_CACHE);
   }
 
   /**
@@ -94,8 +101,9 @@ public abstract class RenderClassLoader extends ClassLoader {
    *
    * @param parent the parent {@link ClassLoader}.
    */
+  @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity(), Function.identity(), Function.identity());
+    this(parent, Function.identity(), Function.identity(), Function.identity(), ClassBinaryCache.NO_CACHE);
   }
 
   protected abstract List<URL> getExternalJars();
@@ -124,7 +132,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   @NotNull
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
     try {
-      byte[] data = readClassData(name);
+      byte[] data = getClassData(name);
       byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
@@ -136,7 +144,12 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @NotNull
-  private byte[] readClassData(@NotNull String name) throws ClassNotFoundException, IOException {
+  private byte[] getClassData(@NotNull String name) throws ClassNotFoundException, IOException {
+    byte[] cachedData = myClassCache.get(name);
+    if (cachedData != null) {
+      return cachedData;
+    }
+
     UrlClassLoader jarClassLoaders;
     synchronized (myJarClassLoaderLock) {
       jarClassLoaders = myJarClassLoader.get();
@@ -144,7 +157,13 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     String diskLookupName = myNonProjectClassNameLookup.apply(name);
     myInsideJarClassLoader = true;
-    try (InputStream is = jarClassLoaders.getResourceAsStream(diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS)) {
+    // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
+    String classResourceName = diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS;
+    URL classUrl = jarClassLoaders.getResource(classResourceName);
+    if (classUrl == null) {
+      throw new ClassNotFoundException(name);
+    }
+    try (InputStream is = jarClassLoaders.getResourceAsStream(classResourceName)) {
       if (is == null) {
         throw new ClassNotFoundException(name);
       }
@@ -152,6 +171,12 @@ public abstract class RenderClassLoader extends ClassLoader {
 
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
+      }
+      Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
+      if (splitPath != null) {
+        myClassCache.put(name, splitPath.first, data);
+      } else {
+        LOG.warn("Could not find the file for " + classUrl);
       }
       return data;
     }
