@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.tools.idea.ui.OneTimeOverrideFocusTraversalPolicy
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Test
