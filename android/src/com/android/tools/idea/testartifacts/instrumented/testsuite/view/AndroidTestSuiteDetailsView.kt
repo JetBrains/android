@@ -76,15 +76,15 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     border = JBUI.Borders.empty(0, 10)
   }
 
-  private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.General.ArrowDown).apply {
+  private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
     addActionListener {
       when (controller.orientation) {
         AndroidTestSuiteViewController.Orientation.VERTICAL -> {
-          icon = AllIcons.General.ArrowDown
+          icon = AllIcons.Actions.PreviewDetailsVertically
           controller.orientation = AndroidTestSuiteViewController.Orientation.HORIZONTAL
         }
         AndroidTestSuiteViewController.Orientation.HORIZONTAL -> {
-          icon = AllIcons.General.ArrowRight
+          icon = AllIcons.Actions.PreviewDetails
           controller.orientation = AndroidTestSuiteViewController.Orientation.VERTICAL
         }
       }
