@@ -123,6 +123,20 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
+    try {
+      byte[] data = readClassData(name);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
+      return defineClassAndPackage(name, rewritten, 0, rewritten.length);
+    }
+    catch (IOException | ClassNotFoundException e) {
+      LOG.debug(e);
+      if (LOG.isDebugEnabled()) LOG.debug(String.format("ClassNotFoundException(%s)", name));
+      throw new ClassNotFoundException(name, e);
+    }
+  }
+
+  @NotNull
+  private byte[] readClassData(@NotNull String name) throws ClassNotFoundException, IOException {
     UrlClassLoader jarClassLoaders;
     synchronized (myJarClassLoaderLock) {
       jarClassLoaders = myJarClassLoader.get();
@@ -139,18 +153,11 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
-      return defineClassAndPackage(name, rewritten, 0, rewritten.length);
-    }
-    catch (IOException | ClassNotFoundException e) {
-      LOG.debug(e);
+      return data;
     }
     finally {
       myInsideJarClassLoader = false;
     }
-
-    if (LOG.isDebugEnabled()) LOG.debug(String.format("ClassNotFoundException(%s)", name));
-    throw new ClassNotFoundException(name);
   }
 
   @Nullable
