@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -71,8 +70,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
 
   override fun canProcessElement(element: PsiElement): Boolean {
-    return StudioFlags.RESOLVE_USING_REPOS.get() &&
-           ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() != null
+    return ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() != null
   }
 
   override fun findExistingNameConflicts(element: PsiElement, newName: String, conflicts: MultiMap<PsiElement, String>) {
@@ -115,7 +113,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
             element is ResourceReferencePsiElement) {
           // Java and Kotlin Fields can require custom newName strings as do not control their references and so cannot provide custom
           // implementation there.
-          renameAndroidLightField(element, usage, newName);
+          renameAndroidLightField(element, usage, newName)
         } else {
           RenameUtil.rename(usage, newName)
         }
@@ -238,9 +236,6 @@ val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qual
  */
 open class ResourceRenameHandler : RenameHandler, TitledHandler {
   override fun isAvailableOnDataContext(dataContext: DataContext): Boolean {
-    if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
-      return false
-    }
     val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return false
     return isAvailableInFile(file) && getWritableResourceReferenceElement(dataContext) != null
   }
@@ -265,7 +260,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       if (elementInFile.parent is XmlTag) {
         // No longer supporting renaming XmlTags themselves, in this case the caret exists inside a resource tag name eg. <strin<caret>g>
         // http://b/153850296
-        return null;
+        return null
       }
       return getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
     }
@@ -298,7 +293,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
   /**
    * Custom [RenameDialog] for renaming Android resources.
    */
-  private class ResourceRenameDialog internal constructor(
+  private class ResourceRenameDialog(
     project: Project,
     resourceReferenceElement: ResourceReferencePsiElement,
     nameSuggestionContext: PsiElement?,

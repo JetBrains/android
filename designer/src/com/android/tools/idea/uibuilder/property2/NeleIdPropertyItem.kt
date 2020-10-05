@@ -22,8 +22,6 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -106,23 +104,16 @@ open class NeleIdPropertyItem(
       return false
     }
 
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      val action = RenameElementAction()
-      val simpleContext = SimpleDataContext.getSimpleContext(
-        mapOf(
-          NEW_NAME_RESOURCE.name to newId,
-          CommonDataKeys.PSI_FILE.name to value.containingFile,
-          CommonDataKeys.PSI_ELEMENT.name to value,
-          CommonDataKeys.PROJECT.name to value.project),
-        null
-      )
-      ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
-    } else {
-      // Exact replace only
-      val project = model.facet.module.project
-      val processor = NeleIdRenameProcessor(project, value, newValue)
-      processor.run()
-    }
+    val action = RenameElementAction()
+    val simpleContext = SimpleDataContext.getSimpleContext(
+      mapOf(
+        NEW_NAME_RESOURCE.name to newId,
+        CommonDataKeys.PSI_FILE.name to value.containingFile,
+        CommonDataKeys.PSI_ELEMENT.name to value,
+        CommonDataKeys.PROJECT.name to value.project),
+      null
+    )
+    ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
 
     // The RenameProcessor will change the value of the ID here (may happen later if previewing first).
     return true

@@ -482,7 +482,6 @@
     <lang.inspectionSuppressor language="kotlin" implementationClass="org.jetbrains.android.compose.AndroidComposeSuppressor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
-    <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
     <java.languageFeatureProvider implementation="org.jetbrains.android.inspections.AndroidLanguageFeatureProvider"/>
@@ -567,8 +566,7 @@
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidBinaryResourceFileUsageTypeProvider" order="first" />
     <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
-    <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidOldXmlUsageProvider" order="first" />
-    <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidNewXmlUsageProvider" order="first" />
+    <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceXmlUsageProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceReferenceInCodeUsageTypeProvider" order="first" />
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleToJavaModuleConverterProvider"/>
@@ -689,9 +687,7 @@
     <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
-    <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first" id="androidRenameHandler"/>
-    <elementDescriptionProvider implementation="org.jetbrains.android.ResourceFieldElementWrapper$DescriptionProvider" />
-    <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first, before androidRenameHandler"/>
+    <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.res.psi.ResourceReferencePsiElement$ResourceReferencePsiElementDescriptorProvider"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 

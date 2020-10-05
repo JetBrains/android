@@ -5,13 +5,13 @@
   </style>
   <style name="myStyle2" parent="<error>?attr/myAttr</error>">
   </style>
-  <style name="myStyle3" parent="<error>attr/myAttr</error>">
+  <style name="myStyle3" parent="attr/myAttr">
   </style>
   <style name="myStyle4" parent="<error>myAttr</error>">
   </style>
   <style name="myStyle5" parent="<error>android:textAppearance</error>">
   </style>
-  <style name="myStyle6" parent="<error>android:attr/textAppearance</error>">
+  <style name="myStyle6" parent="android:attr/textAppearance">
   </style>
   <style name="myStyle7" parent="<error>?android:attr/textAppearance</error>">
   </style>
