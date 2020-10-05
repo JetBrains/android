@@ -19,10 +19,10 @@ import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
 
 class MockDevicePairingView(project: Project,
-                            notificationService: AdbDevicePairingNotificationService,
-                            override val model: AdbDevicePairingModel
-) : AdbDevicePairingView {
-  private val viewImpl = AdbDevicePairingViewImpl(project, notificationService, model)
+                            notificationService: WiFiPairingNotificationService,
+                            override val model: WiFiPairingModel
+) : WiFiPairingView {
+  private val viewImpl = WiFiPairingViewImpl(project, notificationService, model)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()
@@ -90,11 +90,11 @@ class MockDevicePairingView(project: Project,
     viewImpl.showQrCodePairingError(mdnsService, error)
   }
 
-  override fun addListener(listener: AdbDevicePairingView.Listener) {
+  override fun addListener(listener: WiFiPairingView.Listener) {
     viewImpl.addListener(listener)
   }
 
-  override fun removeListener(listener: AdbDevicePairingView.Listener) {
+  override fun removeListener(listener: WiFiPairingView.Listener) {
     viewImpl.removeListener(listener)
   }
 }

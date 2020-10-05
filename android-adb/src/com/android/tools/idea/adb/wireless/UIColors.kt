@@ -45,7 +45,7 @@ object UIColors {
   val ONE_PIXEL_DIVIDER: Color = UIManager.getColor("DialogWrapper.southPanelDivider") ?: OnePixelDivider.BACKGROUND
 
   /**
-   * The background color for the "pairing" contents (QR code and pin code panels)
+   * The background color for the "pairing" contents (QR code and pairing code panels)
    */
   @JvmField
   val PAIRING_CONTENT_BACKGROUND: Color = UIUtil.getTreeBackground()
