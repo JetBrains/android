@@ -23,7 +23,6 @@ import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
@@ -191,13 +190,16 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       // parallel installation. See b/169887635.
       for (Map.Entry<IDevice, List<LaunchTask>> entry : launchTaskMap.entrySet()) {
         try {
-          runLaunchTaskAsync(
+          boolean isSucceeded = runLaunchTaskAsync(
             entry.getValue(),
             indicator,
             new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
             destroyProcessOnCancellation,
             completedStepsCount,
             totalScheduledStepsCount).get();
+          if (!isSucceeded) {
+            return;
+          }
         } catch (CancellationException|InterruptedException e) {
           return;
         } catch (ExecutionException e) {
@@ -220,12 +222,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
   }
 
-  private ListenableFuture<?> runLaunchTaskAsync(@NotNull List<LaunchTask> launchTasks,
-                                                 @NotNull ProgressIndicator indicator,
-                                                 @NotNull LaunchContext launchContext,
-                                                 boolean destroyProcessOnCancellation,
-                                                 @NotNull AtomicInteger completedStepsCount,
-                                                 int totalScheduledStepsCount) {
+  private ListenableFuture<Boolean> runLaunchTaskAsync(@NotNull List<LaunchTask> launchTasks,
+                                                       @NotNull ProgressIndicator indicator,
+                                                       @NotNull LaunchContext launchContext,
+                                                       boolean destroyProcessOnCancellation,
+                                                       @NotNull AtomicInteger completedStepsCount,
+                                                       int totalScheduledStepsCount) {
     return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
       // Update the indicator progress.
       indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
@@ -239,7 +241,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
       for (LaunchTask task : launchTasks) {
         if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
-          throw new CancellationException();
+          return false;
         }
 
         if (!task.shouldRun(launchContext)) {
@@ -270,7 +272,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
 
           myStats.setErrorId(result.getErrorId());
-          throw new CancellationException();
+          return false;
         }
 
         // Notify listeners of the deployment.
@@ -283,6 +285,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
       notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION, null)
         .setImportant(false).notify(myProject);
+
+      return true;
     });
   }
 
