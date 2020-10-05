@@ -12,6 +12,13 @@ java_proto_library(
     visibility = ["//visibility:public"],
 )
 
+java_proto_library(
+    name = "android-core-proto-test",
+    srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
+    protoc_version = "3.0.0",
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core",
@@ -504,6 +511,8 @@ iml_module(
         "//tools/idea/.idea/libraries:jaxb-api",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
         "//tools/idea/.idea/libraries:ini4j[test]",
+        "//tools/adt/idea/android:android-core-proto",
+        "//tools/adt/idea/android:android-core-proto-test[test]",
     ],
 )
 
@@ -1233,6 +1242,8 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:unb.androidx-test-core-proto",
         "//tools/adt/idea/android:unb.android-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
+        "//tools/adt/idea/android:android-core-proto",
+        "//tools/adt/idea/android:android-core-proto-test[test]",
     ],
 )
 
