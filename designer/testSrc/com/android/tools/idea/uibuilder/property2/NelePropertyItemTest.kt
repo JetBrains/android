@@ -646,7 +646,9 @@ class NelePropertyItemTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val fileManager = mock(FileEditorManager::class.java)
-    `when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    `when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    `when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    `when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))

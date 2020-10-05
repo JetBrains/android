@@ -113,10 +113,12 @@ class GotoDeclarationActionTest {
 
   private fun enableFileOpenCaptures() {
     fileManager = mock(FileEditorManagerEx::class.java)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     `when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
+    `when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     `when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    `when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 
   @Suppress("SameParameterValue")
