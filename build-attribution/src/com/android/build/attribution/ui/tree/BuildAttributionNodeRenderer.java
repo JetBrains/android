@@ -16,12 +16,12 @@
 package com.android.build.attribution.ui.tree;
 
 import static com.intellij.ui.SimpleTextAttributes.GRAYED_ATTRIBUTES;
+import static com.intellij.ui.render.RenderingHelper.SHRINK_LONG_RENDERER;
 import static com.intellij.util.ui.UIUtil.getTreeSelectionForeground;
 
 import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.ui.RelativeFont;
-import com.intellij.ui.tree.ui.DefaultTreeUI;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BuildAttributionNodeRenderer extends NodeRenderer {
   {
-    putClientProperty(DefaultTreeUI.SHRINK_LONG_RENDERER, true);
+    putClientProperty(SHRINK_LONG_RENDERER, true);
   }
 
   private String myDurationText;
