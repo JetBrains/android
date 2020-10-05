@@ -21,8 +21,8 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,14 +48,6 @@ public final class StudioFlags {
       userOverrides = new DefaultFlagOverrides();
     }
     return new Flags(userOverrides, new PropertyOverrides());
-  }
-
-  private static boolean isDevBuild() {
-    if (ApplicationManager.getApplication() == null) {
-      return true;
-    }
-    ApplicationInfo applicationInfo = ApplicationInfo.getInstance();
-    return applicationInfo == null || applicationInfo.getStrictVersion().equals("0.0.0.0");
   }
 
   //region New Project Wizard
@@ -560,7 +552,7 @@ public final class StudioFlags {
     "Turns on the new \"Project Structure\" dialog.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
-    "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
+    "Makes Gradle use development offline repositories such as /out/repo", StudioPathManager.isRunningFromSources());
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", true);
