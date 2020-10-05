@@ -84,6 +84,7 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
       }
       else {
         addComponentListener(resizedListener)
+        image = value.initialImage
         repaintAsync()
       }
     }

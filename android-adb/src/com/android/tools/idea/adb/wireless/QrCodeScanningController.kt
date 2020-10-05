@@ -87,6 +87,7 @@ class QrCodeScanningController(private val service: WiFiPairingService,
       view.showQrCodePairingSuccess(mdnsService, device)
     }.catching(edtExecutor, Throwable::class.java) { error ->
       if (!isCancelled(error)) {
+        LOG.warn("Error pairing device ${mdnsService}", error)
         state = State.PairingError
         view.showQrCodePairingError(mdnsService, error)
       }

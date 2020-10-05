@@ -23,7 +23,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.labels.LinkLabel;
-import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import java.awt.Font;
@@ -63,12 +62,7 @@ public class QrCodeTabPanel {
     myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
     mySecondLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
 
-    myScanNewDeviceLink.setListener(new LinkListener<Void>() {
-      @Override
-      public void linkSelected(LinkLabel<Void> aSource, Void aLinkData) {
-        scanAnotherDeviceRunnable.run();
-      }
-    }, null);
+    myScanNewDeviceLink.setListener((aSource, aLinkData) -> scanAnotherDeviceRunnable.run(), null);
     myScanNewDeviceLink.setIcon(null); // Don't show default "Link" icon
 
     Disposer.register(parentDisposable, myPairingStatusProcessIcon);
@@ -123,7 +117,7 @@ public class QrCodeTabPanel {
   }
 
   /**
-   * Same as {@link #showQrCodePairingWaitForDevice()}
+   * Same as {@link #showQrCodePairingInProgress()}
    */
   public void showQrCodePairingWaitForDevice() {
     //TODO: Current UX Mocks don't show 2 separate states for this
@@ -135,8 +129,8 @@ public class QrCodeTabPanel {
    * and keep the QR code grayed out
    */
   public void showQrCodePairingSuccess(@NotNull AdbOnlineDevice device) {
-    myQrCodePanel.setActive(true);
     myQrCodePanel.setScaledImageProvider(SVGScaledImageProvider.create(StudioIcons.Common.SUCCESS));
+    myQrCodePanel.setActive(true);
 
     myTopLabel1.setVisible(false);
     myTopLabel2.setVisible(false);
