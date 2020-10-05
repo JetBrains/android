@@ -878,7 +878,7 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
     super.getTableCellRendererComponent(table, durationText, isSelected, hasFocus, row, column)
     icon = null
     horizontalTextPosition = CENTER
-    horizontalAlignment = CENTER
+    horizontalAlignment = RIGHT
     foreground = if(isSelected && table.hasFocus()) {
       UIUtil.getTreeSelectionForeground(true)
     } else {
