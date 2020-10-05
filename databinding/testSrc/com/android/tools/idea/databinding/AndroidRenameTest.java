@@ -33,9 +33,7 @@ import com.intellij.refactoring.move.moveFilesOrDirectories.JavaMoveFilesOrDirec
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import org.jetbrains.android.AndroidResourceRenameResourceProcessor;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,17 +49,10 @@ public class AndroidRenameTest {
 
   @Before
   public void setUp() {
-    AndroidResourceRenameResourceProcessor.ASK = false;
     JavaCodeInsightTestFixture fixture = getFixture();
 
     fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/databinding");
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  @After
-  public void tearDown() {
-    // Restore static flag to its default value.
-    AndroidResourceRenameResourceProcessor.ASK = true;
   }
 
   @Test

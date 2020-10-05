@@ -26,11 +26,8 @@ import com.android.SdkConstants.CHECK_BOX
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -54,16 +51,13 @@ class NeleIdRenamingTest {
 
   @Before
   fun setUp() {
-    NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
     componentStack = ComponentStack(projectRule.project)
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
   }
 
   @After
   fun tearDown() {
     componentStack!!.restore()
     componentStack = null
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
   }
 
   @Test

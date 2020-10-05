@@ -37,7 +37,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.AndroidRenameHandler
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
@@ -86,14 +85,12 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
  * Returns true if Android handler is available.
  *
  * We can either invoke the processor directly or go through the handler layer. Unfortunately [MemberInplaceRenameHandler] won't work in
- * unit test mode, the default handler fails for light elements and some tests depend on the logic from AndroidRenameHandler. To handle
+ * unit test mode, the default handler fails for light elements and some tests depend on the logic from ResourceRenameHandler. To handle
  * that mess, rename the element only when Android handler is available.
  */
 fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: String): Boolean {
   val context = (editor as EditorEx).dataContext
-  if (AndroidRenameHandler().isAvailableOnDataContext(context) ||
-      ResourceRenameHandler().isAvailableOnDataContext(context) ||
-      KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
+  if (ResourceRenameHandler().isAvailableOnDataContext(context) || KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
     renameElementAtCaretUsingHandler(newName)
     return true
   }

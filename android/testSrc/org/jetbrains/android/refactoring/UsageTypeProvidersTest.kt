@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.ex.EditorEx
@@ -75,13 +74,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
          }
        }
        """.trimIndent())
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      checkUsageTypeText(file.virtualFile,
-                         "Resource declaration in Android resources XML",
-                         "Resource reference in code")
-    } else {
-      checkUsageTypeText(file.virtualFile, "Resource reference in code")
-    }
+    checkUsageTypeText(file.virtualFile, "Resource declaration in Android resources XML", "Resource reference in code")
   }
 
   fun testClsFieldImplManifest() {
@@ -177,13 +170,10 @@ class UsageTypeProvidersTest : AndroidTestCase() {
       "res/values/colors.xml",
       //language=XML
       """<resources><color name="color${caret}Primary">#008577</color></resources>""")
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      checkUsageTypeText(colorsFile.virtualFile,
-                         "Resource declaration in Android resources XML",
-                         "Resource reference Android resources XML")
-    } else {
-      checkUsageTypeText(colorsFile.virtualFile, "{0} in Android resources XML")
-    }
+      checkUsageTypeText(
+        colorsFile.virtualFile,
+        "Resource declaration in Android resources XML",
+        "Resource reference Android resources XML")
   }
 
   fun testManifestDomElement() {

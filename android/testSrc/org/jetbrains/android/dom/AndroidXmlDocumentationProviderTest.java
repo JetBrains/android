@@ -15,7 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
-import com.android.tools.idea.flags.StudioFlags;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.navigation.CtrlMouseHandler;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -23,8 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.android.AndroidTestCase;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AndroidXmlDocumentationProvider}.
@@ -38,8 +37,7 @@ public class AndroidXmlDocumentationProviderTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(f);
     final PsiReference ref = myFixture.getFile().findReferenceAt(myFixture.getEditor().getCaretModel().getOffset());
     assertThat(ref).isNotNull();
-    String expectedResult = StudioFlags.RESOLVE_USING_REPOS.get() ? "@string/myString" : "value resource 'myString' [strings.xml]";
-    assertThat(CtrlMouseHandler.getInfo(ref.resolve(), ref.getElement())).isEqualTo(expectedResult);
+    assertThat(CtrlMouseHandler.getInfo(ref.resolve(), ref.getElement())).isEqualTo("@string/myString");
   }
 
   public void testAndroidAttributeDocumentation() {

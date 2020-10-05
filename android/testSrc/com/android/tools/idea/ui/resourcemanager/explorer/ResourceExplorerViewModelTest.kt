@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
@@ -150,9 +149,7 @@ class ResourceExplorerViewModelTest {
 
     val file = projectRule.fixture.findFileInTempDir("res/drawable/vector_drawable.xml")!!
     val psiFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(file)!! }
-    // New resource renaming does not require the extension anymore.
-    val newResourceName = if (StudioFlags.RESOLVE_USING_REPOS.get()) "new_name" else "new_name.xml"
-    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename(newResourceName) }
+    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("new_name") }
     Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
     val newValues = listViewModel.getCurrentModuleResourceLists().get()[0].assetSets
