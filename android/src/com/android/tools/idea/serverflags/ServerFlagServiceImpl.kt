@@ -13,8 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.android.tools.idea.serverflags
 
 import com.android.tools.idea.ServerFlag
+import com.google.protobuf.Message
 
-class ServerFlagServiceImpl(private val flags: Map<String, ServerFlag>)
+class ServerFlagServiceImpl(override val configurationVersion: Long, private val flags: Map<String, ServerFlag>) : ServerFlagService {
+  override val initialized: Boolean = true
+  override val names = flags.keys.toList()
+  override fun getString(name: String): String? {
+    val flag = flags[name] ?: return null
+    if (!flag.hasStringValue()) {
+      throw IllegalArgumentException(name)
+    }
+    return flag.stringValue
+  }
+
+  override fun getInt(name: String): Int? {
+    val flag = flags[name] ?: return null
+    if (!flag.hasIntValue()) {
+      throw IllegalArgumentException(name)
+    }
+    return flag.intValue
+  }
+
+  override fun getFloat(name: String): Float? {
+    val flag = flags[name] ?: return null
+    if (!flag.hasFloatValue()) {
+      throw IllegalArgumentException(name)
+    }
+    return flag.floatValue
+  }
+
+  override fun getBoolean(name: String): Boolean? {
+    val flag = flags[name] ?: return null
+    if (!flag.hasBooleanValue()) {
+      throw IllegalArgumentException(name)
+    }
+    return flag.booleanValue
+  }
+
+  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): Message {
+    val flag = flags[name] ?: return defaultInstance
+    if (!flag.hasProtoValue()) {
+      throw IllegalArgumentException(name)
+    }
+    return defaultInstance.parserForType.parseFrom(flag.protoValue)
+  }
+}
+
