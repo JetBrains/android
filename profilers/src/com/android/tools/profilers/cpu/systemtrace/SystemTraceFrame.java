@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.event.EventAction;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Each frame implements parts of {@link DurationData} for easy use in UI components.
  * The frame is a container and is produced by {@link SystemTraceFrameManager}.
  */
-public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> implements DurationData {
+public class SystemTraceFrame implements DurationData {
   public static final SystemTraceFrame EMPTY = new SystemTraceFrame(0, 0, 0, 0, FrameThread.OTHER);
 
   /**
@@ -81,6 +80,16 @@ public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> im
   private SystemTraceFrame myAssociatedFrame;
 
   /**
+   * Start timestamp associated with this frame.
+   */
+  private final long myStartUs;
+
+  /**
+   * End timestamp associated with this frame.
+   */
+  private final long myEndUs;
+
+  /**
    * Total cpu time in seconds this frame was scheduled for.
    */
   private final double myCpuTimeUs;
@@ -111,7 +120,8 @@ public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> im
                           double cpuTimeUs,
                           long longFrameTimeUs,
                           FrameThread thread) {
-    super(startUs, endUs, PerfClass.NOT_SET);
+    myStartUs = startUs;
+    myEndUs = endUs;
     myCpuTimeUs = cpuTimeUs;
     myLongFrameTimeUs = longFrameTimeUs;
     myThread = thread;
@@ -133,6 +143,20 @@ public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> im
 
   public SystemTraceFrame getAssociatedFrame() {
     return myAssociatedFrame;
+  }
+
+  /**
+   * Start timestamp associated with this frame.
+   */
+  public long getStartUs() {
+    return myStartUs;
+  }
+
+  /**
+   * End timestamp associated with this frame.
+   */
+  public long getEndUs() {
+    return myEndUs;
   }
 
   /**
@@ -167,14 +191,5 @@ public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> im
    */
   public double getCpuTimeUs() {
     return myCpuTimeUs;
-  }
-
-  /**
-   * @return Performance class of this frame based on frame length.
-   */
-  @NotNull
-  @Override
-  public PerfClass getType() {
-    return getPerfClass();
   }
 }
