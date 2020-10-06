@@ -129,6 +129,8 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     processedModuleDependencies
   )
 
+  val endCompileIndex = processedLibraries.size
+
   // Setup the dependencies of the test artifact.
   listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
     setupAndroidDependenciesForArtifact(
@@ -158,10 +160,17 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
   }
 
+  val processedLibrarySize = processedLibraries.size
+  var tempOrderIndex = 0
   processedLibraries.forEach { (_, libraryDependencyData) ->
-    libraryDependencyData.order = orderIndex++
+    // We want the Test scope artifacts to appear on the classpath before the compile type artifacts. This is to prevent ensure that
+    // if the same dependency (with a different version) is present as both a test and compile dependency then we use the Test version
+    // when running tests. This should become irrelevant once we switch to running unit tests through Gradle.
+    libraryDependencyData.order =  orderIndex + Math.floorMod((tempOrderIndex++ - endCompileIndex), processedLibrarySize)
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
   }
+  orderIndex += tempOrderIndex
+
   // Due to the way intellij collects classpaths for test (using all transitive deps) we are putting all module dependencies last so that
   // their dependencies will be last on the classpath and not overwrite actual dependencies of the module being tested.
   // This should be removed once we have a way to correct the order of the classpath, or we start running tests via Gradle.
