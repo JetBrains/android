@@ -1242,8 +1242,6 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:unb.androidx-test-core-proto",
         "//tools/adt/idea/android:unb.android-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
-        "//tools/adt/idea/android:android-core-proto",
-        "//tools/adt/idea/android:android-core-proto-test[test]",
     ],
 )
 
@@ -1253,6 +1251,7 @@ iml_module(
     bundled_deps = [
         "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
     ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
@@ -1505,6 +1504,8 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:unb.androidx-test-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto",
+        "//tools/adt/idea/android:unb.android-core-proto-test[test]",
     ],
 )
 
@@ -1512,5 +1513,11 @@ iml_module(
 java_import(
     name = "unb.android-core-proto",
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "unb.android-core-proto-test",
+    jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
     visibility = ["//visibility:public"],
 )
