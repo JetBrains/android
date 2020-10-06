@@ -89,13 +89,4 @@ class ImportUtpResultActionTest {
     ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isTrue()
   }
-
-  @Test
-  fun defaultDisableUtpResultSupport() {
-    val anActionEvent = AnActionEvent(null, DataContext{ projectRule.project },
-                                      ActionPlaces.UNKNOWN, Presentation(),
-                                      ActionManager.getInstance(), 0)
-    ImportUtpResultAction().update(anActionEvent)
-    assertThat(anActionEvent.presentation.isEnabled).isFalse()
-  }
 }
