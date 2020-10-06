@@ -22,48 +22,18 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectio
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.FileDatabaseException
-import com.android.tools.idea.sqlite.OfflineModeManager
-import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.*
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseConnection
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorView
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorViewsFactory
-import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
-import com.android.tools.idea.sqlite.mocks.FakeSchemaProvider
-import com.android.tools.idea.sqlite.mocks.FakeSqliteResultSet
-import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
-import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
-import com.android.tools.idea.sqlite.mocks.OpenOfflineModeManager
-import com.android.tools.idea.sqlite.model.DatabaseFileData
-import com.android.tools.idea.sqlite.model.RowIdName
-import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabaseId
-import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.model.createSqliteStatement
-import com.android.tools.idea.sqlite.ui.mainView.AddColumns
-import com.android.tools.idea.sqlite.ui.mainView.AddTable
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
-import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
-import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
-import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
-import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
+import com.android.tools.idea.sqlite.mocks.*
+import com.android.tools.idea.sqlite.model.*
+import com.android.tools.idea.sqlite.ui.mainView.*
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
@@ -84,24 +54,16 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
-import junit.framework.TestCase
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.*
 import java.util.concurrent.Executor
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -1498,6 +1460,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testEnterOfflineModeSuccess() {
     // Prepare
+    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
+
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)

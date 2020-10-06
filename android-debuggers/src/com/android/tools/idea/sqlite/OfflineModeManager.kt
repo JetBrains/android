@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.ApkFacetChecker
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
@@ -43,7 +47,7 @@ interface OfflineModeManager {
   }
 }
 
-class OfflineModeManagerImpl(project: Project, private val fileDatabaseManager: FileDatabaseManager): OfflineModeManager {
+class OfflineModeManagerImpl(private val project: Project, private val fileDatabaseManager: FileDatabaseManager): OfflineModeManager {
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   /**
@@ -65,28 +69,20 @@ class OfflineModeManagerImpl(project: Project, private val fileDatabaseManager: 
       try {
         emit(OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.IN_PROGRESS, emptyList(), databasesToDownload.size))
 
-        databasesToDownload.forEach { liveSqliteDatabaseId ->
-          try {
-            val databaseFileData = fileDatabaseManager.loadDatabaseFileData(
-              appPackageName ?: processDescriptor.processName,
-              processDescriptor,
-              liveSqliteDatabaseId
-            )
-            downloadedFiles.add(databaseFileData)
-            emit(OfflineModeManager.DownloadProgress(
-              OfflineModeManager.DownloadState.IN_PROGRESS,
-              downloadedFiles.toList(),
-              databasesToDownload.size
-            ))
-          } catch (e: DownloadNotAllowedWhileIndexing) {
-            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
-          } catch (e: FileDatabaseException) {
-            databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
-            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
-          } catch (e: DeviceNotFoundException) {
-            handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
-          }
+        when {
+            isOfflineModeAllowed(appPackageName ?: processDescriptor.processName) -> {
+              downloadFiles(databasesToDownload, appPackageName, processDescriptor, downloadedFiles, handleError)
+            }
+            else -> {
+              handleError(
+                "For security reasons offline mode is disabled when " +
+                "the process being inspected does not correspond to the project open in studio " +
+                "or when the project has been generated from a prebuilt apk.",
+                null
+              )
+            }
         }
+
         emit(OfflineModeManager.DownloadProgress(
           OfflineModeManager.DownloadState.COMPLETED,
           downloadedFiles.toList(),
@@ -100,5 +96,52 @@ class OfflineModeManagerImpl(project: Project, private val fileDatabaseManager: 
         throw e
       }
     }
+  }
+
+  private suspend fun FlowCollector<OfflineModeManager.DownloadProgress>.downloadFiles(
+    databasesToDownload: List<SqliteDatabaseId.LiveSqliteDatabaseId>,
+    appPackageName: String?,
+    processDescriptor: ProcessDescriptor,
+    downloadedFiles: MutableList<DatabaseFileData>,
+    handleError: (String, Throwable?) -> Unit
+  ) {
+    databasesToDownload.forEach { liveSqliteDatabaseId ->
+      try {
+        val databaseFileData = fileDatabaseManager.loadDatabaseFileData(
+          appPackageName ?: processDescriptor.processName,
+          processDescriptor,
+          liveSqliteDatabaseId
+        )
+        downloadedFiles.add(databaseFileData)
+        emit(OfflineModeManager.DownloadProgress(
+          OfflineModeManager.DownloadState.IN_PROGRESS,
+          downloadedFiles.toList(),
+          databasesToDownload.size
+        ))
+      }
+      catch (e: FileDatabaseException) {
+        databaseInspectorAnalyticsTracker.trackOfflineDatabaseDownloadFailed()
+        handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
+      }
+      catch (e: DeviceNotFoundException) {
+        handleError("Can't open offline database `${liveSqliteDatabaseId.path}`", e)
+      }
+    }
+  }
+
+  /**
+   * File download is not allowed if:
+   * 1. the file belongs to an app different from the one open in the studio project
+   * 2. the project comes from a prebuilt apk
+   */
+  private fun isOfflineModeAllowed(packageName: String): Boolean {
+    val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
+      project,
+      packageName,
+      GlobalSearchScope.projectScope(project)
+    )
+
+    val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }
+    return androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
   }
 }

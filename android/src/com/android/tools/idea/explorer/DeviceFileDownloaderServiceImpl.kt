@@ -16,11 +16,7 @@
 package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.catching
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.concurrency.transformAsyncNullable
-import com.android.tools.idea.concurrency.transformNullable
+import com.android.tools.idea.concurrency.*
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
@@ -79,6 +75,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     return Futures.whenAllSucceed(futures).call(Callable { Unit }, taskExecutor)
   }
 
+  // TODO(b/170230430) downloading files seems to trigger indexing.
   private fun doDownload(
     deviceFileSystem: DeviceFileSystem,
     onDevicePaths: List<String>,
