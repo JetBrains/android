@@ -45,7 +45,7 @@ public class NewAutomotiveProjectTest {
 
   @Test
   public void testBuildMediaService() {
-    createAutomotiveProject("Media service", Language.Java);
+    createAutomotiveProject("Media Service", Language.Java);
 
     guiTest.ideFrame().getEditor()
       .open("mobile/build.gradle") // Did we create a mobile "companion" module?
