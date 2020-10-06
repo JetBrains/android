@@ -177,17 +177,23 @@ class AndroidTestApplicationLaunchTask private constructor(
       try {
         val checkLaunchState = object: ITestRunListener {
           private fun checkStatusAndRequestCancel() {
+            // Note: Should not use launchContext.processHandler. The process handler may
+            // be replaced in later launch tasks. For instance ConnectJavaDebuggerTask.
             if (launchStatus.isLaunchTerminated ||
-                launchContext.processHandler.isProcessTerminating ||
-                launchContext.processHandler.isProcessTerminated) {
+                launchStatus.processHandler.isProcessTerminating ||
+                launchStatus.processHandler.isProcessTerminated) {
               runner.cancel()
+              // runner.cancel() stops parsing test results immediately so
+              // no more callback methods will be invoked. So we call testRunEnded()
+              // to notify listeners.
+              myTestListener.testRunEnded(0, mapOf())
             }
           }
           override fun testRunStarted(runName: String?, testCount: Int) = checkStatusAndRequestCancel()
           override fun testStarted(test: TestIdentifier?) = checkStatusAndRequestCancel()
-          override fun testFailed(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
-          override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
-          override fun testIgnored(test: TestIdentifier?) = checkStatusAndRequestCancel()
+          override fun testFailed(test: TestIdentifier?, trace: String?) {}
+          override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {}
+          override fun testIgnored(test: TestIdentifier?) {}
           override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) = checkStatusAndRequestCancel()
           override fun testRunFailed(errorMessage: String?) {}
           override fun testRunStopped(elapsedTime: Long) {}
