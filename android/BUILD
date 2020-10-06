@@ -184,11 +184,12 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:jar",
         "//tools/idea/.idea/libraries:xml-apis",
         "//tools/idea/plugins/webp:intellij.webp[module]",
         "//tools/idea/.idea/libraries:ini4j",
         "//tools/adt/idea/android:android-core-proto",
+        "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
     ],
 )
 
@@ -269,12 +270,10 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
@@ -501,7 +500,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:jar",
         "//tools/idea/.idea/libraries:jaxb-api",
         "//tools/idea/plugins/webp:intellij.webp[module, test]",
         "//tools/idea/.idea/libraries:ini4j[test]",
@@ -758,6 +757,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-safe-args-gradle-plugin/2.3.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-ui-ktx/2.3.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/navigation/navigation-ui/2.3.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/palette/palette-ktx/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/palette/palette/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/preference/preference/1.0.0:aar",
@@ -952,9 +952,9 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.2.1:aar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/support/wearable/2.7.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/support/wearable/2.8.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/1.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/android/wearable/wearable/2.7.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/wearable/wearable/2.8.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value-annotations/1.6.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value/1.6.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
@@ -1149,7 +1149,7 @@ iml_module(
         "//tools/adt/idea/android:unb.moshi",
         "//tools/adt/idea/android/lib:unb.instantapps-api",
         "//tools/adt/idea/android/lib:unb.pepk",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:unb.androidx-test-core-proto",
         "//tools/adt/idea/android:unb.android-core-proto",
     ],
     iml_files = ["intellij.android.core.iml"],
@@ -1228,8 +1228,9 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:unb.androidx-test-core-proto",
         "//tools/adt/idea/android:unb.android-core-proto",
+        "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
     ],
 )
 
@@ -1238,7 +1239,7 @@ iml_module(
     name = "intellij.android.core.tests",
     bundled_deps = [
         "//tools/adt/idea/android/lib:unb.instantapps-api",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:unb.androidx-test-core-proto",
     ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
@@ -1315,12 +1316,10 @@ iml_module(
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
-            # TODO(b/167611852) remove after reducing its run time.
             "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
@@ -1492,7 +1491,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.2-dev:unb.androidx-test-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.4-dev:unb.androidx-test-core-proto",
     ],
 )
 

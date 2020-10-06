@@ -60,42 +60,42 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_MOBILE else AndroidIcons.Wizards.MobileModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.PHONE_TABLET else AndroidIcons.Wizards.MobileModule,
     FormFactor.Mobile
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
     FormFactor.Automotive
   )
 
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Shell.Filetree.ANDROID_PROJECT else AndroidIcons.Wizards.ThingsModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_THINGS else AndroidIcons.Wizards.ThingsModule,
     FormFactor.Things
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_TV else AndroidIcons.Wizards.TvModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_TV else AndroidIcons.Wizards.TvModule,
     FormFactor.Tv
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Avd.DEVICE_WEAR else AndroidIcons.Wizards.WearModule,
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.WEAR_OS else AndroidIcons.Wizards.WearModule,
     FormFactor.Wear
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Shell.Filetree.ANDROID_PROJECT else AndroidIcons.Wizards.AndroidModule
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_LIBRARY else AndroidIcons.Wizards.AndroidModule
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
@@ -107,7 +107,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class AndroidNativeLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.native.library")
     override val description: String = message("android.wizard.module.new.native.library.description")
-    override val icon: Icon = AndroidIcons.Wizards.AndroidNativeModule
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.NATIVE else AndroidIcons.Wizards.AndroidNativeModule
 
     override fun createStep(project: Project,
                             moduleParent: String,

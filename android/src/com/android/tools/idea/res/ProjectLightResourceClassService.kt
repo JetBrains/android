@@ -27,7 +27,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ModuleRClass.Transitivity
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
@@ -217,14 +217,22 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     return moduleClassesCache.getAndUnwrap(facet) {
       val psiManager = PsiManager.getInstance(project)
       // TODO: get this from the model
-      val modifier = if (facet.configuration.isLibraryProject) FieldModifier.NON_FINAL else FieldModifier.FINAL
-      val transitivity = if (facet.module.getModuleSystem().isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
+      val isLibraryProject = facet.configuration.isLibraryProject
+
+      val moduleSystem = facet.module.getModuleSystem()
+      val transitivity = if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
+
+      val fieldModifier =
+        if (isLibraryProject || !moduleSystem.applicationRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+
+      val testFieldModifier =
+        if (isLibraryProject || !moduleSystem.testRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
 
       ResourceClasses(
-        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, transitivity, modifier),
-        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, transitivity, modifier),
-        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, modifier),
-        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, modifier)
+        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, transitivity, fieldModifier),
+        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, transitivity, testFieldModifier),
+        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, fieldModifier),
+        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, testFieldModifier)
       )
     }
   }

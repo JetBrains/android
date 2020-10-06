@@ -157,6 +157,7 @@ public class StudioIcons {
     public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
+    public static final Icon PHYSICAL_DEVICE_THINGS = load("/studio/icons/device-explorer/physical-device-things.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_TV = load("/studio/icons/device-explorer/physical-device-tv.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_WEAR = load("/studio/icons/device-explorer/physical-device-wear.svg"); // 16x16
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.svg"); // 16x16
@@ -742,5 +743,20 @@ public class StudioIcons {
 
   public static class Test {
     public static final Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg"); // 16x16
+  }
+
+  public static class Wizards {
+    public static class Modules {
+      public static final Icon ANDROID_LIBRARY = load("/studio/icons/wizards/modules/android-library.svg"); // 16x16
+      public static final Icon ANDROID_THINGS = load("/studio/icons/wizards/modules/android-things.svg"); // 16x16
+      public static final Icon ANDROID_TV = load("/studio/icons/wizards/modules/android-tv.svg"); // 16x16
+      public static final Icon AUTOMOTIVE = load("/studio/icons/wizards/modules/automotive.svg"); // 16x16
+      public static final Icon BENCHMARK = load("/studio/icons/wizards/modules/benchmark.svg"); // 16x16
+      public static final Icon DYNAMIC_FEATURE = load("/studio/icons/wizards/modules/dynamic-feature.svg"); // 16x16
+      public static final Icon INSTANT_DYNAMIC_FEATURE = load("/studio/icons/wizards/modules/instant-dynamic-feature.svg"); // 16x16
+      public static final Icon NATIVE = load("/studio/icons/wizards/modules/native.svg"); // 16x16
+      public static final Icon PHONE_TABLET = load("/studio/icons/wizards/modules/phone-tablet.svg"); // 16x16
+      public static final Icon WEAR_OS = load("/studio/icons/wizards/modules/wear-os.svg"); // 16x16
+    }
   }
 }

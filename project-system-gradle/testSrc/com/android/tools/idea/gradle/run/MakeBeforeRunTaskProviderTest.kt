@@ -200,7 +200,26 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi"))
   }
 
-  fun testMultipleDeviceArguments() {
+  fun testMultipleDeviceArgumentsMatchingApiLevels() {
+    setUpTestProject()
+    val device1 = mock(AndroidDevice::class.java)
+    val device2 = mock(AndroidDevice::class.java)
+    `when`(device1.version).thenReturn(AndroidVersion(22, null))
+    `when`(device1.density).thenReturn(640)
+    `when`(device1.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
+    `when`(device2.version).thenReturn(AndroidVersion(22, null))
+    `when`(device2.density).thenReturn(480)
+    `when`(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
+    val arguments =
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=22"))
+    for (argument in arguments) {
+      assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
+                  argument.startsWith("-Pandroid.injected.build.abi"))
+    }
+  }
+
+  fun testMultipleDeviceArgumentsDifferingApiLevels() {
     setUpTestProject()
     val device1 = mock(AndroidDevice::class.java)
     val device2 = mock(AndroidDevice::class.java)
@@ -212,8 +231,9 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
     val arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
-    assertTrue(arguments.contains("-Pandroid.injected.build.api=22"))
     for (argument in arguments) {
+      assertFalse("Api levels should not be passed to Gradle when there are multiple devices with different values",
+                  argument.startsWith("-Pandroid.injected.build.api"))
       assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
                   argument.startsWith("-Pandroid.injected.build.abi"))
     }

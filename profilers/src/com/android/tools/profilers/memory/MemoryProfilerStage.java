@@ -683,7 +683,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
   }
 
   @VisibleForTesting
-  void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
+  public void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                              @Nullable Executor joiner) {
     StudioProfilers profilers = getStudioProfilers();
     if (durationData != null &&

@@ -18,12 +18,13 @@ package com.android.tools.idea.npw.project;
 import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
+import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
+import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -69,6 +70,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBEmptyBorder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,6 +79,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -109,6 +112,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
+  private JLabel myAppCompatComment;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -122,6 +126,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .setDescription(message("android.wizard.project.help.appcompat"));
     helpTooltip.installOn(myAppCompatCheck);
     helpTooltip.installOn(myAppCompatHelp);
+    myAppCompatComment.setBorder(new JBEmptyBorder(computeCommentInsets(myAppCompatCheck, true)));
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
@@ -187,8 +192,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
-
-    myValidatorPanel.registerTest(myProjectModel.getUseAppCompat().not(), WARNING, message("android.wizard.validate.select.appcompat"));
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
@@ -308,5 +311,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myProjectLanguage = new LanguageComboProvider().createComponent();
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
+    myAppCompatComment = createCommentComponent(message("android.wizard.validate.select.appcompat"), true);
   }
 }

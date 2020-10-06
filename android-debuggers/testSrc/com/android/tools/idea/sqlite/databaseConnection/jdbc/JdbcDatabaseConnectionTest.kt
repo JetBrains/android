@@ -183,20 +183,6 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))
   }
 
-  fun testResultSetCanceledOnDisposed() {
-    // Prepare
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
-    )
-    Disposer.dispose(resultSet)
-    val error = pumpEventsAndWaitForFutureCancellation(resultSet.getRowBatch(0,3))
-
-    // Assert
-    assertThat(error).isNotNull()
-  }
-
   fun testExecuteQueryFailsWhenIncorrectTableName() {
     // Prepare
 

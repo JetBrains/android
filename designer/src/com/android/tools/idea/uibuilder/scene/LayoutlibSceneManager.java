@@ -225,9 +225,6 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  /** Time it took to render. It does not account for inflation time. */
-  private long myRenderTimeMs = 0;
-
   /** Counter for user touch events during the interactive session. */
   private AtomicInteger myTouchEventsCounter = new AtomicInteger(0);
 
@@ -452,6 +449,20 @@ public class LayoutlibSceneManager extends SceneManager {
       else {
         disposeRenderTask();
       }
+    }
+  }
+
+  private void updateRenderTask(@Nullable RenderTask newTask) {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask != null && !myRenderTask.isDisposed()) {
+        try {
+          myRenderTask.dispose();
+        } catch (Throwable t) {
+          Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+        }
+      }
+      myTaskStartTimeNanos = System.nanoTime();
+      myRenderTask = newTask;
     }
   }
 
@@ -863,11 +874,6 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  /** Returns time it took to render. It does not account for inflation time. */
-  public long getTotalRenderTime() {
-    return myRenderTimeMs;
-  }
-
   private void updateHierarchy(@Nullable RenderResult result) {
     try {
       myUpdateHierarchyLock.acquire();
@@ -987,72 +993,50 @@ public class LayoutlibSceneManager extends SceneManager {
               newTask.dispose();
             }
             else {
-              // Update myRenderTask with the new task
-              synchronized (myRenderingTaskLock) {
-                if (myRenderTask != null && !myRenderTask.isDisposed()) {
-                  try {
-                    myRenderTask.dispose();
-                  } catch (Throwable t) {
-                    Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-                  }
-                }
-                myTaskStartTimeNanos = System.nanoTime();
-                myRenderTask = newTask;
-              }
+              updateRenderTask(newTask);
             }
           })
             .handle((result, exception) -> {
               if (result != null) {
-                CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, System.currentTimeMillis() - startInflateTimeMs, true);
-                return result;
+                return result.createWithDuration(System.currentTimeMillis() - startInflateTimeMs);
               } else {
                 return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
               }
-            })
-            .thenApply(result -> {
-              if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
-                return result;
-              }
-
-              updateHierarchy(result);
-              myRenderResultLock.writeLock().lock();
-              try {
-                updateCachedRenderResult(result);
-              }
-              finally {
-                myRenderResultLock.writeLock().unlock();
-              }
-
-              return result;
             });
         }
         else {
-          synchronized (myRenderingTaskLock) {
-            if (myRenderTask != null && !myRenderTask.isDisposed()) {
-              try {
-                myRenderTask.dispose();
-              } catch (Throwable t) {
-                Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-              }
-              myRenderTask = null;
-            }
-          }
-          RenderResult result = RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger);
-          myRenderResultLock.writeLock().lock();
-          try {
-            updateCachedRenderResult(result);
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
+          updateRenderTask(null);
 
-          return CompletableFuture.completedFuture(result);
+          return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
-      });
+      })
+      .thenApply(result -> {
+        // Could be simplified even more in the future (just updates the RenderResult)
+        myRenderResultLock.writeLock().lock();
+        try {
+          updateCachedRenderResult(result);
+        }
+        finally {
+          myRenderResultLock.writeLock().unlock();
+        }
+
+        return result;
+      })
+      .thenApply(result -> {
+        // Updates hierarchy if applicable or noop
+        if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
+          return result;
+        }
+
+        updateHierarchy(result);
+
+        return result;
+      })
+      .thenApply(result -> logIfSuccessful(result, null, true));
   }
 
   @GuardedBy("myRenderResultLock")
-  private void updateCachedRenderResult(RenderResult result) {
+  private void updateCachedRenderResult(@NotNull RenderResult result) {
     if (myRenderResult != null && myRenderResult != result) {
       myRenderResult.dispose();
     }
@@ -1144,6 +1128,16 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @Nullable
+  private RenderResult logIfSuccessful(@Nullable RenderResult result,
+                                       @Nullable LayoutEditorRenderResult.Trigger trigger,
+                                       boolean wasInflated) {
+    if (result != null && result.getRenderResult().isSuccess()) {
+      CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, wasInflated);
+    }
+    return result;
+  }
+
   /**
    * Renders the current model asynchronously. Once the render is complete, the render callbacks will be called.
    * <p/>
@@ -1168,13 +1162,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl(trigger)
-        .handle((result, exception) -> {
-          if (exception != null) {
-            return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
-          }
-          return result;
-        })
+      return renderImpl()
+        .thenApply(result -> logIfSuccessful(result, trigger, false))
         .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
@@ -1257,7 +1246,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private CompletableFuture<RenderResult> renderImpl() {
     return inflate(myForceInflate.getAndSet(false))
       .whenCompleteAsync((result, ex) -> {
         if (ex != null) {
@@ -1274,9 +1263,7 @@ public class LayoutlibSceneManager extends SceneManager {
         synchronized (myRenderingTaskLock) {
           if (myRenderTask == null) {
             getDesignSurface().updateErrorDisplay();
-            // The render task was not initialized, this means that inflate did not succeed. Return the inflation
-            // result.
-            return CompletableFuture.completedFuture(inflateResult);
+            return CompletableFuture.completedFuture(null);
           }
           long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {
@@ -1288,12 +1275,17 @@ public class LayoutlibSceneManager extends SceneManager {
               updateHierarchy(result);
             }
             if (result != null) {
-              myRenderTimeMs = System.currentTimeMillis() - startRenderTimeMs;
-              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, myRenderTimeMs, false);
+              return result.createWithDuration(System.currentTimeMillis() - startRenderTimeMs);
             }
-            return result;
+            return null;
           });
         }
+      })
+      .handle((result, exception) -> {
+        if (exception != null) {
+          return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+        }
+        return result;
       });
   }
 

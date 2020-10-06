@@ -35,23 +35,43 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.PsiExpressionEvaluator
+import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.refactoring.getLineNumber
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.types.TypeUtils
 import java.util.Objects
 
+@FunctionalInterface
 interface PsiElementUniqueIdProvider {
+  /**
+   * Returns a unique id for the given element. This can be used for find an alternative tracking id that does not require holding the whole
+   * [PsiElement]. It can be used for example for logging.
+   */
   fun getUniqueId(element: PsiElement): String
+}
+
+@FunctionalInterface
+interface PsiElementLiteralUsageReferenceProvider {
+  /**
+   * Returns a [LiteralUsageReference] for the given [element] or null it was not possible to find a
+   * reference, for example if element is not a valid literal.
+   */
+  fun getLiteralUsageReference(element: PsiElement): LiteralUsageReference?
 }
 
 /**
@@ -77,14 +97,35 @@ object SimplePsiElementUniqueIdProvider : PsiElementUniqueIdProvider {
 }
 
 /**
+ * Default implementation of [PsiElementLiteralUsageReferenceProvider] that creates [LiteralUsageReference]s using
+ * the FQN for the class and method name where the [PsiElement] is contained.
+ */
+private object DefaultPsiElementLiteralUsageReferenceProvider: PsiElementLiteralUsageReferenceProvider {
+  override fun getLiteralUsageReference(element: PsiElement): LiteralUsageReference? =
+    when (element) {
+      is KtElement -> {
+        val className = element.containingClass()?.fqName ?: FqName(element.containingKtFile.findFacadeClass()?.qualifiedName ?: "")
+        val methodPath = getTopMostParentFunction(element)
+        val methodName = if (methodPath.isRoot) "<init>" else methodPath.asString()
+        LiteralUsageReference(FqName("$className.$methodName"), element.getLineNumber())
+      }
+      else -> {
+        val className = PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.qualifiedName?.let { "$it."} ?: ""
+        val methodName = PsiTreeUtil.getContextOfType(element, PsiMethod::class.java)?.name ?: "<init>"
+        LiteralUsageReference(FqName("$className.$methodName"), element.getLineNumber())
+      }
+    }
+}
+
+/**
  * A reference to a literal constant.
  */
 interface LiteralReference {
   /** The initial range for the constant. Can be used for sorting and/or highlighting. */
   val initialTextRange: TextRange
 
-  /** Identifier containing the class name and method name where this literal is declared. */
-  val elementPath: String
+  /** [LiteralUsageReference]s of the usages of this literal */
+  val usages: Collection<LiteralUsageReference>
 
   /** Returns whether this element is still valid (exists in the PSI) */
   val isValid: Boolean
@@ -95,7 +136,10 @@ interface LiteralReference {
   /** The text value of [constantValue]. */
   val text: String
 
-  /** The constant value. */
+  /** The initial constant value. */
+  val initialConstantValue: Any
+
+  /** The current constant value. */
   val constantValue: Any?
 }
 
@@ -132,39 +176,54 @@ private object PsiTextConstantEvaluator : ConstantEvaluator {
   override fun evaluate(expression: PsiElement): Any? = expression.text
 }
 
-data class ElementPath(val className: String, val methodName: String) {
-  override fun toString(): String = "${className}.${methodName}"
+/**
+ * A usage of a literal. This records the usage positional [FqName]. Think about it as
+ * the identifier of where a literal is used.
+ */
+data class LiteralUsageReference(val fqName: FqName, val lineNumber: Int) {
+  override fun toString(): String = "$fqName:$lineNumber"
 }
 
-private fun elementPath(element: PsiElement): String {
-  val (className, methodName) = when (element) {
-    is KtElement -> {
-      val className =
-        element.containingClass()?.fqName ?: element.containingKtFile.findFacadeClass()?.getQualifiedName() ?: ""
-      val methodName = PsiTreeUtil.getContextOfType(element, KtNamedFunction::class.java)?.name
+/**
+ * Finds the top most outer parent function and returns the FqName.
+ */
+private fun getTopMostParentFunction(element: KtElement): FqName {
+  val parent = PsiTreeUtil.getContextOfType(element, KtFunction::class.java)
+  return if (parent != null) {
+    getTopMostParentFunction(parent).child(Name.identifier(parent.name!!))
+  }
+  else {
+    FqName.ROOT
+  }
+}
 
-      className to methodName
-    }
-    else -> {
-      PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.getQualifiedName() to PsiTreeUtil.getContextOfType(element,
-                                                                                                                      PsiMethod::class.java)?.name
+/**
+ * Finds the usages for the given constant [PsiElement].
+ */
+private fun findUsages(constantElement: PsiElement,
+                       usageReferenceProvider: PsiElementLiteralUsageReferenceProvider): Collection<LiteralUsageReference> =
+  if (constantElement.parent is KtProperty) {
+    // Properties are used in other places so we must find the usages of the variable, not from the literal itself.
+    ReferencesSearch.search(constantElement.parent).findAll().mapNotNull { reference ->
+      usageReferenceProvider.getLiteralUsageReference(reference.element)
     }
   }
-
-  return "$className.${methodName ?: "<init>"}"
-}
+  else {
+    listOfNotNull(usageReferenceProvider.getLiteralUsageReference(constantElement))
+  }
 
 /**
  * [LiteralReference] implementation that keeps track of modifications.
  */
 private class LiteralReferenceImpl(originalElement: PsiElement,
                                    uniqueIdProvider: PsiElementUniqueIdProvider,
+                                   usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
+                                   override val initialConstantValue: Any,
                                    private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
   private val elementPointer: SmartPsiElementPointer<PsiElement> = SmartPointerManager.createPointer(originalElement)
-  override val elementPath = elementPath(originalElement)
+  override val usages = findUsages(originalElement, usageReferenceProvider)
   override val initialTextRange: TextRange = originalElement.textRange
   override val uniqueId = uniqueIdProvider.getUniqueId(originalElement)
-  private val initialConstantValue = constantEvaluator.evaluate(originalElement)
   private var lastCachedConstantValue = initialConstantValue
   val element: PsiElement?
     get() = ReadAction.compute<PsiElement?, Throwable> { elementPointer.element }
@@ -202,6 +261,8 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
 
 /**
  * A snapshot for a list of [LiteralReference]s frozen in time. You can obtain a new updated snapshot by calling [newSnapshot].
+ *
+ * The snapshot can be highlighter in the editor by calling [highlightSnapshotInEditor].
  */
 interface LiteralReferenceSnapshot {
   /**
@@ -245,7 +306,15 @@ private class LiteralReferenceSnapshotImpl(references: Collection<LiteralReferen
   override fun newSnapshot(): LiteralReferenceSnapshot = LiteralReferenceSnapshotImpl(tracking.keys)
 }
 
-class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider = SimplePsiElementUniqueIdProvider) {
+/**
+ * Class that manages the literals present in a [PsiElement] tree. Use this class to obtain an snapshot of the
+ * literals present in a [PsiElement].
+ *
+ * @param uniqueIdProvider A [PsiElementUniqueIdProvider] used to uniquely identify the literals found by this manager.
+ */
+class LiteralsManager(
+  private val uniqueIdProvider: PsiElementUniqueIdProvider = SimplePsiElementUniqueIdProvider,
+  private val literalUsageReferenceProvider: PsiElementLiteralUsageReferenceProvider = DefaultPsiElementLiteralUsageReferenceProvider) {
   private fun findLiterals(root: PsiElement,
                            expressionType: Class<*>,
                            constantEvaluator: ConstantEvaluator,
@@ -258,9 +327,9 @@ class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider =
 
           if (expressionType.isInstance(element)) {
             constantEvaluator.evaluate(element)?.let {
-              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider, constantEvaluator))
+              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider, it, constantEvaluator))
               // Finish the expression recursion as soon as we have a valid constant.
-              // This is done so for an expression like 3 + 2, we only higlight the expression and not the individual terms.
+              // This is done so for an expression like 3 + 2, we only highlight the expression and not the individual terms.
               return
             }
 
@@ -272,7 +341,7 @@ class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider =
               // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
               element.entries.forEach {
                 if (it is KtLiteralStringTemplateEntry) {
-                  savedLiterals.add(LiteralReferenceImpl(it, uniqueIdProvider, PsiTextConstantEvaluator))
+                  savedLiterals.add(LiteralReferenceImpl(it, uniqueIdProvider, literalUsageReferenceProvider, it.text, PsiTextConstantEvaluator))
                 }
               }
               return
@@ -287,10 +356,14 @@ class LiteralsManager(private val uniqueIdProvider: PsiElementUniqueIdProvider =
     return LiteralReferenceSnapshotImpl(savedLiterals)
   }
 
+  /**
+   * Finds the literals in the given tree root [PsiElement] and returns a [LiteralReferenceSnapshot].
+   */
   fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
     if (root.language == KotlinLanguage.INSTANCE) {
       findLiterals(root, KtExpression::class.java, KotlinConstantEvaluator) {
-        it !is KtAnnotationEntry
+        it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
+        && it !is KtSimpleNameExpression // Exclude variable constants.
       }
     }
     else {

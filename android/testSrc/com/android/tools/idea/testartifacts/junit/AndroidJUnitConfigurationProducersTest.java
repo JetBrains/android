@@ -39,6 +39,7 @@ import org.gradle.internal.impldep.com.google.common.collect.Lists;
 /**
  * Tests for all the {@link AndroidJUnitConfigurationProducer}s
  */
+// TODO(karimai): delete this test when the test Runner is only Gradle.
 public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCase {
 
   @Override

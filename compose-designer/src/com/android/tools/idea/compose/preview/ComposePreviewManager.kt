@@ -114,6 +114,11 @@ interface ComposePreviewManager {
    * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
    */
   var animationInspectionPreviewElementInstance: PreviewElementInstance?
+
+  /**
+   * Enables/disables live literals in the preview.
+   */
+  var isLiveLiteralsEnabled: Boolean
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

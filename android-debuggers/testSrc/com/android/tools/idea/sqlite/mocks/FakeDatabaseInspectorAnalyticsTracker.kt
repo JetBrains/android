@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
-class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker {
+open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker {
   override fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind) {
   }
 
@@ -43,8 +43,10 @@ class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTracker 
   }
 
   var offlineDownloadFailed: Boolean? = null
+  var offlineDownloadFailedCount = 0
   override fun trackOfflineDatabaseDownloadFailed() {
     offlineDownloadFailed = true
+    offlineDownloadFailedCount += 1
   }
 
   var metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata? = null

@@ -94,7 +94,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
-    true);
+    false);
   //endregion
 
   //region Profiler
@@ -235,7 +235,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS = Flag.create(
     NELE, "editor.color.picker", "Enable popup color resource picker for java and kotlin files.",
     "Show the popup color resource picker when clicking the gutter icon of color resource in java and kotlin files.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
     NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
@@ -537,6 +537,14 @@ public final class StudioFlags {
     "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
     false
   );
+
+  public static final Flag<Boolean> GRADLE_UNIT_TESTING = Flag.create(
+    RUNDEBUG,
+    "run.unit.tests.via.gradle",
+    "Run Android unit tests through Gradle",
+    "Switch to running unit tests via Gradle Tooling API instead of JUnit",
+    false
+  );
   //endregion
 
   //region Gradle Project System
@@ -725,13 +733,6 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
-    EDITOR, "multidexkeepfile.support.enabled",
-    "Enable support for MultiDexKeepFile format",
-    "If enabled, it offers support (such as code completion) for the MultiDexKeepFile format.",
-    true
-  );
-
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
     EDITOR, "advanced.jni.assistance",
     "Enable advanced JNI assistance",
@@ -855,23 +856,23 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
     COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
     "If enabled, the refresh button will only trigger the \"compileDebugKotlin\" task as opposed to others like" +
     "\"generateDebugSources\" or \"compileJava\".",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
     COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
     "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
@@ -882,42 +883,42 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",
     "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
     "all flags in the `compose.editor.*` namespace.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "editor.completion.presentation",
     "Custom presentation for code completion items for composable functions",
     "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "editor.completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
     COMPOSE, "editor.completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
@@ -938,35 +939,42 @@ public final class StudioFlags {
     COMPOSE, "editor.function.extraction",
     "Enables extracting @Composable function from other composables",
     "If enabled, function extracted from @Composable function will annotated @Composable",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(
     COMPOSE, "preview.animated.enable",
     "Enable animated compose preview",
     "If enabled, a user can switch compose preview to be animated",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
     COMPOSE, "preview.animated.click.enable",
     "Enable displaying clicks on the animated preview",
     "If enabled, clicking on the animated preview will generate a ripple",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
     COMPOSE, "preview.animation.inspector",
     "Enable compose preview animation inspection",
     "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    true
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
+    COMPOSE, "preview.live.literals",
+    "Enable the live literals",
+    "If enabled, the live literals feature is enabled",
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
@@ -994,7 +1002,7 @@ public final class StudioFlags {
     COMPOSE, "preview.animated.quick",
     "Speed up transition between static and animated compose previews",
     "If enabled, a transition between static and animated compose preview is almost instant",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
@@ -1028,7 +1036,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
     WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
-    true
+    false
   );
 
   //region Device Manager

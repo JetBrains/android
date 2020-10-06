@@ -536,6 +536,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
-    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo("android.nonTransitiveRClass=true")
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo(
+      """
+        android.experimental.nonTransitiveAppRClass=true
+        android.nonTransitiveRClass=true
+      """.trimIndent()
+    )
   }
 }

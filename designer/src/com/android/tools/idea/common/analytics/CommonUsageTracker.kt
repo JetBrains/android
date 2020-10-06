@@ -44,7 +44,7 @@ interface CommonUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long, wasInflated: Boolean)
+  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, wasInflated: Boolean)
 
   /**
    * Logs the given design tools event. This method will return immediately.

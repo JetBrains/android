@@ -36,11 +36,13 @@ import javax.swing.table.TableRowSorter
 /**
  * A view that consists of a paginated [JBTable] and pagination controls.
  *
- * @param tableModel model to create the paginated table
+ * @param pageSizeValues page size values to pre-populate in the dropdown. When empty, the dropdown will be hidden.
+ * @property tableModel model to create the paginated table. When its initial page size is set to one of the pre-populated values, it will
+ *                      be pre-selected in the dropdown.
  * @property table the underlying [JBTable]
  * @property component view component that wraps a table and the pagination controls.
  */
-class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
+class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeValues: Array<Int> = emptyArray()) {
   val table: JBTable
   val component: JComponent
 
@@ -60,7 +62,7 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
   val pageInfoLabel = JLabel()
 
   @VisibleForTesting
-  val pageSizeComboBox = ComboBox<Int>(PAGE_SIZE_VALUES)
+  val pageSizeComboBox = ComboBox(pageSizeValues)
 
   init {
     table = JBTable(tableModel).apply {
@@ -127,8 +129,7 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
       }
     }
     pageSizeComboBox.apply {
-      isEnabled = true
-      isEditable = true
+      isVisible = itemCount > 0
       selectedItem = tableModel.pageSize
       addActionListener {
         tableModel.updatePageSize(item)
@@ -151,10 +152,9 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel) {
   }
 
   private companion object {
-    val FIRST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_START
-    val LAST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_END
-    val PREV_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK
-    val NEXT_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.NEXT_TICK
-    val PAGE_SIZE_VALUES = arrayOf(10, 20, 30, 40, 50)
+    private val FIRST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_START
+    private val LAST_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.GO_TO_END
+    private val PREV_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK
+    private val NEXT_PAGE_ICON: Icon = StudioIcons.LayoutEditor.Motion.NEXT_TICK
   }
 }

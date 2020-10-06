@@ -127,7 +127,6 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:studio-grpc[test]",
         "//tools/idea/.idea/libraries:truth[test]",
@@ -207,7 +206,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
         "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:unb.truth[test]",

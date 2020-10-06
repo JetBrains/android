@@ -194,6 +194,10 @@ public class IssueView extends JPanel {
 
     if (myIsExpanded) {
       myErrorDescription.setText(myErrorDescriptionContent);
+      // After setting the content, we need the component to revalidate to re-measure. validate() does not trigger a new setSize after
+      // the text has been update but, getPreferredSize() does.
+      // b/168682770
+      myErrorDescription.getPreferredSize();
     }
     else {
       // Remove all the HTML content since it will not be visible and this speeds up the layout.
@@ -202,12 +206,14 @@ public class IssueView extends JPanel {
 
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
-    myContainerIssuePanel.revalidate();
-    myContainerIssuePanel.repaint();
+
     IssuePanel.ExpandListener expandListener = myContainerIssuePanel.getExpandListener();
     if (expandListener != null) {
       expandListener.onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
     }
+
+    revalidate();
+    repaint();
   }
 
   /**

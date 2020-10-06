@@ -35,6 +35,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
@@ -54,6 +55,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
+import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -956,6 +958,16 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertFalse(liveUpdatesCheckBox.isEnabled)
+  }
+
+  fun testNoSortingAfterResetView() {
+    view.setColumnSortIndicator(OrderBy.Asc("col"))
+
+    assertEquals(view.orderBy, OrderBy.Asc("col"))
+
+    view.resetView()
+
+    assertEquals(view.orderBy, OrderBy.NotOrdered)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

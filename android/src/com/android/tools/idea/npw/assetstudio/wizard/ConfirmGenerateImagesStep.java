@@ -30,10 +30,6 @@ import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
 import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
 import com.android.tools.idea.npw.assetstudio.IconCategory;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.rendering.VectorDrawableTransformer;
-import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -42,6 +38,10 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.rendering.VectorDrawableTransformer;
+import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -144,7 +144,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private Document myXmlPreviewDocument;
 
   private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
-  private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
+  private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
+  private ProposedFileTreeModel myProposedFileTreeModel;
 
   public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
@@ -171,8 +172,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       showSelectedNodeDetails(newPath);
     });
 
-    String alreadyExistsError = WizardUtils.toHtmlString(
-        "Some existing files (shown in red) will be overwritten by this operation.");
+    String alreadyExistsError = WizardUtils.toHtmlString("Some files (shown in red) will overwrite existing files.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
 
     myPreviewIcon = new JBLabel();
@@ -403,6 +403,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Override
   protected void onProceeding() {
     getModel().setPaths(mySelectedTemplate.get().getPaths());
+    getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
   @Override
@@ -441,10 +442,10 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         .orderedBy(new DensityAwareFileComparator(outputDirectories))
         .addAll(myPathToPreviewImage.keySet())
         .build();
-      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), proposedFiles);
+      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), proposedFiles);
 
-      myFilesAlreadyExist.set(treeModel.hasConflicts());
-      myOutputPreviewTree.setModel(treeModel);
+      myFilesAlreadyExist.set(myProposedFileTreeModel.hasConflicts());
+      myOutputPreviewTree.setModel(myProposedFileTreeModel);
 
       // The tree should be totally expanded by default
       // Note: There is subtle behavior here: even though we merely expand "rows", we
@@ -458,7 +459,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
         TreePath rowPath = myOutputPreviewTree.getPathForRow(i);
         if (rowPath != null) {
-          if (treeModel.isLeaf(rowPath.getLastPathComponent())) {
+          if (myProposedFileTreeModel.isLeaf(rowPath.getLastPathComponent())) {
             myOutputPreviewTree.setSelectionRow(i);
             break;
           }

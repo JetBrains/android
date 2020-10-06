@@ -21,7 +21,10 @@ import com.android.tools.idea.emulator.EMULATOR_TOOL_WINDOW_NOTIFICATION_GROUP
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorId
 import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.actions.dialogs.BootMode
+import com.android.tools.idea.emulator.actions.dialogs.BootType
 import com.android.tools.idea.emulator.actions.dialogs.CreateSnapshotDialog
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotManager
 import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications

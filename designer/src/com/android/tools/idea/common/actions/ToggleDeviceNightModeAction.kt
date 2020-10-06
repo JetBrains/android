@@ -30,6 +30,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 class ToggleDeviceNightModeAction : AnAction() {
 
   override fun update(e: AnActionEvent) {
+    if (isActionEventFromJTextField(e)) {
+      e.presentation.isEnabled = false
+      return
+    }
     e.presentation.isEnabled = e.getData(DESIGN_SURFACE) != null
   }
 

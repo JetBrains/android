@@ -1,0 +1,5 @@
+buildscript {
+  ext {
+    kotlin_version = '1.2.3'
+  }
+}

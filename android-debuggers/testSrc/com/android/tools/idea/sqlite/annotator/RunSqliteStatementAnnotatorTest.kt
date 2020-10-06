@@ -60,8 +60,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
       model = model,
-      offlineDatabaseManager = mock(),
-      createController = { _, _, _ ->
+      fileDatabaseManager = mock(),
+      createController = { _, _, _, _ ->
         FakeDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model)
       }
     )

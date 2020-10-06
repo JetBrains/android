@@ -39,6 +39,7 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
+import com.android.tools.idea.compose.preview.literals.LiveLiteralsManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
@@ -92,6 +93,7 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.problems.WolfTheProblemSolver
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
@@ -155,24 +157,30 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
  * @param showDecorations when true, the rendered content will be shown with the full device size specified in
  * the device configuration and with the frame decorations.
  * @param isInteractive whether the scene displays an interactive preview.
- * @param usePrivateClassLoader whether the scene manager should use a private ClassLoader.
+ * @param requestPrivateClassLoader whether the scene manager should use a private ClassLoader.
  */
 private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
                                            showDecorations: Boolean,
                                            isInteractive: Boolean,
-                                           usePrivateClassLoader: Boolean,
-                                           isLiveLiteralsEnabled: Boolean,
+                                           requestPrivateClassLoader: Boolean,
+                                           liveLiteralsClasses: Set<String>,
                                            forceReinflate: Boolean = true): LayoutlibSceneManager =
   sceneManager.apply {
+    val isLiveLiteralsEnabled = liveLiteralsClasses.isNotEmpty()
+    val usePrivateClassLoader = requestPrivateClassLoader || isLiveLiteralsEnabled
     val reinflate = forceReinflate || changeRequiresReinflate(showDecorations, isInteractive, usePrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
     interactive = isInteractive
-    isUsePrivateClassLoader = isLiveLiteralsEnabled || usePrivateClassLoader
+    isUsePrivateClassLoader = usePrivateClassLoader
     if (isLiveLiteralsEnabled) {
       setProjectClassesTransform {
-        LiveLiteralsTransform(it) { _, _ -> true }
+        LiveLiteralsTransform(it) {
+          // For now, we only instrument the currently open class and inner classes. However, if we want to allow changes in
+          // other files, we would need to instrument all.
+          className, _ -> liveLiteralsClasses.contains(className.substringBefore('$'))
+        }
       }
     }
     setQuality(0.7f)
@@ -320,6 +328,25 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
   }
+
+  private val liveLiteralsManager = LiveLiteralsManager(project, this, psiFilePointer) {
+    surface.layoutlibSceneManagers.forEach {
+      it.forceReinflate()
+      it.requestRender()
+    }
+  }
+
+  override var isLiveLiteralsEnabled: Boolean
+    get() = liveLiteralsManager.isEnabled
+    set(value) {
+      liveLiteralsManager.isEnabled = value
+      forceRefresh()
+    }
+
+  /**
+   * List of classes to instrument for Live Literals. For now, we only instrument the classes that are part of the current editor.
+   */
+  private var cachedLiveLiteralsClasses = emptySet<String>()
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -651,6 +678,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     } ?: return
 
+    // If Live Literals is enabled, fine the list of classes in the current open file and cached them.
+    // We will only instrument these classes. Changes in literals in other classes will not refresh the preview.
+    cachedLiveLiteralsClasses = if (isLiveLiteralsEnabled && psiFile is PsiClassOwner) {
+      ReadAction.compute<Set<String>, Throwable> {
+        (psiFile as? PsiClassOwner)?.classes?.mapNotNull { it.qualifiedName?.replace('.', '/') }?.toSet() ?: emptySet()
+      }
+    }
+    else emptySet()
+
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
 
@@ -714,8 +750,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureLayoutlibSceneManager(surface.addModelWithoutRender(reusedModel) as LayoutlibSceneManager,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
-                                         usePrivateClassLoader = usePrivateClassLoader(),
-                                         isLiveLiteralsEnabled = false,
+                                         requestPrivateClassLoader = usePrivateClassLoader(),
+                                         liveLiteralsClasses = cachedLiveLiteralsClasses,
                                          forceReinflate = forceReinflate)
           reusedModel
         }
@@ -739,8 +775,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureLayoutlibSceneManager(surface.addModelWithoutRender(newModel) as LayoutlibSceneManager,
                                          showDecorations = previewElement.displaySettings.showDecoration,
                                          isInteractive = interactiveMode.isStartingOrReady(),
-                                         isLiveLiteralsEnabled = false,
-                                         usePrivateClassLoader = usePrivateClassLoader())
+                                         liveLiteralsClasses = cachedLiveLiteralsClasses,
+                                         requestPrivateClassLoader = usePrivateClassLoader())
           newModel
         }
 
@@ -859,8 +895,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                 configureLayoutlibSceneManager(sceneManager,
                                                showDecorations = previewElement.displaySettings.showDecoration,
                                                isInteractive = interactiveMode.isStartingOrReady(),
-                                               usePrivateClassLoader = usePrivateClassLoader(),
-                                               isLiveLiteralsEnabled = false,
+                                               requestPrivateClassLoader = usePrivateClassLoader(),
+                                               liveLiteralsClasses = cachedLiveLiteralsClasses,
                                                forceReinflate = false)
                   .requestComposeRender()
                   .await()
@@ -921,6 +957,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   /**
    * We will only do quick refresh if there is a single preview.
+   * When live literals is enabled, we want to try to preserve the same class loader as much as possible.
    */
-  private fun shouldQuickRefresh() = StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements.count() == 1
+  private fun shouldQuickRefresh() =
+    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements.count() == 1
 }

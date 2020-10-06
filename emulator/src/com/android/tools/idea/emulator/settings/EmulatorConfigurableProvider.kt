@@ -21,7 +21,7 @@ import com.intellij.openapi.options.ConfigurableProvider
 /**
  * Provider of Emulator-related Settings pages.
  */
-internal class EmulatorConfigurableProvider : ConfigurableProvider() {
+class EmulatorConfigurableProvider : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable {
     return EmulatorSettingsUi()

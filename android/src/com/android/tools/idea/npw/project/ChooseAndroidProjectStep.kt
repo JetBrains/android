@@ -48,6 +48,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -56,6 +57,7 @@ import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionListener
 
 private const val TABLE_CELL_WIDTH = 240
@@ -149,7 +151,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       val titleLabel = JBLabel("Project Type").apply {
         isOpaque = true
         background = UIUtil.getListBackground()
-        foreground = UIUtil.getListSelectionBackground(false)
+        foreground = UIUtil.getHeaderActiveColor()
         preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
         border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
       }
@@ -158,12 +160,15 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
         JBLabel(value.formFactor.toString()).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
+          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
           border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
 
           val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
           preferredSize = size
         }
       }
+      AccessibleContextUtil.setName(leftList, message("android.wizard.project.new.choose"))
+      leftList.selectionMode = ListSelectionModel.SINGLE_SELECTION
       leftList.setListData(formFactors.toTypedArray())
       leftList.selectedIndex = 0
       listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList)) { formFactorInfo ->

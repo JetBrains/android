@@ -4,7 +4,6 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
-import static org.jetbrains.android.AndroidAnnotatorUtil.createSetXmlAttributeTask;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
@@ -14,6 +13,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.HashCodes;
@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -33,10 +34,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
@@ -47,9 +46,12 @@ import icons.StudioIcons;
 import java.awt.MouseInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
 import javax.swing.SwingConstants;
+import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,13 +68,8 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @NotNull private final AndroidFacet myFacet;
   @Nullable private final VirtualFile myFile;
   @NotNull private final Configuration myConfiguration;
-  @NotNull private final Consumer<String> mySetAttributeTask;
-
-  /**
-   * TODO(b/163360968): Remove 'myCanModify' once we properly support writing in Kotlin and Java files. Currently,
-   * {@link org.jetbrains.android.AndroidAnnotatorUtil#createSetXmlAttributeTask(PsiElement)} only works on XML files.
-   */
-  private final boolean myCanModify;
+  @NotNull private final Boolean myEditingXmlFile;
+  @NotNull private final Consumer<String> myAttributeTask;
 
   /**
    * @param element          {@link PsiElement} being annotated, usually an XML attribute or tag.
@@ -90,9 +87,8 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     myFacet = facet;
     myFile = file;
     myConfiguration = configuration;
-    mySetAttributeTask = createSetXmlAttributeTask(element);
-    PsiFile containingFile = ApplicationManager.getApplication().runReadAction((Computable<PsiFile>)element::getContainingFile);
-    myCanModify = containingFile != null && containingFile.getFileType() == XmlFileType.INSTANCE;
+    myEditingXmlFile = ReadAction.compute(element::getContainingFile).getFileType() == XmlFileType.INSTANCE;
+    myAttributeTask = new AndroidAnnotatorUtil.SetAttributeConsumer(element, ResourceType.DRAWABLE);
   }
 
   @Override
@@ -107,7 +103,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   @Nullable
   public AnAction getClickAction() {
-    return myCanModify ? new GutterIconClickAction(myFile, myResourceResolver, myFacet, myConfiguration) : null;
+    return new GutterIconClickAction(myFile, myResourceResolver, myFacet, myConfiguration);
   }
 
   @Override
@@ -130,11 +126,11 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   private final static String SET_RESOURCE_COMMAND_NAME = "Resource picked";
 
-  private void setAttribute(@NotNull String colorString) {
+  private void setAttribute(@NotNull String attributeString) {
     Project project = myFacet.getModule().getProject();
     ApplicationManager.getApplication().invokeLater(
       () -> WriteCommandAction.runWriteCommandAction(
-        project, SET_RESOURCE_COMMAND_NAME, null, () -> mySetAttributeTask.consume(colorString)),
+        project, SET_RESOURCE_COMMAND_NAME, null, () -> myAttributeTask.consume(attributeString)),
       project.getDisposed());
   }
 
@@ -169,11 +165,20 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       if (project == null) return;
 
       if (StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
+        List<ResourcePickerSources> pickerSources = new ArrayList<>();
+        pickerSources.add(ResourcePickerSources.PROJECT);
+        pickerSources.add(ResourcePickerSources.ANDROID);
+        pickerSources.add(ResourcePickerSources.LIBRARY);
+        if (myEditingXmlFile) {
+          // We can only support theme attributes for Xml files, since we can't substitute R.color.[resource_name] for a theme attribute.
+          pickerSources.add(ResourcePickerSources.THEME_ATTR);
+        }
         // Show the resource picker popup.
         ResourceChooserHelperKt.createAndShowResourcePickerPopup(
           ResourceType.DRAWABLE,
           myConfiguration,
           myFacet,
+          pickerSources,
           MouseInfo.getPointerInfo().getLocation(),
           resourceReference -> {
             setAttribute(resourceReference);

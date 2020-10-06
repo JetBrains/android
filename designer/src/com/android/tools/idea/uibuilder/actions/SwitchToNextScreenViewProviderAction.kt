@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.common.actions.isActionEventFromJTextField
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.intellij.openapi.actionSystem.ActionManager
@@ -34,6 +35,10 @@ class SwitchToNextScreenViewProviderAction : AnAction() {
   }
 
   override fun update(e: AnActionEvent) {
+    if (isActionEventFromJTextField(e)) {
+      e.presentation.isEnabled = false
+      return
+    }
     e.presentation.isEnabled = e.getData(NlActionManager.LAYOUT_EDITOR) != null
   }
 

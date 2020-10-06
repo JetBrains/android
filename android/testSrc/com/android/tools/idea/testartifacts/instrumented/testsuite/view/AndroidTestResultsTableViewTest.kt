@@ -568,8 +568,8 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
-    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
 
     // Click on a device test status table header to sort them by test status in ascending order.
     val deviceStatusColumnPositionX =
@@ -582,8 +582,8 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
-    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
   }
 
   @Test

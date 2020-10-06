@@ -36,9 +36,14 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-
 fun LiteralReference.toDebugString(withUniqueId: Boolean): String {
-  val elementText = "text='$text' value='$constantValue' path='$elementPath'"
+  val usagesString = if (usages.distinct().count() == 1) {
+    usages.first().fqName.toString()
+  }
+  else {
+    usages.joinToString(", ", "[", "]") { it.fqName.toString() }
+  }
+  val elementText = "text='$text' value='$constantValue' usages='$usagesString'"
   return if (withUniqueId) {
     "[$uniqueId] $elementText"
   }
@@ -132,17 +137,17 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(file)
     assertEquals("""
-      text='"S2" + "S3"' value='S2S3' path='test.app.LiteralsTest.Inner.<init>'
-      text='"S4" + STR_EXPR' value='S4S2S3' path='test.app.LiteralsTest.Inner.<init>'
-      text='100' value='100' path='test.app.LiteralsTest.<init>'
-      text='100 + 1 + 2 + 3' value='106' path='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='107' path='test.app.LiteralsTest.<init>'
-      text='"S1"' value='S1' path='test.app.LiteralsTest.<init>'
-      text='22' value='22' path='test.app.LiteralsTest.method'
-      text='"S5"' value='S5' path='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' path='test.app.LiteralsTest.testCall'
-      text='"S7"' value='S7' path='test.app.LiteralsTest.testCall'
-      text='STR + "S8"' value='S1S8' path='test.app.LiteralsTest.testCall'
+      text='"S2" + "S3"' value='S2S3' usages='test.app.LiteralsTest.Inner.<init>'
+      text='"S4" + STR_EXPR' value='S4S2S3' usages='test.app.LiteralsTest.Inner.<init>'
+      text='100' value='100' usages='test.app.LiteralsTest.<init>'
+      text='100 + 1 + 2 + 3' value='106' usages='test.app.LiteralsTest.<init>'
+      text='INT_EXPR + 1' value='107' usages='test.app.LiteralsTest.<init>'
+      text='"S1"' value='S1' usages='test.app.LiteralsTest.<init>'
+      text='22' value='22' usages='test.app.LiteralsTest.method'
+      text='"S5"' value='S5' usages='test.app.LiteralsTest.method'
+      text='"S6"' value='S6' usages='test.app.LiteralsTest.testCall'
+      text='"S7"' value='S7' usages='test.app.LiteralsTest.testCall'
+      text='STR + "S8"' value='S1S8' usages='test.app.LiteralsTest.testCall'
     """.trimIndent(), snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
@@ -152,9 +157,9 @@ class LiteralsTest {
       projectRule.fixture.type("+5")
     }
     assertEquals("""
-      text='"ModifiedS4" + STR_EXPR' value='ModifiedS4S2S3' path='test.app.LiteralsTest.Inner.<init>'
-      text='100 + 1 + 2 +5+ 3' value='111' path='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='112' path='test.app.LiteralsTest.<init>'
+      text='"ModifiedS4" + STR_EXPR' value='ModifiedS4S2S3' usages='test.app.LiteralsTest.Inner.<init>'
+      text='100 + 1 + 2 +5+ 3' value='111' usages='test.app.LiteralsTest.<init>'
+      text='INT_EXPR + 1' value='112' usages='test.app.LiteralsTest.<init>'
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
@@ -167,25 +172,23 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(file)
     assertEquals("""
-      text='"TOP_LEVEL"' value='TOP_LEVEL' path='test.app.LiteralsTestKt.<init>'
-      text='"S2" + "S3"' value='S2S3' path='test.app.LiteralsTest.Inner.<init>'
-      text='"S4" + STR_EXPR' value='S4S2S3' path='test.app.LiteralsTest.Inner.<init>'
-      text='100' value='100' path='test.app.LiteralsTest.<init>'
-      text='100 + 1 + 2 + 3' value='106' path='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='107' path='test.app.LiteralsTest.<init>'
-      text='"S1"' value='S1' path='test.app.LiteralsTest.<init>'
-      text='true' value='true' path='test.app.LiteralsTest.<init>'
-      text='"S5"' value='S5' path='test.app.LiteralsTest.<init>'
-      text='3' value='3' path='test.app.LiteralsTest.<init>'
-      text='"DEF1"' value='DEF1' path='test.app.LiteralsTest.method'
-      text='22' value='22' path='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' path='test.app.LiteralsTest.method'
-      text='"S7"' value='S7' path='test.app.LiteralsTest.testCall'
-      text='"S8"' value='S8' path='test.app.LiteralsTest.testCall'
-      text='"${'$'}STR S9"' value='S1 S9' path='test.app.LiteralsTest.testCall'
-      text='variable' value='S7' path='test.app.LiteralsTest.testCall'
-      text='variable' value='S7' path='test.app.LiteralsTest.testCall'
-      text='"DEF2"' value='DEF2' path='test.app.LiteralsTest.testCall'
+      text='"TOP_LEVEL"' value='TOP_LEVEL' usages='[]'
+      text='"S2" + "S3"' value='S2S3' usages='test.app.LiteralsTest.Inner.<init>'
+      text='"S4" + STR_EXPR' value='S4S2S3' usages='[]'
+      text='100' value='100' usages='[]'
+      text='100 + 1 + 2 + 3' value='106' usages='test.app.LiteralsTest.<init>'
+      text='INT_EXPR + 1' value='107' usages='[]'
+      text='"S1"' value='S1' usages='test.app.LiteralsTest.testCall'
+      text='true' value='true' usages='test.app.LiteralsTest.<init>'
+      text='"S5"' value='S5' usages='test.app.LiteralsTest.<init>'
+      text='3' value='3' usages='test.app.LiteralsTest.<init>'
+      text='"DEF1"' value='DEF1' usages='test.app.LiteralsTest.method'
+      text='22' value='22' usages='test.app.LiteralsTest.method'
+      text='"S6"' value='S6' usages='test.app.LiteralsTest.method'
+      text='"S7"' value='S7' usages='[test.app.LiteralsTest.testCall, test.app.LiteralsTest.testCall]'
+      text='"S8"' value='S8' usages='test.app.LiteralsTest.testCall'
+      text='"${'$'}STR S9"' value='S1 S9' usages='test.app.LiteralsTest.testCall'
+      text='"DEF2"' value='DEF2' usages='test.app.LiteralsTest.testCall'
     """.trimIndent(), snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
@@ -193,16 +196,16 @@ class LiteralsTest {
       deleteText("100 +")
     }
     assertEquals("""
-      text='1 + 2 + 3' value='6' path='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='7' path='test.app.LiteralsTest.<init>'
+      text='1 + 2 + 3' value='6' usages='test.app.LiteralsTest.<init>'
+      text='INT_EXPR + 1' value='7' usages='[]'
       text='""${'"'}
       S1_MULTILINE
       ""${'"'}' value='
       S1_MULTILINE
-      ' path='test.app.LiteralsTest.<init>'
+      ' usages='test.app.LiteralsTest.testCall'
       text='"${'$'}STR S9"' value='
       S1_MULTILINE
-       S9' path='test.app.LiteralsTest.testCall'
+       S9' usages='test.app.LiteralsTest.testCall'
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
@@ -231,17 +234,17 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(file)
     assertEquals("""
-      text='"TEST"' value='TEST' path='test.app.LiteralsTestKt.<init>'
-      text='Template ' value='Template ' path='test.app.LiteralsTestKt.method'
-      text='!!' value='!!' path='test.app.LiteralsTestKt.method'
-      text='"NAME ${'$'}testVal"' value='NAME TEST' path='test.app.LiteralsTestKt.testCall'
+      text='"TEST"' value='TEST' usages='test.app.LiteralsTestKt.testCall'
+      text='Template ' value='Template ' usages='test.app.LiteralsTestKt.method'
+      text='!!' value='!!' usages='test.app.LiteralsTestKt.method'
+      text='"NAME ${'$'}testVal"' value='NAME TEST' usages='test.app.LiteralsTestKt.testCall'
     """.trimIndent(), snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
       replaceText("Template", "New modified template")
     }
     assertEquals("""
-      text='New modified template ' value='New modified template ' path='test.app.LiteralsTestKt.method'
+      text='New modified template ' value='New modified template ' usages='test.app.LiteralsTestKt.method'
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
@@ -275,9 +278,42 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(method)
     assertEquals("""
-      text='"DEF1"' value='DEF1' path='test.app.LiteralsTest.method'
-      text='22' value='22' path='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' path='test.app.LiteralsTest.method'
+      text='"DEF1"' value='DEF1' usages='test.app.LiteralsTest.method'
+      text='22' value='22' usages='test.app.LiteralsTest.method'
+      text='"S6"' value='S6' usages='test.app.LiteralsTest.method'
+    """.trimIndent(), snapshot.all.toDebugString())
+  }
+
+  @Test
+  fun `find usages in lambdas`() {
+    val literalsManager = LiteralsManager()
+    val lambdaFile = projectRule.fixture.addFileToProject(
+      "LambdaTest.kt",
+      // language=kotlin
+      """
+        private const val CONSTANT = "constant"
+
+        class AClass {
+            fun withLambda(a: () -> Unit) {
+                a()
+            }
+
+            fun AMethod() {
+                fun BMethod() {
+                  withLambda {
+                      withLambda {
+                        println(CONSTANT)
+                      }
+                  }
+                }
+                BMethod()
+            }
+        }
+      """.trimIndent())
+    val file = lambdaFile.configureEditor()
+    val snapshot = literalsManager.findLiterals(lambdaFile)
+    assertEquals("""
+      text='"constant"' value='constant' usages='AClass.AMethod.BMethod.<anonymous>.<anonymous>'
     """.trimIndent(), snapshot.all.toDebugString())
   }
 

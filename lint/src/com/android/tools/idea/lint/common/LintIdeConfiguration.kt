@@ -17,52 +17,52 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
 import com.android.tools.lint.client.api.Configuration
+import com.android.tools.lint.client.api.ConfigurationHierarchy
 import com.android.tools.lint.client.api.IssueRegistry
-import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintOptionsConfiguration
 import com.android.tools.lint.client.api.LintXmlConfiguration
 import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Project
 import com.android.tools.lint.detector.api.Severity
 import com.android.tools.lint.model.LintModelLintOptions
-import java.io.File
 
 /**
  * Configuration used in IDE projects, unless it's a Gradle project with custom lint.xml or severity overrides,
  * in which case [LintIdeGradleConfiguration] is used instead
  */
 class LintIdeConfiguration(
-  client: LintClient,
-  configFile: File,
+  configurations: ConfigurationHierarchy,
+  project: Project,
   private val issues: Set<Issue>)
-  : LintXmlConfiguration(client, configFile, projectLevel = true) {
-  override fun isEnabled(issue: Issue): Boolean {
+  : LintXmlConfiguration(configurations, project) {
+  override fun getDefinedSeverity(issue: Issue, source: Configuration): Severity? {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue === IssueRegistry.BASELINE || issue === IssueRegistry.CANCELLED) {
-        return true
+      if (issue == IssueRegistry.BASELINE) {
+        return Severity.INFORMATIONAL
       }
 
       // Allow third-party checks
       val builtin = LintIdeIssueRegistry.get()
-      return !builtin.isIssueId(issue.id)
+      if (builtin.isIssueId(issue.id)) {
+        return Severity.IGNORE
+      }
     }
-    return super.isEnabled(issue)
+    return super.getDefinedSeverity(issue, source)
   }
 }
 
 /** Configuration used in Gradle projects which specify a custom lint.xml file or severity overrides or both  */
 class LintIdeGradleConfiguration(
-  client: LintClient,
-  configFile: File,
-  dir: File,
+  configurations: ConfigurationHierarchy,
   lintOptions: LintModelLintOptions,
   private val issues: Set<Issue>)
-  : LintOptionsConfiguration(client, configFile, dir, lintOptions) {
-  override fun getSeverity(issue: Issue): Severity {
+  : LintOptionsConfiguration(configurations, lintOptions) {
+  override fun getDefinedSeverity(issue: Issue, source: Configuration): Severity? {
     val known = issues.contains(issue)
     if (!known) {
-      if (issue === IssueRegistry.BASELINE || issue === IssueRegistry.CANCELLED) {
-        return Severity.IGNORE
+      if (issue == IssueRegistry.BASELINE) {
+        return Severity.INFORMATIONAL
       }
 
       // Allow third-party checks
@@ -71,6 +71,6 @@ class LintIdeGradleConfiguration(
         return Severity.IGNORE
       }
     }
-    return super.getSeverity(issue)
+    return super.getDefinedSeverity(issue, source)
   }
 }

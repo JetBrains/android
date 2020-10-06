@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
+import com.android.tools.profilers.cpu.analysis.CaptureNodeDetailTable.Companion.PAGE_SIZE_VALUES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
@@ -35,12 +36,13 @@ import com.android.tools.adtui.common.border as BorderColor
  * UI component for presenting capture node details, such as duration, CPU duration etc.
  *
  * @param viewRange if not null, selection will update this range to the selected node; otherwise, row selection is disabled.
- * @param pageSize if less than [Int.MAX_VALUE], the table will be paginated.
+ * @param initialPageSize if less than [Int.MAX_VALUE], the table will be paginated. If set to one of [PAGE_SIZE_VALUES], the value will be
+ * pre-selected in the dropdown.
  */
 class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
                              captureRange: Range,
                              viewRange: Range? = null,
-                             pageSize: Int = Int.MAX_VALUE) {
+                             initialPageSize: Int = Int.MAX_VALUE) {
   @VisibleForTesting
   val table: JBTable
 
@@ -50,11 +52,11 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
   val component: JComponent
 
   private val extendedCaptureNodes = captureNodes.map { ExtendedCaptureNode(it) }.toMutableList()
-  private val tableModel = CaptureNodeDetailTableModel(pageSize, captureRange)
+  private val tableModel = CaptureNodeDetailTableModel(initialPageSize, captureRange)
 
   init {
-    if (pageSize < Int.MAX_VALUE) {
-      PaginatedTableView(tableModel).let {
+    if (initialPageSize < Int.MAX_VALUE) {
+      PaginatedTableView(tableModel, PAGE_SIZE_VALUES).let {
         table = it.table
         component = it.component
       }
@@ -99,6 +101,13 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
         cellSelectionEnabled = false
       }
     }
+  }
+
+  /**
+   * @property PAGE_SIZE_VALUES list of pre-populated page sizes.
+   */
+  companion object {
+    val PAGE_SIZE_VALUES = arrayOf(10, 25, 50, 100)
   }
 
   /**

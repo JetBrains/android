@@ -6,9 +6,9 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
+    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel     : 1.8
-    CompileTarget       : android-29
+    CompileTarget       : android-30
     LintOptions
         AbortOnError        : true
         AbsolutePaths       : true
@@ -57,7 +57,7 @@ MODULE              : project.app
         - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion       : API 16
-        TargetSdkVersion    : API 29
+        TargetSdkVersion    : API 30
         SourceProviders
             ManifestFile        : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories   : <ROOT>/app/src/main/java

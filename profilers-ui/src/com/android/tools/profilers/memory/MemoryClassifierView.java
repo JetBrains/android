@@ -136,7 +136,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
-  MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
     mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
@@ -262,7 +262,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @VisibleForTesting
   @Nullable
-  JTree getTree() {
+  public JTree getTree() {
     return myTree;
   }
 
@@ -314,7 +314,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     }
   }
 
-  private void refreshCapture() {
+  @VisibleForTesting
+  public void refreshCapture() {
     myCaptureObject = mySelection.getSelectedCapture();
     if (myCaptureObject == null) {
       reset();
@@ -559,7 +560,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   /**
    * Refreshes the view based on the "group by" selection from the user.
    */
-  private void refreshGrouping() {
+  @VisibleForTesting
+  public void refreshGrouping() {
     HeapSet heapSet = mySelection.getSelectedHeapSet();
     // This gets called when a capture is loading, or we change the profiler configuration.
     // During a loading capture we adjust which configurations are available and reset set the selection to the first one.
@@ -643,9 +645,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
    * @param targetSet target set of {@link InstanceObject}s to search for
    * @return the path of chained {@link ClassifierSet} that leads to the given instanceObjects, or throws an exception if not found.
    */
+  @VisibleForTesting
   @Nullable
-  private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
-                                                                              @NotNull ClassifierSet targetSet) {
+  public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
+                                                                             @NotNull ClassifierSet targetSet) {
     if (rootNode.getAdapter().isSupersetOf(targetSet)) {
       for (MemoryObjectTreeNode<ClassifierSet> child : rootNode.getChildren()) {
         MemoryObjectTreeNode<ClassifierSet> result = findSmallestSuperSetNode(child, targetSet);

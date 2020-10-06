@@ -45,6 +45,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Dimension
 import java.util.UUID
 
 class BuildAnalyzerViewControllerTest {
@@ -66,7 +67,7 @@ class BuildAnalyzerViewControllerTest {
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
-  val analytics = BuildAttributionUiAnalytics(projectRule.project)
+  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
   lateinit var showSettingsUtilMock: ShowSettingsUtil

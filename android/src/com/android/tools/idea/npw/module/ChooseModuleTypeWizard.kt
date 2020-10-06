@@ -42,17 +42,22 @@ import com.intellij.ui.components.JBList
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.accessibility.AccessibleContextDelegate
+import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
+import java.awt.Container
 import java.awt.Dimension
 import java.util.Optional
+import javax.accessibility.AccessibleContext
 import javax.swing.Icon
 import javax.swing.JPanel
+import javax.swing.ListSelectionModel
 import javax.swing.SwingConstants
 import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
 
 
-private const val TABLE_CELL_WIDTH = 240
+private const val TABLE_CELL_WIDTH = 250
 private const val TABLE_CELL_HEIGHT = 32
 private const val TABLE_CELL_LEFT_PADDING = 16
 
@@ -94,10 +99,11 @@ class ChooseModuleTypeWizard(
 
   init {
     val leftList = JBList(moduleGalleryEntryList).apply {
-      setCellRenderer { _, value, _, isSelected, cellHasFocus ->
+      setCellRenderer { list, value, _, isSelected, cellHasFocus ->
         val cellLabel = JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, cellHasFocus)
+          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
           border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
 
           val size = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
@@ -113,7 +119,13 @@ class ChooseModuleTypeWizard(
           val separator = SeparatorWithText().apply {
             border = JBUI.Borders.empty(TABLE_CELL_LEFT_PADDING)
           }
-          JPanel(BorderLayout()).apply {
+          object : JPanel(BorderLayout()) {
+            override fun getAccessibleContext(): AccessibleContext {
+              return object : AccessibleContextDelegate(cellLabel.accessibleContext) {
+                override fun getDelegateParent(): Container = list
+              }
+            }
+          }.apply {
             background = UIUtil.TRANSPARENT_COLOR
             add(separator, BorderLayout.NORTH)
             add(cellLabel, BorderLayout.CENTER)
@@ -123,6 +135,8 @@ class ChooseModuleTypeWizard(
           cellLabel
         }
       }
+      AccessibleContextUtil.setName(this, message("android.wizard.module.new.module.header"))
+      selectionMode = ListSelectionModel.SINGLE_SELECTION
       selectedIndex = 0
     }
 
@@ -157,7 +171,7 @@ class ChooseModuleTypeWizard(
     val titleLabel = JBLabel("Templates").apply {
       isOpaque = true
       background = UIUtil.getListBackground()
-      foreground = UIUtil.getListSelectionBackground(false)
+      foreground = UIUtil.getHeaderActiveColor()
       preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
       border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
     }

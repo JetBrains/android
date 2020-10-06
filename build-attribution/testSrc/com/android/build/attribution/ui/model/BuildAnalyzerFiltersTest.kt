@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Dimension
 import java.util.UUID
 
 class BuildAnalyzerFiltersTest {
@@ -75,7 +76,7 @@ class BuildAnalyzerFiltersTest {
   )
 
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
-  val analytics = BuildAttributionUiAnalytics(projectRule.project)
+  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
   val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)

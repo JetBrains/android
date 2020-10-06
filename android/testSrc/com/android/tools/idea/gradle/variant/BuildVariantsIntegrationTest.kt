@@ -31,9 +31,12 @@ import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Files
 
+@RunWith(JUnit4::class)
 class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -93,8 +96,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbDimFl1Release")
       switchVariant(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
-      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
-      // TODO(b/159377709): Uncomment when fixed: expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
     }
   }
 
@@ -116,8 +119,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { project ->
       switchVariant(project, ":app", "release")
-      expect.thatModuleVariantIs(project, ":app", /* TODO(b/166240410): "release"*/ "debug")
-      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", /* TODO(b/166240410): "release"*/ "debug")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
     }
   }
 

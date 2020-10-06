@@ -20,6 +20,7 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -114,10 +115,15 @@ fun recommendPluginUpgrade(project: Project) {
   if (existing.isEmpty()) {
     val listener = NotificationListener { notification, _ ->
       notification.expire()
-      if (performRecommendedPluginUpgrade(project)) {
-        // Trigger a re-sync if the plugin upgrade was performed.
-        val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
-        GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+      if (AGP_UPGRADE_ASSISTANT.get()) {
+        ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+      }
+      else {
+        if (performRecommendedPluginUpgrade(project)) {
+          // Trigger a re-sync if the plugin upgrade was performed.
+          val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
+          GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+        }
       }
     }
 
@@ -187,11 +193,15 @@ fun performRecommendedPluginUpgrade(
  * usual case is the return value from a dialog presenting information and options to the user, but we show a different
  * dialog if we detect that the upgrade will fail in some way.
  */
+@Slow
 private fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
   val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
   if (java8Processor == null) {
     LOG.error("no Java8Default processor found in AGP Upgrade Processor")
   }
+  // we will need parsed models to decide what to show in the dialog.  Ensure that they are available now, while we are (in theory)
+  // not on the EDT.
+  processor.ensureParsedModels()
   val runProcessor = invokeAndWaitIfNeeded(NON_MODAL) {
     if (processor.classpathRefactoringProcessor.isAlwaysNoOpForProject) {
       processor.trackProcessorUsage(FAILURE_PREDICTED)

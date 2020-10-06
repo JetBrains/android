@@ -36,6 +36,8 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.testFramework.DisposableRule
@@ -44,6 +46,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.util.TimeoutUtil.sleep
+import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -597,6 +600,31 @@ class AndroidTestSuiteViewTest {
       }
       true
     }).isTrue()
+  }
+
+  @Test
+  fun actionButtonsAreFocusable() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    ActionToolbarImpl.updateAllToolbarsImmediately()
+
+    val actionButtons = UIUtil.uiTraverser(view.component)
+      .filter(ActionButton::class.java)
+      .filter(ActionButton::isFocusable)
+      .map { it.action.templateText }
+      .filterNotNull()
+      .toList()
+
+    assertThat(actionButtons).containsExactly(
+      "Show passed tests",
+      "Show skipped tests",
+      "Expand All",
+      "Collapse All",
+      "Previous Occurrence",
+      "Next Occurrence",
+      "Test History",
+      "Import Tests from File...",
+      "Export Test Results..."
+    ).inOrder()
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {

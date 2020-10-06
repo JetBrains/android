@@ -40,6 +40,7 @@ sealed class Chunk
 class IconChunk(val icon: Icon) : Chunk()
 class TextChunk(val text: String) : Chunk()
 class LabelData(vararg val chunks: Chunk)
+object NewLineChunk : Chunk()
 
 /**
  * An opinionated panel that makes it easy to generate UI that conforms to
@@ -89,6 +90,7 @@ private fun createInstructionsPanel(
     when (it) {
       is IconChunk -> instructions.add(IconInstruction(it.icon, 5, null))
       is TextChunk -> instructions.add(TextInstruction(textMetrics, it.text))
+      is NewLineChunk -> instructions.add(NewRowInstruction(12))
     }
   }
 

@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for eventual conflicts between {@link AndroidTestRunConfiguration} and {@link AndroidJUnitConfiguration}
  */
+//TODO(karimai): Migrate this test when both Instrumented tests and unit tests use GRADLE.
 public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradleTestCase {
   // See http://b.android.com/215255
   public void testConfigurationsAreDifferent() throws Exception {

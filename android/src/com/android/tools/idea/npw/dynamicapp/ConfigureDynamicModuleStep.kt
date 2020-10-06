@@ -83,7 +83,9 @@ class ConfigureDynamicModuleStep(
 
     if (model.isInstant) {
       row {
-        labelFor("Module title (this may be visible to users)", moduleTitle)
+        cell {
+          labelFor("Module title", moduleTitle, "This may be visible to users")
+        }
         moduleTitle()
       }
     }

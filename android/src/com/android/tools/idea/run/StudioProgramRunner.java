@@ -77,7 +77,11 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     if (!super.canRun(executorId, profile) || !(profile instanceof AndroidRunConfigurationBase)) {
       return false;
     }
-    GradleSyncState syncState = mySyncStateGetter.apply(((AndroidRunConfigurationBase)profile).getProject());
+    AndroidRunConfigurationBase config = (AndroidRunConfigurationBase)profile;
+    if (config.canRunWithoutSync()) {
+      return true;
+    }
+    GradleSyncState syncState = mySyncStateGetter.apply(config.getProject());
     return !syncState.isSyncInProgress() && syncState.isSyncNeeded().equals(ThreeState.NO);
   }
 

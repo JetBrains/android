@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.HintHint
 import com.intellij.ui.LightweightHint
@@ -28,6 +29,9 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -77,6 +81,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
           editorTextField.text = editorPermanentQuery
         }
         editorTextField.editor?.selectionModel?.setSelection(0, 0)
+        list.clearSelection()
       }
     })
 
@@ -98,14 +103,29 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
 
       override fun keyReleased(e: KeyEvent) {
         if (e.keyCode == KeyEvent.VK_ENTER) {
-          val selectedViewIndex = list.selectionModel.minSelectionIndex
-          val query = listModel.get(selectedViewIndex)
-          editorTextField.text = query
-          shouldRestorePermanentQuery = false
-          hint.hide()
+          selectEntryAndCloseQueryHistory()
         }
       }
     })
+
+    list.addMouseMotionListener(object : MouseMotionListener {
+      override fun mouseDragged(e: MouseEvent) { }
+
+      override fun mouseMoved(e: MouseEvent) {
+        val viewIndex = list.locationToIndex(e.point)
+        if (viewIndex < 0) return
+        list.selectedIndex = viewIndex
+      }
+    })
+
+    val doubleClickListener = object : DoubleClickListener() {
+      override fun onDoubleClick(event: MouseEvent): Boolean {
+        selectEntryAndCloseQueryHistory()
+        return false
+      }
+    }
+
+    doubleClickListener.installOn(list)
 
     val listScroller = JBScrollPane(list)
     val instructionsLabel = JBLabel("Press Enter to insert")
@@ -127,6 +147,16 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
   fun setQueryHistory(queries: List<String>) {
     listModel.clear()
     queries.forEach { listModel.addElement(it) }
+  }
+
+  private fun selectEntryAndCloseQueryHistory() {
+    val selectedViewIndex = list.selectionModel.minSelectionIndex
+    if (selectedViewIndex < 0) return
+
+    val query = listModel.get(selectedViewIndex)
+    editorTextField.text = query
+    shouldRestorePermanentQuery = false
+    hint.hide()
   }
 
   private class MyListCellRenderer : ColoredListCellRenderer<String>() {

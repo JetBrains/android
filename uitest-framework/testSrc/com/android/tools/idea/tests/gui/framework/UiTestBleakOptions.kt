@@ -60,12 +60,12 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "sun.font.XRGlyphCache#cacheMap" },
   // this accounts for both myObject2NodeMap and myRootObjects
   IgnoreListEntry {
-    it.leaktrace.element(-2)?.referenceLabel in listOf("_set", "_values") &&
+    it.leaktrace.element(-2)?.referenceLabel in listOf("key", "value") &&
     it.leaktrace.signatureAt(-4) == "com.intellij.openapi.util.Disposer#ourTree"
   },
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers" },
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "org.jdom.JDOMInterner#myElements" },
-  IgnoreListEntry { it.leaktrace.signatureAt(-4) == "org.jdom.JDOMInterner#myStrings" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "org.jdom.JDOMInterner#myStrings" },
   // coroutine scheduler thread pool: b/140457368
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "kotlinx.coroutines.scheduling.CoroutineScheduler#workers" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.ide.plugins.MainRunner$1#threads" },

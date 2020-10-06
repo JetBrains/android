@@ -89,17 +89,24 @@ class PaginatedTableViewTest {
 
   @Test
   fun updatePageSize() {
-    val tableView = PaginatedTableView(PaginatedListModel(10, (1..50).toMutableList()))
+    val tableView = PaginatedTableView(PaginatedListModel(10, (1..50).toMutableList()), arrayOf(10, 25, 100))
+    assertThat(tableView.pageSizeComboBox.isVisible).isTrue()
 
     // Combo box is pre-selected.
     assertThat(tableView.pageSizeComboBox.selectedIndex).isEqualTo(0)
 
     // Change page size by selecting a different item.
     tableView.pageSizeComboBox.selectedIndex = 1
-    assertThat(tableView.tableModel.pageSize).isEqualTo(20)
+    assertThat(tableView.tableModel.pageSize).isEqualTo(25)
 
     // Change page size by setting a value directly.
     tableView.pageSizeComboBox.item = 100
     assertThat(tableView.tableModel.pageSize).isEqualTo(100)
+  }
+
+  @Test
+  fun pageSizeDropdownCanBeHidden() {
+    val tableView = PaginatedTableView(PaginatedListModel(10, mutableListOf(1, 2, 3)), emptyArray())
+    assertThat(tableView.pageSizeComboBox.isVisible).isFalse()
   }
 }

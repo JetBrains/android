@@ -104,14 +104,14 @@ fun createDialogAndInteractWithIt(dialogCreator: () -> Unit, dialogInteractor: (
 }
 
 /**
- * Waits for the dialog to open at the given modal depth and then calls the [dialogInteractor]
- * function that interacts with the dialog. This function returns when the dialog is closed.
+ * Executes a [dialogCreator] runnable that opens a modal dialog and then a [Consumer] that interacts with it.
+ * The function returns when the dialog is closed. This version of the method is intended to be called from Java.
  *
- * @param modalDepth the nested level ofe modal dialog to interact with
+ * @param dialogCreator user code that opens a modal dialog
  * @param dialogInteractor user code for interacting with the dialog
  */
-fun interactWithModalDialog(modalDepth: Int, dialogInteractor: (DialogWrapper) -> Unit) {
-  createDialogAndInteractWithIt(modalDepth, {}, dialogInteractor)
+fun createDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
+  createDialogAndInteractWithIt(dialogCreator::run, dialogInteractor::consume)
 }
 
 private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
@@ -158,17 +158,6 @@ private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> 
   }
 
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-}
-
-/**
- * Executes a [Runnable] that opens a modal dialog and then a [Consumer] that interacts with it.
- * The function returns when the dialog is closed. This version of the method is intended to be called from Java.
- *
- * @param dialogCreator user code that opens a modal dialog
- * @param dialogInteractor user code for interacting with the dialog
- */
-fun createDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
-  createDialogAndInteractWithIt(dialogCreator::run, dialogInteractor::consume)
 }
 
 private val modalityChangeLock = ReentrantLock()

@@ -88,6 +88,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
@@ -107,7 +108,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -641,7 +641,8 @@ public class AvdManagerConnection {
   }
 
   public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
-    return EmulatorSettings.getInstance().getLaunchInToolWindow() && project != null && AndroidUtils.hasAndroidFacets(project);
+    return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
+           project != null && ToolWindowManager.getInstance(project).getToolWindow("Android Emulator") != null;
   }
 
   public static boolean isFoldable(@NotNull AvdInfo avd) {

@@ -20,6 +20,7 @@ import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRun
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
+import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeTestOptions
 import com.android.tools.idea.run.AndroidProcessHandler
@@ -174,8 +175,27 @@ class AndroidTestApplicationLaunchTask private constructor(
     // Run "am instrument" command in a separate thread.
     val testExecutionFuture = ApplicationManager.getApplication().executeOnPooledThread {
       try {
+        val checkLaunchState = object: ITestRunListener {
+          private fun checkStatusAndRequestCancel() {
+            if (launchStatus.isLaunchTerminated ||
+                launchContext.processHandler.isProcessTerminating ||
+                launchContext.processHandler.isProcessTerminated) {
+              runner.cancel()
+            }
+          }
+          override fun testRunStarted(runName: String?, testCount: Int) = checkStatusAndRequestCancel()
+          override fun testStarted(test: TestIdentifier?) = checkStatusAndRequestCancel()
+          override fun testFailed(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
+          override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
+          override fun testIgnored(test: TestIdentifier?) = checkStatusAndRequestCancel()
+          override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) = checkStatusAndRequestCancel()
+          override fun testRunFailed(errorMessage: String?) {}
+          override fun testRunStopped(elapsedTime: Long) {}
+          override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>?) {}
+        }
+
         // This issues "am instrument" command and blocks execution.
-        runner.run(myTestListener, UsageTrackerTestRunListener(myArtifact, device))
+        runner.run(myTestListener, UsageTrackerTestRunListener(myArtifact, device), checkLaunchState)
 
         // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
         // This is required because the android process handler may overlook target process especially when the test

@@ -63,4 +63,8 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
   }
 
   override fun setRefreshButtonState(state: Boolean) { }
+
+  override fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int) { }
+
+  override fun showOfflineModeFailedPanel() { }
 }

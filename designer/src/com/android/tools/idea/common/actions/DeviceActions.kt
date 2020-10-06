@@ -25,6 +25,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 abstract class SwitchDeviceAction: AnAction() {
   final override fun update(e: AnActionEvent) {
+    if (isActionEventFromJTextField(e)) {
+      e.presentation.isEnabled = false
+      return
+    }
     val surface = e.getData(NlActionManager.LAYOUT_EDITOR)
     if (surface != null) {
       val config = surface.configurations.firstOrNull()

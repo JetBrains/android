@@ -15,53 +15,77 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.android.tools.idea.editors.literals.LiteralUsageReference
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
+import org.objectweb.asm.Opcodes.ACC_STATIC
 import java.util.WeakHashMap
 import kotlin.reflect.jvm.javaMethod
+
+private const val CLASSLOADING_PACKAGE = "com.android.tools.idea.rendering.classloading."
 
 /**
  * Data class for the key tracking constants. This key allows to find the initial constant
  * and query the new values.
  */
-data class ConstantKey(val constantPath: String, val initialValue: Any)
+data class ConstantKey(val reference: String, val initialValue: Any)
+
+/**
+ * Pattern to identify lambda calls, usually $1, $2, etc.
+ */
+private val LAMBDA_PATTERN = Regex("\\$\\d+")
+
+/**
+ * Normalizes the className to be used by the constant finder.
+ */
+@VisibleForTesting
+fun normalizeClassName(className: String) =
+  if (className.indexOf('$') == -1)
+    className
+  else
+    LAMBDA_PATTERN.replace(className, ".<anonymous>").replace('$', '.')
 
 /**
  * Interface to be implemented by providers that can remap a constant into a different one.
  * The [remapConstant] method will be called at every use of a certain constant.
  */
-interface ConstantRemapper {
+interface ConstantRemapper: ModificationTracker {
   /**
    * Adds a new constant to be replaced.
    *
    * @param classLoader [ClassLoader] associated to the class where the constants are being replaced. This allows to have the same class
    * loaded by multiple class loaders and have different constant replacements.
-   * @param className the name of the class that will have this constant replaced.
-   *  The className must be in is internal representation form, like `package.subpackage.ClassName$InnerClass`.
-   * @param methodName the name of the method where this constant is being replaced. The same constant can potentially have different
-   *  replacements in different methods.
+   * @param reference the full path, expressed as an [LiteralUsageReference] to the constant use.
    * @param initialValue the initial value constant.
    * @param newValue the new value to replace the [initialValue] with.
    */
-  fun addConstant(classLoader: ClassLoader, className: String, methodName: String, initialValue: Any, newValue: Any)
+  fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any)
 
   /**
-   * Returns if there are any constant definitions for the given className and method.
+   * Removes all the existing constants that are remapped.
    */
-  fun hasMethodDefined(className: String, methodName: String): Boolean
+  fun clearConstants(classLoader: ClassLoader?)
 
   /**
    * Method called by the transformed class to obtain the new constant value.
    *
-   * @param thisObject the class instance that is obtaining the new constant value.
+   * @param source the class instance that is obtaining the new constant value.
+   * @param isStatic when false [source] will refer to the `this` of the caller. If true, [source] will be the [Class] of the
+   * caller.
    * @param methodName the name of the method where the constant is being loaded.
    * @param initialValue the initial value of the constant. Used to lookup the new value.
    */
-  fun remapConstant(thisObject: Any, methodName: String, initialValue: Any?): Any?
+  fun remapConstant(source: Any?, isStatic: Boolean, methodName: String, initialValue: Any?): Any?
 }
 
 /**
@@ -76,28 +100,66 @@ object DefaultConstantRemapper : ConstantRemapper {
   /** Used as a "bloom filter" to decide if we need to instrument a given class/method and for debugging. */
   private val allKeys: WeakHashMap<ConstantKey, Boolean> = WeakHashMap()
 
-  override fun addConstant(classLoader: ClassLoader, className: String, methodName: String, initialValue: Any, newValue: Any) {
+  /** Cache of all the initial values we've seen. This allows avoiding checking the cached if the constant was never there. */
+  private val initialValueCache: MutableSet<String> = mutableSetOf()
+
+  /** Modification tracker that is updated everytime a constant is added/removed. */
+  private val modificationTracker = SimpleModificationTracker()
+
+  override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any) {
     val classLoaderMap = perClassLoaderConstantMap.computeIfAbsent(classLoader) { mutableMapOf() }
-    val constantKey = ConstantKey("${className}.${methodName}", initialValue)
-    allKeys[constantKey] = true
+    initialValueCache.add(initialValue.toString())
+    val constantKey = ConstantKey(reference.fqName.asString(), initialValue)
+    if (allKeys.put(constantKey, true) == null) {
+      // This is a new key, update modification count.
+      modificationTracker.incModificationCount()
+    }
     classLoaderMap[constantKey] = newValue
   }
 
-  override fun hasMethodDefined(className: String, methodName: String): Boolean {
-    val constantPath = "${className}.${methodName}"
-    return allKeys.keys.any { it.constantPath == constantPath }
+  override fun clearConstants(classLoader: ClassLoader?) {
+    perClassLoaderConstantMap[classLoader]?.let {
+      if (it.isNotEmpty()) {
+        modificationTracker.incModificationCount()
+        it.clear()
+      }
+    }
   }
 
   @TestOnly
   fun allKeysToText(): String =
     allKeys.keys.joinToString("\n")
 
-  override fun remapConstant(thisObject: Any, methodName: String, initialValue: Any?): Any? {
-    if (initialValue == null) return null
-    val classLoaderMap = perClassLoaderConstantMap[thisObject.javaClass.classLoader] ?: return initialValue
-    val constantKey = ConstantKey("${Type.getInternalName(thisObject.javaClass)}.${methodName}", initialValue)
-    return classLoaderMap.getOrDefault(constantKey, initialValue)
+  override fun remapConstant(source: Any?, isStatic: Boolean, methodName: String, initialValue: Any?): Any? {
+    if (initialValue == null || !initialValueCache.contains(initialValue.toString())) return initialValue
+    val classLoader = if (isStatic) {
+      // For static methods, the passed source is the Class<> object for the instance.
+      (source as? Class<*>)?.classLoader
+    } else {
+      // For non static, the instance is passed, get the Class first and then the class loader.
+      source?.javaClass?.classLoader
+    }
+    val classLoaderMap = perClassLoaderConstantMap[classLoader]
+                         ?: perClassLoaderConstantMap[null] // fallback to the global constants
+                         ?: return initialValue
+    // Find the caller, by removing the remapConstant and currentThread frames and then looking for the
+    // first element that does not belong to the classloading package.
+    val callerStack = Thread.currentThread().stackTrace
+      .drop(2)
+      .dropWhile {
+        it.className.startsWith(CLASSLOADING_PACKAGE)
+      }.first()
+
+    // Construct the lookupKey to find the constant in the constant map.
+    // For lambdas, we ignore the invoke() method name in Kotlin.
+    val lookupKey = if (methodName == "invoke")
+      ConstantKey(normalizeClassName(callerStack.className), initialValue)
+    else
+      ConstantKey("${normalizeClassName(callerStack.className)}.${methodName}", initialValue)
+    return classLoaderMap.getOrDefault(lookupKey, initialValue)
   }
+
+  override fun getModificationCount(): Long = modificationTracker.modificationCount
 }
 
 /**
@@ -123,16 +185,29 @@ object ConstantRemapperManager {
    * does not have direct uses in Studio but it will be used by the modified classes.
    */
   @JvmStatic
-  fun remapAny(thisObject: Any, methodName: String, value: Any?): Any? =
-    remapper.remapConstant(thisObject, methodName, value)
+  fun remapAny(source: Any?, isStatic: Boolean, methodName: String, value: Any?): Any? =
+    remapper.remapConstant(source, isStatic, methodName, value)
 }
 
 /**
  * Method visitor that transforms the method to remove constant loading instruction and replace them
  * with calls to [ConstantRemapperManager.remapAny].
  */
-private class LiveLiteralsMethodVisitor(private val methodName: String, delegate: MethodVisitor)
+private class LiveLiteralsMethodVisitor(access: Int, private val className: String, private val methodName: String, delegate: MethodVisitor)
   : InstructionAdapter(Opcodes.ASM7, delegate) {
+  private val LOG = Logger.getInstance(LiveLiteralsMethodVisitor::class.java)
+  private val isStaticMethod: Boolean = (access and ACC_STATIC) != 0
+
+  /**
+   * Track the bytecode line number. Since we care about user code, we only track elements in the code that have a line number.
+   */
+  private var lineNumber = -1
+
+  override fun visitLineNumber(line: Int, start: Label?) {
+    super.visitLineNumber(line, start)
+    lineNumber = line
+  }
+
   /**
    * Returns the correct remap method for a given value. The remap method takes the constant value in the user code
    * and runs it through an Autobox/check/Unbox cycle. The user code deals with primitives and not with boxed types.
@@ -155,8 +230,16 @@ private class LiveLiteralsMethodVisitor(private val methodName: String, delegate
     val (remapMethod, isPrimitive) = getRemapper(value)
     val remapMethodDescriptor = Type.getMethodDescriptor(remapMethod)
 
-    // Load this as first parameter and the original constant as second
-    visitVarInsn(Opcodes.ALOAD, 0);
+    // Generate call to the static remapper method that loads the constant value
+    if (!isStaticMethod) {
+      // Load this as first parameter and the original constant as second
+      visitVarInsn(Opcodes.ALOAD, 0)
+    }
+    else {
+      // The "source" caller is a static method is the class itself
+      super.visitLdcInsn(Type.getObjectType(className))
+    }
+    super.visitLdcInsn(isStaticMethod)
     super.visitLdcInsn(methodName)
     super.visitLdcInsn(value)
     invokestatic(
@@ -166,15 +249,23 @@ private class LiveLiteralsMethodVisitor(private val methodName: String, delegate
     if (!isPrimitive) {
       checkcast(Type.getType(value::class.java))
     }
+
+    LOG.debug { "Instrumented constant access for $className.$methodName ($lineNumber) and original value '$value'" }
   }
 
   /**
    * Intercepts small int operations. Larger ints will be handled by [visitLdcInsn].
    */
   override fun visitIntInsn(opcode: Int, operand: Int) {
-    when (opcode) {
-      Opcodes.SIPUSH -> writeConstantLoadingCode(operand)
-      else -> super.visitIntInsn(opcode, operand)
+    if (lineNumber != -1) {
+      when (opcode) {
+        Opcodes.SIPUSH -> writeConstantLoadingCode(operand)
+        Opcodes.BIPUSH -> writeConstantLoadingCode(operand)
+        else -> super.visitIntInsn(opcode, operand)
+      }
+    }
+    else {
+      super.visitIntInsn(opcode, operand)
     }
   }
 
@@ -182,7 +273,7 @@ private class LiveLiteralsMethodVisitor(private val methodName: String, delegate
    * This method intercepts LDC calls. This will be called for values like Strings. For small ints, [visitIntInsn] is used instead.
    */
   override fun visitLdcInsn(value: Any?) {
-    if (value == null) {
+    if (value == null || lineNumber == -1) {
       super.visitLdcInsn(value)
       return
     }
@@ -197,8 +288,6 @@ private class LiveLiteralsMethodVisitor(private val methodName: String, delegate
  * @param delegate the delegate [ClassVisitor].
  * @param shouldRedefineMethod function that receives the class name and the method name. If it returns false, the constant instrumentation
  *  will not be applied to that particular method. This allows to avoid instrumenting code for which constants have not been defined.
- *  It can be combined with [ConstantRemapper.hasMethodDefined] to only instrument methods that have redefinitions if they are known ahead
- *  of time.
  */
 class LiveLiteralsTransform(delegate: ClassVisitor, private val shouldRedefineMethod: (String, String) -> Boolean) : ClassVisitor(
   Opcodes.ASM7, delegate) {
@@ -215,7 +304,7 @@ class LiveLiteralsTransform(delegate: ClassVisitor, private val shouldRedefineMe
                            signature: String?,
                            exceptions: Array<out String>?): MethodVisitor =
     if (shouldRedefineMethod(className, name)) {
-      LiveLiteralsMethodVisitor(name, super.visitMethod(access, name, descriptor, signature, exceptions))
+      LiveLiteralsMethodVisitor(access, className, name, super.visitMethod(access, name, descriptor, signature, exceptions))
     }
     else {
       // No constant remapping needed

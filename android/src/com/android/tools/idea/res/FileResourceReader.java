@@ -23,16 +23,23 @@ import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.utils.XmlUtils;
+import com.android.zipflinger.ZipMap;
+import com.android.zipflinger.ZipRepo;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.io.ByteStreams;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -43,6 +50,20 @@ import org.xmlpull.v1.XmlPullParserException;
  * Methods for working with Android file resources.
  */
 public class FileResourceReader {
+  /**
+   * Cache to store {@link ZipMap} objects created from zip files.
+   * Keys are the full path to the zip file from which the ZipMap is created.
+   */
+  private static final LoadingCache<String, ZipMap> sZipCache = CacheBuilder.newBuilder()
+    .maximumSize(10)
+    .expireAfterAccess(5, TimeUnit.MINUTES)
+    .build(new CacheLoader<String, ZipMap>() {
+      @Override
+      public ZipMap load(@NotNull String path) throws IOException {
+        return ZipMap.from(new File(path));
+      }
+    });
+
   /**
    * Reads and returns the contents of a resource. The resource path can point either to a file on
    * disk, or to a ZIP file entry. In the latter case the URI of the resource path contains a path
@@ -123,27 +144,29 @@ public class FileResourceReader {
 
   @NotNull
   private static byte[] readZipEntryBytes(String zipPath, String zipEntryPath) throws IOException {
-    try (ZipFile zipFile = new ZipFile(zipPath)) {
-      ZipEntry entry = zipFile.getEntry(zipEntryPath);
-      if (entry == null) {
-        throw new FileNotFoundException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" does not exist");
+    // Cache ZipMap as its creation is time consuming.
+    ZipMap zipMap;
+    try {
+      zipMap = sZipCache.get(zipPath);
+    }
+    catch (ExecutionException e) {
+      Throwable nested = e.getCause();
+      if (nested instanceof IOException) {
+        throw (IOException)nested;
       }
-      long entrySize = entry.getSize();
-      if (entrySize > Integer.MAX_VALUE) {
-        throw new IOException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" is too large");
+      if (nested instanceof RuntimeException) {
+        throw (RuntimeException)nested;
       }
-      int size = (int)entrySize;
-      byte[] bytes = new byte[size];
-      InputStream stream = zipFile.getInputStream(entry);
-      int offset = 0;
-      int n;
-      while ((n = stream.read(bytes, offset, size)) > 0) {
-        offset += n;
-        size -= n;
+      if (nested instanceof Error) {
+        throw (Error)nested;
       }
-      if (size != 0) {
-        throw new IOException("Incomplete read from \"" + zipPath + ':' + zipEntryPath + "\"");
-      }
+      throw new UncheckedExecutionException(nested);
+    }
+
+    try (ZipRepo zipRepo = new ZipRepo(zipMap)) {
+      ByteBuffer entryContent = zipRepo.getContent(zipEntryPath);
+      byte[] bytes = new byte[entryContent.remaining()];
+      entryContent.get(bytes);
       return bytes;
     }
   }

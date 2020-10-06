@@ -259,9 +259,12 @@ def extract(workspace, dir, delete_after):
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
   os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin", dir + "/" + mac))
-  # TODO: Decide if we want to rename or not, as we need to rename back on bundling
-  os.rename(path + "/darwin/Android Studio 0.0 Preview.app",
-            path + "/darwin/android-studio")
+  # Mac is the only one that contains the version in the directory, rename for
+  # consistency with other platforms and easier tooling
+  apps = ["/darwin/" + app for app in os.listdir(path + "/darwin") if app.startswith("Android Studio")]
+  if len(apps) != 1:
+    sys.exit("Only one directory starting with Android Studio expected for Mac")
+  os.rename(path + apps[0], path + "/darwin/android-studio")
 
   print("Unzipping windows distribution...")
   with zipfile.ZipFile(dir + "/" + win, "r") as zip:

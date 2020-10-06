@@ -16,19 +16,16 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ide.common.gradle.model.IdeVariantHeader
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet.Companion.getInstance
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.android.utils.appendCamelCase
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
-import java.io.IOException
 import java.io.Serializable
 
 data class SelectedVariant(
@@ -99,31 +96,25 @@ data class VariantSelectionChange(
   }
 }
 
-class SelectedVariantCollector(private val project: Project) {
+class SelectedVariantCollector(project: Project) {
+  private val facetManager = ProjectFacetManager.getInstance(project)
 
   fun collectSelectedVariants(): SelectedVariants {
-    return SelectedVariants(
-      ModuleManager.getInstance(project).modules.mapNotNull { module -> findSelectedVariant(module) }.associateBy { it.moduleId }
-    )
+    return SelectedVariants(facetManager.getFacets(AndroidFacet.ID).mapNotNull { it.findSelectedVariant() }.associateBy { it.moduleId })
   }
 
-  private fun findSelectedVariant(module: Module): SelectedVariant? {
-    val gradleFacet = GradleFacet.getInstance(module)
-    if (gradleFacet != null) {
-      val moduleId = gradleFacet.getModuleId() ?: return null
-      val androidFacet = AndroidFacet.getInstance(module) ?: return null
-      val androidModuleModel = AndroidModuleModel.get(androidFacet)
-      val variantDetails = androidModuleModel?.getSelectedVariantDetails()
-      val ndkModuleModel = get(module)
-      val ndkFacet = getInstance(module)
-      if (ndkFacet != null && ndkModuleModel != null) {
-        // Note, we lose ABI selection if cached models are not available.
-        val (variant, abi) = ndkFacet.selectedVariantAbi ?: return null
-        return SelectedVariant(moduleId, variant, abi, variantDetails)
-      }
-      return SelectedVariant(moduleId, androidFacet.properties.SELECTED_BUILD_VARIANT, null, variantDetails)
+  private fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
+    val moduleId = module.getModuleId() ?: return null
+    val androidModuleModel = AndroidModuleModel.get(this)
+    val variantDetails = androidModuleModel?.getSelectedVariantDetails()
+    val ndkModuleModel = NdkModuleModel.get(module)
+    val ndkFacet = NdkFacet.getInstance(module)
+    if (ndkFacet != null && ndkModuleModel != null) {
+      // Note, we lose ABI selection if cached models are not available.
+      val (variant, abi) = ndkFacet.selectedVariantAbi ?: return null
+      return SelectedVariant(moduleId, variant, abi, variantDetails)
     }
-    return null
+    return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
   }
 
   private fun AndroidModuleModel.getSelectedVariantDetails(): VariantDetails? {
@@ -137,19 +128,9 @@ class SelectedVariantCollector(private val project: Project) {
     return createVariantDetailsFrom(androidProject.flavorDimensions, selectedVariant)
   }
 
-  private fun GradleFacet.getModuleId(): String? {
-    val rootProjectPath: String
-    rootProjectPath = try {
-      val path = ExternalSystemApiUtil.getExternalRootProjectPath(module) ?: return null
-      File(path).canonicalPath
-    }
-    catch (e: IOException) {
-      Logger.getInstance(SelectedVariantCollector::class.java).error(e)
-      return null
-    }
-    val rootFolder = File(rootProjectPath)
-    val projectPath = configuration.GRADLE_PROJECT_PATH
-    return Modules.createUniqueModuleId(rootFolder, projectPath)
+  private fun Module.getModuleId(): String? {
+    val gradleProjectPath = getGradleProjectPath() ?: return null
+    return Modules.createUniqueModuleId(gradleProjectPath.projectRoot, gradleProjectPath.gradleProjectPath)
   }
 }
 

@@ -52,27 +52,21 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.Mockito.verifyZeroInteractions
 import java.io.File
+import java.util.function.Supplier
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
-  private lateinit var sqliteFile2: VirtualFile
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectServiceImpl
   private lateinit var databaseInspectorController: FakeDatabaseInspectorController
   private lateinit var model: OpenDatabaseInspectorModel
   private lateinit var repository: OpenDatabaseRepository
   private lateinit var processDescriptor: ProcessDescriptor
-  private lateinit var offlineDatabaseManager: OfflineDatabaseManager
-
-  private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
+  private lateinit var fileDatabaseManager: FileDatabaseManager
 
   private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -83,16 +77,12 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     registerMockAdbService()
 
-    trackerService = FakeDatabaseInspectorAnalyticsTracker()
-    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)
-
-    offlineDatabaseManager = mock(OfflineDatabaseManager::class.java)
+    fileDatabaseManager = mock(FileDatabaseManager::class.java)
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
 
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
-    sqliteFile2 = sqliteUtil.createTestSqliteDatabase("db2.db")
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     repository = OpenDatabaseRepository(project, EdtExecutorService.getInstance())
@@ -103,8 +93,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       project = project,
       model = model,
       databaseRepository = repository,
-      offlineDatabaseManager = offlineDatabaseManager,
-      createController = { _, _, _ -> databaseInspectorController }
+      fileDatabaseManager = fileDatabaseManager,
+      createController = { _, _, _, _ -> databaseInspectorController }
     )
 
     processDescriptor = object : ProcessDescriptor {
@@ -158,7 +148,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     assertEmpty(repository.openDatabases)
   }
 
-  fun testStopSessionsRemovesDatabaseInspectorClientChannelAndAppInspectionServicesFromController() {
+  fun testStopSessionsRemovesDatabaseInspectorClientChannelAndAppInspectionServicesFromController() = runBlocking {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
@@ -177,7 +167,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices)
-    verify(databaseInspectorController).stopAppInspectionSession()
+    verify(databaseInspectorController).stopAppInspectionSession("processName", processDescriptor)
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {
@@ -258,71 +248,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     assertEmpty(model.getAllDatabaseIds())
   }
 
-  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
-    // Prepare
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(false)
-
-    // Act
-    runDispatching(edtExecutor.asCoroutineDispatcher()) {
-      databaseInspectorProjectService.stopAppInspectionSession(mock(ProcessDescriptor::class.java))
-    }
-
-    // Assert
-    verifyZeroInteractions(offlineDatabaseManager)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  }
-
-  fun testDownloadOfflineDatabasesWhenAppInspectionSessionIsTerminated() {
-    // Prepare
-    val inOrderVerifier = inOrder(databaseInspectorController, offlineDatabaseManager)
-
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
-
-    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
-    val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
-    val databaseId3 = SqliteDatabaseId.fromLiveDatabase("db3", 3) as SqliteDatabaseId.LiveSqliteDatabaseId
-
-    val connection = LiveDatabaseConnection(
-      testRootDisposable,
-      DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
-      0,
-      EdtExecutorService.getInstance()
-    )
-
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId3, connection))
-
-    runDispatching {
-      `when`(
-        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId1)
-      ).thenReturn(DatabaseFileData(sqliteFile1))
-
-      `when`(
-        offlineDatabaseManager.loadDatabaseFileData(processDescriptor.processName, processDescriptor, databaseId3)
-      ).thenReturn(DatabaseFileData(sqliteFile2))
-    }
-
-    // Act
-    runDispatching(edtExecutor.asCoroutineDispatcher()) {
-      databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
-      databaseInspectorProjectService.getSwitchToOfflineModeJob()!!.join()
-    }
-
-    // Assert
-    runDispatching {
-      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId1)
-      inOrderVerifier.verify(offlineDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId3)
-      inOrderVerifier.verify(databaseInspectorController, times(2)).addSqliteDatabase(any(SqliteDatabaseId::class.java))
-    }
-    verifyNoMoreInteractions(offlineDatabaseManager)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  }
-
   fun testOpenFileDatabaseSuccess() {
     // Prepare
     val databaseFileData = DatabaseFileData(sqliteFile1)
@@ -351,57 +276,12 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     )
   }
 
-  // TODO enable test, it's failing on windows
-  //fun testOfflineModeMetrics() {
-  //  // Prepare
-  //  val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-  //  DatabaseInspectorFlagController.enableOfflineMode(true)
-  //
-  //  val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 0) as SqliteDatabaseId.LiveSqliteDatabaseId
-  //  val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
-  //
-  //  runDispatching {
-  //    `when`(offlineDatabaseManager.loadDatabaseFileData(processDescriptor, databaseId1)).thenReturn(DatabaseFileData(sqliteFile1))
-  //    `when`(offlineDatabaseManager.loadDatabaseFileData(processDescriptor, databaseId2)).thenThrow(OfflineDatabaseException("err"))
-  //  }
-  //
-  //  val connection = LiveDatabaseConnection(
-  //    testRootDisposable,
-  //    DatabaseInspectorMessenger(mock(AppInspectorMessenger::class.java), scope, taskExecutor),
-  //    0,
-  //    EdtExecutorService.getInstance()
-  //  )
-  //
-  //  pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
-  //  pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
-  //
-  //  // Act
-  //  runDispatching(edtExecutor.asCoroutineDispatcher()) {
-  //    databaseInspectorProjectService.stopAppInspectionSession(processDescriptor)
-  //  }
-  //
-  //  // Assert
-  //  runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId1) }
-  //  runDispatching { verify(offlineDatabaseManager).loadDatabaseFileData(processDescriptor, databaseId2) }
-  //  verifyNoMoreInteractions(offlineDatabaseManager)
-  //
-  //  val offlineModeMetadata = trackerService.metadata
-  //
-  //  assertNotNull(offlineModeMetadata)
-  //  assertEquals(sqliteFile1.length, offlineModeMetadata!!.totalDownloadSizeBytes)
-  //  assertTrue(offlineModeMetadata.totalDownloadTimeMs > 0)
-  //
-  //  assertTrue(trackerService.offlineDownloadFailed!!)
-  //
-  //  DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  //}
-
   private fun registerMockAdbService() {
     val mockAdbService = mock(AdbService::class.java)
     ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
     val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
     `when`(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
     `when`(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
-    AdbFileProvider { createTempFile() }.storeInProject(project)
+    AdbFileProvider(Supplier { createTempFile() }).storeInProject(project)
   }
 }

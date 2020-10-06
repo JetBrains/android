@@ -43,6 +43,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.apache.commons.lang.StringUtils
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -93,7 +94,7 @@ class TableViewImpl : TableView {
 
   private val pageSizeComboBox = ComboBox<Int>()
 
-  private val refreshButton = CommonButton(DatabaseInspectorBundle.message("action.refresh.table"), AllIcons.Actions.Refresh)
+  private val refreshButton = CommonButton(AllIcons.Actions.Refresh)
 
   private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
 
@@ -114,7 +115,9 @@ class TableViewImpl : TableView {
   // variable used to restore focus to the table after the loading screen is shown
   private var tableHadFocus: Boolean = false
 
-  private var orderBy: OrderBy = OrderBy.NotOrdered
+  var orderBy: OrderBy = OrderBy.NotOrdered
+    private set
+    @TestOnly get
 
   // if false, the live updates checkbox should never become enabled
   private var liveUpdatesEnabled = true
@@ -161,7 +164,7 @@ class TableViewImpl : TableView {
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
     pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
     pagingControlsPanel.add(pageSizeComboBox)
-    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
+    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
 
     nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
     nextRowsPageButton.toolTipText = "Go to next page"
@@ -203,6 +206,7 @@ class TableViewImpl : TableView {
       override fun mouseClicked(e: MouseEvent) {
         if (isLoading) return
 
+        table.cellEditor?.cancelCellEditing()
         val columnIndex = table.columnAtPoint(e.point)
         if (columnIndex <= 0) return
 
@@ -211,6 +215,8 @@ class TableViewImpl : TableView {
     })
     table.addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
+        table.cellEditor?.cancelCellEditing()
+
         val mousePoint = Point(x, y)
         val viewRowIndex = table.rowAtPoint(mousePoint)
         val viewColumnIndex = table.columnAtPoint(mousePoint)
@@ -259,6 +265,7 @@ class TableViewImpl : TableView {
     columns = null
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
+    orderBy = OrderBy.NotOrdered
 
     setEditable(true)
 

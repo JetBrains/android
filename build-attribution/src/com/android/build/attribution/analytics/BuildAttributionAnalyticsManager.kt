@@ -75,6 +75,7 @@ class BuildAttributionAnalyticsManager(
       analysisResult.getCriticalPathTasks().sumByLong { it.executionTime },
       analysisResult.getTasksDeterminingBuildDuration().sumByLong(TaskData::executionTime),
       analysisResult.getCriticalPathTasks().size,
+      analysisResult.getTasksDeterminingBuildDuration().size,
       analysisResult.getPluginsDeterminingBuildDuration()
     )
     analyzersDataBuilder.projectConfigurationAnalyzerData =
@@ -99,16 +100,19 @@ class BuildAttributionAnalyticsManager(
       .addAllNonIncrementalAnnotationProcessors(nonIncrementalAnnotationProcessors.map(::transformAnnotationProcessorData))
       .build()
 
-  private fun transformCriticalPathAnalyzerData(criticalPathDurationMs: Long,
-                                                tasksDeterminingBuildDurationMs: Long,
-                                                numberOfTasksOnCriticalPath: Int,
-                                                pluginsCriticalPath: List<PluginBuildData>) =
-    CriticalPathAnalyzerData.newBuilder()
-      .setCriticalPathDurationMs(criticalPathDurationMs)
-      .setTasksDeterminingBuildDurationMs(tasksDeterminingBuildDurationMs)
-      .setNumberOfTasksOnCriticalPath(numberOfTasksOnCriticalPath)
-      .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
-      .build()
+  private fun transformCriticalPathAnalyzerData(
+    criticalPathDurationMs: Long,
+    tasksDeterminingBuildDurationMs: Long,
+    numberOfTasksOnCriticalPath: Int,
+    numberOfTasksDeterminingBuildDuration: Int,
+    pluginsCriticalPath: List<PluginBuildData>
+  ) = CriticalPathAnalyzerData.newBuilder()
+    .setCriticalPathDurationMs(criticalPathDurationMs)
+    .setTasksDeterminingBuildDurationMs(tasksDeterminingBuildDurationMs)
+    .setNumberOfTasksOnCriticalPath(numberOfTasksOnCriticalPath)
+    .setNumberOfTasksDeterminingBuildDuration(numberOfTasksDeterminingBuildDuration)
+    .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
+    .build()
 
   private fun transformProjectConfigurationAnalyzerData(projectConfigurationData: List<ProjectConfigurationData>,
                                                         totalConfigurationData: ProjectConfigurationData) =

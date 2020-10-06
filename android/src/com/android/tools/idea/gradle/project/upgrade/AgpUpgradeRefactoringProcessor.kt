@@ -22,16 +22,24 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -57,6 +65,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Java8DefaultProcessorSettings
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
@@ -65,6 +74,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAs
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.PREVIEW_REFACTORING
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_FAILED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SKIPPED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SUCCEEDED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
@@ -111,8 +123,6 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import com.intellij.usages.UsageViewManager
 import com.intellij.usages.UsageViewPresentation
-import com.intellij.usages.impl.UsageViewEx
-import com.intellij.usages.impl.UsageViewFactory
 import com.intellij.usages.impl.UsageViewImpl
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
@@ -244,7 +254,8 @@ class AgpUpgradeRefactoringProcessor(
     GMavenRepositoryRefactoringProcessor(this),
     AgpGradleVersionRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
-    CompileRuntimeConfigurationRefactoringProcessor(this)
+    CompileRuntimeConfigurationRefactoringProcessor(this),
+    FabricCrashlyticsRefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -508,12 +519,17 @@ class AgpUpgradeRefactoringProcessor(
 
   override fun performPsiSpoilingRefactoring() {
     super.performPsiSpoilingRefactoring()
+    val listener = object : GradleSyncListener {
+      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
+      override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
+      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
+    }
     // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
     // sure why.
     //
-    // FIXME(xof): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
+    // FIXME(b/169838158): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
     //  if the refactoring action is undone.
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED), listener)
   }
 
   var myCommandName = "Upgrade AGP version from ${current} to ${new}"
@@ -523,6 +539,18 @@ class AgpUpgradeRefactoringProcessor(
   fun setCommandName(value: String) { myCommandName = value }
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
+
+  /**
+   * Parsing models is potentially expensive, so client code can call this method on a background thread before changing the modality
+   * state or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
+   */
+  fun ensureParsedModels() {
+    // this may look like a property access but it is in fact a call to retrieve (from cache or, if empty, by parsing) the complete
+    // project Build Dsl model.
+    // TODO(b/169667833): add methods that explicitly compute and cache the list or retrieve it from cache (computeAllIncluded... /
+    //  retrieveAllIncluded..., maybe?) and use that here.  Deprecate the old getAllIncluded... method).
+    buildModel.allIncludedBuildModels
+  }
 }
 
 /**
@@ -1296,6 +1324,397 @@ class ObsoleteConfigurationConfigurationUsageInfo(
   override fun equals(other: Any?): Boolean {
     return super.equals(other) && other is ObsoleteConfigurationConfigurationUsageInfo &&
            configuration == other.configuration && newConfigurationName == other.newConfigurationName
+  }
+}
+
+class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun necessity() = when {
+    current < INCOMPATIBLE_VERSION && new >= INCOMPATIBLE_VERSION -> MANDATORY_CODEPENDENT
+    new < INCOMPATIBLE_VERSION -> IRRELEVANT_FUTURE
+    else -> IRRELEVANT_PAST
+  }
+
+  override fun findComponentUsages(): Array<out UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      val modelPsiElement = model.psiElement ?: return@model
+
+      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.1:
+      // - Replace Fabric's Maven repository with Google's Maven repository.
+      // - Replace the Fabric Gradle plugin with the Firebase Crashlytics Gradle plugin.
+      run {
+        var hasGoogleServices = false
+        var hasFirebaseCrashlytics = false
+        var seenFabricCrashlytics = false
+        val dependencies = model.buildscript().dependencies()
+        val dependenciesOrHigherPsiElement = dependencies.psiElement ?: model.buildscript().psiElement ?: modelPsiElement
+        dependencies.artifacts(CLASSPATH).forEach dep@{ dep ->
+          when {
+            dep.spec.group == "com.google.gms" && dep.spec.name == "google-services" -> hasGoogleServices = true
+            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics-gradle" -> hasFirebaseCrashlytics = true
+            dep.spec.group == "io.fabric.tools" && dep.spec.name == "gradle" -> {
+              // remove the dependency on the Fabric Gradle plugin
+              val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_CLASSPATH_USAGE_TYPE)
+              val usageInfo = RemoveFabricClasspathDependencyUsageInfo(wrappedPsiElement, current, new, dependencies, dep)
+              usages.add(usageInfo)
+              seenFabricCrashlytics = true
+            }
+          }
+        }
+        if (seenFabricCrashlytics) {
+          // if we are a project that currently declares a dependency on io.fabric.tools:gradle (the Fabric Gradle plugin) ...
+          if (!hasGoogleServices) {
+            // ... if we don't have Google Services already, add it
+            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE)
+            val usageInfo = AddGoogleServicesClasspathDependencyUsageInfo(wrappedPsiElement, current, new, dependencies)
+            usages.add(usageInfo)
+          }
+          if (!hasFirebaseCrashlytics) {
+            // ... if we don't have Firebase Crashlytics already
+            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE)
+            val usageInfo = AddFirebaseCrashlyticsClasspathDependencyUsageInfo(wrappedPsiElement, current, new, dependencies)
+            usages.add(usageInfo)
+          }
+        }
+
+        var seenFabricMavenRepository = false
+        val repositories = model.buildscript().repositories()
+        val repositoriesOrHigherPsiElement = repositories.psiElement ?: model.buildscript().psiElement ?: modelPsiElement
+        repositories.repositories().filterIsInstance(MavenRepositoryModel::class.java).forEach repo@{ repo ->
+          if (repo.url().forceString().startsWith("https://maven.fabric.io/public")) {
+            val psiElement = repo.psiElement ?: repositoriesOrHigherPsiElement
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_REPOSITORY_USAGE_TYPE)
+            val usageInfo = RemoveFabricMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories, repo)
+            usages.add(usageInfo)
+            seenFabricMavenRepository = true
+          }
+        }
+        if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
+          // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
+          //  probably little overlap in fabric upgrades with such old projects.
+          val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
+          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories)
+          usages.add(usageInfo)
+        }
+      }
+
+      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.2
+      // - In your app-level build.gradle, replace the Fabric plugin with the Firebase Crashlytics plugin.
+      run {
+        val pluginsOrHigherPsiElement = model.pluginsPsiElement ?: modelPsiElement
+        var seenFabricPlugin = false
+        var seenGoogleServicesPlugin = false
+        model.plugins().forEach { plugin ->
+          when (plugin.name().forceString()) {
+            "com.google.gms.google-services" -> seenGoogleServicesPlugin = true
+            "io.fabric" -> {
+              val psiElement = plugin.psiElement ?: pluginsOrHigherPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REPLACE_FABRIC_PLUGIN_USAGE_TYPE)
+              val usageInfo = ReplaceFabricPluginUsageInfo(wrappedPsiElement, current, new, plugin)
+              usages.add(usageInfo)
+              seenFabricPlugin = true
+            }
+          }
+        }
+        if (seenFabricPlugin && !seenGoogleServicesPlugin) {
+          val wrappedPsiElement = WrappedPsiElement(pluginsOrHigherPsiElement, this, APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE)
+          val usageInfo = ApplyGoogleServicesPluginUsageInfo(wrappedPsiElement, current, new, model)
+          usages.add(usageInfo)
+        }
+      }
+
+      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.3
+      // - In your app-level build.gradle, replace the legacy Fabric Crashlytics SDK with the new Firebase Crashlytics SDK.
+      //   Make sure you add version 17.0.0 or later (beginning November 15, 2020, this is required for your crash reports to appear
+      //   in the Firebase console).
+      run {
+        var seenFabricSdk = false
+        var seenFirebaseSdk = false
+        var seenGoogleAnalyticsSdk = false
+        val dependenciesOrHigherPsiElement = model.dependencies().psiElement ?: modelPsiElement
+        model.dependencies().artifacts().forEach dep@{ dep ->
+          when {
+            dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics" -> {
+              val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE)
+              val usageInfo = RemoveFabricCrashlyticsSdkUsageInfo(wrappedPsiElement, current, new, model.dependencies(), dep)
+              usages.add(usageInfo)
+              seenFabricSdk = true
+            }
+            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics" -> seenFirebaseSdk = true
+            dep.spec.group == "com.google.firebase" && dep.spec.name == "google-analytics" -> seenGoogleAnalyticsSdk = true
+          }
+        }
+        // if we currently depend on the Fabric SDK ...
+        if (seenFabricSdk) {
+          // ... insert a dependency on the Firebase Crashlytics SDK, if not already present ...
+          if (!seenFirebaseSdk) {
+            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE)
+            val usageInfo = AddFirebaseCrashlyticsSdkUsageInfo(wrappedPsiElement, current, new, model.dependencies())
+            usages.add(usageInfo)
+          }
+          // ... and insert a dependency on the Google Analytics SDK, as recommended.
+          if (!seenGoogleAnalyticsSdk) {
+            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE)
+            val usageInfo = AddGoogleAnalyticsSdkUsageInfo(wrappedPsiElement, current, new, model.dependencies())
+            usages.add(usageInfo)
+          }
+        }
+      }
+
+      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Optional Step: Set up Ndk crash reporting
+      // - only done if crashlytics.enableNdk is present and enabled in the current project.
+      // - In your app-level build.gradle, replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency. Then,
+      //   add the firebaseCrashlytics extension and make sure to enable the nativeSymbolUploadEnabled flag.
+      run {
+        if (model.crashlytics().enableNdk().getValue(BOOLEAN_TYPE) == true) {
+          // if enableNdk is true (not false or null/non-existent), remove it ...
+          run {
+            val psiElement = model.crashlytics().enableNdk().psiElement ?: model.crashlytics().psiElement ?: modelPsiElement
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO)
+            val usageInfo = RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, current, new, model)
+            usages.add(usageInfo)
+          }
+          // ... turn on native symbol upload for the `release` buildType ...
+          run {
+            val releaseBuildType = model.android().buildTypes().first { it.name() == "release" }
+            val psiElement = releaseBuildType.psiElement ?: model.android().psiElement ?: modelPsiElement
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD)
+            val usageInfo = AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, current, new, releaseBuildType)
+            usages.add(usageInfo)
+          }
+        }
+
+        // replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency
+        var seenFabricNdk = false
+        var seenFirebaseCrashlyticsNdk = false
+        val dependenciesOrHigherPsiElement = model.dependencies().psiElement ?: modelPsiElement
+        model.dependencies().artifacts().forEach dep@{ dep ->
+          when {
+            dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics-ndk" -> {
+              val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_NDK_USAGE_TYPE)
+              val usageInfo = RemoveFabricNdkUsageInfo(wrappedPsiElement, current, new, model.dependencies(), dep)
+              usages.add(usageInfo)
+              seenFabricNdk = true
+            }
+          }
+        }
+        if (seenFabricNdk && !seenFirebaseCrashlyticsNdk) {
+          val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE)
+          val usageInfo = AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, current, new, model.dependencies())
+          usages.add(usageInfo)
+        }
+      }
+    }
+    return usages.toTypedArray()
+  }
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader() = "Migrate crashlytics from fabric to firebase"
+    }
+  }
+
+  override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
+    builder.setKind(FABRIC_CRASHLYTICS)
+
+  override fun getCommandName() = "Migrate crashlytics from fabric to firebase"
+
+  override fun getReadMoreUrl(): String? = "https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android"
+
+  companion object {
+    val INCOMPATIBLE_VERSION = GradleVersion.parse("4.1.0-alpha05") // see b/154302886
+
+    val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType("Remove the Fabric Maven repository")
+    val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType("Add the Google Maven repository")
+
+    val REMOVE_FABRIC_CLASSPATH_USAGE_TYPE = UsageType("Remove the dependency on the Fabric Gradle plugin")
+    val ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE = UsageType("Add a dependency on the Google Services Gradle plugin")
+    val ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE = UsageType("Add a dependency on the Firebase Crashlytics Gradle plugin")
+
+    val REPLACE_FABRIC_PLUGIN_USAGE_TYPE = UsageType("Replace the Fabric plugin with the Firebase Crashlytics plugin")
+    val APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE = UsageType("Apply the Google Services plugin")
+
+    val REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE = UsageType("Remove the dependency on the Fabric SDK")
+    val ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE = UsageType("Add a dependency on the Firebase Crashlytics SDK")
+    val ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE = UsageType("Add a dependency on the Google Analytics SDK")
+
+    val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType("Remove the Fabric NDK dependency")
+    val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType("Add the Firebase Crashlytics NDK dependency")
+    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO = UsageType("Remove the enableNdk crashlytics flag")
+    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD = UsageType("Enable native symbol upload for the release buildType")
+  }
+}
+
+class RemoveFabricMavenRepositoryUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val repositories: RepositoriesModel,
+  private val repository: RepositoryModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    repositories.removeRepository(repository)
+  }
+}
+
+// TODO(xof): investigate unifying this with the NoGMavenUsageInfo class above
+
+class AddGoogleMavenRepositoryUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val repositories: RepositoriesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    // as with NoGMavenUsageInfo this use of GRADLE_MINIMUM_VERSION is theoretically wrong and in practice fine.
+    repositories.addGoogleMavenRepository(GradleVersion.parse(GRADLE_MINIMUM_VERSION))
+  }
+}
+
+class RemoveFabricClasspathDependencyUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel,
+  private val dependency: DependencyModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.remove(dependency)
+  }
+}
+
+class AddGoogleServicesClasspathDependencyUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    // TODO(xof): how to find the current version?  Or the version contemporaneous with this AGP/Studio?
+    dependencies.addArtifact("classpath", "com.google.gms:google-services:4.3.3")
+  }
+}
+
+class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    // TODO(xof): how to find the current version?  Or the version contemporaneous with this AGP/Studio?
+    dependencies.addArtifact("classpath", "com.google.firebase:firebase-crashlytics-gradle:2.3.0")
+  }
+}
+
+class ReplaceFabricPluginUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val plugin: PluginModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    plugin.name().setValue("com.google.firebase.crashlytics")
+  }
+}
+
+class ApplyGoogleServicesPluginUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val model: GradleBuildModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    model.applyPlugin("com.google.gms.google-services")
+  }
+}
+
+class RemoveFabricCrashlyticsSdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel,
+  private val dependency: DependencyModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.remove(dependency)
+  }
+}
+
+class AddFirebaseCrashlyticsSdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics:17.2.1")
+  }
+}
+
+class AddGoogleAnalyticsSdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.addArtifact("implementation", "com.google.firebase:firebase-analytics:17.5.0")
+  }
+}
+
+class RemoveFabricNdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel,
+  private val dependency: DependencyModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.remove(dependency)
+  }
+}
+
+class AddFirebaseCrashlyticsNdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val dependencies: DependenciesModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics-ndk:17.2.1")
+  }
+}
+
+class RemoveCrashlyticsEnableNdkUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val model: GradleBuildModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    model.crashlytics().enableNdk().delete()
+  }
+}
+
+class AddBuildTypeFirebaseCrashlyticsUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val buildType: BuildTypeModel
+) : GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    buildType.firebaseCrashlytics().nativeSymbolUploadEnabled().setValue(true)
   }
 }
 
