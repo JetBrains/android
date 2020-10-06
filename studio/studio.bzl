@@ -478,15 +478,6 @@ def android_studio(
         **kwargs
     )
 
-    # Generate a tar.gz only if requested
-    native.genrule(
-        name = name + ".linux.tar.gz",
-        srcs = [":" + name + ".linux.zip"],
-        tags = ["manual"],
-        outs = [name + ".linux.tar.gz"],
-        cmd_bash = "unzip -qq $< -d $(@D).tmp; tar -C $(@D).tmp -czf $@ android-studio; rm -r $(@D).tmp",
-    )
-
 def _intellij_platform_impl_os(ctx, platform, data):
     files = platform.get(data)
     plugin_dir = "%splugins/" % platform.base_path
