@@ -48,7 +48,7 @@ public class ComponentPopupMenu {
   }
 
   public void install() {
-    PopupHandler.installUnknownPopupHandler(myComponent, myGroup, ActionManager.getInstance());
+    PopupHandler.installPopupHandler(myComponent, myGroup, ActionPlaces.UNKNOWN);
   }
 
   public void addSeparator() {
