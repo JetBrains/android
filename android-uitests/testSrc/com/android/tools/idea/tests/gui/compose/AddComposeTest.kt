@@ -111,7 +111,7 @@ class AddComposeTest {
 
     fun addComposeActivity(name: String) {
       NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
-        .configureActivityStep
+        .getConfigureActivityStep("Empty Compose Activity")
         .enterTextFieldValue(NAME, name)
         .wizard()
         .clickFinishAndWaitForSyncToFinish()
