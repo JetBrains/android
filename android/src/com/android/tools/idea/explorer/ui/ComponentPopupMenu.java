@@ -17,7 +17,7 @@ package com.android.tools.idea.explorer.ui;
 
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -54,7 +54,7 @@ public class ComponentPopupMenu {
   }
 
   public void install() {
-    PopupHandler.installUnknownPopupHandler(myComponent, myGroup, ActionManager.getInstance());
+    PopupHandler.installPopupHandler(myComponent, myGroup, ActionPlaces.UNKNOWN);
   }
 
   public void addSeparator() {
