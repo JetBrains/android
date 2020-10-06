@@ -33,6 +33,7 @@ class AndroidDeviceInfoTableView {
   @VisibleForTesting val myTableView = TableView(myModel).apply {
     isFocusable = false
     rowSelectionAllowed = false
+    tableHeader.reorderingAllowed = false
   }
   private val myTableViewContainer = JBScrollPane(myTableView)
 
