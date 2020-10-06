@@ -45,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
+import org.jetbrains.android.util.AndroidBundle.message
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import com.android.tools.idea.wizard.template.BytecodeLevel as TemplateBytecodeLevel
@@ -169,12 +170,12 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
 
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
 
-  "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
-  "Android Module" -> TemplateRenderer.ANDROID_MODULE
-  "Java Library" -> TemplateRenderer.JAVA_LIBRARY
-  "Android TV Module" -> TemplateRenderer.ANDROID_TV_MODULE
-  "Dynamic Feature (Instant App)" -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
-  "Wear OS Module" -> TemplateRenderer.ANDROID_WEAR_MODULE
+  message("android.wizard.module.new.benchmark.module.app") -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+  message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
+  message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
+  message("android.wizard.module.new.tv") -> TemplateRenderer.ANDROID_TV_MODULE
+  message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
+  message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
 
   "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
