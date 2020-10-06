@@ -349,7 +349,7 @@ class ManageSnapshotsDialogTest {
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
       // Close the "Manage Snapshots" dialog.
       ui.clickOn(rootPane1.defaultButton)
@@ -373,7 +373,7 @@ class ManageSnapshotsDialogTest {
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
       assertThat(table.items).hasSize(4) // No snapshots were deleted.
       // Close the "Manage Snapshots" dialog.
       ui.clickOn(rootPane1.defaultButton)
