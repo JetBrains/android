@@ -43,7 +43,7 @@ say your main checkout is at `$SRC/studio-master-dev`, and we create a new `$SRC
 
 ```
 cd $SRC/studio-sdk
-repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-master-dev -m studio-sdk
+repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-master-dev -m studio-sdk.xml
 repo sync -j10
 ```
 
