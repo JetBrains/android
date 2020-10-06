@@ -21,20 +21,14 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 
@@ -81,8 +75,6 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
   fun testOpenOfflineDatabases() {
     // Prepare
-    initProjectSystemService(listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
-
     val file1 = mock<VirtualFile>()
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
@@ -116,8 +108,6 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
   fun testOpenOfflineDatabaseNoMainFileThrows() {
     // Prepare
-    initProjectSystemService(listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
-
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
 
@@ -141,45 +131,5 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
         fail("Expected IOException, but got Throwable")
       }
     }
-  }
-
-  fun testDoesNotDownloadFileIfProcessNameDoesNotHaveAndroidFacet() {
-    // Prepare
-    initProjectSystemService(emptyList())
-
-    val file1 = mock<VirtualFile>()
-    val file2 = mock<VirtualFile>()
-    val file3 = mock<VirtualFile>()
-
-    `when`(deviceFileDownloaderService.downloadFiles(any(), any(), any())).thenReturn(
-      Futures.immediateFuture(
-        mapOf(
-          "/data/data/com.example.package/databases/db-file" to file1,
-          "/data/data/com.example.package/databases/db-file-shm" to file2,
-          "/data/data/com.example.package/databases/db-file-wal" to file3
-        )
-      )
-    )
-
-    // Act
-    runDispatching {
-      try {
-        fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
-        fail()
-      }
-      catch (e: FileDatabaseException) { }
-      catch (e: Throwable) {
-        fail("Expected IOException, but got Throwable")
-      }
-    }
-  }
-
-  private fun initProjectSystemService(androidFacets: List<AndroidFacet>) {
-    val projectSystemService = IdeComponents(project, testRootDisposable).mockProjectService(ProjectSystemService::class.java)
-    val androidProjectSystem = mock<AndroidProjectSystem>()
-    `when`(
-      androidProjectSystem.getAndroidFacetsWithPackageName(project, "processName", GlobalSearchScope.projectScope(project))
-    ).thenReturn(androidFacets)
-    `when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
   }
 }
