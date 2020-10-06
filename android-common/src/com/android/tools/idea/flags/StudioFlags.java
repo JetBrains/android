@@ -804,7 +804,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> UTP_TEST_RESULT_SUPPORT = Flag.create(
     TESTING, "utp.instrumentation.tests", "Allow importing UTP test results.",
     "If enabled, you can import UTP test results and display them in test result panel.",
-    false
+    true
   );
   //endregion
 
