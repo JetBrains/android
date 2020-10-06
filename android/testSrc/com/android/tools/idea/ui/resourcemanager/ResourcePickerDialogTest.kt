@@ -24,7 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceDetailView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.google.common.truth.Truth.assertThat
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
@@ -62,7 +62,7 @@ class ResourcePickerDialogTest {
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
     list.setUI(HeadlessListUI())
 
-    var point = list.indexToLocation(0)
+    val point = list.indexToLocation(0)
     simulateMouseClick(list, point, 1)
 /* b/145854765
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/png")

@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule

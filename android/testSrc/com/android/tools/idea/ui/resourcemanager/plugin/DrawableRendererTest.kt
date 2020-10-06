@@ -24,11 +24,14 @@ import com.android.tools.idea.ui.resourcemanager.getStateList
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.android.tools.idea.util.androidFacet
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.ImageUtil
-import org.junit.*
 import org.junit.Assert.assertNotNull
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
