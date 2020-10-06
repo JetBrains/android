@@ -70,11 +70,6 @@ public class FontFileType implements FileType {
     return true;
   }
 
-  @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
   @Nullable
   @Override
   public String getCharset(@NotNull VirtualFile file, @NotNull byte[] content) {
