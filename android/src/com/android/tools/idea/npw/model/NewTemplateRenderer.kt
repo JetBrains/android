@@ -195,8 +195,8 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
   "Watch Face" -> TemplateRenderer.WATCH_FACE
   "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
-  "Messaging service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
-  "Media service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
+  "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
+  "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS

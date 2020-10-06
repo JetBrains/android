@@ -95,6 +95,9 @@ open class TemplateTest : AndroidGradleTestCase() {
     ensureSdkManagerAvailable()
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
+    // Name must be title-cased
+    assertThat(template.name).isEqualTo(template.name.split(" ").joinToString(" ") { it.capitalize() })
+
     // Description and help should not end with spaces or "."
     assertThat(template.description).doesNotContainMatch("[\\. ]$")
     template.parameters
@@ -527,22 +530,22 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testAutomotiveMessagingService() {
-    checkCreateTemplate("Messaging service")
+    checkCreateTemplate("Messaging Service")
   }
 
   @TemplateCheck
   fun testAutomotiveMessagingServiceWithKotlin() {
-    checkCreateTemplate("Messaging service", withKotlin)
+    checkCreateTemplate("Messaging Service", withKotlin)
   }
 
   @TemplateCheck
   fun testAutomotiveMediaService() {
-    checkCreateTemplate("Media service")
+    checkCreateTemplate("Media Service")
   }
 
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
-    checkCreateTemplate("Media service", withKotlin)
+    checkCreateTemplate("Media Service", withKotlin)
   }
 
   fun testWizardUiContext() {
