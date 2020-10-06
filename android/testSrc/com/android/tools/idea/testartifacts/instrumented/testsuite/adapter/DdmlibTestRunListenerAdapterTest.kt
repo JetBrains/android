@@ -286,6 +286,7 @@ class DdmlibTestRunListenerAdapterTest {
     val testCaseCaptor = ArgumentCaptor.forClass(AndroidTestCase::class.java)
     verify(mockListener).onTestCaseStarted(any(), any(), testCaseCaptor.capture() ?: AndroidTestCase("", "", "", ""))
     assertThat(testCaseCaptor.value.result).isEqualTo(AndroidTestCaseResult.CANCELLED)
+    assertThat(testCaseCaptor.value.endTimestampMillis).isNotNull()
 
     val testSuiteCaptor = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
     verify(mockListener).onTestSuiteFinished(any(), testSuiteCaptor.capture() ?: AndroidTestSuite("", "", 0))
