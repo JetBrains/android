@@ -29,7 +29,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndWait
