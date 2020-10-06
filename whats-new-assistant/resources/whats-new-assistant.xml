@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="4.2.01">
+    version="4.3.01">
   <feature
-      name="What's New in 4.2">
+      name="What's New in 4.3">
     <tutorial
         key="whats-new"
-        label=" What's New in 4.2"
+        label=" What's New in 4.3"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/preview/features#4.2"
+        remoteLink="https://developer.android.com/studio/preview/features#4.3"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,34 +37,11 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Improved instrumentation testing">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <br>
-              <img src="https://d.android.com/studio/releases/assistant/4.2.0/instrumentation-test-panel-wna.png"
-                   width="428">
-              <br><br>
-              Instrumentation tests can now be run
-              across multiple devices in parallel and investigated using a specialized
-              instrumentation test results panel. Using this panel, you can determine if
-              tests are failing due to API level or hardware properties.
-
-              <br><br>Testing your app across a wide variety of API levels and form factors is one
-              of the best ways to ensure that all users have a great experience when using your app.
-              <br><br>
-              <a href="https://d.android.com/studio/preview/features?utm_source=android-studio-4-2&utm_medium=studio-assistant-preview#instrumentation-testing">Learn more</a>
-              <br>
-              <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
       <step label="Support for Jetpack Compose">
         <stepElement>
           <section>
             <![CDATA[
-              <a href="http://d.android.com/jetpack?utm_source=android-studio-4-0&utm_medium=studio-assistant-preview">Jetpack Compose</a>
+              <a href="http://d.android.com/jetpack?utm_source=android-studio-4-3&utm_medium=studio-assistant-preview">Jetpack Compose</a>
               is a modern toolkit for building native Android UI. The toolkit also brings all of
               Kotlin's benefits, such as helping you to write concise and idiomatic code that's
               fully interoperable with Java.
@@ -83,7 +60,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 6/10/2020</em><br><br>
+              <br><em>Last updated 10/6/2020</em><br><br>
             ]]>
           </section>
         </stepElement>
