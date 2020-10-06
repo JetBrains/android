@@ -35,11 +35,6 @@ public abstract class AndroidProfilerCaptureFileType implements FileType {
     return true;
   }
 
-  @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
   @Nullable
   @Override
   public Icon getIcon() {
