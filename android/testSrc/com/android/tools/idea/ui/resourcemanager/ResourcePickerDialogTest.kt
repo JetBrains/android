@@ -24,7 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceDetailView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.google.common.truth.Truth.assertThat
-import com.intellij.application.runInAllowSaveMode
+import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
