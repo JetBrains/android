@@ -15,28 +15,14 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.DoubleClickListener
-import com.intellij.ui.EditorTextField
-import com.intellij.ui.HintHint
-import com.intellij.ui.LightweightHint
+import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
-import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
-import java.awt.event.MouseMotionListener
-import javax.swing.DefaultListModel
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.ListSelectionModel
+import java.awt.event.*
+import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 
 /**
@@ -74,7 +60,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = MyListCellRenderer()
     list.addFocusListener(object : FocusListener {
-      override fun focusGained(e: FocusEvent) { }
+      override fun focusGained(e: FocusEvent) {}
 
       override fun focusLost(e: FocusEvent) {
         if (shouldRestorePermanentQuery) {
@@ -97,9 +83,9 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     }
 
     list.addKeyListener(object : KeyListener {
-      override fun keyTyped(e: KeyEvent) { }
+      override fun keyTyped(e: KeyEvent) {}
 
-      override fun keyPressed(e: KeyEvent) { }
+      override fun keyPressed(e: KeyEvent) {}
 
       override fun keyReleased(e: KeyEvent) {
         if (e.keyCode == KeyEvent.VK_ENTER) {
@@ -109,7 +95,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     })
 
     list.addMouseMotionListener(object : MouseMotionListener {
-      override fun mouseDragged(e: MouseEvent) { }
+      override fun mouseDragged(e: MouseEvent) {}
 
       override fun mouseMoved(e: MouseEvent) {
         val viewIndex = list.locationToIndex(e.point)
@@ -128,14 +114,15 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
     doubleClickListener.installOn(list)
 
     val listScroller = JBScrollPane(list)
+    listScroller.border = JBUI.Borders.empty()
     val instructionsLabel = JBLabel("Press Enter to insert")
+    instructionsLabel.font = instructionsLabel.font.deriveFont(11f)
+    instructionsLabel.border = JBUI.Borders.empty(2, 8, 2, 8)
     instructionsLabel.isEnabled = false
 
     panel.add(listScroller, BorderLayout.CENTER)
     panel.add(instructionsLabel, BorderLayout.SOUTH)
     list.fixedCellWidth = JBUI.scale(350)
-
-    instructionsLabel.border = JBUI.Borders.empty(0, 8, 0, 8)
   }
 
   fun show(component: JComponent, x: Int, y: Int) {
@@ -167,7 +154,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
       selected: Boolean,
       hasFocus: Boolean
     ) {
-      append("${index+1}.")
+      append("${index + 1}.")
       append("  ")
       append(value)
     }
