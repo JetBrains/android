@@ -76,7 +76,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.ColorUtil
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SystemNotifications
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
@@ -84,7 +84,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.PathUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -156,10 +155,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     runConfiguration = this@AndroidTestSuiteView.runConfiguration
   }
 
-  private val myComponentsSplitter: JBSplitter = JBSplitter().apply {
+  private val myComponentsSplitter: OnePixelSplitter = OnePixelSplitter().apply {
     setHonorComponentsMinimumSize(false)
-    dividerWidth = 1
-    divider.background = UIUtil.CONTRAST_BORDER_COLOR
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
