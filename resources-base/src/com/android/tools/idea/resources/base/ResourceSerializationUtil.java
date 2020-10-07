@@ -117,11 +117,11 @@ public class ResourceSerializationUtil {
   public static void writeResourcesToStream(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> resources,
                                             @NotNull Base128OutputStream stream,
                                             @NotNull Predicate<FolderConfiguration> configFilter) throws IOException {
-    Object2IntOpenHashMap<String> qualifierStringIndexes = new Object2IntOpenHashMap<>();
+    Object2IntMap<String> qualifierStringIndexes = new Object2IntOpenHashMap<>();
     qualifierStringIndexes.defaultReturnValue(-1);
-    Object2IntOpenHashMap<ResourceSourceFile> sourceFileIndexes = new Object2IntOpenHashMap<>();
+    Object2IntMap<ResourceSourceFile> sourceFileIndexes = new Object2IntOpenHashMap<>();
     sourceFileIndexes.defaultReturnValue(-1);
-    Object2IntOpenHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes = new Object2IntOpenHashMap<>();
+    Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes = new Object2IntOpenHashMap<>();
     namespaceResolverIndexes.defaultReturnValue(-1);
     int itemCount = 0;
     Collection<ListMultimap<String, ResourceItem>> resourceMaps = resources.values();
