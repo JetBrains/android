@@ -110,7 +110,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragDndTarget.java"
-            line="123"/>
+            line="126"/>
     </issue>
 
     <issue
@@ -118,7 +118,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragDndTarget.java"
-            line="128"/>
+            line="131"/>
     </issue>
 
     <issue
@@ -310,7 +310,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="309"/>
+            line="312"/>
     </issue>
 
     <issue
@@ -318,7 +318,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="313"/>
+            line="316"/>
     </issue>
 
     <issue
@@ -382,7 +382,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/scene/target/ResizeWithSnapBaseTarget.java"
-            line="207"/>
+            line="210"/>
     </issue>
 
     <issue
@@ -390,7 +390,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/scene/target/ResizeWithSnapBaseTarget.java"
-            line="221"/>
+            line="224"/>
     </issue>
 
     <issue
@@ -398,7 +398,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="662"/>
+            line="657"/>
     </issue>
 
     <issue
@@ -734,7 +734,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="100"/>
+            line="94"/>
     </issue>
 
     <issue
@@ -774,7 +774,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="484"/>
+            line="514"/>
     </issue>
 
     <issue
@@ -782,7 +782,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="484"/>
+            line="514"/>
     </issue>
 
     <issue
@@ -790,7 +790,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="491"/>
+            line="521"/>
     </issue>
 
     <issue
@@ -798,15 +798,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="491"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="101"/>
+            line="521"/>
     </issue>
 
     <issue
@@ -830,7 +822,7 @@
         message="Method getPalette is slow and thus should run on a worker thread, yet the currently inferred thread is the UI thread">
         <location
             file="src/com/android/tools/idea/uibuilder/palette/DataModel.java"
-            line="230"/>
+            line="243"/>
     </issue>
 
 </issues>
