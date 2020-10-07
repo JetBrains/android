@@ -80,6 +80,14 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   }
 
   @Test
+  fun testFabricSdkWithNdkAndFirebaseDependencies() {
+    writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependencies"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependenciesExpected"))
+  }
+
+  @Test
   fun testIsAlwaysNoOpOnFabricSdkWithNdkExpected() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkExpected"))
     val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
