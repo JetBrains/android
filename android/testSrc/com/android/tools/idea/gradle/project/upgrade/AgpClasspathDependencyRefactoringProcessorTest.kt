@@ -22,8 +22,10 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -121,5 +123,23 @@ class AgpClasspathDependencyRefactoringProcessorTest : UpgradeGradleFileModelTes
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/VersionInLiteralExpected"))
     verifyFileContents(buildSrcFile, TestFileName("AgpClasspathDependency/BuildSrcDependencyExpected"))
+  }
+
+  @Test
+  fun testLiteralTooltipsNotNull() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
+  }
+
+  @Test
+  fun testInterpolatedVariableTooltipsNotNull() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInInterpolatedVariable"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 }

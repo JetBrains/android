@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProc
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -240,5 +241,15 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     writeToBuildFile(TestFileName("Java8Default/SimpleJavaLibraryNoLanguageLevel"))
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
     assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testSimpleApplicationNoLanguageLevelInsertOldTooltipsNotNull() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 }

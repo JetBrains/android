@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -136,6 +137,15 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     val expectedText = FileUtil.loadFile(TestFileName("AgpGradleVersion/OldGradleVersion").toFile(testDataPath, ""))
     val actualText = VfsUtilCore.loadText(wrapperSettingsFile)
     assertEquals(expectedText, actualText)
+  }
+
+  @Test
+  fun testTooltipsNotNull() {
+    writeToGradleWrapperPropertiesFile(TestFileName("AgpGradleVersion/OldGradleVersion"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"), GradleVersion.parse("6.5"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
