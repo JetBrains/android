@@ -1506,6 +1506,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
               usages.add(usageInfo)
               seenFabricNdk = true
             }
+            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics-ndk" -> seenFirebaseCrashlyticsNdk = true
           }
         }
         if (seenFabricNdk && !seenFirebaseCrashlyticsNdk) {
