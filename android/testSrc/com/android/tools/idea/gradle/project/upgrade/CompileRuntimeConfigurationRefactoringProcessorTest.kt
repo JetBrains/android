@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -209,5 +210,14 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
     // the test file has some dependencies needing update not in the buildscript block
     assertFalse(processor.isAlwaysNoOpForProject)
+  }
+
+  @Test
+  fun testTooltipsNotNull() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 }
