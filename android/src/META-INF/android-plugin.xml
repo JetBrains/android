@@ -146,7 +146,7 @@
 
     <group id="Android.DeviceExplorer.ActionsToolbar">
       <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="StudioIcons.DeviceExplorer.SHARED_PREFS"/>
-      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.DeviceExplorer.DatabaseFolder"/>
+      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.Explorer.DatabaseFolder"/>
       <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="StudioIcons.DeviceExplorer.SD_CARD_FOLDER"/>
       <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help"/>
     </group>
@@ -857,7 +857,7 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
   </extensions>
-  
+
   <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
     <upToDateChecker implementation="com.android.tools.idea.gradle.project.sync.GradleDslUpToDateChecker" />
   </extensions>
