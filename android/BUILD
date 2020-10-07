@@ -1517,6 +1517,7 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
+# managed by go/iml_to_build [unb]
 java_import(
     name = "unb.android-core-proto-test",
     jars = ["//tools/adt/idea/android:libandroid-core-proto-test.jar"],
