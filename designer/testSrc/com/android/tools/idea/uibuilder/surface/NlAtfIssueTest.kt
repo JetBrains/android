@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
@@ -68,5 +72,77 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertTrue(atfIssue.description.contains(msg))
     assertTrue(atfIssue.description.contains("""<a href="$helpfulLink">"""))
     assertNotNull(atfIssue.hyperlinkListener)
+  }
+
+  fun testIgnoreButton() {
+    val result = ScannerTestHelper.createTestIssueBuilder().build()
+
+    val atfIssue = NlAtfIssue(result, TestSource())
+
+    assertEquals(1, atfIssue.fixes.count())
+    atfIssue.fixes.forEach {  ignore ->
+      assertEquals("Ignore", ignore.buttonText)
+    }
+  }
+
+  fun testIgnoreClicked() {
+    val testSrc = TestSource()
+    val srcClass = "SrcClass"
+    val result = ScannerTestHelper.createTestIssueBuilder()
+      .setSourceClass(srcClass)
+      .build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    assertEquals(1, atfIssue.fixes.count())
+    atfIssue.fixes.forEach {  ignore ->
+      // Simulate ignore button click
+      ignore.runnable.run()
+
+      assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
+      assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
+      assertEquals(srcClass, testSrc.setAttrArgCaptor.value)
+    }
+  }
+
+  fun testIgnoreClickedIgnoreAlreadyExist() {
+    val testSrc = TestSource()
+    val getAttrResult = "hardcodedText,someOtherLintToIgnore,test"
+    val srcClass = "SrcClass"
+
+    testSrc.getAttrResult = getAttrResult
+    val result = ScannerTestHelper.createTestIssueBuilder()
+      .setSourceClass(srcClass)
+      .build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    assertEquals(1, atfIssue.fixes.count())
+    atfIssue.fixes.forEach {  ignore ->
+      // Simulate ignore button click
+      ignore.runnable.run()
+
+      assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
+      assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
+      val expected = "$getAttrResult,$srcClass"
+      assertEquals(expected, testSrc.setAttrArgCaptor.value)
+    }
+  }
+
+  class TestSource : IssueSource, NlAttributesHolder {
+    override val displayText: String = "displayText"
+    override val onIssueSelected: (DesignSurface) -> Unit
+      get() = TODO("Not yet implemented")
+
+    var getAttrResult = ""
+    override fun getAttribute(namespace: String?, attribute: String): String? {
+      return getAttrResult
+    }
+
+    data class SetAttributeArgumentCaptor(var namespace: String? = null, var attribute: String = "", var value: String? = null)
+    val setAttrArgCaptor = SetAttributeArgumentCaptor()
+    override fun setAttribute(namespace: String?, attribute: String, value: String?) {
+      setAttrArgCaptor.namespace = namespace
+      setAttrArgCaptor.attribute = attribute
+      setAttrArgCaptor.value = value
+    }
   }
 }
