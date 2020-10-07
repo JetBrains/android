@@ -561,6 +561,7 @@ filegroup(
     name = "artifacts",
     srcs = [
         ":android-core-proto",
+        ":android-core-proto-test",
         ":deploy-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
