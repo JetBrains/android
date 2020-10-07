@@ -114,9 +114,9 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
-    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix(fix.name, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix("Fix", fix.name, createQuickFixRunnable(fix))
 
-    private fun createQuickFixPair(fix: IntentionAction) = Fix(fix.text, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: IntentionAction) = Fix("Fix", fix.text, createQuickFixRunnable(fix))
 
     override fun equals(other: Any?): Boolean {
       if (other !is LintIssueWrapper) {

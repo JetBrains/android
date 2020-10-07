@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -22,13 +24,23 @@ import com.intellij.lang.annotation.HighlightSeverity
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-private data class NlComponentIssueSource(private val component: NlComponent) : IssueSource {
+private data class NlComponentIssueSource(private val component: NlComponent) : IssueSource, NlAttributesHolder {
   override val displayText: String = listOfNotNull(
     component.model.modelDisplayName,
     component.id,
     "<${component.tagName}>").joinToString(" ")
   override val onIssueSelected: (DesignSurface) -> Unit = {
     it.selectionModel.setSelection(listOf(component))
+  }
+
+  override fun getAttribute(namespace: String?, attribute: String): String? {
+    return component.getAttribute(namespace, attribute)
+  }
+
+  override fun setAttribute(namespace: String?, attribute: String, value: String?) {
+    NlWriteCommandActionUtil.run(component, "Update issue source") {
+      component.setAttribute(namespace, attribute, value)
+    }
   }
 }
 
@@ -116,7 +128,7 @@ abstract class Issue {
    * @param description Description of the fix
    * @param runnable    Action to execute the fix
    */
-  data class Fix(val description: String, val runnable: Runnable)
+  data class Fix(val buttonText: String = "Fix", val description: String, val runnable: Runnable)
 
   companion object {
     const val EXECUTE_FIX = "Execute Fix: "

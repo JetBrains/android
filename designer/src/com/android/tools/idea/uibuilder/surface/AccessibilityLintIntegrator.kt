@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
@@ -69,6 +73,12 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
   fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
+    component?.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
+      if (it.contains(result.mSourceClass)) {
+        return
+      }
+    }
+
     val source = if (component == null) {
       IssueSource.NONE
     }
@@ -123,7 +133,21 @@ class NlAtfIssue(
 
   override val fixes: Stream<Fix>
     get() {
-      return ArrayList<Fix>().stream()
+      if (source is NlAttributesHolder) {
+        val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
+          var attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE)
+          if (attr != null && attr.isNotEmpty()) {
+            attr = "$attr,${result.mSourceClass}"
+          } else {
+            attr = result.mSourceClass
+          }
+
+          // Set attr automatically refreshes the surface.
+          source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+        }
+        return listOf(ignore).stream()
+      }
+      return Stream.empty()
     }
 
   override val hyperlinkListener: HyperlinkListener?
