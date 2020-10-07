@@ -197,6 +197,8 @@ abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(elemen
     }
     LOG.info("performing \"${this.tooltipText}\" build model refactoring in '${path}'")
   }
+
+  abstract override fun getTooltipText(): String
 }
 
 /**
