@@ -414,4 +414,9 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
       }
     }
   }
+
+  @Override
+  public boolean isObjectFilteredOut(Object o) {
+    return false;
+  }
 }
