@@ -107,10 +107,14 @@ import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.stream.StreamResult
+import kotlin.math.max
 import kotlin.math.min
 
 private const val PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton"
 private const val SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton"
+
+private const val MIN_FIRST_COMPONENT_PROPORTION: Float = 0.1f
+private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
@@ -155,10 +159,20 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     runConfiguration = this@AndroidTestSuiteView.runConfiguration
   }
 
-  private val myComponentsSplitter: OnePixelSplitter = OnePixelSplitter().apply {
-    setHonorComponentsMinimumSize(false)
-    isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter() {
+    init {
+      setHonorComponentsMinimumSize(false)
+      isFocusTraversalPolicyProvider = true
+      focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    }
+
+    override fun doLayout() {
+      // The internal proportion value can be greater than maxProportion and smaller
+      // than minProportion when you change component's side (b/170234515).
+      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+
+      super.doLayout()
+    }
   }
 
   @VisibleForTesting val myResultsTableView: AndroidTestResultsTableView

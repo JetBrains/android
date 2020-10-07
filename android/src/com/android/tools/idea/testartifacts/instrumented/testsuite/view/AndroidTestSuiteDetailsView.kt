@@ -50,6 +50,9 @@ import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
 
+private const val MAX_FIRST_COMPONENT_WIDTH: Int = 400
+private const val MIN_FIRST_COMPONENT_PROPORTION: Float = 0.1f
+private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
 
 /**
  * Displays detailed results of an instrumentation test case. The test case may be executed by
@@ -126,9 +129,9 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
   private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter(
     /*vertical=*/false,
     /*defaultProportion=*/0.4f,
-    /*minProportion=*/0.1f,
-    /*maxProportion=*/0.9f) {
-    private val MAX_FIRST_COMPONENT_WIDTH: Int = 400
+    MIN_FIRST_COMPONENT_PROPORTION,
+    MAX_FIRST_COMPONENT_PROPORTION) {
+
     init {
       setHonorComponentsMinimumSize(false)
       firstComponent = myDeviceSelectorListView.rootPanel
@@ -141,10 +144,9 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
         proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
       }
 
-      // Call getter and setter of this.proportion. The internal proportion value
-      // can be greater than maxProportion and smaller than minProportion when
-      // you change component's side (b/170234515).
-      proportion = proportion
+      // The internal proportion value can be greater than maxProportion and smaller
+      // than minProportion when you change component's side (b/170234515).
+      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
 
       super.doLayout()
     }
