@@ -35,7 +35,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
@@ -123,15 +123,16 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       }
     })
 
-  private val myComponentsSplitter: JBSplitter = object: JBSplitter(false, 0.3f, 0.1f, 0.9f){
-    private val MAX_FIRST_COMPONENT_WIDTH: Int = 200
+  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter(
+    /*vertical=*/false,
+    /*defaultProportion=*/0.4f,
+    /*minProportion=*/0.1f,
+    /*maxProportion=*/0.9f) {
+    private val MAX_FIRST_COMPONENT_WIDTH: Int = 400
     init {
       setHonorComponentsMinimumSize(false)
-      dividerWidth = 1
-      divider.background = UIUtil.CONTRAST_BORDER_COLOR
       firstComponent = myDeviceSelectorListView.rootPanel
       secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-      proportion = 0.3f
       dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
     }
 
@@ -139,6 +140,12 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       if (proportion * width > MAX_FIRST_COMPONENT_WIDTH && width > 0) {
         proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
       }
+
+      // Call getter and setter of this.proportion. The internal proportion value
+      // can be greater than maxProportion and smaller than minProportion when
+      // you change component's side (b/170234515).
+      proportion = proportion
+
       super.doLayout()
     }
   }
