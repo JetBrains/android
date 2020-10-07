@@ -1534,6 +1534,8 @@ class RemoveFabricMavenRepositoryUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     repositories.removeRepository(repository)
   }
+
+  override fun getTooltipText() = "Remove the Fabric Maven repository"
 }
 
 // TODO(xof): investigate unifying this with the NoGMavenUsageInfo class above
@@ -1546,6 +1548,8 @@ class AddGoogleMavenRepositoryUsageInfo(
     // as with NoGMavenUsageInfo this use of GRADLE_MINIMUM_VERSION is theoretically wrong and in practice fine.
     repositories.addGoogleMavenRepository(GradleVersion.parse(GRADLE_MINIMUM_VERSION))
   }
+
+  override fun getTooltipText() = "Add the Google Maven repository"
 }
 
 class RemoveFabricClasspathDependencyUsageInfo(
@@ -1556,6 +1560,8 @@ class RemoveFabricClasspathDependencyUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.remove(dependency)
   }
+
+  override fun getTooltipText() = "Remove the dependency on the Fabric Gradle plugin"
 }
 
 class AddGoogleServicesClasspathDependencyUsageInfo(
@@ -1566,6 +1572,8 @@ class AddGoogleServicesClasspathDependencyUsageInfo(
     // TODO(xof): how to find the current version?  Or the version contemporaneous with this AGP/Studio?
     dependencies.addArtifact("classpath", "com.google.gms:google-services:4.3.3")
   }
+
+  override fun getTooltipText() = "Add a dependency on the Google Services Gradle plugin"
 }
 
 class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
@@ -1576,6 +1584,8 @@ class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
     // TODO(xof): how to find the current version?  Or the version contemporaneous with this AGP/Studio?
     dependencies.addArtifact("classpath", "com.google.firebase:firebase-crashlytics-gradle:2.3.0")
   }
+
+  override fun getTooltipText() = "Add a dependency on the Firebase Crashlytics Gradle plugin"
 }
 
 class ReplaceFabricPluginUsageInfo(
@@ -1585,6 +1595,8 @@ class ReplaceFabricPluginUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     plugin.name().setValue("com.google.firebase.crashlytics")
   }
+
+  override fun getTooltipText() = "Replace the Fabric plugin with the Firebase Crashlytics plugin"
 }
 
 class ApplyGoogleServicesPluginUsageInfo(
@@ -1594,6 +1606,8 @@ class ApplyGoogleServicesPluginUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.applyPlugin("com.google.gms.google-services")
   }
+
+  override fun getTooltipText() = "Apply the Google Services plugin"
 }
 
 class RemoveFabricCrashlyticsSdkUsageInfo(
@@ -1604,6 +1618,8 @@ class RemoveFabricCrashlyticsSdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.remove(dependency)
   }
+
+  override fun getTooltipText() = "Remove the dependency on the Fabric SDK"
 }
 
 class AddFirebaseCrashlyticsSdkUsageInfo(
@@ -1613,6 +1629,8 @@ class AddFirebaseCrashlyticsSdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics:17.2.1")
   }
+
+  override fun getTooltipText() = "Add a dependency on the Firebase Crashlytics SDK"
 }
 
 class AddGoogleAnalyticsSdkUsageInfo(
@@ -1622,6 +1640,8 @@ class AddGoogleAnalyticsSdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-analytics:17.5.0")
   }
+
+  override fun getTooltipText() = "Add a dependency on the Google Analytics SDK"
 }
 
 class RemoveFabricNdkUsageInfo(
@@ -1632,6 +1652,8 @@ class RemoveFabricNdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.remove(dependency)
   }
+
+  override fun getTooltipText() = "Remove the Fabric NDK dependency"
 }
 
 class AddFirebaseCrashlyticsNdkUsageInfo(
@@ -1641,6 +1663,8 @@ class AddFirebaseCrashlyticsNdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependencies.addArtifact("implementation", "com.google.firebase:firebase-crashlytics-ndk:17.2.1")
   }
+
+  override fun getTooltipText() = "Add the Firebase Crashlytics NDK dependency"
 }
 
 class RemoveCrashlyticsEnableNdkUsageInfo(
@@ -1650,6 +1674,8 @@ class RemoveCrashlyticsEnableNdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.crashlytics().enableNdk().delete()
   }
+
+  override fun getTooltipText() = "Remove the enableNdk crashlytics flag"
 }
 
 class AddBuildTypeFirebaseCrashlyticsUsageInfo(
@@ -1659,6 +1685,8 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     buildType.firebaseCrashlytics().nativeSymbolUploadEnabled().setValue(true)
   }
+
+  override fun getTooltipText() = "Enable native symbol upload for the release buildType"
 }
 
 /**
