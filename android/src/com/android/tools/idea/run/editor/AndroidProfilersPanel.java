@@ -67,7 +67,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
   private JBRadioButton myCpuRecordingRadio;
-  private JBRadioButton myMemoryRecordingRadio;
 
   public JComponent getComponent() {
     return myDescription;
@@ -100,22 +99,20 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private void setUpStartupProfiling() {
     myStartupProfileCheckBox.addItemListener(e -> {
       myCpuRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
-      myMemoryRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
+      myCpuRecordingRadio.setSelected(myStartupProfileCheckBox.isSelected()); // Sync the state of the radio button to the checkbox.
       myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected() && myStartupProfileCheckBox.isSelected());
       myStartupProfileCheckBox.setSelected(myStartupProfileCheckBox.isSelected());
     });
 
     myCpuRecordingRadio.addItemListener(e -> {
       if (myCpuRecordingRadio.isSelected()) {
-        myMemoryRecordingRadio.setSelected(false);
         myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected());
       }
-    });
-
-    myMemoryRecordingRadio.addItemListener(e -> {
-      if (myMemoryRecordingRadio.isSelected()) {
-        myCpuRecordingRadio.setSelected(false);
-        myStartupCpuConfigsComboBox.setEnabled(!myMemoryRecordingRadio.isSelected());
+      // Prevent the user from deselecting the radio item when the checkbox is enabled.
+      // This prevents a case where startup profiling is checked but no radio button
+      // show as selected.
+      if (myStartupProfileCheckBox.isSelected()) {
+        myCpuRecordingRadio.setSelected(true);
       }
     });
 
@@ -125,7 +122,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
 
     if (!StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get()) {
-      myMemoryRecordingRadio.setVisible(false);
       myNativeMemoryProfilerSampleRate.setVisible(false);
     }
   }
@@ -141,7 +137,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
     myStartupProfileCheckBox.setSelected(state.STARTUP_PROFILING_ENABLED);
     myCpuRecordingRadio.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
-    myMemoryRecordingRadio.setSelected(state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
     myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
@@ -160,7 +155,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myCpuRecordingRadio.isSelected();
     assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
     state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
     state.STARTUP_PROFILING_ENABLED = myStartupProfileCheckBox.isSelected();
     try {
       state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = Math.max(1, Integer.parseInt(myNativeMemoryProfilerSampleRate.getComponent().getText()));
