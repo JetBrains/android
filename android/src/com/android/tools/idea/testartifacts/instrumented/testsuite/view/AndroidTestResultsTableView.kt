@@ -398,7 +398,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    autoResizeMode = AUTO_RESIZE_OFF
+    autoResizeMode = AUTO_RESIZE_ALL_COLUMNS
     tableHeader.resizingAllowed = true
     tableHeader.reorderingAllowed = false
     val originalDefaultHeaderRenderer = tableHeader.defaultRenderer
@@ -663,7 +663,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tableChanged(null)
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
       column.resizable = true
-      column.minWidth = 10
+      column.minWidth = 100
       column.maxWidth = Int.MAX_VALUE / 2
       column.preferredWidth = model.columns[index].getWidth(this)
     }
