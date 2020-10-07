@@ -179,6 +179,17 @@ public class AndroidPsiUtils {
     });
   }
 
+
+  /**
+   * Returns the {@link PsiDirectory} for the given {@link PsiFile}, with a read lock.
+   *
+   * @param file the file to look up the PSI directory for
+   */
+  @Nullable
+  public static PsiDirectory getPsiDirectorySafely(@NotNull final PsiFile file) {
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiDirectory>)file::getParent);
+  }
+
   /**
    * Returns the parent element of the given {@link PsiElement} acquiring the read lock to do so
    * if necessary.
