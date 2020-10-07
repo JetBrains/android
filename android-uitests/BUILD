@@ -2274,12 +2274,11 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto[test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-copyright[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-testng[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/adt/idea/studio[module, test]",
     ],
 )
