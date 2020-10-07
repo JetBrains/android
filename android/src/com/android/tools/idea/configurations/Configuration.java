@@ -75,6 +75,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
@@ -498,8 +499,10 @@ public class Configuration implements Disposable, ModificationTracker {
                 LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
                 if (resourceManager != null) {
                   for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.VALUES)) {
-                    if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
-                      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
+                    if (!myFile.equals(resourceFile.getVirtualFile())) continue;
+                    PsiDirectory parent = AndroidPsiUtils.getPsiDirectorySafely(resourceFile);
+                    if (parent != null) {
+                      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(parent.getName());
                       if (currentConfig.isMatchFor(folderConfiguration)) {
                         return device;
                       }
