@@ -22,7 +22,6 @@ import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportDeviceManager
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
-import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
@@ -112,40 +111,6 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
-  }
-
-  fun testNoRunConfigSetsAttachTypeInstant() {
-    val configBuilder = Agent.AgentConfig.newBuilder()
-    AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, null)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT);
-  }
-
-  fun testMemoryRunConfigSetsAttachTypeAndCommand() {
-    val configBuilder = Agent.AgentConfig.newBuilder()
-    val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
-    AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
-  }
-
-  fun testCpuRunConfigSetsAttachTypeAndCommand() {
-    // TODO: migrate test to intellij test, or simplify api.
-    // Disable live allocation flag to simplify test. This flag and the CPU_PROFILING_ENABLED flag enabled
-    // require a project + project service to test.
-    StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.override(false);
-    val configBuilder = Agent.AgentConfig.newBuilder()
-    val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_CPU_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    `when`(runConfig.profilerState).thenReturn(state);
-    AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_CPU_TRACE);
   }
 
   fun testCustomizeProxyService() {
