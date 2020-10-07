@@ -571,7 +571,7 @@ def intellij_platform(
             ),
             "//tools/base/bazel:darwin": native.glob(
                 include = [src + "/darwin/android-studio/**"],
-                exclude = [src + "/darwin/android-studio/plugins/textmate/lib/bundles/**"],
+                exclude = [src + "/darwin/android-studio/Contents/plugins/textmate/lib/bundles/**"],
             ),
             "//conditions:default": native.glob(
                 include = [src + "/linux/android-studio/**"],
