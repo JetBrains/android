@@ -331,7 +331,7 @@ public class PalettePanelTest extends LayoutTestCase {
     }
   }
 
-  public void testAddToDesignFromEnterKey() {
+  public void testAddToDesignFromEnterKey() throws InterruptedException {
     DesignSurface surface = setUpLayoutDesignSurface();
 
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
@@ -342,6 +342,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
     ActionEvent event = mock(ActionEvent.class);
     listener.actionPerformed(event);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, instance=0}\n" +
@@ -382,13 +383,14 @@ public class PalettePanelTest extends LayoutTestCase {
     assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
-  public void testAddToDesign() {
+  public void testAddToDesign() throws InterruptedException {
     DesignSurface surface = setUpLayoutDesignSurface();
     myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
     myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAddToDesignAction().actionPerformed(event);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
       "NlComponent{tag=<LinearLayout>, instance=0}\n" +

@@ -24,6 +24,7 @@ import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
@@ -241,6 +242,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.currentNavigation = subnav
     surface.selectionModel.clear()
     handler.performPaste(mock(DataContext::class.java))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(root.children, fragment2, subnav)
     assertSameElements(subnav.children.map { it.id }, "fragment1", "fragment3")
@@ -275,6 +277,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.currentNavigation = subnav
     surface.selectionModel.setSelection(listOf(fragment2))
     handler.performPaste(mock(DataContext::class.java))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(fragment1.children, action2)
     assertSameElements(fragment2.children.map { it.id }, "a1")
@@ -297,6 +300,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(fragment1))
     handler.performCopy(mock(DataContext::class.java))
     handler.performPaste(mock(DataContext::class.java))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val fragment = model.find("fragment")
     assertNotNull(fragment)

@@ -761,12 +761,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
-    if (insertType != InsertType.MOVE_WITHIN) {
-      NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
-    } else {
+    final Runnable callback =
+      () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
+    if (insertType == InsertType.MOVE_WITHIN) {
       callback.run();
+      return;
     }
+
+    ApplicationManager.getApplication().invokeLater(() -> {
+      NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback);
+    });
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,

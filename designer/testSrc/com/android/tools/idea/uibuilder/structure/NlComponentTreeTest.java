@@ -234,7 +234,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>  [selected]\n");
   }
 
-  public void testCopyIntoRootWhenNothingIsSelected() {
+  public void testCopyIntoRootWhenNothingIsSelected() throws Exception {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
@@ -243,6 +243,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                        "    <TextView>  [selected]\n" +
                                        "    <LinearLayout>  [expanded]\n" +
@@ -255,7 +256,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return (DesignSurfaceActionHandler)tree.getData(PlatformDataKeys.PASTE_PROVIDER.getName());
   }
 
-  public void testPasteIntoLayoutAsFirstChild() {
+  public void testPasteIntoLayoutAsFirstChild() throws Exception {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -266,6 +267,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                        "    <LinearLayout>  [expanded]\n" +
                                        "        <TextView>  [selected]\n" +
@@ -274,7 +276,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>\n");
   }
 
-  public void testPasteIntoParentAfterButton() {
+  public void testPasteIntoParentAfterButton() throws Exception {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -285,6 +287,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                        "    <LinearLayout>  [expanded]\n" +
                                        "        <Button>\n" +
@@ -304,7 +307,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isCopyEnabled(myDataContext)).isTrue();
   }
 
-  public void testPasteMultipleIntoLayout() {
+  public void testPasteMultipleIntoLayout() throws Exception {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -315,6 +318,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                        "    <LinearLayout>  [expanded]\n" +
                                        "        <Button>\n" +
@@ -324,7 +328,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "        <Button>  [selected]\n");
   }
 
-  public void testDropOnChain() {
+  public void testDropOnChain() throws Exception {
     SyncNlModel model = createModelWithConstraintLayout();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -335,6 +339,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<android.support.constraint.ConstraintLayout>  [expanded]\n" +
                                        "    <Button>\n" +
                                        "    <Button>\n" +
@@ -358,7 +363,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>\n");
   }
 
-  public void testPasteAfterCut() {
+  public void testPasteAfterCut() throws Exception {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
@@ -370,6 +375,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isPasteEnabled(myDataContext)).isTrue();
     assertThat(actionHandler.isPastePossible(myDataContext)).isTrue();
     actionHandler.performPaste(myDataContext);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(toTree(tree)).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                        "    <LinearLayout>  [expanded]\n" +
                                        "        <Button>  [selected]\n" +
