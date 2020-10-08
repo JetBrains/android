@@ -571,6 +571,17 @@ def intellij_platform(
         }),
     )
 
+    # Expose lib/resources.jar as a separate target
+    native.java_import(
+        name = name + "-resources-jar",
+        jars = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/resources.jar"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
+            "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
     studio_data(
         name = name + ".data",
         files_linux = native.glob([src + "/linux/**"]),
