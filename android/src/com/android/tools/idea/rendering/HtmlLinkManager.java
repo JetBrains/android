@@ -32,6 +32,7 @@ import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.analytics.UsageTracker;
@@ -991,6 +992,7 @@ public class HtmlLinkManager {
   }
 
   @VisibleForTesting
+  @UiThread
   static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
     String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
@@ -999,7 +1001,7 @@ public class HtmlLinkManager {
       Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependencies(module, Collections.singletonList(coordinate), false, false)
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false, false)
                                 .isEmpty()) {
       return;
     }

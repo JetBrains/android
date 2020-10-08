@@ -52,8 +52,7 @@ class TestProjectSystem @JvmOverloads constructor(
   availableDependencies: List<GradleCoordinate> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS
-)
-  : AndroidProjectSystem {
+) : AndroidProjectSystem {
 
   /**
    * Injects this project system into the [project] it was created for.
@@ -65,12 +64,16 @@ class TestProjectSystem @JvmOverloads constructor(
   private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
   private val availablePreviewDependencies: List<GradleCoordinate>
   private val availableStableDependencies: List<GradleCoordinate>
+  private val incompatibleDependencyPairs: HashMap<GradleCoordinate, GradleCoordinate>
+  private val coordinateToFakeRegisterDependencyError: HashMap<GradleCoordinate, String>
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
     val (previewDeps, stableDeps) = sortedHighToLowDeps.partition(GradleCoordinate::isPreview)
     availablePreviewDependencies = previewDeps
     availableStableDependencies = stableDeps
+    incompatibleDependencyPairs = HashMap()
+    coordinateToFakeRegisterDependencyError = HashMap()
   }
 
   /**
@@ -86,6 +89,22 @@ class TestProjectSystem @JvmOverloads constructor(
    */
   fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
 
+  /**
+   * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeDependencyCompatibility]
+   * will return them as incompatible dependencies.
+   */
+  fun addIncompatibleDependencyPair(dep1: GradleCoordinate, dep2: GradleCoordinate) {
+    incompatibleDependencyPairs[dep1] = dep2
+  }
+
+  /**
+   * Add a fake error condition for [coordinate] such that calling [AndroidModuleSystem.registerDependency] on the
+   * coordinate will throw a [DependencyManagementException] with error message set to [errorMessage].
+   */
+  fun addFakeErrorForRegisteringDependency(coordinate: GradleCoordinate, errorMessage: String) {
+    coordinateToFakeRegisterDependencyError[coordinate] = errorMessage
+  }
+
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     class TestAndroidModuleSystemImpl : AndroidModuleSystem {
       override val module = module
@@ -94,18 +113,23 @@ class TestProjectSystem @JvmOverloads constructor(
         : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         val found = mutableListOf<GradleCoordinate>()
         val missing = mutableListOf<GradleCoordinate>()
+        var compatibilityWarningMessage = ""
         for (dependency in dependenciesToAdd) {
           val wildcardCoordinate = GradleCoordinate(dependency.groupId!!, dependency.artifactId!!, "+")
           val lookup = availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
                        ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
           if (lookup != null) {
             found.add(lookup)
+            if (incompatibleDependencyPairs[lookup]?.let { dependenciesToAdd.contains(it) } == true) {
+              compatibilityWarningMessage += "$lookup is not compatible with ${incompatibleDependencyPairs[lookup]}\n"
+            }
           }
           else {
             missing.add(dependency)
+            compatibilityWarningMessage += "Can't find $dependency\n"
           }
         }
-        return Triple(found, missing, "")
+        return Triple(found, missing, compatibilityWarningMessage)
       }
 
       override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
@@ -125,6 +149,9 @@ class TestProjectSystem @JvmOverloads constructor(
       }
 
       override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
+        coordinateToFakeRegisterDependencyError[coordinate]?.let {
+          throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
+        }
         dependenciesByModule.put(module, coordinate)
       }
 
@@ -169,6 +196,7 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getPackageName(): String = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let { module ->
         getModuleSystem(module).getPackageName()
       } ?: throw ApkProvisionException("Not supported run configuration")
+
       override fun getTestPackageName(): String? = null
     }
   }

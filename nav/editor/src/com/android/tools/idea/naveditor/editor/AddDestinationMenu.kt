@@ -36,7 +36,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
-import com.android.tools.idea.util.addDependencies
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -425,7 +425,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return
     }
 
-    module.addDependencies(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
+    module.addDependenciesWithUiConfirmation(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
   }
 
   private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {

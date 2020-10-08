@@ -68,6 +68,8 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
@@ -100,6 +102,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlModelTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper();
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    Messages.setTestDialog(message -> Messages.OK);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    Messages.setTestDialog(TestDialog.DEFAULT);
+  }
 
   @SuppressWarnings("ConstantConditions")
   public void testSync() {
@@ -877,11 +891,6 @@ public class NlModelTest extends LayoutTestCase {
     DesignSurface surface = createSurface(NlDesignSurface.class);
     when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
     return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {
