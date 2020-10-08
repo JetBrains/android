@@ -129,6 +129,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
       AndroidUtils.getApplicationFacets(project).forEach { facet ->
         ResourceRepositoryManager.getInstance(facet).resetAllCaches()
         ResourceIdManager.get(facet.module).resetDynamicIds()
+        ResourceClassRegistry.get(project).clearCache()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }
     }
