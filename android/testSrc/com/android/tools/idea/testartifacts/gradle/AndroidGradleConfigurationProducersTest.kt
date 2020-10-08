@@ -16,22 +16,13 @@
 package com.android.tools.idea.testartifacts.gradle
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromFile
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.psi.search.GlobalSearchScope
 import junit.framework.TestCase
-import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
-import org.junit.Assert
 
 /**
  * Tests for producing Gradle Run Configuration for Android unit test.
