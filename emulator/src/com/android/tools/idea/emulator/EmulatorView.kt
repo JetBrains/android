@@ -35,8 +35,6 @@ import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -498,7 +496,8 @@ class EmulatorView(
     val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
     val title = "Emulator is out of date"
     val message = "Please update the Android Emulator"
-    val notification = NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
+    val notification =
+        EMULATOR_NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
     notification.collapseActionsDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
     notification.addAction(object : NotificationAction("Check for updates") {
       override fun actionPerformed(event: AnActionEvent, notification: Notification) {
@@ -815,7 +814,5 @@ private var emulatorOutOfDateNotificationShown = false
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
-
-private val NOTIFICATION_GROUP = NotificationGroup("Emulator Errors", NotificationDisplayType.STICKY_BALLOON, true)
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

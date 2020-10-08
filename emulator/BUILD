@@ -44,7 +44,9 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
@@ -149,7 +151,9 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
@@ -187,6 +191,7 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",

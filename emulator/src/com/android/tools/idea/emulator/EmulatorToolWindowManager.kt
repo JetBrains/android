@@ -265,7 +265,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
 
-    val panel = EmulatorToolWindowPanel(emulator)
+    val panel = EmulatorToolWindowPanel(project, emulator)
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
     if (panels.isEmpty()) {
