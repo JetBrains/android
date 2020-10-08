@@ -67,8 +67,8 @@ interface DatabaseInspectorView {
   /** Shows a panel in the right side of the view that serves as loading indicator for offline mode */
   fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int)
 
-  /** Shows a panel when offline mode fails, containing a message and a link to learn more about why offline mode could fail */
-  fun showOfflineModeFailedPanel()
+  /** Shows a panel containing a message and a link to learn more about why offline might be unavailable */
+  fun showOfflineModeUnavailablePanel()
 
   interface Listener {
     /** Called when the user wants to open a table */

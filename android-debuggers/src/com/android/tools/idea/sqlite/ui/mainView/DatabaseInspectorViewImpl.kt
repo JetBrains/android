@@ -171,7 +171,7 @@ class DatabaseInspectorViewImpl(
     resetCenterPanelAndAddView(enterOfflineModePanel)
   }
 
-  override fun showOfflineModeFailedPanel() {
+  override fun showOfflineModeUnavailablePanel() {
     addEmptyStatePanel("Offline mode unavailable.", offlineModeHelpUrl)
   }
 
