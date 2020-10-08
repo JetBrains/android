@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -91,8 +92,10 @@ class AppResourceRepository extends MultiResourceRepository {
     setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
-    ResourceIdManager.get(myFacet.getModule()).resetDynamicIds();
-    ModuleClassLoaderManager.get().clearCache(myFacet.getModule());
+    Module module = myFacet.getModule();
+    ResourceIdManager.get(module).resetDynamicIds();
+    ResourceClassRegistry.get(module.getProject()).clearCache();
+    ModuleClassLoaderManager.get().clearCache(module);
   }
 
   @VisibleForTesting

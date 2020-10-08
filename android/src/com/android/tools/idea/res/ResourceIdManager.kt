@@ -177,8 +177,6 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
 
   @Synchronized
   fun resetDynamicIds() {
-    ResourceClassRegistry.get(module.project).clearCache()
-
     resetProviders()
     dynamicToIdMap.clear()
     dynamicFromIdMap.clear()
