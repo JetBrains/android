@@ -266,9 +266,8 @@ class DatabaseInspectorControllerImpl(
         when (it.downloadState) {
           OfflineModeManager.DownloadState.IN_PROGRESS -> { view.showEnterOfflineModePanel(it.filesDownloaded.size, it.totalFiles) }
           OfflineModeManager.DownloadState.COMPLETED -> {
-            // all download failed
-            if (it.filesDownloaded.isEmpty() && it.totalFiles > 0) {
-              view.showOfflineModeFailedPanel()
+            if (it.filesDownloaded.isEmpty()) {
+              view.showOfflineModeUnavailablePanel()
             }
             else {
               it.filesDownloaded.forEach { databaseFileData ->
@@ -288,7 +287,7 @@ class DatabaseInspectorControllerImpl(
       try {
         openDatabaseFlow.collect()
       } catch (e: CancellationException) {
-        view.showOfflineModeFailedPanel()
+        view.showOfflineModeUnavailablePanel()
       } finally {
         // metrics
         stopwatch.stop()
