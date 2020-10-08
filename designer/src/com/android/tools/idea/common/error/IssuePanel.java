@@ -659,7 +659,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     @Override
     public void doLayout() {
       super.doLayout();
-      if (myColumnsX != null && myColumnsX.length == COLUMN_COUNT) {
+      // Measurement from IssueView seems to be off sometimes. See b/168682770
+      // ColumnsX might be just 0,0 and make the labels on top of one another.
+      boolean isColumnsXValid =  myColumnsX != null
+           && myColumnsX.length == COLUMN_COUNT
+           && !(myColumnsX[0] == 0 && myColumnsX[1] == 0);
+
+      if (isColumnsXValid) {
         myMessageLabel.setLocation(myColumnsX[0], 0);
 
         // Ensure that the source column always occupied at least 10% of the width if
