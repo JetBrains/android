@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -35,9 +34,7 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.finder.WindowFinder
 import org.fest.swing.timing.Wait
-import org.junit.After
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,38 +50,6 @@ class LocalApkProjTest {
    */
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
-
-  private var homeDir: File? = null
-
-  @Before
-  fun mountTmpfsOnRoot() {
-    // This test need access to a user's home directory. This is not available when running
-    // in a Bazel environment because the home directory is /nonexistent. This will
-    // cause the test to fail. Instead, when running in a Bazel environment, the test will
-    // check if it's running as (fake) root, mount a tmpfs to /root, and then continue.
-    if (TestUtils.runningFromBazel()) {
-      System.getProperty("user.name", "notroot").let {
-        if (it != "root") {
-          throw IllegalStateException("Running as ${it} rather than root. Is \"requires-fakeroot\" a tag in the BUILD target?")
-        }
-      }
-
-      // Check if we're underneath the directory we're about to mount over:
-      val rootHomeDir = File(System.getProperty("user.home") ?: throw IllegalStateException("No home directory available!"))
-      if (checkFileAncestry(rootHomeDir, File(System.getProperty("user.dir")))) {
-        throw IllegalStateException("We were about to mount a tmpfs over a directory we were working under.")
-      }
-
-      val mountPb = ProcessBuilder("mount", "-t", "tmpfs", "none", rootHomeDir.canonicalPath).inheritIO()
-      val mountProc = mountPb.start()
-      if (!mountProc.waitFor(10, TimeUnit.SECONDS)) {
-        // failed to mount
-        throw RuntimeException("Unable to mount tmpfs to /root")
-      }
-
-      homeDir = rootHomeDir
-    }
-  }
 
   /**
    * Verifies source code directories are set for locally built APKs.
@@ -148,7 +113,7 @@ class LocalApkProjTest {
   private fun buildApkLocally(apkProjectToImport: String): File {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
 
-    guiTest.waitForBackgroundTasks();
+    guiTest.waitForBackgroundTasks()
 
     ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
@@ -202,7 +167,7 @@ class LocalApkProjTest {
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {
     val smaliFile = "smali/out/com/example/SanAngeles/DemoActivity.smali"
-    val sourceDirVirtualFile = VfsUtil.findFileByIoFile(sourceDir, true) ?: throw IllegalArgumentException("Nonexistent ${sourceDir}")
+    val sourceDirVirtualFile = VfsUtil.findFileByIoFile(sourceDir, true) ?: throw IllegalArgumentException("Nonexistent $sourceDir")
 
     ideFrame.editor
       .open(smaliFile)
@@ -256,29 +221,5 @@ class LocalApkProjTest {
       }
     }
     return sourceFolders.size
-  }
-
-  private fun checkFileAncestry(possibleAncestor: File, descendant: File): Boolean {
-    val resolvedAncestor = possibleAncestor.canonicalFile
-    var fileTreeWalker: File? = descendant.canonicalFile
-
-    if (resolvedAncestor == fileTreeWalker) {
-      return true
-    }
-
-    while (fileTreeWalker != null && resolvedAncestor != fileTreeWalker) {
-      fileTreeWalker = fileTreeWalker.parentFile?.canonicalFile
-    }
-
-    return resolvedAncestor == fileTreeWalker
-  }
-
-  @After
-  fun unmountTmpfs() {
-    homeDir?.let { mountedHomeDir ->
-      if (TestUtils.runningFromBazel()) {
-        ProcessBuilder("umount", mountedHomeDir.canonicalPath).inheritIO().start().waitFor(10, TimeUnit.SECONDS)
-      }
-    }
   }
 }
