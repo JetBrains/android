@@ -45,4 +45,8 @@ open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
   override fun reportError(message: String, t: Throwable?) { }
 
   override fun setQueryHistory(queries: List<String>) { }
+
+  override fun showMessagePanel(message: String) { }
+
+  override fun showTableView() { }
 }
