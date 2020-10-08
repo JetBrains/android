@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -119,6 +120,10 @@ public class TestConfigurationTesting {
     if (settings == null) {
       return null;
     }
+    // Save the run configuration in the project.
+    RunManager runManager = RunManager.getInstance(project);
+    runManager.addConfiguration(settings);
+
     RunConfiguration configuration = settings.getConfiguration();
     if (configuration instanceof AndroidTestRunConfiguration || configuration instanceof AndroidJUnitConfiguration) {
       return configuration;
