@@ -55,7 +55,6 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
-import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -123,12 +122,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Assert
     assertEquals(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, table.autoResizeMode)
 
-    assertEquals(598, table.size.width)
+    assertEquals(600, table.size.width)
     assertEquals(60, table.columnModel.getColumn(0).width)
-    assertEquals(538, table.columnModel.getColumn(1).width)
+    assertEquals(540, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
-    assertEquals(598, jbScrollPane.horizontalScrollBar.model.maximum)
+    assertEquals(600, jbScrollPane.horizontalScrollBar.model.maximum)
   }
 
   fun testTableIsScrollableIfTooManyColumns() {

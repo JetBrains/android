@@ -16,7 +16,12 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.stdui.Chunk
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.LabelData
+import com.android.tools.adtui.stdui.NewLineChunk
+import com.android.tools.adtui.stdui.TextChunk
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
@@ -38,15 +43,26 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiManager
-import com.intellij.ui.*
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.EditorCustomization
+import com.intellij.ui.EditorTextFieldProvider
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
-import java.util.*
-import javax.swing.*
+import java.util.ArrayList
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.KeyStroke
+import javax.swing.LayoutFocusTraversalPolicy
 
 /**
  * @see SqliteEvaluatorView
@@ -58,6 +74,7 @@ class SqliteEvaluatorViewImpl(
 ) : SqliteEvaluatorView {
 
   private val threeComponentsSplitter = ThreeComponentsSplitter(project)
+  private val bottomPanel = JPanel(BorderLayout())
   override val component: JComponent = threeComponentsSplitter
 
   private val databaseComboBox = ComboBox<SqliteDatabaseId>()
@@ -76,13 +93,13 @@ class SqliteEvaluatorViewImpl(
   private val queryHistoryView = QueryHistoryView(editorTextField)
 
   init {
-    val evaluatorPanel = JPanel(BorderLayout())
+    val topPanel = JPanel(BorderLayout())
     val controlsPanel = JPanel(BorderLayout())
 
     controlsPanel.layout = BoxLayout(controlsPanel, BoxLayout.LINE_AXIS)
 
-    evaluatorPanel.add(editorTextField, BorderLayout.CENTER)
-    evaluatorPanel.add(controlsPanel, BorderLayout.SOUTH)
+    topPanel.add(editorTextField, BorderLayout.CENTER)
+    topPanel.add(controlsPanel, BorderLayout.SOUTH)
 
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents from tabbing
     // across the components.
@@ -92,15 +109,15 @@ class SqliteEvaluatorViewImpl(
       dividerWidth = 0
       firstSize = JBUI.scale(100)
       orientation = true
-      firstComponent = evaluatorPanel
-      lastComponent = tableView.component
+      firstComponent = topPanel
+      lastComponent = bottomPanel
     }
 
-    evaluatorPanel.border = JBUI.Borders.empty(6)
+    topPanel.border = JBUI.Borders.empty(6)
     controlsPanel.border = JBUI.Borders.empty(6, 0, 0, 0)
-    tableView.component.border = IdeBorderFactory.createBorder(SideBorder.TOP)
+    bottomPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
-    evaluatorPanel.background = primaryContentBackground
+    topPanel.background = primaryContentBackground
     controlsPanel.background = primaryContentBackground
 
     controlsPanel.add(databaseComboBox)
@@ -147,7 +164,7 @@ class SqliteEvaluatorViewImpl(
         queryHistoryView.show(
           component,
           queryHistoryButton.x + queryHistoryButton.width / 2,
-          evaluatorPanel.height - evaluatorPanel.border.getBorderInsets(controlsPanel).bottom
+          topPanel.height - topPanel.border.getBorderInsets(controlsPanel).bottom
         )
       }
     }
@@ -251,5 +268,32 @@ class SqliteEvaluatorViewImpl(
 
   override fun setQueryHistory(queries: List<String>) {
     queryHistoryView.setQueryHistory(queries)
+  }
+
+  override fun showMessagePanel(message: String) {
+    val chunks = mutableListOf<Chunk>()
+    message
+      .split("\n")
+      .forEach {
+        chunks.add(TextChunk(it))
+        chunks.add(NewLineChunk)
+      }
+
+    val enterOfflineModePanel = EmptyStatePanel(LabelData(*chunks.dropLast(1).toTypedArray()))
+    enterOfflineModePanel.name = "message-panel"
+
+    resetBottomPanelAndAddView(enterOfflineModePanel)
+  }
+
+  override fun showTableView() {
+    resetBottomPanelAndAddView(tableView.component)
+  }
+
+  private fun resetBottomPanelAndAddView(component: JComponent) {
+    bottomPanel.removeAll()
+    bottomPanel.layout = BorderLayout()
+    bottomPanel.add(component, BorderLayout.CENTER)
+    bottomPanel.revalidate()
+    bottomPanel.repaint()
   }
 }
