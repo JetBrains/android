@@ -52,6 +52,14 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     }
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    // We need to clear any override we use inside tests here.
+    // We should do this during tear down, in case any test case fails or throws an exception.
+    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride()
+    StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.clearOverride()
+  }
+
   fun testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
