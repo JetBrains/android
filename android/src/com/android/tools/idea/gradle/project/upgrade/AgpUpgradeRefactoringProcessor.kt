@@ -182,7 +182,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
  * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
  * should be done using [SpoilingGradleBuildModelUsageInfo] instances.
  */
-abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(element) {
+abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo(element) {
   fun performRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
     logBuildModelRefactoring()
     performBuildModelRefactoring(processor)
@@ -208,7 +208,7 @@ abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(elemen
  * and reparsed.
  */
 abstract class SpoilingGradleBuildModelUsageInfo(
-  element: PsiElement
+  element: WrappedPsiElement
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     noteForPsiSpoilingBuildModelRefactoring(processor)
@@ -1529,7 +1529,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 }
 
 class RemoveFabricMavenRepositoryUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val repositories: RepositoriesModel,
   private val repository: RepositoryModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1543,7 +1543,7 @@ class RemoveFabricMavenRepositoryUsageInfo(
 // TODO(xof): investigate unifying this with the NoGMavenUsageInfo class above
 
 class AddGoogleMavenRepositoryUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val repositories: RepositoriesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1555,7 +1555,7 @@ class AddGoogleMavenRepositoryUsageInfo(
 }
 
 class RemoveFabricClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1567,7 +1567,7 @@ class RemoveFabricClasspathDependencyUsageInfo(
 }
 
 class AddGoogleServicesClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1579,7 +1579,7 @@ class AddGoogleServicesClasspathDependencyUsageInfo(
 }
 
 class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1591,7 +1591,7 @@ class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
 }
 
 class ReplaceFabricPluginUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val plugin: PluginModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1602,7 +1602,7 @@ class ReplaceFabricPluginUsageInfo(
 }
 
 class ApplyGoogleServicesPluginUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val model: GradleBuildModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1613,7 +1613,7 @@ class ApplyGoogleServicesPluginUsageInfo(
 }
 
 class RemoveFabricCrashlyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1625,7 +1625,7 @@ class RemoveFabricCrashlyticsSdkUsageInfo(
 }
 
 class AddFirebaseCrashlyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1636,7 +1636,7 @@ class AddFirebaseCrashlyticsSdkUsageInfo(
 }
 
 class AddGoogleAnalyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1647,7 +1647,7 @@ class AddGoogleAnalyticsSdkUsageInfo(
 }
 
 class RemoveFabricNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1659,7 +1659,7 @@ class RemoveFabricNdkUsageInfo(
 }
 
 class AddFirebaseCrashlyticsNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1670,7 +1670,7 @@ class AddFirebaseCrashlyticsNdkUsageInfo(
 }
 
 class RemoveCrashlyticsEnableNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val model: GradleBuildModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1681,7 +1681,7 @@ class RemoveCrashlyticsEnableNdkUsageInfo(
 }
 
 class AddBuildTypeFirebaseCrashlyticsUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val buildType: BuildTypeModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
