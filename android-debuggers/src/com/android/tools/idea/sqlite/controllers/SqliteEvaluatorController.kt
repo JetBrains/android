@@ -95,13 +95,15 @@ class SqliteEvaluatorController(
   }
 
   fun setUp(evaluationParams: EvaluationParams? = null) {
+    model.addListener(modelListener)
     view.addListener(sqliteEvaluatorViewListener)
 
+    updateDefaultMessage()
+
     // load query history
-    PropertiesComponent.getInstance(project).getValues(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it) }
+    PropertiesComponent.getInstance(project).getValues(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
     view.setQueryHistory(queryHistory.toList())
 
-    model.addListener(modelListener)
     if (evaluationParams != null) {
       val statement = createSqliteStatement(project, evaluationParams.statementText)
       // we don't want to automatically run a statement that can modify a database
@@ -177,6 +179,7 @@ class SqliteEvaluatorController(
 
     lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {
+      view.showTableView()
       runQuery(databaseId, sqliteStatement)
     }
     else {
@@ -184,7 +187,7 @@ class SqliteEvaluatorController(
         runUpdate(databaseId, sqliteStatement)
       }
       else {
-        view.reportError("Can't run modifier statements on offline database", null)
+        view.showMessagePanel("Modifier statements are disabled on offline databases.")
         Futures.immediateFuture(Unit)
       }
     }
@@ -222,20 +225,32 @@ class SqliteEvaluatorController(
       .transform(edtExecutor) {
         showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
       }.catching(edtExecutor, Throwable::class.java) {
-        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
+        view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement"))
       }
   }
 
   private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     return databaseRepository.executeStatement(databaseId, sqliteStatement)
       .transform(edtExecutor) {
-        view.tableView.setEmptyText(DatabaseInspectorBundle.message("statement.run.successfully"))
+        view.showMessagePanel(DatabaseInspectorBundle.message("statement.run.successfully"))
         showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
-        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
+        view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement"))
         view.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
       }.cancelOnDispose(this)
+  }
+
+  private fun updateDefaultMessage() {
+    when (currentEvaluationParams.databaseId) {
+      is SqliteDatabaseId.LiveSqliteDatabaseId -> {
+        view.showMessagePanel("Write a query and run it to see results from the selected database.")
+      }
+      is SqliteDatabaseId.FileSqliteDatabaseId -> {
+        view.showMessagePanel("The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only.")
+      }
+      null -> { view.showMessagePanel("Select a database from the drop down.") }
+    }
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
@@ -251,6 +266,7 @@ class SqliteEvaluatorController(
         connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
+
       executeSqlStatement(databaseId, createSqliteStatement(project, currentEvaluationParams.statementText))
     }
 
@@ -261,6 +277,11 @@ class SqliteEvaluatorController(
 
     override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {
       currentEvaluationParams = currentEvaluationParams.copy(databaseId = databaseId)
+
+      // update message if no statement ran yet
+      if (lastUsedEvaluationParams == null) {
+        updateDefaultMessage()
+      }
     }
   }
 

@@ -236,6 +236,7 @@ class TableViewImpl : TableView {
 
     val tablePanel = JPanel(BorderLayout())
     tablePanel.add(tableScrollPane, BorderLayout.CENTER)
+    tableScrollPane.border = JBUI.Borders.empty()
 
     val progressBarPanel = JPanel(BorderLayout())
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
