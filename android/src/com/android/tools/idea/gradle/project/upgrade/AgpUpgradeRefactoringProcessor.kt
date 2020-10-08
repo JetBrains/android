@@ -1410,88 +1410,91 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         }
       }
 
-      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.3
-      // - In your app-level build.gradle, replace the legacy Fabric Crashlytics SDK with the new Firebase Crashlytics SDK.
-      //   Make sure you add version 17.0.0 or later (beginning November 15, 2020, this is required for your crash reports to appear
-      //   in the Firebase console).
       run {
-        var seenFabricSdk = false
-        var seenFirebaseSdk = false
-        var seenGoogleAnalyticsSdk = false
-        val dependenciesOrHigherPsiElement = model.dependencies().psiElement ?: modelPsiElement
-        model.dependencies().artifacts().forEach dep@{ dep ->
-          when {
-            dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics" -> {
-              val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE)
-              val usageInfo = RemoveFabricCrashlyticsSdkUsageInfo(wrappedPsiElement, model.dependencies(), dep)
-              usages.add(usageInfo)
-              seenFabricSdk = true
-            }
-            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics" -> seenFirebaseSdk = true
-            dep.spec.group == "com.google.firebase" && dep.spec.name == "google-analytics" -> seenGoogleAnalyticsSdk = true
-          }
-        }
-        // if we currently depend on the Fabric SDK ...
-        if (seenFabricSdk) {
-          // ... insert a dependency on the Firebase Crashlytics SDK, if not already present ...
-          if (!seenFirebaseSdk) {
-            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE)
-            val usageInfo = AddFirebaseCrashlyticsSdkUsageInfo(wrappedPsiElement, model.dependencies())
-            usages.add(usageInfo)
-          }
-          // ... and insert a dependency on the Google Analytics SDK, as recommended.
-          if (!seenGoogleAnalyticsSdk) {
-            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE)
-            val usageInfo = AddGoogleAnalyticsSdkUsageInfo(wrappedPsiElement, model.dependencies())
-            usages.add(usageInfo)
-          }
-        }
-      }
+        val dependencies = model.dependencies()
+        val dependenciesOrHigherPsiElement = dependencies.psiElement ?: modelPsiElement
 
-      // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Optional Step: Set up Ndk crash reporting
-      // - only done if crashlytics.enableNdk is present and enabled in the current project.
-      // - In your app-level build.gradle, replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency. Then,
-      //   add the firebaseCrashlytics extension and make sure to enable the nativeSymbolUploadEnabled flag.
-      run {
-        if (model.crashlytics().enableNdk().getValue(BOOLEAN_TYPE) == true) {
-          // if enableNdk is true (not false or null/non-existent), remove it ...
-          run {
-            val psiElement = model.crashlytics().enableNdk().psiElement ?: model.crashlytics().psiElement ?: modelPsiElement
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO)
-            val usageInfo = RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, model)
-            usages.add(usageInfo)
+        // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.3
+        // - In your app-level build.gradle, replace the legacy Fabric Crashlytics SDK with the new Firebase Crashlytics SDK.
+        //   Make sure you add version 17.0.0 or later (beginning November 15, 2020, this is required for your crash reports to appear
+        //   in the Firebase console).
+        run {
+          var seenFabricSdk = false
+          var seenFirebaseSdk = false
+          var seenGoogleAnalyticsSdk = false
+          dependencies.artifacts().forEach dep@{ dep ->
+            when {
+              dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics" -> {
+                val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
+                val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE)
+                val usageInfo = RemoveFabricCrashlyticsSdkUsageInfo(wrappedPsiElement, dependencies, dep)
+                usages.add(usageInfo)
+                seenFabricSdk = true
+              }
+              dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics" -> seenFirebaseSdk = true
+              dep.spec.group == "com.google.firebase" && dep.spec.name == "google-analytics" -> seenGoogleAnalyticsSdk = true
+            }
           }
-          // ... turn on native symbol upload for the `release` buildType ...
-          run {
-            val releaseBuildType = model.android().buildTypes().first { it.name() == "release" }
-            val psiElement = releaseBuildType.psiElement ?: model.android().psiElement ?: modelPsiElement
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD)
-            val usageInfo = AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, releaseBuildType)
-            usages.add(usageInfo)
+          // if we currently depend on the Fabric SDK ...
+          if (seenFabricSdk) {
+            // ... insert a dependency on the Firebase Crashlytics SDK, if not already present ...
+            if (!seenFirebaseSdk) {
+              val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE)
+              val usageInfo = AddFirebaseCrashlyticsSdkUsageInfo(wrappedPsiElement, dependencies)
+              usages.add(usageInfo)
+            }
+            // ... and insert a dependency on the Google Analytics SDK, as recommended.
+            if (!seenGoogleAnalyticsSdk) {
+              val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE)
+              val usageInfo = AddGoogleAnalyticsSdkUsageInfo(wrappedPsiElement, dependencies)
+              usages.add(usageInfo)
+            }
           }
         }
 
-        // replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency
-        var seenFabricNdk = false
-        var seenFirebaseCrashlyticsNdk = false
-        val dependenciesOrHigherPsiElement = model.dependencies().psiElement ?: modelPsiElement
-        model.dependencies().artifacts().forEach dep@{ dep ->
-          when {
-            dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics-ndk" -> {
-              val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_NDK_USAGE_TYPE)
-              val usageInfo = RemoveFabricNdkUsageInfo(wrappedPsiElement, model.dependencies(), dep)
+        // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Optional Step: Set up Ndk crash reporting
+        // - only done if crashlytics.enableNdk is present and enabled in the current project.
+        // - In your app-level build.gradle, replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency. Then,
+        //   add the firebaseCrashlytics extension and make sure to enable the nativeSymbolUploadEnabled flag.
+        run {
+          if (model.crashlytics().enableNdk().getValue(BOOLEAN_TYPE) == true) {
+            // if enableNdk is true (not false or null/non-existent), remove it ...
+            run {
+              val psiElement = model.crashlytics().enableNdk().psiElement ?: model.crashlytics().psiElement ?: modelPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO)
+              val usageInfo = RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, model)
               usages.add(usageInfo)
-              seenFabricNdk = true
             }
-            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics-ndk" -> seenFirebaseCrashlyticsNdk = true
+            // ... turn on native symbol upload for the `release` buildType ...
+            run {
+              val releaseBuildType = model.android().buildTypes().first { it.name() == "release" }
+              val psiElement = releaseBuildType.psiElement ?: model.android().psiElement ?: modelPsiElement
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD)
+              val usageInfo = AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, releaseBuildType)
+              usages.add(usageInfo)
+            }
           }
-        }
-        if (seenFabricNdk && !seenFirebaseCrashlyticsNdk) {
-          val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE)
-          val usageInfo = AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, model.dependencies())
-          usages.add(usageInfo)
+
+          // replace the Fabric NDK dependency with the Firebase Crashlytics NDK dependency
+          var seenFabricNdk = false
+          var seenFirebaseCrashlyticsNdk = false
+          dependencies.artifacts().forEach dep@{ dep ->
+            when {
+              dep.spec.group == "com.crashlytics.sdk.android" && dep.spec.name == "crashlytics-ndk" -> {
+                val psiElement = dep.psiElement ?: dependenciesOrHigherPsiElement
+                val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_FABRIC_NDK_USAGE_TYPE)
+                val usageInfo = RemoveFabricNdkUsageInfo(wrappedPsiElement, dependencies, dep)
+                usages.add(usageInfo)
+                seenFabricNdk = true
+              }
+              dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics-ndk" -> seenFirebaseCrashlyticsNdk = true
+            }
+          }
+          if (seenFabricNdk && !seenFirebaseCrashlyticsNdk) {
+            val wrappedPsiElement = WrappedPsiElement(dependenciesOrHigherPsiElement, this, ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE)
+            val usageInfo = AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependencies)
+            usages.add(usageInfo)
+          }
         }
       }
     }
