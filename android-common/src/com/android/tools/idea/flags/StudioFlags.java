@@ -529,7 +529,7 @@ public final class StudioFlags {
     "adb.wireless.enabled",
     "Enable pairing devices through ADB wireless",
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
-    true);
+    false);
 
   public static final Flag<Boolean> WEAR_DEVICE_PAIRING_ENABLED = Flag.create(
     RUNDEBUG,
