@@ -348,7 +348,7 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "dev build",
+    version_full = "{0}.{1} Dev 02",
     version_micro = 0,
     version_patch = 0,
 )
