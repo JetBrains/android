@@ -18,8 +18,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.bootstrap" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" />
   </component>
 </module>

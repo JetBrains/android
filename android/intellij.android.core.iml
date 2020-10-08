@@ -18,49 +18,14 @@
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.java" />
-    <orderEntry type="module" module-name="intellij.xml.dom" />
-    <orderEntry type="module" module-name="intellij.java.execution.impl" />
-    <orderEntry type="module" module-name="intellij.xml.dom.impl" />
-    <orderEntry type="module" module-name="intellij.java.compiler.impl" />
-    <orderEntry type="module" module-name="intellij.xml.impl" />
-    <orderEntry type="module" module-name="intellij.java.debugger.impl" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
-    <orderEntry type="module" module-name="intellij.java.execution" />
-    <orderEntry type="module" module-name="intellij.platform.smRunner" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="analytics-publisher" />
-    <orderEntry type="module" module-name="intellij.junit" />
-    <orderEntry type="module" module-name="intellij.java.ui" />
-    <orderEntry type="module" module-name="intellij.json" />
-    <orderEntry type="module" module-name="intellij.java.impl" />
-    <orderEntry type="library" name="StreamEx" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.statistics" />
-    <orderEntry type="module" module-name="intellij.properties" />
-    <orderEntry type="module" module-name="intellij.testng" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.rt" />
-    <orderEntry type="module" module-name="intellij.java.indexing" />
-    <orderEntry type="module" module-name="intellij.platform.jps.build" />
-    <orderEntry type="module" module-name="intellij.spellchecker" />
     <orderEntry type="module" module-name="android.sdktools.draw9patch" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
-    <orderEntry type="module" module-name="intellij.platform.images" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem" />
-    <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="module" module-name="intellij.groovy" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
-    <orderEntry type="library" name="swingx" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="library" name="Trove4j" level="project" />
-    <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="module" module-name="intellij.properties.psi" />
-    <orderEntry type="module" module-name="intellij.platform.bootstrap" />
-    <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module-library">
@@ -96,15 +61,10 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="library" name="jna" level="project" />
     <orderEntry type="module" module-name="db-baseLibrary" />
     <orderEntry type="module" module-name="db-baseLibrarySupport" />
     <orderEntry type="module" module-name="db-compilerCommon" />
     <orderEntry type="module" module-name="db-compiler" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
-    <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="intellij.gradle" />
-    <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
@@ -115,16 +75,13 @@
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
@@ -140,8 +97,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="batik-transcoder" level="project" />
-    <orderEntry type="library" name="xml-apis-ext" level="project" />
     <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library">
@@ -158,13 +113,8 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
-    <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="library" name="kotlin-plugin" level="project" />
-    <orderEntry type="library" name="kotlin-reflect" level="project" />
-    <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.resources-base" />
-    <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
@@ -176,9 +126,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
-    <orderEntry type="module" module-name="intellij.terminal" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
@@ -192,9 +140,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="xml-apis" level="project" />
-    <orderEntry type="module" module-name="intellij.webp" />
-    <orderEntry type="library" name="ini4j" level="project" />
     <orderEntry type="module-library">
       <library name="android-core-proto">
         <CLASSES>
