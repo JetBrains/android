@@ -15,30 +15,52 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.intellij.ide.dnd.DnDEvent
+import com.intellij.ide.dnd.DnDManager
+import com.intellij.ide.dnd.DnDTarget
+import com.intellij.ide.dnd.TransferableWrapper
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
+import org.jetbrains.android.sdk.AndroidSdkUtils.ADB_PATH_PROPERTY
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.datatransfer.DataFlavor
 import java.io.File
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JViewport
@@ -56,19 +78,23 @@ class EmulatorToolWindowPanelTest {
 
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
-  private var nullableEmulator: FakeEmulator? = null
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+
+  private var nullableEmulator: FakeEmulator? = null
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
 
+  private val testRootDisposable
+    get() = projectRule.fixture.testRootDisposable
+
   @Before
   fun setUp() {
     setPortableUiFont()
     // Necessary to properly update button states.
-    installHeadlessTestDataManager(projectRule.project, projectRule.fixture.testRootDisposable)
+    installHeadlessTestDataManager(projectRule.project, testRootDisposable)
   }
 
   @Test
@@ -104,7 +130,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
     // Check EmulatorVolumeUpButtonAction.
-    button = ui.getComponent<ActionButton> { it.action.templateText == "Volume Up" }
+    button = ui.getComponent { it.action.templateText == "Volume Up" }
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -115,7 +141,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
 
     // Check EmulatorVolumeDownButtonAction.
-    button = ui.getComponent<ActionButton> { it.action.templateText == "Volume Down" }
+    button = ui.getComponent { it.action.templateText == "Volume Down" }
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -176,6 +202,59 @@ class EmulatorToolWindowPanelTest {
     panel.destroyContent()
   }
 
+  @Test
+  fun testDnD() {
+    val adb = TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
+    val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
+    if (savedAdbPath != null) {
+      Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
+    }
+    System.setProperty(ADB_PATH_PROPERTY, adb.absolutePath)
+
+    var nullableTarget: DnDTarget? = null
+    val mockDnDManager = mock<DnDManager>()
+    `when`(mockDnDManager.registerTarget(any(), any())).then {
+      it.apply { nullableTarget = getArgument<DnDTarget>(0) }
+    }
+    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDnDManager, testRootDisposable)
+
+    val panel = createWindowPanel()
+    panel.createContent(false)
+
+    val target = nullableTarget as DnDTarget
+    val transferableWrapper = mock<TransferableWrapper>()
+    val fileList = listOf(File("/some_folder/myapp.apk"))
+    `when`(transferableWrapper.asFileList()).thenReturn(fileList)
+    val dnDEvent = mock<DnDEvent>()
+    `when`(dnDEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    `when`(dnDEvent.attachedObject).thenReturn(transferableWrapper)
+
+    // Simulate drag.
+    target.update(dnDEvent)
+
+    verify(dnDEvent).isDropPossible = true
+
+    val device = mock<IDevice>()
+    `when`(device.isEmulator).thenReturn(true)
+    `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
+    val deployed = CountDownLatch(1)
+    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
+    `when`(device.installPackages(eq(fileList), eq(true), eq(installOptions), anyLong(), any())).then { deployed.countDown() }
+    val mockAdb = mock<AndroidDebugBridge>()
+    `when`(mockAdb.devices).thenReturn(arrayOf(device))
+    val mockAdbService = mock<AdbService>()
+    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
+    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
+
+    // Simulate drop.
+    target.drop(dnDEvent)
+
+    assertThat(deployed.await(2, TimeUnit.SECONDS)).isTrue()
+
+    panel.destroyContent()
+  }
+
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
     mouse.press(location.x, location.y)
@@ -204,7 +283,7 @@ class EmulatorToolWindowPanelTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(emulatorController)
+    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return panel
@@ -218,14 +297,14 @@ class EmulatorToolWindowPanelTest {
   private val EmulatorToolWindowPanel.emulatorView
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
-  private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
+  private fun assertAppearance(ui: FakeUi, @Suppress("SameParameterValue") goldenImageName: String) {
     val image = ui.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.04)
   }
 
   private fun getGoldenFile(name: String): File {
-    return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
+    return TestUtils.getWorkspaceRoot().toPath().resolve("$TEST_DATA_PATH/golden/${name}.png").toFile()
   }
 }
 
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/EmulatorToolWindowPanelTest/golden"
+private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData/EmulatorToolWindowPanelTest"

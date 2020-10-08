@@ -17,7 +17,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.IdeInfo
-import com.intellij.build.BuildContentManager
 import com.intellij.notification.NotificationGroup.Companion.toolWindowGroup
 import com.intellij.openapi.actionSystem.DataKey
 
@@ -34,4 +33,4 @@ val EMULATOR_TOOL_WINDOW_TITLE
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
 
-@JvmField internal val EMULATOR_TOOL_WINDOW_NOTIFICATION_GROUP = toolWindowGroup("Android Emulator", BuildContentManager.TOOL_WINDOW_ID)
+@JvmField internal val EMULATOR_NOTIFICATION_GROUP = toolWindowGroup("Android Emulator Messages", EMULATOR_TOOL_WINDOW_ID)
