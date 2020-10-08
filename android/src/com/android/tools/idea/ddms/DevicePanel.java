@@ -114,7 +114,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
     @Override
     void initRenderer(@NotNull FutureCallback<DeviceNameProperties> callback) {
-      myFetcher = new DeviceNamePropertiesFetcher(callback, this);
+      myFetcher = new DeviceNamePropertiesFetcher(this, callback);
       myRenderer = new DeviceComboBoxRenderer("No connected devices", false, myFetcher);
 
       setRenderer(myRenderer);

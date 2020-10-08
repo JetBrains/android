@@ -191,7 +191,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(callback, getDisposable());
+    DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(getDisposable(), callback);
     boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(getDeviceList(), fetcher);
 
     myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, showSerialNumbers, fetcher);

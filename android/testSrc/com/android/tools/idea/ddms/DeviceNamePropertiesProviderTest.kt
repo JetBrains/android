@@ -17,12 +17,14 @@ package com.android.tools.idea.ddms
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher.DefaultCallback
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.Callable
@@ -51,7 +53,7 @@ class DeviceNamePropertiesProviderTest {
   private fun createDeviceNamePropertiesProvider(result: AtomicReference<ResultType>,
                                                  successLatch: List<CountDownLatch>,
                                                  failureLatch: CountDownLatch = CountDownLatch(1)): DeviceNamePropertiesFetcher {
-    return DeviceNamePropertiesFetcher(object : FutureCallback<DeviceNameProperties> {
+    return DeviceNamePropertiesFetcher(myDisposable, object : FutureCallback<DeviceNameProperties> {
       var successCount = 0
       override fun onFailure(t: Throwable?) {
         result.set(ResultType.FAIL)
@@ -62,7 +64,7 @@ class DeviceNamePropertiesProviderTest {
         result.set(ResultType.SUCCESS)
         successLatch[successCount++].countDown()
       }
-    }, myDisposable)
+    })
   }
 
   private fun createDevice(manufacturer: Future<String>,
@@ -86,6 +88,19 @@ class DeviceNamePropertiesProviderTest {
         Futures.immediateFuture(apiLevel))
     val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(AtomicReference(), listOf(CountDownLatch(1)))
     Truth.assertThat(deviceNamePropertiesProvider.get(d).model).isNull()
+  }
+
+  @Test
+  fun getThisHasBeenDisposed() {
+    // Arrange
+    val fetcher = DeviceNamePropertiesFetcher(myDisposable, DefaultCallback(), { true })
+    val device = Mockito.mock(IDevice::class.java)
+
+    // Act
+    val properties = fetcher.get(device)
+
+    // Assert
+    assertEquals(DeviceNameProperties(null, null, null, null), properties)
   }
 
   @Test
