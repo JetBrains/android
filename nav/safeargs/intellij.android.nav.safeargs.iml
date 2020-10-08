@@ -9,25 +9,15 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.platform.lang" />
-    <orderEntry type="module" module-name="intellij.platform.indexing" />
-    <orderEntry type="module" module-name="intellij.java.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" name="NanoXML" level="project" />
-    <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="library" name="jaxb-api" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
   </component>
 </module>

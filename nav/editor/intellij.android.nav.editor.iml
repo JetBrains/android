@@ -19,8 +19,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.java" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module-library">
       <library name="eclipse-layout-kernel" type="repository">
         <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0" />
@@ -35,13 +33,10 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
   </component>
 </module>

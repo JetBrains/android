@@ -11,7 +11,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module-library" exported="">
       <library name="android-sdk-tools-jps">
         <CLASSES>
@@ -23,7 +22,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
