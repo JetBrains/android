@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.listenInPoolThread
 import com.android.tools.idea.concurrency.whenAllComplete
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -43,8 +44,9 @@ import java.util.concurrent.Future
  * @param uiCallback: a customized FutureCallback which is used to refresh UI component when ListenableFuture completed
  * @param parent: Disposable parent
  */
-class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceNameProperties>,
-                                  private val parent: Disposable) : Disposable by parent, DeviceNamePropertiesProvider {
+class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val parent: Disposable,
+                                                                 private val uiCallback: FutureCallback<DeviceNameProperties>,
+                                                                 private val isDisposed: (Disposable) -> Boolean) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
   private val defaultValue = DeviceNameProperties(null, null, null, null)
@@ -60,9 +62,12 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener)
   }
 
-  internal constructor(parent: Disposable) : this(DefaultCallback(), parent)
+  internal constructor(parent: Disposable) : this(parent, DefaultCallback())
 
-  private class DefaultCallback : FutureCallback<DeviceNameProperties> {
+  constructor(parent: Disposable, uiCallback: FutureCallback<DeviceNameProperties>) : this(parent, uiCallback, Disposer::isDisposed)
+
+  @VisibleForTesting
+  class DefaultCallback : FutureCallback<DeviceNameProperties> {
     /** Does nothing. Use [DeviceNamePropertiesFetcher.get] to get the properties. */
     override fun onSuccess(properties: DeviceNameProperties?) {
     }
@@ -107,13 +112,13 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
       { deviceNameProperties ->
         if (deviceNamePropertiesMap[device] != deviceNameProperties) {
           deviceNamePropertiesMap[device] = deviceNameProperties
-          if (!Disposer.isDisposed(this)) {
+          if (!isDisposed(this)) {
             uiCallback.onSuccess(deviceNameProperties)
           }
         }
       },
       { t ->
-        if (!Disposer.isDisposed(this)) {
+        if (!isDisposed(this)) {
           uiCallback.onFailure(t!!)
         }
       })
@@ -132,15 +137,16 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
 
   override fun get(device: IDevice): DeviceNameProperties {
     assertThreadMatch(ThreadType.EDT)
-    if (!Disposer.isDisposed(this)) {
-      val value = deviceNamePropertiesMap[device]
-      // only taskExecutor will invoke retrieving DeviceNameProperties tasks
-      taskExecutor.execute { if (!isRetrieving(device)) startRetriever(device) }
-      return value ?: defaultValue
+
+    if (isDisposed(this)) {
+      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn("DeviceNamePropertiesFetcher has been disposed")
+      return defaultValue
     }
-    else {
-      throw IllegalStateException("DeviceNamePropertiesFetcher has been disposed")
-    }
+
+    val value = deviceNamePropertiesMap[device]
+    // only taskExecutor will invoke retrieving DeviceNameProperties tasks
+    taskExecutor.execute { if (!isRetrieving(device)) startRetriever(device) }
+    return value ?: defaultValue
   }
 
   override fun dispose() {
