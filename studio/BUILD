@@ -534,9 +534,9 @@ android_studio(
     },
     searchable_options = "//tools/adt/idea/searchable-options",
     version_eap = True,
-    version_full = "dev build",
-    version_micro = 0,
-    version_patch = 0,
+    version_full = "Arctic Fox | {0}.{1}.{2} Beta 1",
+    version_micro = 1,
+    version_patch = 16,
     visibility = ["//visibility:public"],
 )
 
