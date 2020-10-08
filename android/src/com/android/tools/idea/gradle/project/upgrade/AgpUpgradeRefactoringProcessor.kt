@@ -199,6 +199,28 @@ abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo
   }
 
   abstract override fun getTooltipText(): String
+
+  /**
+   * Fundamentally, implementations of [GradleBuildModelUsageInfo] are data classes, in that we expect never to mutate
+   * them, and their contents and class identity encode their semantics.  Unfortunately, there's a slight mismatch; the
+   * equality semantics of the UsageInfo PsiElement are not straightforward (they are considered equal if they point to
+   * the same range, even if they're not the identical element), but since the [UsageInfo] superclass constructor requires
+   * a PsiElement, we must have a PsiElement in the primary constructor, so the automatically-generated methods from a
+   * data class will not do the right thing.
+   *
+   * Instead, we simulate the parts of a data class we need here; by having a function which subclasses must implement, and
+   * final implementations of equals() and hashCode() which use that function.  The default implementation here encodes that
+   * document range is sufficient to discriminate between instances, which in practice will be true for replacements and
+   * deletions but will not be in general for additions.
+   */
+  open fun getDiscriminatingValues(): List<Any> = listOf()
+
+  final override fun equals(other: Any?) = super.equals(other) && when(other) {
+    is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
+    else -> false
+  }
+
+  final override fun hashCode() = super.hashCode() xor getDiscriminatingValues().hashCode()
 }
 
 /**
@@ -1106,10 +1128,7 @@ class JavaLanguageLevelUsageInfo(
     }
   }
 
-  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is JavaLanguageLevelUsageInfo && propertyName == other.propertyName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(propertyName)
 }
 
 class KotlinLanguageLevelUsageInfo(
@@ -1150,10 +1169,7 @@ class KotlinLanguageLevelUsageInfo(
     documentManager.commitDocument(document)
   }
 
-  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is KotlinLanguageLevelUsageInfo && propertyName == other.propertyName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(propertyName)
 }
 
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1275,11 +1291,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
 
   override fun getTooltipText() = "Update configuration from ${dependency.configurationName()} to $newConfigurationName"
 
-  // Don't need hashCode() because this is stricter than the superclass method.
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is ObsoleteConfigurationDependencyUsageInfo &&
-           dependency == other.dependency && newConfigurationName == other.newConfigurationName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(dependency, newConfigurationName)
 }
 
 class ObsoleteConfigurationConfigurationUsageInfo(
@@ -1293,11 +1305,7 @@ class ObsoleteConfigurationConfigurationUsageInfo(
 
   override fun getTooltipText() = "Rename configuration from ${configuration.name()} to $newConfigurationName"
 
-  // Don't need hashCode() because this is stricter than the superclass method.
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is ObsoleteConfigurationConfigurationUsageInfo &&
-           configuration == other.configuration && newConfigurationName == other.newConfigurationName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(configuration, newConfigurationName)
 }
 
 class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
