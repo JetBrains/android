@@ -16,6 +16,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.List;
+import javaslang.collection.Array;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
@@ -121,6 +122,23 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
+  }
+
+  public void testUsesFeatureCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <uses-feature android:name=\"<caret>\" android:required=\"\"/>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings())
+      .containsAllIn(Array.of("android.hardware.audio.low_latency", "android.hardware.camera", "android.hardware.telephony"));
+
+    AndroidTestUtils.moveCaret(myFixture, "android:required=\"|\"");
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsAllIn(Array.of("true", "false"));
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
