@@ -40,6 +40,8 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
+import org.assertj.core.api.Assertions
+import org.assertj.core.internal.Failures.threadDumpDescription
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +49,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JCheckBox
@@ -349,7 +352,12 @@ class ManageSnapshotsDialogTest {
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      try {
+        waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      }
+      catch (e: TimeoutException) {
+        Assertions.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      }
       assertThat(table.items).hasSize(2) // The two invalid snapshots were deleted automatically.
       // Close the "Manage Snapshots" dialog.
       ui.clickOn(rootPane1.defaultButton)

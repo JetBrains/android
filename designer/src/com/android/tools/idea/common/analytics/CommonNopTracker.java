@@ -38,7 +38,9 @@ public class CommonNopTracker implements CommonUsageTracker {
   }
 
   @Override
-  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, boolean wasInflated) {
+  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger,
+                              @NotNull RenderResult result,
+                              @NotNull CommonUsageTracker.RenderResultType resultType) {
   }
 
   @Override

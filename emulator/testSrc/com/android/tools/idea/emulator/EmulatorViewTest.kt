@@ -274,8 +274,8 @@ class EmulatorViewTest {
     ui.mouse.press(50, 7)
     ui.mouse.release()
 
-    // Check device frame cropping.
-    view.cropFrame = true
+    // Check hiding the device frame.
+    view.deviceFrameVisible = false
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
     assertAppearance(ui, "image4")
@@ -358,7 +358,7 @@ class EmulatorViewTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val view = EmulatorView(emulatorController, testRootDisposable, false)
+    val view = EmulatorView(emulatorController, testRootDisposable, true)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view

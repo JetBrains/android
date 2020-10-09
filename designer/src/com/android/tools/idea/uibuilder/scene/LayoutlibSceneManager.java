@@ -918,7 +918,6 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   private CompletableFuture<RenderResult> inflate(boolean force) {
-    long startInflateTimeMs = System.currentTimeMillis();
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
@@ -984,13 +983,8 @@ public class LayoutlibSceneManager extends SceneManager {
               updateRenderTask(newTask);
             }
           })
-            .handle((result, exception) -> {
-              if (result != null) {
-                return result.createWithDuration(System.currentTimeMillis() - startInflateTimeMs);
-              } else {
-                return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
-              }
-            });
+            .handle((result, exception) ->
+                      result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception));
         }
         else {
           updateRenderTask(null);
@@ -1011,7 +1005,7 @@ public class LayoutlibSceneManager extends SceneManager {
       })
       .thenApply(result -> {
         fireOnInflateComplete();
-        return logIfSuccessful(result, null, true);
+        return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
       });
   }
 
@@ -1135,9 +1129,9 @@ public class LayoutlibSceneManager extends SceneManager {
   @Nullable
   private RenderResult logIfSuccessful(@Nullable RenderResult result,
                                        @Nullable LayoutEditorRenderResult.Trigger trigger,
-                                       boolean wasInflated) {
+                                       @NotNull CommonUsageTracker.RenderResultType resultType) {
     if (result != null && result.getRenderResult().isSuccess()) {
-      CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, wasInflated);
+      CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, resultType);
     }
     return result;
   }
@@ -1167,7 +1161,7 @@ public class LayoutlibSceneManager extends SceneManager {
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl()
-        .thenApply(result -> logIfSuccessful(result, trigger, false))
+        .thenApply(result -> logIfSuccessful(result, trigger, CommonUsageTracker.RenderResultType.RENDER))
         .thenApply(this::updateCachedRenderResultIfNotNull)
         .thenApply(result -> {
           if (result != null) {
@@ -1248,7 +1242,6 @@ public class LayoutlibSceneManager extends SceneManager {
             getDesignSurface().updateErrorDisplay();
             return CompletableFuture.completedFuture(null);
           }
-          long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {
             myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
           }
@@ -1257,10 +1250,7 @@ public class LayoutlibSceneManager extends SceneManager {
             if (result != null && !inflated) {
               updateHierarchy(result);
             }
-            if (result != null) {
-              return result.createWithDuration(System.currentTimeMillis() - startRenderTimeMs);
-            }
-            return null;
+            return result;
           });
         }
       })

@@ -65,62 +65,98 @@ private val renderMemoryBenchmark = Benchmark.Builder("DesignTools Memory Usage 
  * A measurement for the given [metric]. This class will be called before and after a profiled operation is executed. [after] is expected
  * to return the [MetricSample] of one execution.
  */
-internal abstract class MetricMeasurement(val metric: Metric) {
+internal abstract class MetricMeasurement<T>(val metric: Metric) {
   abstract fun before()
-  abstract fun after(): MetricSample
+  abstract fun after(result: T): MetricSample?
 }
 
 /**
  * A [MetricMeasurement] that measures the elapsed time in milliseconds between [before] and [after].
  */
-internal class ElapsedTimeMeasurement(metric: Metric) : MetricMeasurement(metric) {
+internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurement<T>(metric) {
   private var startMs = -1L
 
   override fun before() {
     startMs = System.currentTimeMillis()
   }
 
-  override fun after() =
+  override fun after(result: T) =
     MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startMs)
 }
 
 /**
  * A [MetricMeasurement] that measures the memory usage delta between [before] and [after].
  */
-internal class MemoryUseMeasurement(metric: Metric) : MetricMeasurement(metric) {
+internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurement<T>(metric) {
   private var initialMemoryUse = -1L
 
   override fun before() {
     initialMemoryUse = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
   }
 
-  override fun after() =
+  override fun after(result: T) =
     MetricSample(Instant.now().toEpochMilli(),
-                        Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMemoryUse)
+                 Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMemoryUse)
+}
+
+
+/**
+ * A [MetricMeasurement] that measures the inflate time of a render.
+ */
+internal class InflateTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+  override fun before() {}
+
+  override fun after(result: RenderResult) = if (result.inflateDuration != -1L)
+    MetricSample(Instant.now().toEpochMilli(), result.inflateDuration)
+  else null // No inflate time available
+}
+
+/**
+ * A [MetricMeasurement] that measures the render time of a render.
+ */
+internal class RenderTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+  override fun before() {}
+
+  override fun after(result: RenderResult) = if (result.renderDuration != -1L)
+    MetricSample(Instant.now().toEpochMilli(), result.renderDuration)
+  else null // No render time available
 }
 
 /**
  * Measures the given operation applying the given [MetricMeasurement]s.
  */
-internal fun Benchmark.measureOperation(measures: List<MetricMeasurement>,
-                                        warmUpCount: Int = NUMBER_OF_WARM_UP,
-                                        samplesCount: Int = NUMBER_OF_SAMPLES,
-                                        operation: () -> Unit) {
+internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>,
+                                            warmUpCount: Int = NUMBER_OF_WARM_UP,
+                                            samplesCount: Int = NUMBER_OF_SAMPLES,
+                                            printSamples: Boolean = false,
+                                            operation: () -> T) {
+  assert(measures.map { it.metric.metricName }.distinct().count() == measures.map { it.metric.metricName }.count()) {
+    "Metrics can not have duplicate names"
+  }
   System.gc()
   repeat(warmUpCount) {
     operation()
   }
 
-  val metricSamples: LinkedListMultimap<Metric, MetricSample> = LinkedListMultimap.create()
+  val metricSamples: LinkedListMultimap<String, MetricSample> = LinkedListMultimap.create()
   repeat(samplesCount) {
     measures.forEach { it.before() }
-    operation()
-    measures.forEach { metricSamples.put(it.metric, it.after()) }
+    val result = operation()
+    measures.forEach {
+      it.after(result)?.let { value -> metricSamples.put(it.metric.metricName, value) }
+    }
   }
 
-  metricSamples.keys().forEach { metric ->
-    metric.addSamples(this, *metricSamples.get(metric).toTypedArray())
-    metric.commit()
+  measures.forEach { measure ->
+    val metric = measure.metric
+    val samples = metricSamples.get(metric.metricName)
+    if (samples.isNotEmpty()) {
+      if (printSamples) {
+        println("${metric.metricName}: ${samples.joinToString(",") { it.sampleData.toString() }}")
+      }
+      metric.addSamples(this, *samples.toTypedArray())
+      metric.commit()
+    }
   }
 }
 

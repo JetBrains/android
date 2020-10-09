@@ -113,6 +113,7 @@ public class AddRemoveCppDependencyTest {
         }
       )
       .getEditor()
+      .open("app/build.gradle")
       .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp

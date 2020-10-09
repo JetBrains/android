@@ -139,9 +139,7 @@ public class DrawableRenderer implements Disposable {
   public void dispose() {
     myRenderTaskFuture.whenComplete((renderTask, throwable) -> {
       if (renderTask != null) {
-        synchronized (myRenderLock) {
-          renderTask.dispose();
-        }
+        renderTask.dispose();
       }
     });
   }

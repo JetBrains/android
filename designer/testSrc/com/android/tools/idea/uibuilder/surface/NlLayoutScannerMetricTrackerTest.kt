@@ -136,7 +136,7 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
       builder.add(Mockito.mock(ViewInfo::class.java))
     }
     Mockito.`when`(result.rootViews).thenReturn(builder.build())
-    Mockito.`when`(result.renderDuration).thenReturn(TOTAL_RENDER_TIME)
+    Mockito.`when`(result.totalRenderDuration).thenReturn(TOTAL_RENDER_TIME)
 
     val renderResult = Mockito.mock(Result::class.java)
     Mockito.`when`(result.renderResult).thenReturn(renderResult)

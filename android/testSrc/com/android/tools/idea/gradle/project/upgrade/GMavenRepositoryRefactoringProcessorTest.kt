@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -82,5 +83,14 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     processor.isEnabled = true
     processor.run()
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP3ProjectOverrideIsEnabledExpected"))
+  }
+
+  @Test
+  fun testAGP2ProjectTooltipsNotNull() {
+    writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"), GradleVersion.parse("6.5"))
+    val usages = processor.findUsages()
+    assertTrue(usages.isNotEmpty())
+    usages.forEach { assertNotNull(it.tooltipText) }
   }
 }

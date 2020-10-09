@@ -15,16 +15,35 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.deployer.AdbClient
+import com.android.tools.deployer.ApkInstaller
+import com.android.tools.deployer.InstallStatus
 import com.android.tools.editor.ActionToolbarUtil.makeToolbarNavigable
+import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformNullable
+import com.android.tools.idea.log.LogWrapper
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.ide.dnd.DnDDropHandler
+import com.intellij.ide.dnd.DnDEvent
+import com.intellij.ide.dnd.DnDSupport
+import com.intellij.ide.dnd.FileCopyPasteUtil.getFileListFromAttachedObject
+import com.intellij.ide.dnd.FileCopyPasteUtil.isFileListFlavorAvailable
 import com.intellij.ide.ui.customization.CustomActionsSchema
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.ui.IdeBorderFactory
@@ -33,11 +52,14 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
+import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Adjustable
 import java.awt.BorderLayout
 import java.awt.Component
@@ -63,7 +85,7 @@ private const val isToolbarHorizontal = true
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+class EmulatorToolWindowPanel(private val project: Project, val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
   private val mainToolbar: ActionToolbar
   private var emulatorView: EmulatorView? = null
   private val scrollPane: JScrollPane
@@ -87,7 +109,7 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
   val component: JComponent
     get() = this
 
-  var zoomToolbarIsVisible = false
+  var zoomToolbarVisible = false
     set(value) {
       field = value
       floatingToolbar?.let { it.isVisible = value }
@@ -129,6 +151,8 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
       add(zoomControlsLayerPane, BorderLayout.CENTER)
       add(scrollPane, BorderLayout.CENTER)
     }
+
+    installDnD()
   }
 
   fun getPreferredFocusableComponent(): JComponent {
@@ -148,22 +172,35 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
     }
   }
 
-
-  fun setCropFrame(value: Boolean) {
-    emulatorView?.cropFrame = value
+  private fun installDnD() {
+    DnDSupport.createBuilder(this)
+      .enableAsNativeTarget()
+      .setTargetChecker { event ->
+        if (isFileListFlavorAvailable(event)) {
+          event.isDropPossible = true
+          return@setTargetChecker false
+        }
+        return@setTargetChecker true
+      }
+      .setDropHandler(ApkFileDropHandler())
+      .install()
   }
 
-  fun createContent(cropSkin: Boolean) {
+  fun setDeviceFrameVisible(visible: Boolean) {
+    emulatorView?.deviceFrameVisible = visible
+  }
+
+  fun createContent(deviceFrameVisible: Boolean) {
     try {
       val disposable = Disposer.newDisposable()
       contentDisposable = disposable
 
       val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
-      toolbar.isVisible = zoomToolbarIsVisible
+      toolbar.isVisible = zoomToolbarVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
 
-      val emulatorView = EmulatorView(emulator, disposable, cropSkin)
+      val emulatorView = EmulatorView(emulator, disposable, deviceFrameVisible)
       emulatorView.background = background
       this.emulatorView = emulatorView
       scrollPane.setViewportView(emulatorView)
@@ -294,6 +331,64 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
 
     init {
       isOpaque = false
+    }
+  }
+
+  private inner class ApkFileDropHandler : DnDDropHandler {
+
+    override fun drop(event: DnDEvent) {
+      val files = getFileListFromAttachedObject(event.attachedObject)
+      val fileNames = files.joinToString(", ") { it.name }
+      loadingPanel?.apply {
+        setLoadingText("Installing $fileNames")
+        startLoading()
+      }
+      val resultFuture: ListenableFuture<AdbClient.InstallResult?> = findDevice().transformNullable(getAppExecutorService()) { device ->
+        if (device == null) return@transformNullable null
+        val adbClient = AdbClient(device, LogWrapper(EmulatorToolWindowPanel::class.java))
+        val filePaths = files.asSequence().map { it.path }.toList()
+        return@transformNullable adbClient.install(filePaths, listOf("-t", "--user", "current", "--full", "--dont-kill"), true)
+      }
+      resultFuture.addCallback(
+          EdtExecutorService.getInstance(),
+          success = { installResult ->
+            if (installResult?.status == InstallStatus.OK) {
+              notifyOfSuccess("$fileNames installed")
+            }
+            else {
+              val message = if (installResult == null) {
+                "Unable to find the device to install the app"
+              }
+              else {
+                installResult.reason ?: ApkInstaller.message(installResult)
+              }
+              notifyOfError(message)
+            }
+            loadingPanel?.stopLoading()
+          },
+          failure = { throwable ->
+            val message = throwable?.message ?: "Installation failed"
+            notifyOfError(message)
+            loadingPanel?.stopLoading()
+          })
+    }
+
+    private fun notifyOfSuccess(message: String) {
+      EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.INFORMATION).notify(project)
+    }
+
+    private fun notifyOfError(message: String) {
+      EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.WARNING).notify(project)
+    }
+
+    private fun findDevice(): ListenableFuture<IDevice?> {
+      val serialNumber = "emulator-${emulator.emulatorId.serialPort}"
+      val adbFile = AndroidSdkUtils.getAdb(project) ?:
+                    return Futures.immediateFailedFuture(RuntimeException("Could not find adb executable"))
+      val bridgeFuture: ListenableFuture<AndroidDebugBridge> = AdbService.getInstance().getDebugBridge(adbFile)
+      return bridgeFuture.transform(getAppExecutorService()) { debugBridge ->
+        debugBridge.devices.find { it.isEmulator && it.serialNumber == serialNumber }
+      }
     }
   }
 }

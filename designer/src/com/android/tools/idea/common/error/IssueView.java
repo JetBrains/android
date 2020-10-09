@@ -168,7 +168,7 @@ public class IssueView extends JPanel {
   }
 
   private void createFixEntry(@NotNull Issue.Fix fix) {
-    myFixPanel.add(new FixEntry(fix.getDescription(), fix.getRunnable()));
+    myFixPanel.add(new FixEntry(fix.getButtonText(), fix.getDescription(), fix.getRunnable()));
   }
 
   @NotNull
@@ -326,8 +326,9 @@ public class IssueView extends JPanel {
     private JBLabel myFixText;
     private JComponent myComponent;
 
-    public FixEntry(@NotNull String text, @NotNull Runnable fixRunnable) {
+    public FixEntry(@NotNull String buttonText, @NotNull String text, @NotNull Runnable fixRunnable) {
       myFixText.setText(text);
+      myFixButton.setText(buttonText);
       myFixButton.addActionListener(e -> fixRunnable.run());
     }
 

@@ -16,10 +16,10 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.model.AbstractPaginatedTableModel
+import com.android.tools.adtui.stdui.CommonButton
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.colorpicker.CommonButton
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI

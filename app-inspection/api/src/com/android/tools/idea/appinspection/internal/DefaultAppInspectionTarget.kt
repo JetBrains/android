@@ -215,7 +215,7 @@ internal fun AppInspection.LibraryVersionResponse.toLibraryVersionResponse(artif
     AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING -> LibraryVersionResponse.Status.LIBRARY_MISSING
     else -> LibraryVersionResponse.Status.ERROR
   }
-  return LibraryVersionResponse(artifactCoordinate, responseStatus, errorMessage)
+  return LibraryVersionResponse(artifactCoordinate, responseStatus, version, errorMessage)
 }
 
 /**

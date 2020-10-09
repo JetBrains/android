@@ -66,5 +66,5 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int) { }
 
-  override fun showOfflineModeFailedPanel() { }
+  override fun showOfflineModeUnavailablePanel() { }
 }

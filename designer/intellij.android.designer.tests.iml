@@ -11,28 +11,18 @@
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="assistant" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.layoutinspector" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
@@ -57,6 +47,5 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.tests" scope="TEST" />
   </component>
 </module>

@@ -145,6 +145,49 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     verify(sqliteEvaluatorView).setQueryHistory(listOf("fake query"))
   }
 
+  fun testSetUpNoDbsShowsMessage() {
+    // Prepare
+    databaseInspectorModel.clearDatabases()
+
+    // Act
+    sqliteEvaluatorController.setUp()
+
+    // Assert
+    verify(sqliteEvaluatorView).showMessagePanel("Select a database from the drop down.")
+  }
+
+  fun testSetUpLiveDbSelectedShowsMessage() {
+    // Prepare
+    databaseInspectorModel.clearDatabases()
+    databaseInspectorModel.addDatabaseSchema(
+      SqliteDatabaseId.fromLiveDatabase("db", 0),
+      SqliteSchema(emptyList())
+    )
+
+    // Act
+    sqliteEvaluatorController.setUp()
+
+    // Assert
+    verify(sqliteEvaluatorView).showMessagePanel("Write a query and run it to see results from the selected database.")
+  }
+
+  fun testSetUpFileDbSelectedShowsMessage() {
+    // Prepare
+    databaseInspectorModel.clearDatabases()
+    databaseInspectorModel.addDatabaseSchema(
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file"))),
+      SqliteSchema(emptyList())
+    )
+
+    // Act
+    sqliteEvaluatorController.setUp()
+
+    // Assert
+    verify(sqliteEvaluatorView).showMessagePanel(
+      "The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only."
+    )
+  }
+
   fun testEvaluateSqlActionQuerySuccess() {
     // Prepare
     val sqlStatement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
@@ -157,6 +200,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(sqlStatement)
+    verify(sqliteEvaluatorView).showTableView()
     verify(sqliteEvaluatorView).setQueryHistory(listOf("SELECT", "fake query"))
     verify(propertiesService).setValues("com.android.tools.idea.sqlite.queryhistory", listOf("SELECT", "fake query").toTypedArray())
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
@@ -525,7 +569,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    verify(sqliteEvaluatorView).showMessagePanel("The statement was run successfully")
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
@@ -655,7 +699,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("INSERT INTO t1 VALUES (0);")
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    verify(sqliteEvaluatorView).showMessagePanel("The statement was run successfully")
     assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
@@ -770,7 +814,30 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection, times(0)).execute(sqlStatement)
-    verify(sqliteEvaluatorView).reportError("Can't run modifier statements on offline database", null)
+    verify(sqliteEvaluatorView).showMessagePanel("Modifier statements are disabled on offline databases.")
+  }
+
+  fun testUpdateMessageOnDbSelectionChange() {
+    // Prepare
+    val fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("virtual file")))
+    val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("db", 0)
+    databaseInspectorModel.addDatabaseSchema(fileDatabaseId, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(liveDatabaseId, SqliteSchema(emptyList()))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().onDatabaseSelected(liveDatabaseId)
+    sqliteEvaluatorView.listeners.first().onDatabaseSelected(fileDatabaseId)
+    val sqlStatement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(fileDatabaseId, sqlStatement))
+    sqliteEvaluatorView.listeners.first().onDatabaseSelected(liveDatabaseId)
+    sqliteEvaluatorView.listeners.first().onDatabaseSelected(fileDatabaseId)
+
+    // Assert
+    // first is after `setUp`, second is after first call to `onDatabaseSelected(liveDatabaseId)`
+    verify(sqliteEvaluatorView, times(2)).showMessagePanel("Write a query and run it to see results from the selected database.")
+    verify(sqliteEvaluatorView, times(1)).showMessagePanel("The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only.")
   }
 
   private fun evaluateSqlExecuteFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
@@ -788,7 +855,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
     verify(sqliteEvaluatorView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
+    verify(sqliteEvaluatorView).showMessagePanel("An error occurred while running the statement")
   }
 
   private fun evaluateSqlQueryFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
@@ -810,6 +877,6 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
+    verify(sqliteEvaluatorView).showMessagePanel("An error occurred while running the statement")
   }
 }
