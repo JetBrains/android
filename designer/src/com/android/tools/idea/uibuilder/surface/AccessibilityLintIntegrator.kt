@@ -38,7 +38,7 @@ import javax.swing.event.HyperlinkListener
 /**
  * Lint integrator for issues created by ATF (Accessibility Testing Framework)
  */
-class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
+class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
   @VisibleForTesting
   val issueProvider: IssueProvider = object : IssueProvider() {
@@ -49,28 +49,26 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     }
   }
 
-  /**
-   * Returns the list of accessibility issues created by ATF.
-   */
+  /**  Returns the list of accessibility issues created by ATF. */
   val issues = HashSet<Issue>()
 
-  /**
-   * Clear all lints and disable atf lint.
-   */
-  fun disableAccessibilityLint() {
-    issueModel.removeIssueProvider(issueProvider)
-    issues.clear()
-  }
-
-  /**
-   * Populate lints based on issues created through [createAnIssue]
-   */
-  fun populateLints() {
+  init {
     issueModel.addIssueProvider(issueProvider)
   }
 
+  /** Clear all lints and disable atf lint. */
+  fun clear() {
+    issues.clear()
+  }
+
+  /** Populate lints based on issues created */
+  fun populateLints() {
+    issueProvider.notifyModified()
+  }
+
   /**
-   * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
+   * Creates a single issue/lint that matches given parameters. Must call [populateLints]
+   * in order for issues to be visible.
    */
   fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
     component?.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {

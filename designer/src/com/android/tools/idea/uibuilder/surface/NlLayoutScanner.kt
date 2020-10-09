@@ -76,7 +76,7 @@ class NlLayoutScanner(
       return
     }
 
-    lintIntegrator.disableAccessibilityLint()
+    lintIntegrator.clear()
     viewToComponent.clear()
     idToComponent.clear()
 
@@ -119,7 +119,7 @@ class NlLayoutScanner(
    * Disable the validator. It removes any existing issue visible to the panel.
    */
   fun disable() {
-    lintIntegrator.disableAccessibilityLint()
+    lintIntegrator.clear()
   }
 
   /**
@@ -179,6 +179,6 @@ class NlLayoutScanner(
     viewToComponent.clear()
     idToComponent.clear()
     listeners.clear()
-    lintIntegrator.disableAccessibilityLint()
+    lintIntegrator.clear()
   }
 }
