@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator.actions.dialogs
 
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -54,7 +55,8 @@ class SnapshotManager(val emulatorController: EmulatorController) {
   fun fetchSnapshotList(): List<SnapshotInfo> {
     val validSnapshotsReady = CountDownLatch(1)
     val validSnapshotIds = hashSetOf<String>()
-    emulatorController.listSnapshots(object : EmptyStreamObserver<SnapshotList>() {
+    val snapshotFilter = SnapshotFilter.newBuilder().setStatusFilter(SnapshotFilter.LoadStatus.CompatibleOnly).build()
+    emulatorController.listSnapshots(snapshotFilter, object : EmptyStreamObserver<SnapshotList>() {
       override fun onNext(response: SnapshotList) {
         for (snapshot in response.snapshotsList) {
           validSnapshotIds.add(snapshot.snapshotId)
