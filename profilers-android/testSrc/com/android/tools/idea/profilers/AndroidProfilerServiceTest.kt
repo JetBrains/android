@@ -24,7 +24,7 @@ import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -113,12 +113,12 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     val state = ProfilerState();
     `when`(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.SAMPLED.value)
 
     state.STARTUP_PROFILING_ENABLED = true;
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
   }
 

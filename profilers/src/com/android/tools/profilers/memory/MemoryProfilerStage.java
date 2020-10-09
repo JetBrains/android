@@ -61,17 +61,14 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -82,7 +79,6 @@ import org.jetbrains.annotations.Nullable;
 public class MemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
   public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
-  public static final LiveAllocationSamplingMode DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE = LiveAllocationSamplingMode.SAMPLED;
 
   static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
@@ -862,55 +858,6 @@ public class MemoryProfilerStage extends BaseStreamingMemoryProfilerStage implem
       MemoryAllocSamplingData samplingInfo = data.get(data.size() - 1).value.getCurrentRate();
       LiveAllocationSamplingMode mode = LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingNumInterval());
       setLiveAllocationSamplingModelInternal(mode);
-    }
-  }
-
-  public enum LiveAllocationSamplingMode {
-    // 0 is a special value for disabling tracking.
-    NONE(0, "None"),
-    // Sample every 10 allocations
-    SAMPLED(10, "Sampled"),
-    // Sample every allocation
-    FULL(1, "Full");
-
-    static final Map<Integer, LiveAllocationSamplingMode> SAMPLING_RATE_MAP;
-    static final Map<String, LiveAllocationSamplingMode> NAME_MAP;
-
-    static {
-      Map<Integer, LiveAllocationSamplingMode> samplingRateMap = new HashMap<>();
-      Map<String, LiveAllocationSamplingMode> nameMap = new HashMap<>();
-      for (LiveAllocationSamplingMode mode : LiveAllocationSamplingMode.values()) {
-        samplingRateMap.put(mode.getValue(), mode);
-        nameMap.put(mode.getDisplayName(), mode);
-      }
-      SAMPLING_RATE_MAP = ImmutableMap.copyOf(samplingRateMap);
-      NAME_MAP = ImmutableMap.copyOf(nameMap);
-    }
-
-    private String myDisplayName;
-    private int mySamplingFrequency;
-
-    LiveAllocationSamplingMode(int frequency, String displayName) {
-      myDisplayName = displayName;
-      mySamplingFrequency = frequency;
-    }
-
-    public String getDisplayName() {
-      return myDisplayName;
-    }
-
-    public int getValue() {
-      return mySamplingFrequency;
-    }
-
-    @NotNull
-    static LiveAllocationSamplingMode getModeFromFrequency(int frequency) {
-      return SAMPLING_RATE_MAP.getOrDefault(frequency, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE);
-    }
-
-    @NotNull
-    static LiveAllocationSamplingMode getModeFromDisplayName(String displayName) {
-      return NAME_MAP.getOrDefault(displayName, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE);
     }
   }
 }

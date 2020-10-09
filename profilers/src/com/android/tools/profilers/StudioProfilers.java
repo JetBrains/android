@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
@@ -967,7 +969,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
         isAgentAttached()) {
       int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
-        MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+        MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
       int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
       // If live allocation is already disabled, don't send any request.
       if (savedSamplingRate != samplingRateOff) {

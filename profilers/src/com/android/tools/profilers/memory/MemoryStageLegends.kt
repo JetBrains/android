@@ -21,7 +21,8 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.legend.EventLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.adtui.model.legend.SeriesLegend
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode.*
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.MemoryProfilerStage.MEMORY_AXIS_FORMATTER
 import com.android.tools.profilers.memory.MemoryProfilerStage.OBJECT_COUNT_AXIS_FORMATTER
 import java.util.concurrent.TimeUnit
