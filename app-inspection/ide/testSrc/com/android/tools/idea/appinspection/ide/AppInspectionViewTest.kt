@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -69,12 +70,11 @@ class AppInspectionViewTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
-  private class TestIdeServices : AppInspectionIdeServices {
+  private class TestIdeServices : TestAppInspectionIdeServices() {
     class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val hyperlinkClicked: () -> Unit)
 
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
 
-    override fun showToolWindow(callback: () -> Unit) {}
     override fun showNotification(content: String,
                                   title: String,
                                   severity: AppInspectionIdeServices.Severity,
@@ -82,8 +82,6 @@ class AppInspectionViewTest {
       val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
-
-    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
   }
 
   private val ideServices = TestIdeServices()
