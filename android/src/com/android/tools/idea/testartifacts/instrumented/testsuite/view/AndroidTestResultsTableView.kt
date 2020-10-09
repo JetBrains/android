@@ -74,6 +74,8 @@ import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
 import java.awt.KeyboardFocusManager
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -109,7 +111,18 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
                                   logger: AndroidTestSuiteLogger) {
   private val myModel = AndroidTestResultsTableModel()
   private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
-  private val myTableViewContainer = JBScrollPane(myTableView)
+  private val myTableViewContainer = JBScrollPane(myTableView).apply {
+    addComponentListener(object: ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent?) {
+        // Automatically resize columns when the table is expanded and keep column widths fixed when the table is shrunk (b/169497998)
+        if (myTableView.preferredSize.width < myTableView.parent.width) {
+          myTableView.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
+        } else {
+          myTableView.autoResizeMode = JTable.AUTO_RESIZE_OFF
+        }
+      }
+    })
+  }
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
   @get:UiThread
@@ -663,9 +676,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tableChanged(null)
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
       column.resizable = true
-      column.minWidth = 10
       column.maxWidth = Int.MAX_VALUE / 2
       column.preferredWidth = model.columns[index].getWidth(this)
+      column.minWidth = column.preferredWidth
     }
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
     prevSelectedObject?.let { addSelection(it) }
