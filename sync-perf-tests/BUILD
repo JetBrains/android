@@ -1,10 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
-# managed by go/iml_to_build
+# managed by go/iml_to_build [unb]
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
+    project = "unb",
     split_test_targets = {
         "Base100": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
@@ -18,7 +19,6 @@ iml_module(
         },
     },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
-    # keep sorted
     test_data = [
         ":test_deps.zip",
         "//prebuilts/studio/buildbenchmarks:Base100_project",
@@ -34,35 +34,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
     ],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
-        "//tools/idea/.idea/libraries:rhino",
-        "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
-        "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
-        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
-        "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/plugins/java-i18n:intellij.java.i18n",
-        "//tools/idea:intellij.java.ui.tests",
-        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
-        "//tools/idea/plugins/eclipse:intellij.eclipse",
-        "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
-        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-        "//tools/adt/idea/databinding:intellij.android.databinding",
-    ],
+    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -75,21 +47,18 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
+        "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
-        "//tools/idea/plugins/gradle:intellij.gradle.common[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:protobuf[test]",
-        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
     ],
 )
 
@@ -168,65 +137,4 @@ java_import(
         "unb",
     ],
     visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "intellij.android.sync-perf-tests",
-    iml_files = ["intellij.android.sync-perf-tests.iml"],
-    project = "unb",
-    split_test_targets = {
-        "Base100": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
-        },
-        "Dolphin": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
-        },
-        # This split test target contains AveragePerfTest, and other unspecified tests if
-        # they exist. Additional targets should be made if this one begins taking a long time.
-        "other": {
-        },
-    },
-    test_class = "com.android.tools.idea.SyncPerfTestSuite",
-    test_data = [
-        ":test_deps.zip",
-        "//prebuilts/studio/buildbenchmarks:Base100_project",
-        "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:platforms/latest-preview",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/sync-perf-tests/testData",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
-    ],
-    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
-    test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-        "perfgate",
-    ],
-    test_timeout = "eternal",
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
-        "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
-        "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-    ],
 )

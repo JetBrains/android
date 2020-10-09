@@ -1,36 +1,27 @@
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 
-# managed by go/iml_to_build
-java_import(
-    name = "asm-5.0.3",
-    jars = ["asm-5.0.3.jar"],
+# managed by go/iml_to_build [unb]
+filegroup(
+    name = "unb.asm-tools_files",
+    # do not sort: must match IML order
+    srcs = [
+        "asm-5.0.3.jar",
+        "asm-analysis-5.0.3.jar",
+        "asm-tree-5.0.3.jar",
+    ],
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build
+# managed by go/iml_to_build [unb]
 java_import(
-    name = "asm-analysis-5.0.3",
-    jars = ["asm-analysis-5.0.3.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "asm-tree-5.0.3",
-    jars = ["asm-tree-5.0.3.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "jarutils",
+    name = "unb.android-sdk-tools-jps",
     jars = ["jarutils.jar"],
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build
+# managed by go/iml_to_build [unb]
 java_import(
-    name = "spantable",
+    name = "unb.spantable",
     jars = ["spantable.jar"],
     visibility = ["//visibility:public"],
 )
@@ -71,58 +62,6 @@ studio_data(
     mappings = {
         "tools/adt/idea/android/lib/": "",
     },
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "instantapps-api-1.8",
-    jars = ["instantapps-api-1.8.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "pepk",
-    jars = ["pepk.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-filegroup(
-    name = "unb.asm-tools_files",
-    # do not sort: must match IML order
-    srcs = [
-        "asm-5.0.3.jar",
-        "asm-analysis-5.0.3.jar",
-        "asm-tree-5.0.3.jar",
-    ],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.android-sdk-tools-jps",
-    jars = ["jarutils.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.spantable",
-    jars = ["spantable.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
 )
 
