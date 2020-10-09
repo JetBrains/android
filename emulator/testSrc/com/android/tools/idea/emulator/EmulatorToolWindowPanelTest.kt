@@ -104,11 +104,11 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(panel.emulatorView).isNull()
 
-    panel.createContent(false)
+    panel.createContent(true)
     val emulatorView = panel.emulatorView ?: throw AssertionError()
 
     // Check appearance.
-    panel.zoomToolbarIsVisible = true
+    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
@@ -165,10 +165,10 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(panel.emulatorView).isNull()
 
-    panel.createContent(false)
+    panel.createContent(true)
     var emulatorView = panel.emulatorView ?: throw AssertionError()
 
-    panel.zoomToolbarIsVisible = true
+    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
@@ -190,7 +190,7 @@ class EmulatorToolWindowPanelTest {
 
     // Recreate panel content.
     panel.destroyContent()
-    panel.createContent(false)
+    panel.createContent(true)
     emulatorView = panel.emulatorView ?: throw AssertionError()
     ui.layoutAndDispatchEvents()
 
