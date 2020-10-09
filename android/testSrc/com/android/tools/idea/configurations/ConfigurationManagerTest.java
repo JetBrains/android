@@ -106,7 +106,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
 
     // Populate the
     ImmutableList<Device> devices = manager.getDevices();
-    // Our list of devices is pretty big, sanity check that there is at least 5 for the test.
+    // Our list of devices is pretty big, validity check that there is at least 5 for the test.
     assertTrue("The existing device list is expected to contain at least 5 devices.", devices.size() > 5);
     manager.selectDevice(devices.get(0));
     manager.selectDevice(devices.get(1));
