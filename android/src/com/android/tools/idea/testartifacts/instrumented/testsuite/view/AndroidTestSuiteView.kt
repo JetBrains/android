@@ -337,6 +337,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
     myStatusText.text = "<html><nobr>${statusText}</nobr></html>"
     myStatusText.maximumSize = myStatusText.preferredSize
+    myStatusText.minimumSize = myStatusText.preferredSize
 
     val statusBreakdownText = StringBuilder("${scheduledTestCases} tests")
     if (myScheduledDevices.size > 1) {
