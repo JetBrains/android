@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -95,7 +96,7 @@ public final class Sdks {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }
 
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk, IdeSdks.getInstance().getJdk());
     AndroidSdkData sdkData = getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget foundTarget = null;
