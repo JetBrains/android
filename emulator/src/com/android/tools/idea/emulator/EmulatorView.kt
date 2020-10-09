@@ -103,12 +103,12 @@ import com.android.emulator.control.MouseEvent as MouseEventMessage
  * A view of the Emulator display optionally encased in the device frame.
  *
  * @param emulator the handle of the Emulator
- * @param cropFrame if true, the device frame is cropped to maximize the size of the display image
+ * @param deviceFrameVisible if true, the device frame is cropped to maximize the size of the display image
  */
 class EmulatorView(
   val emulator: EmulatorController,
   parentDisposable: Disposable,
-  cropFrame: Boolean
+  deviceFrameVisible: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
@@ -230,12 +230,12 @@ class EmulatorView(
   var displayRotation: SkinRotation
     get() = screenshotShape.rotation
     set(value) {
-      if (value != screenshotShape.rotation && !cropFrame) {
+      if (value != screenshotShape.rotation && deviceFrameVisible) {
         requestScreenshotFeed(value)
       }
     }
 
-  var cropFrame: Boolean = cropFrame
+  var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {
       if (field != value) {
         field = value
@@ -356,11 +356,11 @@ class EmulatorView(
 
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
-    return if (cropFrame || skin == null) {
-      computeRotatedDisplaySize(emulatorConfig, rotation)
+    return if (skin != null && deviceFrameVisible) {
+      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
     }
     else {
-      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
+      computeRotatedDisplaySize(emulatorConfig, rotation)
     }
   }
 
@@ -547,19 +547,15 @@ class EmulatorView(
     displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
     g.drawImage(displayImage, displayTransform, null)
 
-    // Draw device frame and mask.
-    skin.drawFrameAndMask(g, displayRect)
+    if (deviceFrameVisible) {
+      // Draw device frame and mask.
+      skin.drawFrameAndMask(g, displayRect)
+    }
   }
 
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
     // The roundSlightly call below is used to avoid scaling by a factor that only slightly differs from 1.
-    return if (cropFrame) {
-      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
-      val w = screenshotShape.width.scaled(scale)
-      val h = screenshotShape.height.scaled(scale)
-      Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
-    }
-    else {
+    return if (deviceFrameVisible) {
       val frameRectangle = skin.frameRectangle
       val scale = roundSlightly(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
@@ -567,6 +563,12 @@ class EmulatorView(
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
+    }
+    else {
+      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val w = screenshotShape.width.scaled(scale)
+      val h = screenshotShape.height.scaled(scale)
+      Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
     }
   }
 
