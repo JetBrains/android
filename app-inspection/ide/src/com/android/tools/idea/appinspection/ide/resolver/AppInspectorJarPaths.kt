@@ -18,10 +18,9 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.service.FileService
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.ZipUtil
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.utils.ThreadSafe
@@ -33,7 +32,8 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 
-private const val INSPECTOR_CACHE_KEY = "app.inspection"
+@VisibleForTesting
+const val INSPECTOR_JARS_DIR = "inspector-jars"
 
 private const val INSPECTOR_JAR = "inspector.jar"
 
@@ -46,13 +46,11 @@ private const val INSPECTOR_JAR = "inspector.jar"
  *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
  */
 @ThreadSafe
-class AppInspectorJarPaths(
-  @VisibleForTesting val cacheDir: Path = Paths.get(PathManager.getSystemPath(), INSPECTOR_CACHE_KEY, "cache")
-) {
+class AppInspectorJarPaths(private val fileService: FileService) {
   /**
    * Temporary directory in which to store downloaded artifacts before moving them to the cache directory.
    */
-  private val scratchDir = FileUtil.createTempDirectory("appInspection", "test", true).toPath()
+  private val scratchDir = fileService.getOrCreateTempDir(INSPECTOR_JARS_DIR)
 
   /**
    * In memory representation of the cached inspector jars that have been accessed or populated during the life of the application. At the
@@ -62,16 +60,13 @@ class AppInspectorJarPaths(
    */
   private val jars = ConcurrentHashMap<ArtifactCoordinate, AppInspectorJar>()
 
-  init {
-    Files.createDirectories(cacheDir)
-  }
-
   /**
    * Gets the cached inspector jar based on the provided coordinate. Null if it's not in cache.
    */
   fun getInspectorJar(inspector: ArtifactCoordinate): AppInspectorJar? {
     if (!jars.containsKey(inspector)) {
-      val jarPath = Paths.get(cacheDir.toString(), inspector.groupId, inspector.artifactId, inspector.version, INSPECTOR_JAR)
+      val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
+      val jarPath = Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version, INSPECTOR_JAR)
       if (jarPath.exists()) {
         jars[inspector] = AppInspectorJar(INSPECTOR_JAR, jarPath.parent.toString(), jarPath.parent.toString())
       }
@@ -110,7 +105,7 @@ class AppInspectorJarPaths(
                     FilenameFilter { dir, name -> dir.name == "META-INF" && name == INSPECTOR_JAR })
 
     val srcFile = scratchDir.resolve("META-INF").resolve(INSPECTOR_JAR)
-    val destDir = cacheDir.resolve(url.groupId).resolve(url.artifactId).resolve(url.version)
+    val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(url.groupId).resolve(url.artifactId).resolve(url.version)
     Files.createDirectories(destDir)
     val destFile = destDir.resolve(INSPECTOR_JAR)
 

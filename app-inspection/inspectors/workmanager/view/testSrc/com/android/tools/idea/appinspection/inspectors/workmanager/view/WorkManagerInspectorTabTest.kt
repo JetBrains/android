@@ -28,6 +28,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.service.TestAppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -76,15 +77,8 @@ class WorkManagerInspectorTabTest {
     override val rawEventFlow = emptyFlow<ByteArray>()
   }
 
-  private class TestIdeServices : AppInspectionIdeServices {
+  private class TestIdeServices : TestAppInspectionIdeServices() {
     var lastVisitedCodeLocation: AppInspectionIdeServices.CodeLocation? = null
-
-    override fun showToolWindow(callback: () -> Unit) {}
-    override fun showNotification(content: String,
-                                  title: String,
-                                  severity: AppInspectionIdeServices.Severity,
-                                  hyperlinkClicked: () -> Unit) {
-    }
 
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
       lastVisitedCodeLocation = codeLocation

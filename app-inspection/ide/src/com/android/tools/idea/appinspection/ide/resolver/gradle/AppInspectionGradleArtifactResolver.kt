@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.ide.resolver.AppInspectorJarPaths
 import com.android.tools.idea.appinspection.ide.resolver.GradleArtifactDownloader
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.service.FileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -29,8 +30,8 @@ import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
  *
  * TODO(b/169794015): write an integration test for this.
  */
-class AppInspectionGradleArtifactResolver : AppInspectionArtifactResolver {
-  private val jarPaths = AppInspectorJarPaths()
+class AppInspectionGradleArtifactResolver(fileService: FileService) : AppInspectionArtifactResolver {
+  private val jarPaths = AppInspectorJarPaths(fileService)
   private val taskManager = GradleTaskManager()
   private val downloader = GradleArtifactDownloader(taskManager)
 
