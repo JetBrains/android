@@ -78,8 +78,8 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       showVerticalLines = true
       showHorizontalLines = false
       emptyText.text = "No events in the selected range"
-      columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
+      columnModel.getColumn(Column.NAME.ordinal).cellRenderer = CustomBorderTableCellRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
