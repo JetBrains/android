@@ -1049,6 +1049,7 @@ Android Studio.app/Contents/bin/studio.vmoptions
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/jaotc
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/java
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/javac
+Android Studio.app/Contents/jre/jdk/Contents/Home/bin/javadoc
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/jdb
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/jfr
 Android Studio.app/Contents/jre/jdk/Contents/Home/bin/jhsdb
@@ -1216,6 +1217,14 @@ Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.internal.vm.compiler
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.internal.vm.compiler/LICENSE
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/LICENSE
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/jquery-migrate.md
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/jquery.md
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/jqueryUI.md
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/jszip.md
+Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.javadoc/pako.md
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.jdi/ADDITIONAL_LICENSE_INFO
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.jdi/ASSEMBLY_EXCEPTION
 Android Studio.app/Contents/jre/jdk/Contents/Home/legal/jdk.jdi/LICENSE
