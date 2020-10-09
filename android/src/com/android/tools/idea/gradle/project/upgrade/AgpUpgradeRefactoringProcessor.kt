@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
@@ -926,8 +927,34 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, USAGE_TYPE)
+          val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, GRADLE_URL_USAGE_TYPE)
           usages.add(GradleVersionUsageInfo(wrappedPsiElement, current, new, compatibleGradleVersion.version, updatedUrl))
+        }
+      }
+    }
+
+    // Check plugins for compatibility with our minimum Gradle version even if we're not upgrading (because the project has a higher
+    // version, for example) because some compatibility issues are related to the (AGP,Gradle) version pair rather than just directly
+    // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
+        GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
+          WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
+            val minVersion = info(compatibleGradleVersion)
+            if (minVersion <= currentVersion) return@dep
+            val resultModel = dep.version().resultModel
+            val element = resultModel.rawElement
+            val psiElement = when (element) {
+              null -> return@dep
+              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+              is FakeArtifactElement -> element.realExpression.psiElement
+              else -> element.psiElement
+            }
+            psiElement?.let {
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+              usages.add(WellKnownGradlePluginUsageInfo(wrappedPsiElement, current, new, dep, resultModel, minVersion.toString()))
+            }
+          }
         }
       }
     }
@@ -952,7 +979,8 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   }
 
   companion object {
-    val USAGE_TYPE = UsageType("Update Gradle distribution URL")
+    val GRADLE_URL_USAGE_TYPE = UsageType("Update Gradle distribution URL")
+    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType("Update version of Gradle plugin")
 
     enum class CompatibleGradleVersion(val version: GradleVersion) {
       // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
@@ -983,6 +1011,34 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         else -> VERSION_FOR_DEV
       }
     }
+
+    fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4 -> GradleVersion.parse("1.1.3")
+        VERSION_4_6 -> GradleVersion.parse("1.2.51")
+        VERSION_4_10_1 -> GradleVersion.parse("1.3.0")
+        VERSION_5_1_1 -> GradleVersion.parse("1.3.10")
+        VERSION_5_4_1 -> GradleVersion.parse("1.3.10")
+        VERSION_5_6_4 -> GradleVersion.parse("1.3.10")
+        VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
+        VERSION_6_5 -> GradleVersion.parse("1.3.20")
+        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20") //TODO(xof): checkme
+    }
+
+    fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5 ->
+          GradleVersion.parse("2.0.0")
+        // TODO(xof): for Studio 4.2 / AGP 4.2, this is correct.  For Studio 4.3 / AGP 7.0, it might not be: a feature deprecated in
+        //  AGP 4 might be removed in AGP 7.0 (see b/159542337) at which point we would need to upgrade the version to whatever the
+        //  version is that doesn't use that deprecated interface (2.3.2?  2.4.0?  3.0.0?  Who knows?)
+        VERSION_FOR_DEV -> GradleVersion.parse("2.0.0")
+      }
+
+    val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
+      "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`
+    )
   }
 }
 
@@ -1012,6 +1068,21 @@ class GradleVersionUsageInfo(
       documentManager.commitDocument(document)
     }
   }
+}
+
+class WellKnownGradlePluginUsageInfo(
+  element: WrappedPsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  val dependency: ArtifactDependencyModel,
+  val resultModel: GradlePropertyModel,
+  val version: String
+): GradleBuildModelUsageInfo(element, current, new) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(version)
+  }
+
+  override fun getTooltipText() = "Update version of ${dependency.group()}:${dependency.name()} to $version"
 }
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
