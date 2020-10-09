@@ -369,6 +369,7 @@ class AppInspectionViewTest {
         .collectIndexed { i, _ ->
           if (i == 0) {
             assertThat(inspectionView.inspectorTabs.size).isEqualTo(3)
+            inspectionView.inspectorTabs.forEach { it.waitForContent() }
             tabsAdded.complete(Unit)
           }
           else if (i == 1) {
@@ -385,6 +386,58 @@ class AppInspectionViewTest {
     transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
+
+  @Test
+  fun offlineTabsAreRemovedIfInspectorIsStillLoading() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    val tabsUpdated = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val supportsOfflineInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+        override fun supportsOffline() = true
+      }
+
+      inspectionView = AppInspectionView(
+        projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
+        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedFlow
+        .take(2)
+        .collectIndexed { i, _ ->
+          if (i == 0) {
+            assertThat(inspectionView.inspectorTabs).hasSize(3)
+            tabsAdded.complete(Unit)
+          }
+          else if (i == 1) {
+            assertThat(inspectionView.inspectorTabs).isEmpty()
+            tabsUpdated.complete(Unit)
+          }
+        }
+    }
+
+    // Suppress the response to createInspectorCommand to simulate the tab is loading.
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      val handler = TestAppInspectorCommandHandler(timer)
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        if (!command.appInspectionCommand.hasCreateInspectorCommand()) {
+          handler.handleCommand(command, events)
+        }
+      }
+    })
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    tabsUpdated.join()
+  }
+
 
   @Test
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() = runBlocking<Unit> {

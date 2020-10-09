@@ -153,9 +153,9 @@ class AppInspectionView(
       if (selectedProcess != null && !selectedProcess.isRunning) {
         // If a process was just killed, we'll get notified about that by being sent a dead
         // process. In that case, remove all inspectors except for those that opted-in to stay up
-        // in offline mode.
+        // in offline mode and those that haven't finished loading.
         inspectorTabs.removeAll { tab ->
-          !tab.provider.supportsOffline()
+          !tab.provider.supportsOffline() || !tab.isComponentSet
         }
       }
       else {
