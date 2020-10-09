@@ -47,6 +47,7 @@ class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
     val projectBuildFileLines = projectBuildFile.readLines().map { it.trim() }
     assertThat(projectBuildFileLines).contains("classpath 'com.android.tools.build:gradle:4.1.0'")
     assertThat(projectBuildFileLines).doesNotContain("google()")
+    assertThat(projectBuildFileLines).contains("ext.kotlin_version = \"1.3.72\"")
 
     val appBuildFile = File(File(project.basePath, "app"), "build.gradle")
     assertThat(appBuildFile.readText()).isEqualTo(File(File(project.basePath, "app"), "build.gradle.expected").readText())
