@@ -97,7 +97,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           projectName = null,
           showWelcomeScreen = true,
           callback = null,
-          frame = null,
           line = -1,
           column = -1,
           isRefreshVfsNeeded = true,
@@ -105,7 +104,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           runConversionBeforeOpen = true,
           projectWorkspaceId = null,
           isProjectCreatedWithWizard = false,
-          sendFrameBack = false,
           beforeInit = null,
           beforeOpen = null,
           preparedToOpen = null
