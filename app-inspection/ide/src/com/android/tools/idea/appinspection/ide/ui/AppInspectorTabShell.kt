@@ -41,6 +41,12 @@ class AppInspectorTabShell(
 
   private val contentChangedDeferred = CompletableDeferred<JComponent>()
 
+  /**
+   * Will be false until [setComponent] is called
+   */
+  val isComponentSet: Boolean
+    get() = contentChangedDeferred.isCompleted
+
   init {
     containerPanel.add(EmptyStatePanel(AppInspectionBundle.message("inspector.loading", provider.displayName)))
   }
