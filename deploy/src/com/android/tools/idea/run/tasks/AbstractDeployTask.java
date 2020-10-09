@@ -37,6 +37,7 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -203,10 +204,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
-    if (!path.exists()) {
+    File path;
+    if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android-installer");
+      path = new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer");
+    } else {
+      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
     return path.getAbsolutePath();
   }
