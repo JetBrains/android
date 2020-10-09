@@ -1042,6 +1042,7 @@ android-studio/build.txt
 android-studio/jre/bin/jaotc
 android-studio/jre/bin/java
 android-studio/jre/bin/javac
+android-studio/jre/bin/javadoc
 android-studio/jre/bin/jdb
 android-studio/jre/bin/jfr
 android-studio/jre/bin/jhsdb
@@ -1209,6 +1210,14 @@ android-studio/jre/legal/jdk.internal.vm.compiler.management/LICENSE
 android-studio/jre/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
 android-studio/jre/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
 android-studio/jre/legal/jdk.internal.vm.compiler/LICENSE
+android-studio/jre/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
+android-studio/jre/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
+android-studio/jre/legal/jdk.javadoc/LICENSE
+android-studio/jre/legal/jdk.javadoc/jquery-migrate.md
+android-studio/jre/legal/jdk.javadoc/jquery.md
+android-studio/jre/legal/jdk.javadoc/jqueryUI.md
+android-studio/jre/legal/jdk.javadoc/jszip.md
+android-studio/jre/legal/jdk.javadoc/pako.md
 android-studio/jre/legal/jdk.jdi/ADDITIONAL_LICENSE_INFO
 android-studio/jre/legal/jdk.jdi/ASSEMBLY_EXCEPTION
 android-studio/jre/legal/jdk.jdi/LICENSE
