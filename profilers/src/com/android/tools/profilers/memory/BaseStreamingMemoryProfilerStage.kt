@@ -23,4 +23,28 @@ import com.android.tools.profilers.StudioProfilers
 abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
                                                 captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader())
       : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
+
+  companion object {
+    @JvmField
+    val DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE = LiveAllocationSamplingMode.SAMPLED
+  }
+
+  enum class LiveAllocationSamplingMode(val value: Int, val displayName: String) {
+    NONE(0, "None"),        // 0 is a special value for disabling tracking.
+    SAMPLED(10, "Sampled"), // Sample every 10 allocations
+    FULL(1, "Full");        // Sample every allocation
+
+    companion object {
+      private val SamplingRateMap = values().map { it.value to it }.toMap()
+      private val NameMap = values().map { it.displayName to it }.toMap()
+
+      @JvmStatic
+      fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode =
+        SamplingRateMap[frequency] ?: DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE
+
+      @JvmStatic
+      fun getModeFromDisplayName(displayName: String): LiveAllocationSamplingMode =
+        NameMap[displayName] ?: DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE
+    }
+  }
 }
