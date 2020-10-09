@@ -20,11 +20,13 @@ import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
@@ -348,13 +350,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
    *
+   * @param snapshotFilter determines whether all or only compatible snapshots are returned
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun listSnapshots(streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
+  fun listSnapshots(snapshotFilter: SnapshotFilter, streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("listSnapshots()")
     }
-    snapshotService.listSnapshots(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getListSnapshotsMethod()))
+    snapshotService.listSnapshots(snapshotFilter, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getListSnapshotsMethod()))
   }
 
   /**
@@ -408,7 +411,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    *
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
    */
-  fun showExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun showExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("showExtendedControls()")
     }
@@ -421,7 +424,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    *
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
    */
-  fun closeExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("closeExtendedControls()")
     }
