@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -72,6 +73,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     `when`(languageLevelPropertyModel.gradleFile).thenReturn(virtualFile)
     val dependenciesModel = mock(DependenciesModel::class.java)
     val dependencyModel = mock(DependencyModel::class.java)
+    val artifactDependencyModel = mock(ArtifactDependencyModel::class.java)
     val configurationModel = mock(ConfigurationModel::class.java)
     val pluginModel = mock(PluginModel::class.java)
     val buildTypeModel = mock(BuildTypeModel::class.java)
@@ -80,6 +82,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
       RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel, GradleVersion.parse("6.1.1")),
       GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
+      WellKnownGradlePluginUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
       JavaLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "sourceCompatibility"),
       JavaLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "targetCompatibility"),
       KotlinLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "jvmTarget"),
