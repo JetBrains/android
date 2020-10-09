@@ -101,12 +101,12 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
   }
 
-  private var frameIsCropped
-    get() = properties.getBoolean(FRAME_CROPPED_PROPERTY, FRAME_CROPPED_DEFAULT)
+  private var deviceFrameVisible
+    get() = properties.getBoolean(DEVICE_FRAME_VISIBLE_PROPERTY, DEVICE_FRAME_VISIBLE_DEFAULT)
     set(value) {
-      properties.setValue(FRAME_CROPPED_PROPERTY, value, FRAME_CROPPED_DEFAULT)
+      properties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
       for (panel in panels) {
-        panel.setCropFrame(value)
+        panel.setDeviceFrameVisible(value)
       }
     }
 
@@ -115,7 +115,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     set(value) {
       properties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
       for (panel in panels) {
-        panel.zoomToolbarIsVisible = value
+        panel.zoomToolbarVisible = value
       }
     }
 
@@ -210,7 +210,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     val actionGroup = DefaultActionGroup()
     actionGroup.addAction(ToggleZoomToolbarAction())
-    actionGroup.addAction(ToggleFrameCropAction())
+    actionGroup.addAction(ToggleDeviceFrameAction())
     (toolWindow as ToolWindowEx).setAdditionalGearActions(actionGroup)
 
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
@@ -273,7 +273,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       showLiveIndicator(toolWindow)
     }
 
-    panel.zoomToolbarIsVisible = zoomToolbarIsVisible
+    panel.zoomToolbarVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
@@ -336,7 +336,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
       if (id != null) {
         selectedPanel = findPanelByGrpcPort(id.grpcPort)
-        selectedPanel?.createContent(frameIsCropped)
+        selectedPanel?.createContent(deviceFrameVisible)
         ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
       }
     }
@@ -400,13 +400,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
       return StringUtil.parseInt(serialNumber.substring(pos + 1), 0)
     }
 
-  private inner class ToggleFrameCropAction : ToggleAction("Crop Device Frame"), DumbAware {
+  private inner class ToggleDeviceFrameAction : ToggleAction("Show Device Frame"), DumbAware {
     override fun isSelected(event: AnActionEvent): Boolean {
-      return frameIsCropped
+      return deviceFrameVisible
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      frameIsCropped = state
+      deviceFrameVisible = state
     }
   }
 
@@ -421,8 +421,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   companion object {
-    private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
-    private const val FRAME_CROPPED_DEFAULT = false
+    private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.frame.visible"
+    private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"
     private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
