@@ -577,6 +577,17 @@ def intellij_platform(
         visibility = ["//visibility:public"],
     )
 
+    # Expose build.txt from the prebuilt SDK
+    native.filegroup(
+        name = name + "-build-txt",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/build.txt"],
+            "//conditions:default": [src + "/linux/android-studio/build.txt"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
     studio_data(
         name = name + ".data",
         files_linux = native.glob([src + "/linux/**"]),
