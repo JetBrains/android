@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:utils.bzl", "select_project")
 load("//tools/base/bazel:coverage.bzl", "coverage_java_test")
 
 # managed by go/iml_to_build [unb]
@@ -30,14 +29,7 @@ iml_module(
 
 coverage_java_test(
     name = "integration_test",
-    data = select_project({
-        "": ["//tools/idea/updater:updater_deploy.jar"],
-        "unb": ["//tools/adt/idea/studio:updater_deploy.jar"],
-    }),
-    jvm_flags = select_project({
-        "": ["-Dupdater.jar.path=tools/idea/updater/updater_deploy.jar"],
-        "unb": [],
-    }),
+    data = ["//tools/adt/idea/studio:updater_deploy.jar"],
     tags = ["no_test_windows"],  # b/77288863
     test_class = "com.android.studio.updater.StudioPatchUpdaterIntegrationTest",
     runtime_deps = [":intellij.android.updater.studio-updater_testlib"],
