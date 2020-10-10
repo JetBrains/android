@@ -20,6 +20,8 @@ import com.android.tools.profilers.CachedFunction;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,7 +31,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -393,14 +394,33 @@ public abstract class ClassifierSet implements MemoryObject {
    * Determines if {@code this} ClassifierSet's descendant children forms a superset (could be equivalent) of the given
    * {@code targetSet}'s immediate children.
    */
-  public boolean isSupersetOf(@NotNull ClassifierSet targetSet) {
-    // TODO perhaps not use getImmediateInstances if we want this to work across all inheritors of ClassifierSet?
-    if (getInstancesCount() < targetSet.getInstancesCount()) {
-      return false;
+  public boolean isSupersetOf(Set<InstanceObject> targetSet) {
+    return getNonMembers(targetSet).isEmpty();
+  }
+
+  /**
+   * @return the remaining instances not contained by this node and its children
+   */
+  private Set<InstanceObject> getNonMembers(Set<InstanceObject> instances) {
+    // Find instances not part of immediate node
+    Set<InstanceObject> remainders = Collections.newSetFromMap(new IdentityHashMap<>());
+    for (InstanceObject inst : instances) {
+      if (!(myDeltaInstances.contains(inst) || mySnapshotInstances.contains(inst))) {
+        remainders.add(inst);
+      }
     }
 
-    Set<InstanceObject> instances = getInstancesStream().collect(Collectors.toSet());
-    return targetSet.getInstancesStream().allMatch(instances::contains);
+    // Intersect with children's remainders
+    if (myClassifier != null && !remainders.isEmpty()) {
+      for (ClassifierSet child : myClassifier.getAllClassifierSets()) {
+        remainders.retainAll(child.getNonMembers(remainders));
+        if (remainders.isEmpty()) {
+          return remainders;
+        }
+      }
+    }
+
+    return remainders;
   }
 
   /**

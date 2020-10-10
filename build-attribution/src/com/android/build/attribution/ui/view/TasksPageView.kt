@@ -52,6 +52,8 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JViewport
+import javax.swing.RepaintManager
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
@@ -85,7 +87,7 @@ class TasksPageView(
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
     selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-    cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
+    BuildAnalyzerMasterTreeCellRenderer.install(this)
     TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
       comparator = SpeedSearchComparator(false)
     }
@@ -102,8 +104,8 @@ class TasksPageView(
     border = JBUI.Borders.emptyRight(5)
     layout = HorizontalLayout(10)
     isOpaque = false
-    fun legendItem(name: String, color: Color) = JBLabel(name, ColorIcon(10,color), SwingConstants.RIGHT)
-    add(legendItem("Android/Java/Kotlin Plugin",CriticalPathChartLegend.androidPluginColor.baseColor), HorizontalLayout.RIGHT)
+    fun legendItem(name: String, color: Color) = JBLabel(name, ColorIcon(10, color), SwingConstants.RIGHT)
+    add(legendItem("Android/Java/Kotlin Plugin", CriticalPathChartLegend.androidPluginColor.baseColor), HorizontalLayout.RIGHT)
     add(legendItem("Other Plugin", CriticalPathChartLegend.externalPluginColor.baseColor), HorizontalLayout.RIGHT)
     add(legendItem("Project Customization", CriticalPathChartLegend.buildsrcPluginColor.baseColor), HorizontalLayout.RIGHT)
   }
@@ -142,9 +144,9 @@ class TasksPageView(
         CriticalPathChartLegend.pluginColorPalette.reset()
         TimeDistributionTreeChart.wrap(tree)
       }
-      else tree
+      else ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE)
 
-      add(ScrollPaneFactory.createScrollPane(treeComponent, SideBorder.NONE), BorderLayout.CENTER)
+      add(treeComponent, BorderLayout.CENTER)
     }
     val detailsHalf: JPanel = JPanel().apply {
       val dimension = JBUI.size(5, 5)

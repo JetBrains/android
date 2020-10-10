@@ -20,17 +20,15 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.`when`
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -67,6 +65,9 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   }
 
   fun testDownloadFiles() {
+    // Prepare
+    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
+
     // Act
     val flow = offlineModeManager.downloadFiles(listOf(liveDb1, liveDb2, inMemoryDb), processDescriptor, null) { _, _ -> }
     val results = runDispatching { flow.toList(mutableListOf()) }
@@ -85,6 +86,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
 
   fun testDownloadFilesCanceled() {
     // Prepare
+    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
+
     val scope = CoroutineScope(EmptyCoroutineContext)
     var hasBeenCanceled = false
     val downloadFirstFile = CompletableDeferred<Unit>()
@@ -116,6 +119,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
 
   fun testDownloadFailed() = runBlocking {
     // Prepare
+    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
+
     val fileDatabaseManager = mock<FileDatabaseManager>()
     `when`(fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDb1))
       .thenThrow(FileDatabaseException::class.java)
@@ -139,5 +144,33 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
 
     assertTrue(trackerService.offlineDownloadFailed!!)
     assertEquals(1, trackerService.offlineDownloadFailedCount)
+  }
+
+  fun testDoesNotEnterOfflineModeIfPackageDoesNotHaveAndroidFacet() {
+    // Prepare
+    initProjectSystemService(project, testRootDisposable, emptyList())
+    var errorMessage: String? = null
+
+    // Act
+    val flow = offlineModeManager.downloadFiles(listOf(liveDb1, liveDb2, inMemoryDb), processDescriptor, null) { s, _ ->
+      errorMessage = s
+    }
+    val results = runDispatching { flow.toList(mutableListOf()) }
+
+    // Assert
+    assertEquals(
+      listOf(
+        OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.IN_PROGRESS, emptyList(), 2),
+        OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.COMPLETED, emptyList(), 2)
+      ),
+      results
+    )
+
+    assertEquals(
+      "For security reasons offline mode is disabled when " +
+      "the process being inspected does not correspond to the project open in studio " +
+      "or when the project has been generated from a prebuilt apk.",
+      errorMessage
+    )
   }
 }

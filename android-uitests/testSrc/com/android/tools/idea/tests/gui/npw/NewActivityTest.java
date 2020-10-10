@@ -216,7 +216,7 @@ public class NewActivityTest {
     guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
     myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
 
-    myConfigActivity = myDialog.getConfigureActivityStep();
+    myConfigActivity = myDialog.getConfigureActivityStep("Basic Activity");
   }
 
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName) {
@@ -238,7 +238,7 @@ public class NewActivityTest {
     // Create a new activity
     guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
     myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
-    myConfigActivity = myDialog.getConfigureActivityStep();
+    myConfigActivity = myDialog.getConfigureActivityStep("Basic Activity");
     if (finish) {
       myDialog.clickFinishAndWaitForSyncToFinish();
       myEditor = guiTest.ideFrame().getEditor();

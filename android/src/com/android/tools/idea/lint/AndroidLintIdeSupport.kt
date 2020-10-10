@@ -20,25 +20,26 @@ import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
+import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -248,9 +249,23 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
   override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = ProvideLintFeedbackIntentionAction(issue.id)
+
+  // Random number generator used by logSession below. We're using a seed of 0 because
+  // we don't need true randomness, just an even distribution. This generator is
+  // visible such that tests can reset the seed each time such that the test order
+  // does not matter (and therefore we're using java.util.Random instead of kotlin.Random
+  // to get access to setSeed()
+  @VisibleForTesting
+  val random: java.util.Random = java.util.Random(0)
+
   override fun logSession(lint: LintDriver, lintResult: LintEditorResult) {
-    val analytics = LintIdeAnalytics(lintResult.getModule().project)
-    analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
+    // Lint creates a LOT of session data (since it runs after every edit pause in the editor.
+    // Let's only submit 1 out of every 100 reports; the results will still express trends and
+    // relative importance of lint checks.
+    if (random.nextDouble() < 0.01) { // nextDouble() ~20% faster than nextInt()
+      val analytics = LintIdeAnalytics(lintResult.getModule().project)
+      analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
+    }
   }
 
   override fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {

@@ -35,7 +35,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
@@ -50,6 +50,9 @@ import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
 
+private const val MAX_FIRST_COMPONENT_WIDTH: Int = 400
+private const val MIN_FIRST_COMPONENT_PROPORTION: Float = 0.1f
+private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
 
 /**
  * Displays detailed results of an instrumentation test case. The test case may be executed by
@@ -76,15 +79,15 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     border = JBUI.Borders.empty(0, 10)
   }
 
-  private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.General.ArrowDown).apply {
+  private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
     addActionListener {
       when (controller.orientation) {
         AndroidTestSuiteViewController.Orientation.VERTICAL -> {
-          icon = AllIcons.General.ArrowDown
+          icon = AllIcons.Actions.PreviewDetailsVertically
           controller.orientation = AndroidTestSuiteViewController.Orientation.HORIZONTAL
         }
         AndroidTestSuiteViewController.Orientation.HORIZONTAL -> {
-          icon = AllIcons.General.ArrowRight
+          icon = AllIcons.Actions.PreviewDetails
           controller.orientation = AndroidTestSuiteViewController.Orientation.VERTICAL
         }
       }
@@ -123,15 +126,16 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       }
     })
 
-  private val myComponentsSplitter: JBSplitter = object: JBSplitter(false, 0.3f, 0.1f, 0.9f){
-    private val MAX_FIRST_COMPONENT_WIDTH: Int = 200
+  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter(
+    /*vertical=*/false,
+    /*defaultProportion=*/0.4f,
+    MIN_FIRST_COMPONENT_PROPORTION,
+    MAX_FIRST_COMPONENT_PROPORTION) {
+
     init {
       setHonorComponentsMinimumSize(false)
-      dividerWidth = 1
-      divider.background = UIUtil.CONTRAST_BORDER_COLOR
       firstComponent = myDeviceSelectorListView.rootPanel
       secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-      proportion = 0.3f
       dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
     }
 
@@ -139,6 +143,11 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       if (proportion * width > MAX_FIRST_COMPONENT_WIDTH && width > 0) {
         proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
       }
+
+      // The internal proportion value can be greater than maxProportion and smaller
+      // than minProportion when you change component's side (b/170234515).
+      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+
       super.doLayout()
     }
   }

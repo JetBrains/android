@@ -64,6 +64,7 @@ import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
@@ -84,13 +85,12 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
-import junit.framework.TestCase
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -1498,6 +1498,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testEnterOfflineModeSuccess() {
     // Prepare
+    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
+
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
@@ -1575,8 +1577,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    fileDatabaseManager.downloadTime = 100
-
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1586,13 +1586,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    verify(databaseInspectorView).showOfflineModeFailedPanel()
-
-    // metrics
-    val offlineModeMetadata = trackerService.metadata
-
-    assertNotNull(offlineModeMetadata)
-    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
+    verify(databaseInspectorView).showOfflineModeUnavailablePanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
@@ -1614,8 +1608,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
 
-    fileDatabaseManager.downloadTime = 100
-
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1625,18 +1617,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.join() }
 
     // Assert
-    verify(databaseInspectorView).showOfflineModeFailedPanel()
-
-    // metrics
-    val offlineModeMetadata = trackerService.metadata
-
-    assertNotNull(offlineModeMetadata)
-    assertEquals(0, offlineModeMetadata!!.totalDownloadSizeBytes)
+    verify(databaseInspectorView).showOfflineModeUnavailablePanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
-  fun testShowOfflineModeErrorPanelIfNoDbsAreDownloaded() {
+  fun testShowOfflineModeUnavailablePanelIfNoDbsAreDownloaded() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
@@ -1662,7 +1648,28 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    verify(databaseInspectorView).showOfflineModeFailedPanel()
+    verify(databaseInspectorView).showOfflineModeUnavailablePanel()
+
+    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testShowOfflineModeUnavailablePanelIfNoLiveDbsAreOpen() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    DatabaseInspectorFlagController.enableOfflineMode(true)
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+      databaseInspectorController.downloadAndOpenOfflineDatabasesJob!!.join()
+    }
+
+    // Assert
+    verify(databaseInspectorView).showOfflineModeUnavailablePanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }

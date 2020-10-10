@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.ApkFacetChecker
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Paths
 import kotlin.coroutines.coroutineContext
 
 /** Class responsible for downloading and deleting file database data */
@@ -66,14 +62,6 @@ class FileDatabaseManagerImpl(
     processDescriptor: ProcessDescriptor,
     databaseToDownload: SqliteDatabaseId.LiveSqliteDatabaseId
   ): DatabaseFileData {
-    if (!isFileDownloadAllowed(packageName)) {
-      throw FileDatabaseException(
-        """For security reasons offline mode is disabled when 
-        the process being inspected does not correspond to the project open in studio 
-        or when the project has been generated from a prebuilt apk."""
-      )
-    }
-
     val path = databaseToDownload.path
     // Room uses write-ahead-log, so we need to download these additional files to open the db
     val pathsToDownload = listOf(path, "$path-shm", "$path-wal")
@@ -82,7 +70,14 @@ class FileDatabaseManagerImpl(
     Disposer.register(project, disposableDownloadProgress)
 
     val files = try {
-      deviceFileDownloaderService.downloadFiles(processDescriptor.serial, pathsToDownload, disposableDownloadProgress).await()
+      // store files in Studio caches
+      val downloadDestinationFolder = Paths.get(PathManager.getSystemPath(), "database-inspector")
+      deviceFileDownloaderService.downloadFiles(
+        processDescriptor.serial,
+        pathsToDownload,
+        disposableDownloadProgress,
+        downloadDestinationFolder
+      ).await()
     } catch (e: IllegalArgumentException) {
       throw DeviceNotFoundException("Device '${processDescriptor.model} ${processDescriptor.serial}' not found.", e)
     }
@@ -102,26 +97,6 @@ class FileDatabaseManagerImpl(
       .await()
   }
 
-  /**
-   * File download is not allowed if:
-   * 1. the file belongs to an app different from the one open in the studio project
-   * 2. the project comes from a prebuilt apk
-   */
-  private suspend fun isFileDownloadAllowed(packageName: String): Boolean = withContext(edtDispatcher) {
-    if (DumbService.isDumb(project)) {
-      throw DownloadNotAllowedWhileIndexing("It's not possible to download files while indexing is in progress.")
-    }
-
-    val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
-      project,
-      packageName,
-      GlobalSearchScope.projectScope(project)
-    )
-
-    val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }
-    androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
-  }
-
   private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {
     private var isDisposed = false
 
@@ -137,4 +112,3 @@ class FileDatabaseManagerImpl(
 
 class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
 class DeviceNotFoundException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
-data class DownloadNotAllowedWhileIndexing(override val message: String?, override val cause: Throwable? = null) : RuntimeException()

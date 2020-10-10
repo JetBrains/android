@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.view.chart
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.treeStructure.Tree
@@ -25,8 +26,8 @@ import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
-import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Point
@@ -37,7 +38,7 @@ import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
+import javax.swing.JViewport
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.event.TreeSelectionListener
@@ -100,6 +101,8 @@ class TimeDistributionTreeChart(
   }
 
   init {
+    background = UIUtil.getTreeBackground()
+
     tree.model.addTreeModelListener(treeModelListener)
     tree.addTreeExpansionListener(treeExpansionListener)
     tree.addFocusListener(focusListener)
@@ -109,11 +112,12 @@ class TimeDistributionTreeChart(
     addMouseMotionListener(mouseListener)
   }
 
-  private fun Dimension.makeFullWidth() = JBUI.size(this).withWidth(FULL_WIDTH_PX)
+  private fun Dimension.makeFullWidth() = JBUI.size(this)
+    .withWidth(FULL_WIDTH_PX)
 
-  override fun getPreferredSize(): Dimension = super.getPreferredSize().makeFullWidth()
-  override fun getMinimumSize(): Dimension = super.getMinimumSize().makeFullWidth()
-  override fun getMaximumSize(): Dimension = super.getMaximumSize().makeFullWidth()
+  override fun getPreferredSize(): Dimension = tree.getPreferredSize().makeFullWidth()
+  override fun getMinimumSize(): Dimension = tree.getMinimumSize().makeFullWidth()
+  override fun getMaximumSize(): Dimension = tree.getMaximumSize().makeFullWidth()
 
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
@@ -128,16 +132,29 @@ class TimeDistributionTreeChart(
   }
 
   companion object {
-    fun wrap(tree: Tree) = JPanel().apply {
-      layout = BorderLayout(0, 0)
-      background = UIUtil.getTreeBackground()
-      border = JBUI.Borders.emptyRight(5)
-
+    fun wrap(tree: Tree): JComponent {
       val model = TimeDistributionTreeChartCalculationModel(tree.model) { treePath -> tree.getPathBounds(treePath) }
-      val chartPanel = TimeDistributionTreeChart(model, tree)
+      return MyScrollPane(tree, TimeDistributionTreeChart(model, tree))
+    }
+  }
 
-      add(tree, BorderLayout.CENTER)
-      add(chartPanel, BorderLayout.EAST)
+  private class MyScrollPane(
+    private val tree: Tree,
+    chart: TimeDistributionTreeChart
+  ) : JBScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
+    init {
+      setRowHeaderView(chart)
+      rowHeader.scrollMode = JViewport.SIMPLE_SCROLL_MODE
+      border = JBUI.Borders.empty()
+      layout = object : Layout() {
+        override fun layoutContainer(parent: Container?) {
+          super.layoutContainer(parent)
+          // Re-Arrange components horizontally. We don't expect and support any other order.
+          viewport?.apply { setLocation(0, y) }
+          rowHead?.apply { setLocation(viewport.width - tree.insets.right, y) }
+          horizontalScrollBar?.apply { setLocation(0, y) }
+        }
+      }
     }
   }
 }

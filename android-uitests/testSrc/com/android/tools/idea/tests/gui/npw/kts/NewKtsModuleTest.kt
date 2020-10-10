@@ -123,7 +123,7 @@ class NewKtsModuleTest {
       .setUseKtsBuildFiles(true)
       .wizard()
       .clickNext()
-      .chooseActivity("Media service")
+      .chooseActivity("Media Service")
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
 

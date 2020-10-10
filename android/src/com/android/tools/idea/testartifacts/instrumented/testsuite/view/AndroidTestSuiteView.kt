@@ -76,7 +76,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.ColorUtil
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SystemNotifications
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
@@ -84,7 +84,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.PathUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -108,10 +107,14 @@ import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.stream.StreamResult
+import kotlin.math.max
 import kotlin.math.min
 
 private const val PASSED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.myPassedToggleButton"
 private const val SKIPPED_TOGGLE_BUTTON_STATE_KEY = "AndroidTestSuiteView.mySkippedToggleButton"
+
+private const val MIN_FIRST_COMPONENT_PROPORTION: Float = 0.1f
+private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
@@ -156,12 +159,20 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     runConfiguration = this@AndroidTestSuiteView.runConfiguration
   }
 
-  private val myComponentsSplitter: JBSplitter = JBSplitter().apply {
-    setHonorComponentsMinimumSize(false)
-    dividerWidth = 1
-    divider.background = UIUtil.CONTRAST_BORDER_COLOR
-    isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter() {
+    init {
+      setHonorComponentsMinimumSize(false)
+      isFocusTraversalPolicyProvider = true
+      focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    }
+
+    override fun doLayout() {
+      // The internal proportion value can be greater than maxProportion and smaller
+      // than minProportion when you change component's side (b/170234515).
+      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+
+      super.doLayout()
+    }
   }
 
   @VisibleForTesting val myResultsTableView: AndroidTestResultsTableView

@@ -42,7 +42,7 @@ import com.intellij.ui.*
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.FlowLayout
+import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.util.*
@@ -78,103 +78,113 @@ class SqliteEvaluatorViewImpl(
   init {
     val evaluatorPanel = JPanel(BorderLayout())
     val controlsPanel = JPanel(BorderLayout())
-    val controlsLeftPanel = JPanel(FlowLayout())
-    val controlsRightPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
+
+    controlsPanel.layout = BoxLayout(controlsPanel, BoxLayout.LINE_AXIS)
 
     evaluatorPanel.add(editorTextField, BorderLayout.CENTER)
     evaluatorPanel.add(controlsPanel, BorderLayout.SOUTH)
-    controlsPanel.add(controlsLeftPanel, BorderLayout.WEST)
-    controlsPanel.add(controlsRightPanel, BorderLayout.EAST)
 
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents from tabbing
     // across the components.
-    threeComponentsSplitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    threeComponentsSplitter.isFocusCycleRoot = false
-    threeComponentsSplitter.dividerWidth = 0
-    threeComponentsSplitter.firstSize = JBUI.scale(100)
-    threeComponentsSplitter.orientation = true
-    threeComponentsSplitter.firstComponent = evaluatorPanel
-    threeComponentsSplitter.lastComponent = tableView.component
-    threeComponentsSplitter.invalidate()
-    threeComponentsSplitter.repaint()
+    threeComponentsSplitter.apply {
+      focusTraversalPolicy = LayoutFocusTraversalPolicy()
+      isFocusCycleRoot = false
+      dividerWidth = 0
+      firstSize = JBUI.scale(100)
+      orientation = true
+      firstComponent = evaluatorPanel
+      lastComponent = tableView.component
+    }
 
     evaluatorPanel.border = JBUI.Borders.empty(6)
+    controlsPanel.border = JBUI.Borders.empty(6, 0, 0, 0)
     tableView.component.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
-    editorTextField.background = primaryContentBackground
     evaluatorPanel.background = primaryContentBackground
     controlsPanel.background = primaryContentBackground
-    controlsLeftPanel.background = primaryContentBackground
-    controlsRightPanel.background = primaryContentBackground
 
+    controlsPanel.add(databaseComboBox)
+    controlsPanel.add(Box.createRigidArea(JBUI.size(Dimension(5, 0))))
+    controlsPanel.add(queryHistoryButton)
+    controlsPanel.add(Box.createHorizontalGlue())
+    controlsPanel.add(runButton)
+
+    databaseComboBox.apply {
+      addActionListener {
+        setSchemaFromSelectedItem()
+        val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+
+        listeners.forEach {
+          it.onDatabaseSelected(sqliteDatabaseId)
+        }
+      }
+
+      setMinimumAndPreferredWidth(JBUI.scale(300))
+      maximumSize = JBUI.size(300, databaseComboBox.preferredSize.height)
+      renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
+        override fun customizeCellRenderer(
+          list: JList<out SqliteDatabaseId?>,
+          sqliteDatabase: SqliteDatabaseId?,
+          index: Int,
+          selected: Boolean,
+          hasFocus: Boolean
+        ) {
+          if (sqliteDatabase != null) {
+            icon = StudioIcons.DatabaseInspector.DATABASE
+            append(sqliteDatabase.name)
+          } else {
+            icon = null
+            append(DatabaseInspectorBundle.message("no.databases.available"))
+          }
+        }
+      }
+    }
+
+    queryHistoryButton.apply {
+      disabledIcon = IconLoader.getDisabledIcon(AllIcons.Vcs.History)
+      toolTipText = "Show query history"
+      addActionListener {
+        queryHistoryView.show(
+          component,
+          queryHistoryButton.x + queryHistoryButton.width / 2,
+          evaluatorPanel.height - evaluatorPanel.border.getBorderInsets(controlsPanel).bottom
+        )
+      }
+    }
+
+    // shortcuts
     val active = KeymapManager.getInstance().activeKeymap
-
     // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
     val shortcutsMultiline = active.getShortcuts("Console.Execute.Multiline")
     val keyStrokeMultiline = KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline)) ?:
                              KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().menuShortcutKeyMask)
-
     val shortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
-    runButton.toolTipText = "Run SQLite expression ($shortcutText)"
-    runButton.isEnabled = false
-    runButton.addActionListener { evaluateSqliteExpression() }
-    runButton.name = "run-button"
-    runButton.background = primaryContentBackground
-    controlsRightPanel.add(runButton)
 
-    val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
-
-    editorTextField.name = "editor"
-    editorTextField.setPlaceholder("Enter query")
-    runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
-
-    val myDocumentListener = object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
-      }
+    runButton.apply {
+      toolTipText = "Run SQLite expression ($shortcutText)"
+      isEnabled = false
+      addActionListener { evaluateSqliteExpression() }
+      name = "run-button"
+      background = primaryContentBackground
     }
 
-    editorTextField.document.addDocumentListener(myDocumentListener)
+    editorTextField.apply {
+      background = primaryContentBackground
+      name = "editor"
+      setPlaceholder("Enter query...")
 
-    databaseComboBox.addActionListener {
-      setSchemaFromSelectedItem()
-      val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+      DumbAwareAction.create {
+        evaluateSqliteExpression()
+      }.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), editorTextField)
 
-      listeners.forEach {
-        it.onDatabaseSelected(sqliteDatabaseId)
-      }
-    }
-
-    databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
-    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
-      override fun customizeCellRenderer(
-        list: JList<out SqliteDatabaseId?>,
-        sqliteDatabase: SqliteDatabaseId?,
-        index: Int,
-        selected: Boolean,
-        hasFocus: Boolean
-      ) {
-        if (sqliteDatabase != null) {
-          icon = StudioIcons.DatabaseInspector.DATABASE
-          append(sqliteDatabase.name)
-        } else {
-          icon = null
-          append(DatabaseInspectorBundle.message("no.databases.available"))
+      document.addDocumentListener(
+        object : DocumentListener {
+          override fun documentChanged(event: DocumentEvent) {
+            listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
+          }
         }
-      }
-    }
-    controlsLeftPanel.add(databaseComboBox)
-
-    queryHistoryButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Vcs.History)
-    queryHistoryButton.toolTipText = "Show query history"
-    queryHistoryButton.addActionListener {
-      queryHistoryView.show(
-        component,
-        queryHistoryButton.x + queryHistoryButton.width/2,
-        evaluatorPanel.height - evaluatorPanel.border.getBorderInsets(controlsLeftPanel).bottom
       )
     }
-    controlsLeftPanel.add(queryHistoryButton)
   }
 
   override fun schemaChanged(databaseId: SqliteDatabaseId) {

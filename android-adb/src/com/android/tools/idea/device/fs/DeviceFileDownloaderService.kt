@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Path
 
 /**
  * Service used to download a file from its [DeviceFileId].
@@ -32,18 +33,22 @@ interface DeviceFileDownloaderService {
   }
 
   /**
-   * Downloads the files corresponding to [onDevicePaths], from the device [deviceId] to the local machine.
+   * Downloads on the local machine the files corresponding to [onDevicePaths], from the device corresponding to [deviceSerialNumber].
    * If the file corresponding to a path is not found, that path is skipped.
    * Returns a map where each on-device path is mapped to the corresponding VirtualFile.
    *
-   * If the device corresponding to [deviceSerialNumber] is not found, the future fails with IllegalArgumentException.
+   * If the device corresponding to [deviceSerialNumber] is not found, the future fails with [IllegalArgumentException].
    *
-   * [downloadProgress] is a download progress for all the files, if canceled, all the running/waiting downloads will be stopped.
+   * @param deviceSerialNumber the serial number of the device from which the files should be downloaded.
+   * @param onDevicePaths the paths of files to be downloaded from the device.
+   * @param downloadProgress download progress for all the files, if canceled, all the running/waiting downloads will be stopped.
+   * @param localDestinationDirectory the download destination of the files, on the local machine.
    */
   fun downloadFiles(
     deviceSerialNumber: String,
     onDevicePaths: List<String>,
-    downloadProgress: DownloadProgress
+    downloadProgress: DownloadProgress,
+    localDestinationDirectory: Path
   ): ListenableFuture<Map<String, VirtualFile>>
 
   /**

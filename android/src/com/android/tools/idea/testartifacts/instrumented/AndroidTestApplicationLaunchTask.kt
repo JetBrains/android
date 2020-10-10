@@ -175,35 +175,54 @@ class AndroidTestApplicationLaunchTask private constructor(
     // Run "am instrument" command in a separate thread.
     val testExecutionFuture = ApplicationManager.getApplication().executeOnPooledThread {
       try {
+        var hasTestRunEndedReported = false
         val checkLaunchState = object: ITestRunListener {
           private fun checkStatusAndRequestCancel() {
+            // Note: Should not use launchContext.processHandler. The process handler may
+            // be replaced in later launch tasks. For instance ConnectJavaDebuggerTask.
             if (launchStatus.isLaunchTerminated ||
-                launchContext.processHandler.isProcessTerminating ||
-                launchContext.processHandler.isProcessTerminated) {
+                launchStatus.processHandler.isProcessTerminating ||
+                launchStatus.processHandler.isProcessTerminated) {
               runner.cancel()
             }
           }
           override fun testRunStarted(runName: String?, testCount: Int) = checkStatusAndRequestCancel()
           override fun testStarted(test: TestIdentifier?) = checkStatusAndRequestCancel()
-          override fun testFailed(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
-          override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) = checkStatusAndRequestCancel()
-          override fun testIgnored(test: TestIdentifier?) = checkStatusAndRequestCancel()
+          override fun testFailed(test: TestIdentifier?, trace: String?) {}
+          override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {}
+          override fun testIgnored(test: TestIdentifier?) {}
           override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) = checkStatusAndRequestCancel()
           override fun testRunFailed(errorMessage: String?) {}
           override fun testRunStopped(elapsedTime: Long) {}
-          override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>?) {}
+          override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>?) {
+            hasTestRunEndedReported = true
+          }
         }
 
         // This issues "am instrument" command and blocks execution.
-        runner.run(myTestListener, UsageTrackerTestRunListener(myArtifact, device), checkLaunchState)
+        val listeners = arrayOf(myTestListener, UsageTrackerTestRunListener(myArtifact, device))
+        runner.run(*listeners, checkLaunchState)
 
-        // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
-        // This is required because the android process handler may overlook target process especially when the test
-        // runs really fast (~10ms). Because the android process handler discovers new processes by polling, this
-        // race condition happens easily. By detaching the device manually, we can avoid the android process handler
-        // waiting for (already finished) process to show up until it times out (10 secs).
-        val androidProcessHandler = launchStatus.processHandler as? AndroidProcessHandler
-        androidProcessHandler?.detachDevice(device)
+        // Call testRunEnded() if it hasn't called yet. This may happen by several situations,
+        // such as disconnecting a device during the test (b/170235394) and calling runner.cancel()
+        // which stops parsing the test results immediately.
+        if (!hasTestRunEndedReported) {
+          listeners.forEach {
+            it.testRunEnded(0, mapOf())
+          }
+        }
+
+        (launchStatus.processHandler as? AndroidProcessHandler)?.let { androidProcessHandler ->
+          // runner.cancel() may leave application keep running (b/170232723).
+          device.forceStop(androidProcessHandler.targetApplicationId)
+
+          // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
+          // This is required because the android process handler may overlook target process especially when the test
+          // runs really fast (~10ms). Because the android process handler discovers new processes by polling, this
+          // race condition happens easily. By detaching the device manually, we can avoid the android process handler
+          // waiting for (already finished) process to show up until it times out (10 secs).
+          androidProcessHandler.detachDevice(device)
+        }
       }
       catch (e: Exception) {
         LOG.info(e)
