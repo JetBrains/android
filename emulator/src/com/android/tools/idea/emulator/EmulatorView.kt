@@ -21,18 +21,21 @@ import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.ThemingStyle
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
@@ -41,9 +44,11 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.xml.util.XmlStringUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -223,6 +228,16 @@ class EmulatorView(
         clipboardReceiver = null
       }
     })
+
+    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
+      val connection = ApplicationManager.getApplication().messageBus.connect(this)
+      connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+        if (connected) {
+          val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+          emulator.setUiTheme(style)
+        }
+      })
+    }
 
     updateConnectionState(emulator.connectionState)
   }
@@ -465,7 +480,7 @@ class EmulatorView(
       requestClipboardFeed()
     }
     else {
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object: EmptyStreamObserver<Empty>() {
+      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
           requestClipboardFeed()
         }
