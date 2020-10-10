@@ -70,12 +70,12 @@ kotlin_test(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//tools/adt/idea/android-transport:intellij.android.transport",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
+        "//tools/base/bazel:studio-grpc",
+        "//tools/base/bazel:studio-proto",
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:tools.testutils",
         "//tools/base/transport/proto:transport_java_proto",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/idea/.idea/libraries:studio-grpc",
-        "//tools/idea/.idea/libraries:studio-proto",
     ],
 )
 
