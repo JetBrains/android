@@ -75,7 +75,6 @@ kotlin_test(
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/base/testutils:tools.testutils",
         "//tools/base/transport/proto:transport_java_proto",
-        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
     ],
 )
 
