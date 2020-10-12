@@ -294,7 +294,7 @@ private class FlexibleLegendPanel(stage: MainMemoryProfilerStage, lineChart: Lin
   private val fullLegend = makeLegendComponent(stage, lineChart, true)
   private val compactLegend = makeLegendComponent(stage, lineChart, false)
   init {
-    val label = JLabel(stage.name).apply {
+    val label = JLabel("MEMORY").apply {
       border = MONITOR_LABEL_PADDING
       verticalAlignment = SwingConstants.TOP
     }
