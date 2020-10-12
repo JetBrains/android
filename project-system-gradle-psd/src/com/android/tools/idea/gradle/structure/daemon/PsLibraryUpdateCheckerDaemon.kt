@@ -31,12 +31,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.EventDispatcher
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.nullize
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
+import java.util.Collections
 import java.util.EventListener
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
@@ -53,7 +54,7 @@ class PsLibraryUpdateCheckerDaemon(
   override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
-  private val beingSearchedKeys: MutableSet<PsLibraryKey> = ContainerUtil.newConcurrentSet()
+  private val beingSearchedKeys: MutableSet<PsLibraryKey> = Collections.newSetFromMap(ConcurrentHashMap())
   @field:GuardedBy("runningLock") private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
   private val runningLock: Lock = ReentrantLock()  // Guards runningSearches and persistent storage (in memory copy).
 
