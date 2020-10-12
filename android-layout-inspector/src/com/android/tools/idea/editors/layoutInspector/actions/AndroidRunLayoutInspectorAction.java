@@ -29,6 +29,7 @@ import com.intellij.xdebugger.XDebuggerManager;
 import icons.StudioIcons;
 import org.jetbrains.android.actions.AndroidProcessChooserDialog;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
@@ -39,7 +40,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(!LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     if (isDebuggerPaused(e.getProject())) {
       e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
