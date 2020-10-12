@@ -311,6 +311,26 @@ public final class GradleWrapper {
     return getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
   }
 
+  public String getUpdatedDistributionUrl(String gradleVersion, boolean binOnly) throws IOException {
+    String current = getDistributionUrl();
+    if (current == null || current.contains("://services.gradle.org/")) {
+      return GradleWrapper.getDistributionUrl(gradleVersion, binOnly);
+    }
+    else {
+      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(current);
+      if (m.matches()) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(current, 0, m.start(1));
+        sb.append(gradleVersion);
+        sb.append(current, m.end(2) == -1 ? m.end(1) : m.end(2), current.length());
+        return sb.toString();
+      }
+      else {
+        return GradleWrapper.getDistributionUrl(gradleVersion, binOnly);
+      }
+    }
+  }
+
   @NotNull
   public static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     // See https://code.google.com/p/android/issues/detail?id=357944
