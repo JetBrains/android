@@ -42,6 +42,8 @@ import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsReques
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
@@ -92,7 +94,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @VisibleForTesting static final String SAMPLING_INFO_MESSAGE = "Selected region does not have full tracking. Data may be inaccurate.";
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final BaseMemoryProfilerStage myStage;
 
   @VisibleForTesting final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
@@ -126,7 +128,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                                      @NotNull Common.Session session,
                                      long captureStartTime,
                                      @Nullable ExecutorService loadService,
-                                     @NotNull MemoryProfilerStage stage) {
+                                     @NotNull BaseMemoryProfilerStage stage) {
     if (loadService == null) {
       myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
     }
