@@ -18,9 +18,11 @@ package com.android.tools.idea.adb.wireless
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
 
-class MockPinCodePairingView(val project: Project, override val model: PinCodePairingModel) : PinCodePairingView {
-  private val viewImpl = PinCodePairingViewImpl(project, model)
-
+class MockPinCodePairingView(val project: Project,
+                             notificationService: AdbDevicePairingNotificationService,
+                             override val model: PinCodePairingModel
+) : PinCodePairingView {
+  private val viewImpl = PinCodePairingViewImpl(project, notificationService, model)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val showPairingInProgressTracker = FutureValuesTracker<Unit>()
   val showWaitingForDeviceProgressTracker = FutureValuesTracker<PairingResult>()

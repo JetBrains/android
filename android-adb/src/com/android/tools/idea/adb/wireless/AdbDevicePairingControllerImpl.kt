@@ -28,18 +28,20 @@ class AdbDevicePairingControllerImpl(private val project: Project,
                                      parentDisposable: Disposable,
                                      edtExecutor: Executor,
                                      private val pairingService: AdbDevicePairingService,
+                                     private val notificationService: AdbDevicePairingNotificationService,
                                      private val view: AdbDevicePairingView,
                                      private val pinCodePairingControllerFactory: (MdnsService) -> PinCodePairingController = {
-                                       createPinCodePairingController(project, edtExecutor, pairingService, it)
+                                       createPinCodePairingController(project, edtExecutor, pairingService, notificationService, it)
                                      }
 ) : AdbDevicePairingController {
   companion object {
     fun createPinCodePairingController(project: Project,
                                        edtExecutor: Executor,
                                        pairingService: AdbDevicePairingService,
+                                       notificationService: AdbDevicePairingNotificationService,
                                        mdnsService: MdnsService): PinCodePairingController {
       val model = PinCodePairingModel(mdnsService)
-      val view = PinCodePairingViewImpl(project, model)
+      val view = PinCodePairingViewImpl(project, notificationService, model)
       return PinCodePairingController(edtExecutor, pairingService, view)
     }
   }
