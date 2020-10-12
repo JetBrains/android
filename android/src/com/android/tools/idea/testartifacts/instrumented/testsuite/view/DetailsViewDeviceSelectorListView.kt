@@ -81,6 +81,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
     cellRenderer = myCellRenderer
     fixedCellHeight = 50
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+    border = EmptyBorder(0,0,0,0)
     addListSelectionListener {
       val selectedItem = selectedValue
       if (selectedItem is AndroidDevice) {
