@@ -29,12 +29,12 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
-  @NotNull private MemoryProfilerStage myStage;
+  @NotNull private BaseMemoryProfilerStage myStage;
 
   public AllocationInfosDataSeries(@NotNull ProfilerClient client,
                                    @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
-                                   @NotNull MemoryProfilerStage stage) {
+                                   @NotNull BaseMemoryProfilerStage stage) {
     super(client, session, featureTracker);
     myStage = stage;
   }

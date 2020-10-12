@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -58,7 +59,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   private final long myEndTimeNs;
   private final List<HeapSet> myHeapSets;
   private final NativeMemoryHeapSet myDefaultHeapSet;
-  private final MemoryProfilerStage myStage;
+  private final BaseMemoryProfilerStage myStage;
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
@@ -67,7 +68,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
                                              @NotNull Memory.MemoryNativeSampleData info,
-                                             @NotNull MemoryProfilerStage stage) {
+                                             @NotNull BaseMemoryProfilerStage stage) {
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
