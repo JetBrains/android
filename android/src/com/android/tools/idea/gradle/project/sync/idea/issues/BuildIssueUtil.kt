@@ -48,6 +48,12 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
     descriptionBuilder.append("<a href=\"${quickFix.id}\">$text</a>")
   }
 
+  fun addQuickFix(prefix: String, text: String, suffix: String, quickFix: BuildIssueQuickFix) {
+    issueQuickFixes.add(quickFix)
+    descriptionBuilder.appendln()
+    descriptionBuilder.append("$prefix<a href=\"${quickFix.id}\">$text</a>$suffix")
+  }
+
   fun composeBuildIssue(): BuildIssue {
     return object : BuildIssue {
       override val title: String = issueTitle
