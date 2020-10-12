@@ -31,6 +31,7 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +41,13 @@ class CpuAnalysisChartTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CPuAnalysisChartTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer))
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
+
   private lateinit var profilersView: StudioProfilersView
 
   @Before
