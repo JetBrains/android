@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.debugger
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture
@@ -50,6 +51,9 @@ class LocalApkProjTest {
    */
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+
+  @get:Rule
+  val screenshotsRule = ScreenshotsDuringTest()
 
   /**
    * Verifies source code directories are set for locally built APKs.
