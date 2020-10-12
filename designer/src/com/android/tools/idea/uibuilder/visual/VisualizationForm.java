@@ -393,7 +393,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
           ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(myProgressIndicator));
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            double lastScaling = VisualizationToolSettings.getInstance().getGlobalState().getScale();
+            double lastScaling = VisualizationToolProjectSettings.getInstance(myProject).getProjectState().getScale();
             if (!mySurface.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
               // configuration set.
@@ -526,7 +526,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @Override
   public void zoomChanged() {
-    VisualizationToolSettings.getInstance().getGlobalState().setScale(mySurface.getScale());
+    VisualizationToolProjectSettings.getInstance(myProject).getProjectState().setScale(mySurface.getScale());
   }
 
   @Override
