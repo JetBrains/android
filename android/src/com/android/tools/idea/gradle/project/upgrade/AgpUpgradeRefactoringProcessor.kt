@@ -919,10 +919,11 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
         if (!GradleUtil.isSupportedGradleVersion(parsedCurrentGradleVersion)) {
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(gradleVersion.toString(), true);
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), gradleVersion))
+          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), gradleVersion, updatedUrl))
         }
       }
     }
@@ -953,14 +954,15 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
 class GradleVersionUsageInfo(
   element: WrappedPsiElement,
-  private val gradleVersion: GradleVersion
+  private val gradleVersion: GradleVersion,
+  private val updatedUrl: String
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String {
     return "Upgrade Gradle version to $gradleVersion"
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl)
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
     //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
     //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
