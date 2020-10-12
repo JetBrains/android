@@ -20,7 +20,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
 
 @UiThread
-class PinCodePairingViewImpl(project: Project, override val model: PinCodePairingModel) : PinCodePairingView {
+class PinCodePairingViewImpl(project: Project,
+                             private val notificationService: AdbDevicePairingNotificationService,
+                             override val model: PinCodePairingModel
+) : PinCodePairingView {
   private val dlg = PinCodePairingDialog(project)
   private val listeners = ArrayList<PinCodePairingView.Listener>()
   private var allowPairAction = true
@@ -68,6 +71,7 @@ class PinCodePairingViewImpl(project: Project, override val model: PinCodePairin
   override fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice) {
     dlg.showPairingSuccess(device)
     allowPairAction = false
+    notificationService.showPairingSuccessBalloon(device)
   }
 
   override fun showPairingError(service: MdnsService, error: Throwable) {

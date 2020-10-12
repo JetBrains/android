@@ -52,14 +52,18 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
     AdbDevicePairingServiceImpl(randomProvider, adbService, taskExecutor)
   }
 
+  private val notificationService: AdbDevicePairingNotificationService by lazy {
+    AdbDevicePairingNotificationServiceImpl(project)
+  }
+
   override fun dispose() {
     // Nothing to do
   }
 
   fun createPairingDialogController(): AdbDevicePairingController {
     val model = AdbDevicePairingModel()
-    val view = AdbDevicePairingViewImpl(project, model)
-    return AdbDevicePairingControllerImpl(project, this, edtExecutor, devicePairingService, view)
+    val view = AdbDevicePairingViewImpl(project, notificationService, model)
+    return AdbDevicePairingControllerImpl(project, this, edtExecutor, devicePairingService, notificationService, view)
   }
 
   val isFeatureEnabled: Boolean

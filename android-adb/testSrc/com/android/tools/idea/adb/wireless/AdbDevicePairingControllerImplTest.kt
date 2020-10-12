@@ -28,11 +28,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.util.LineSeparator
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import icons.StudioIcons
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -64,14 +66,18 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
     AdbDevicePairingServiceImpl(randomProvider, adbService.instance, taskExecutor)
   }
 
+  private val notificationService: MockAdbDevicePairingNotificationService by lazy {
+    MockAdbDevicePairingNotificationService(project)
+  }
+
   private val model: MockAdbDevicePairingModel by lazy { MockAdbDevicePairingModel() }
 
   private val view: MockDevicePairingView by lazy {
-    MockDevicePairingView(project, model)
+    MockDevicePairingView(project, notificationService, model)
   }
 
   private val controller: AdbDevicePairingControllerImpl by lazy {
-    AdbDevicePairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, view,
+    AdbDevicePairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, notificationService, view,
                                    pinCodePairingControllerFactory = { createPinCodePairingController(it) })
   }
 
@@ -90,7 +96,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
   @Suppress("SameParameterValue")
   private fun createPinCodePairingController(mdnsService: MdnsService): PinCodePairingController {
     val model = PinCodePairingModel(mdnsService)
-    val view = MockPinCodePairingView(project, model).also {
+    val view = MockPinCodePairingView(project, notificationService, model).also {
       lastPinCodeView = it
     }
     return PinCodePairingController(edtExecutor, devicePairingService, view).also {
@@ -269,6 +275,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       val (mdnsService2, device) = pumpAndWait(view.showQrCodePairingSuccessTracker.consume())
       Truth.assertThat(mdnsService2).isEqualTo(mdnsService)
       Truth.assertThat(device).isEqualTo(phoneDeviceInfo)
+
+      val (title, content, type, icon) = pumpAndWait(notificationService.showBalloonTracker.consume())
+      Truth.assertThat(title).isEqualTo("${device.displayString} connected over Wi-Fi")
+      Truth.assertThat(content).isEqualTo("The device is now available to use.")
+      Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
+      Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
     }
   }
 
@@ -362,6 +374,12 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       Truth.assertThat(mdnsService.port).isEqualTo(phonePairingPort)
 
       Truth.assertThat(device).isEqualTo(phoneDeviceInfo)
+
+      val (title, content, type, icon) = pumpAndWait(notificationService.showBalloonTracker.consume())
+      Truth.assertThat(title).isEqualTo("${device.displayString} connected over Wi-Fi")
+      Truth.assertThat(content).isEqualTo("The device is now available to use.")
+      Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
+      Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
     }
 
     // Act

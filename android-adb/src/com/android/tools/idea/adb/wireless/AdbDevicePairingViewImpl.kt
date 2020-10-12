@@ -23,7 +23,10 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 
 @UiThread
-class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
+class AdbDevicePairingViewImpl(project: Project,
+                               private val notificationService: AdbDevicePairingNotificationService,
+                               override val model: AdbDevicePairingModel
+) : AdbDevicePairingView {
   private val dlg: AdbDevicePairingDialog
   private val listeners = ArrayList<AdbDevicePairingView.Listener>()
 
@@ -104,6 +107,7 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
 
   override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
     dlg.showQrCodePairingSuccess(device)
+    notificationService.showPairingSuccessBalloon(device)
   }
 
   override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
