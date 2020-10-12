@@ -29,7 +29,6 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -120,9 +119,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   init {
-    Disposer.register(project.earlyDisposable, Disposable {
-      destroyContent(getToolWindow())
-    })
+    Disposer.register(project.earlyDisposable) { destroyContent(getToolWindow()) }
 
     // Lazily initialize content since we can only have one frame.
     val messageBusConnection = project.messageBus.connect(project.earlyDisposable)
@@ -131,7 +128,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
         val toolWindow = toolWindowManager.getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
 
-        toolWindowManager.invokeLater(Runnable {
+        toolWindowManager.invokeLater {
           if (!project.isDisposed) {
             if (toolWindow.isVisible) {
               createContent(toolWindow)
@@ -140,7 +137,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
               destroyContent(toolWindow)
             }
           }
-        })
+        }
       }
     })
 
@@ -445,7 +442,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     @JvmStatic
     fun initializeForProject(project: Project) {
       if (registeredProjects.add(project)) {
-        Disposer.register(project.earlyDisposable, Disposable { registeredProjects.remove(project) })
+        Disposer.register(project.earlyDisposable) { registeredProjects.remove(project) }
         EmulatorToolWindowManager(project)
       }
     }
