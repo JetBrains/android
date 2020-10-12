@@ -18,113 +18,48 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
-import com.android.tools.adtui.model.EaseOutModel;
-import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangeSelectionListener;
-import com.android.tools.adtui.model.RangeSelectionModel;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
-import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
-import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.UnifiedEventDataSeries;
-import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionAspect;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ContainerUtil;
 import io.grpc.StatusRuntimeException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements CodeNavigator.Listener {
-  private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
-  public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
-
-  static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
-  static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
-
+public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   // The safe factor estimating how many times of memory is needed compared to hprof file size
   public static final int MEMORY_HPROF_SAFE_FACTOR =
     Math.max(1, Math.min(Integer.getInteger("profiler.memory.hprof.safeFactor", 10), 1000));
-
-  private static Logger getLogger() {
-    return Logger.getInstance(MainMemoryProfilerStage.class);
-  }
-
-  private final DetailedMemoryUsage myDetailedMemoryUsage;
-  private final ClampedAxisComponentModel myMemoryAxis;
-  private final ClampedAxisComponentModel myObjectsAxis;
-  private final MemoryStageLegends myLegends;
-  private final MemoryStageLegends myTooltipLegends;
-  private final EaseOutModel myInstructionsEaseOutModel;
 
   /**
    * Whether the stage only contains heap dump data imported from hprof file
    */
   private final boolean myIsMemoryCaptureOnly;
 
-  @NotNull
-  private final Common.Session mySessionData;
-  private DurationDataModel<GcDurationData> myGcStatsModel;
-
-  @NotNull
-  private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
-
-  private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myAllocationDurations;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myNativeAllocationDurations;
-  private final EventMonitor myEventMonitor;
-  private final RangeSelectionModel myRangeSelectionModel;
-  private boolean myTrackingAllocations;
-  private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
   private boolean myNativeAllocationTracking = false;
-
-  @NotNull private final AllocationSamplingRateDataSeries myAllocationSamplingRateDataSeries;
-  @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
-  @NotNull private final AllocationSamplingRateUpdatable myAllocationSamplingRateUpdatable;
-  @NotNull private LiveAllocationSamplingMode myLiveAllocationSamplingMode;
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -134,125 +69,22 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     super(profilers, loader);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
-    mySessionData = profilers.getSession();
-    myClient = profilers.getClient().getMemoryClient();
 
-    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, featureTracker, getStudioProfilers().getIdeServices());
-    AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient(), mySessionData, featureTracker, this);
-    NativeAllocationSamplesSeries nativeSampleSeries =
-      new NativeAllocationSamplesSeries(profilers.getClient(), mySessionData, featureTracker, this);
-
-    Range viewRange = getTimeline().getViewRange();
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
-    myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
-    myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
-    myNativeAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, nativeSampleSeries));
-
-    DataSeries<GcDurationData> gcSeries =
-      getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
-      new UnifiedEventDataSeries<>(getStudioProfilers().getClient().getTransportClient(),
-                                   mySessionData.getStreamId(),
-                                   mySessionData.getPid(),
-                                   Common.Event.Kind.MEMORY_GC,
-                                   UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                   events -> ContainerUtil
-                                     .map(events, evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()),
-                                                                          new GcDurationData(
-                                                                            TimeUnit.NANOSECONDS
-                                                                              .toMicros(evt.getMemoryGc().getDuration()))))) :
-      new LegacyGcStatsDataSeries(myClient, mySessionData);
-    myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, gcSeries));
-    myAllocationSamplingRateDataSeries =
-      new AllocationSamplingRateDataSeries(getStudioProfilers().getClient(),
-                                           mySessionData,
-                                           getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
-    myAllocationSamplingRateDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, myAllocationSamplingRateDataSeries));
-    myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
+    myHeapDumpDurations = makeModel((client, session, tracker, stage) ->
+                                 new HeapDumpSampleDataSeries(client, session, tracker, profilers.getIdeServices()));
+    myAllocationDurations = makeModel(AllocationInfosDataSeries::new);
+    myNativeAllocationDurations = makeModel(NativeAllocationSamplesSeries::new);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->
                                                    // Do not show the object series during a heap dump.
-                                                   !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName())
+                                                   !series.getName().equals(getDetailedMemoryUsage().getObjectsSeries().getName())
     );
-    myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
-    myGcStatsModel.setAttachPredicate(
-      // Only attach to the object series if live allocation is disabled or the gc event happens within full-tracking mode.
-      data -> !isLiveAllocationTrackingReady() ||
-              MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(getStudioProfilers(), mySessionData, data.x, data.x));
-    myAllocationSamplingRateDurations.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
-    myAllocationSamplingRateDurations.setAttachPredicate(
-      data ->
-        // The DurationData should attach to the Objects series at both the start and end of the FULL tracking mode region.
-        (data.value.getPreviousRate() != null &&
-         data.value.getPreviousRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()) ||
-        data.value.getCurrentRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue()
-    );
-    myAllocationSamplingRateDurations.setRenderSeriesPredicate(
-      (data, series) ->
-        // Only show the object series if live allocation is not enabled or if the current sampling rate is FULL.
-        !series.getName().equals(myDetailedMemoryUsage.getObjectsSeries().getName()) ||
-        (!isLiveAllocationTrackingReady() ||
-         data.value.getCurrentRate().getSamplingNumInterval() == LiveAllocationSamplingMode.FULL.getValue())
-    );
-    myAllocationSamplingRateUpdatable = new AllocationSamplingRateUpdatable();
 
-    myMemoryAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER).build();
-    myObjectsAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER).build();
+    getRangeSelectionModel().addConstraint(myAllocationDurations);
+    getRangeSelectionModel().addConstraint(myNativeAllocationDurations);
+    getRangeSelectionModel().addConstraint(myHeapDumpDurations);
 
-    myLegends = new MemoryStageLegends(this, getTimeline().getDataRange(), false);
-    myTooltipLegends = new MemoryStageLegends(this, getTimeline().getTooltipRange(), true);
-
-    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
-
-    myEventMonitor = new EventMonitor(profilers);
-
-    // Get ready to fire LIVE_ALLOCATION_STATUS if applicable.
-    if (getStudioProfilers().getSessionsManager().isSessionAlive() && isLiveAllocationTrackingSupported()) {
-      // Note the max of current data range as isLiveAllocationTrackingReady() returns info before it.
-      long currentRangeMax = TimeUnit.MICROSECONDS.toNanos((long)profilers.getTimeline().getDataRange().getMax());
-      if (!isLiveAllocationTrackingReady()) {
-        TransportEventListener listener = new TransportEventListener(
-          Common.Event.Kind.MEMORY_ALLOC_SAMPLING, getStudioProfilers().getIdeServices().getMainExecutor(),
-          event -> true, () -> mySessionData.getStreamId(), () -> mySessionData.getPid(), null,
-          // wait for only new events, not old ones such as those from previous sessions
-          () -> currentRangeMax,
-          event -> {
-            myAspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS);
-            // unregisters the listener.
-            return true;
-          });
-        getStudioProfilers().getTransportPoller().registerListener(listener);
-      }
-    }
-
-    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
-    myRangeSelectionModel.addConstraint(myAllocationDurations);
-    myRangeSelectionModel.addConstraint(myNativeAllocationDurations);
-    myRangeSelectionModel.addConstraint(myHeapDumpDurations);
-    myRangeSelectionModel.addListener(new RangeSelectionListener() {
-      @Override
-      public void selectionCreated() {
-        selectCaptureFromSelectionRange();
-        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-        myInstructionsEaseOutModel.setCurrentPercentage(1);
-      }
-
-      @Override
-      public void selectionCleared() {
-        selectCaptureFromSelectionRange();
-      }
-    });
-
-    // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
-    // It will be set properly in the AllocationSamplingRateUpdatable.
-    myLiveAllocationSamplingMode = LiveAllocationSamplingMode.getModeFromFrequency(
-      profilers.getIdeServices().getPersistentProfilerPreferences()
-        .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue())
-    );
-    myAllocationSamplingRateUpdatable.update(0);
     getStudioProfilers().getSessionsManager().addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
   }
@@ -268,59 +100,28 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_MEMORY_CAPTURE, false);
   }
 
-  public DetailedMemoryUsage getDetailedMemoryUsage() {
-    return myDetailedMemoryUsage;
-  }
-
   @Override
   public void enter() {
-    getLoader().start();
-    myEventMonitor.enter();
-    forEachUpdatable(getStudioProfilers().getUpdater()::register);
-
-    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
-
+    super.enter();
     updateAllocationTrackingStatus();
     updateNativeAllocationTrackingStatus();
   }
 
   @Override
   public void exit() {
+    super.exit();
     enableSelectLatestCapture(false, null);
-
-    myEventMonitor.exit();
-    forEachUpdatable(getStudioProfilers().getUpdater()::unregister);
     selectCaptureDuration(null, null);
-    getLoader().stop();
-
-    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
-
-    myRangeSelectionModel.clearListeners();
   }
 
-  private void forEachUpdatable(Consumer<Updatable> f) {
-    for (Updatable u : new Updatable[]{
-      myDetailedMemoryUsage,
-      myHeapDumpDurations,
-      myAllocationDurations,
-      myNativeAllocationDurations,
-      myMemoryAxis,
-      myObjectsAxis,
-      myGcStatsModel,
-      myAllocationSamplingRateDurations,
-      myCaptureElapsedTimeUpdatable,
-      myAllocationSamplingRateUpdatable
-    }) {
-      f.accept(u);
-    }
+  @NotNull
+  @Override
+  public List<DurationDataModel<CaptureDurationData<CaptureObject>>> getCaptureSeries() {
+    return Arrays.asList(myAllocationDurations, myHeapDumpDurations, myNativeAllocationDurations);
   }
 
-  public RangeSelectionModel getRangeSelectionModel() {
-    return myRangeSelectionModel;
-  }
-
-  private void selectCaptureFromSelectionRange() {
+  @Override
+  protected void selectCaptureFromSelectionRange() {
     if (!getUpdateCaptureOnSelection()) {
       return;
     }
@@ -331,59 +132,17 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     setUpdateCaptureOnSelection(true);
   }
 
-  /**
-   * Toggle a behavior where if there is currently no CaptureObject selected, the model will attempt to select the next CaptureObject
-   * that has been created either through {@link #trackAllocations(boolean)} or {@link #requestHeapDump()}.
-   *
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link CaptureObjectLoader#loadCapture(CaptureObject, Range,
-   *                   Executor)} so that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would
-   *                   be fired via the desired executor.
-   */
-  public void enableSelectLatestCapture(boolean enable, @Nullable Executor loadJoiner) {
-    if (enable) {
-      getTimeline().getDataRange().addDependency(this)
-        .onChange(Range.Aspect.RANGE, () -> queryAndSelectCaptureObject(loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner));
-    }
-    else {
-      // Removing the aspect observers on Ranges.
-      getTimeline().getDataRange().removeDependencies(this);
-    }
-  }
-
   public boolean isMemoryCaptureOnly() {
     return myIsMemoryCaptureOnly;
   }
 
-  /**
-   * Find a pending allocation or heap dump capture matching {@code myPendingCaptureStartTime} if no capture is currently selected.
-   * Selection range will also be updated to match if the capture isn't ongoing.
-   */
-  private void queryAndSelectCaptureObject(@NotNull Executor loadJoiner) {
-    Range dataRange = getTimeline().getDataRange();
-    if (getPendingCaptureStartTime() != INVALID_START_TIME) {
-      List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-        new ArrayList<>(getAllocationInfosDurations().getSeries().getSeriesForRange(dataRange));
-      series.addAll(getHeapDumpSampleDurations().getSeries().getSeriesForRange(dataRange));
-      series.addAll(getNativeAllocationInfosDurations().getSeries().getSeriesForRange(dataRange));
-
-      long pendingCaptureStartTimeUs = TimeUnit.NANOSECONDS.toMicros(getPendingCaptureStartTime());
-      SeriesData<CaptureDurationData<CaptureObject>> captureToSelect = null;
-      for (int i = series.size() - 1; i >= 0; --i) {
-        if (series.get(i).x == pendingCaptureStartTimeUs) {
-          captureToSelect = series.get(i);
-          break;
-        }
-      }
-
-      if (captureToSelect != null &&
-          (captureToSelect.value.getDurationUs() != Long.MAX_VALUE || captureToSelect.value.getSelectableWhenMaxDuration())) {
-        long x = captureToSelect.x;
-        if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(dataRange).stream().anyMatch(s -> s.x == x)) {
-          myAspect.changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
-        }
-        selectCaptureDuration(captureToSelect.value, loadJoiner);
-      }
+  @Override
+  protected void onCaptureToSelect(SeriesData<CaptureDurationData<CaptureObject>> captureToSelect, @NotNull Executor loadJoiner) {
+    long x = captureToSelect.x;
+    if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(getTimeline().getDataRange()).stream().anyMatch(s -> s.x == x)) {
+      getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
     }
+    selectCaptureDuration(captureToSelect.value, loadJoiner);
   }
 
   /**
@@ -394,11 +153,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
   }
 
-  @NotNull
-  public AspectModel<MemoryProfilerAspect> getAspect() {
-    return myAspect;
-  }
-
   private Transport.ExecuteResponse startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();
@@ -406,8 +160,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format(Locale.getDefault(), "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, process.getName());
     Commands.Command dumpCommand = Commands.Command.newBuilder()
-      .setStreamId(mySessionData.getStreamId())
-      .setPid(mySessionData.getPid())
+      .setStreamId(getSessionData().getStreamId())
+      .setPid(getSessionData().getPid())
       .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
                               // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
@@ -425,8 +179,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private Transport.ExecuteResponse stopNativeAllocationTracking(long startTime) {
     getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     Commands.Command dumpCommand = Commands.Command.newBuilder()
-      .setStreamId(mySessionData.getStreamId())
-      .setPid(mySessionData.getPid())
+      .setStreamId(getSessionData().getStreamId())
+      .setPid(getSessionData().getPid())
       .setType(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE)
       .setStopNativeSample(Memory.StopNativeSample.newBuilder()
                              .setStartTime(startTime))
@@ -447,8 +201,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS,
                                                                        getStudioProfilers().getIdeServices().getMainExecutor(),
                                                                        event -> event.getCommandId() == response.getCommandId(),
-                                                                       () -> mySessionData.getStreamId(),
-                                                                       () -> mySessionData.getPid(),
+                                                                       () -> getSessionData().getStreamId(),
+                                                                       () -> getSessionData().getPid(),
                                                                        event -> {
                                                                          nativeAllocationTrackingStart(
                                                                            event.getMemoryNativeTrackingStatus());
@@ -463,13 +217,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case SUCCESS:
         myNativeAllocationTracking = true;
         setPendingCaptureStartTime(status.getStartTime());
-        myTrackingAllocations = true;
+        setTrackingAllocations(true);
         myPendingLegacyAllocationStartTimeNs = status.getStartTime();
         break;
       case IN_PROGRESS:
         myNativeAllocationTracking = true;
-        myTrackingAllocations = true;
-        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", mySessionData.getPid()));
+        setTrackingAllocations(true);
+        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
         break;
       case FAILURE:
         getLogger().error(status.getFailureMessage());
@@ -478,18 +232,18 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case UNSPECIFIED:
       case UNRECOGNIZED:
         myNativeAllocationTracking = false;
-        myTrackingAllocations = false;
+        setTrackingAllocations(false);
         break;
     }
-    myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
+    getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
   }
 
   public void requestHeapDump() {
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert getStudioProfilers().getProcess() != null;
       Commands.Command dumpCommand = Commands.Command.newBuilder()
-        .setStreamId(mySessionData.getStreamId())
-        .setPid(mySessionData.getPid())
+        .setStreamId(getSessionData().getStreamId())
+        .setPid(getSessionData().getPid())
         .setType(Commands.Command.CommandType.HEAP_DUMP)
         .build();
       Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
@@ -497,8 +251,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
                                                                          getStudioProfilers().getIdeServices().getMainExecutor(),
                                                                          event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> mySessionData.getStreamId(),
-                                                                         () -> mySessionData.getPid(),
+                                                                         () -> getSessionData().getStreamId(),
+                                                                         () -> getSessionData().getPid(),
                                                                          event -> {
                                                                            handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
                                                                            // unregisters the listener.
@@ -507,47 +261,29 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       getStudioProfilers().getTransportPoller().registerListener(statusListener);
     }
     else {
-      TriggerHeapDumpResponse response = myClient.triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).build());
+      TriggerHeapDumpResponse response = getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
       handleHeapDumpStart(response.getStatus());
     }
 
     getTimeline().setStreaming(true);
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-    myInstructionsEaseOutModel.setCurrentPercentage(1);
+    getInstructionsEaseOutModel().setCurrentPercentage(1);
   }
 
   private void handleHeapDumpStart(@NotNull Memory.HeapDumpStatus status) {
     switch (status.getStatus()) {
       case SUCCESS:
         setPendingCaptureStartTime(status.getStartTime());
-        myAspect.changed(MemoryProfilerAspect.HEAP_DUMP_STARTED);
+        getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_STARTED);
         break;
       case IN_PROGRESS:
-        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", mySessionData.getPid()));
+        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
         break;
       case UNSPECIFIED:
       case NOT_PROFILING:
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
         break;
-    }
-  }
-
-  public void forceGarbageCollection() {
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // TODO(b/150503095)
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder()
-          .setCommand(Commands.Command.newBuilder()
-                        .setStreamId(mySessionData.getStreamId())
-                        .setPid(mySessionData.getPid())
-                        .setType(Commands.Command.CommandType.GC))
-          .build());
-    }
-    else {
-      // TODO(b/150503095)
-      ForceGarbageCollectionResponse response =
-        myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
     }
   }
 
@@ -560,18 +296,18 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enable) {
-    MemoryProfiler.trackAllocations(getStudioProfilers(), mySessionData, enable, status -> {
+    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, status -> {
       switch (status.getStatus()) {
         case SUCCESS:
-          myTrackingAllocations = enable;
+          setTrackingAllocations(enable);
           setPendingCaptureStartTime(status.getStartTime());
           myPendingLegacyAllocationStartTimeNs = enable ? status.getStartTime() : INVALID_START_TIME;
           break;
         case IN_PROGRESS:
-          myTrackingAllocations = true;
+          setTrackingAllocations(true);
           break;
         case NOT_ENABLED:
-          myTrackingAllocations = false;
+          setTrackingAllocations(false);
           break;
         case UNSPECIFIED:
         case NOT_PROFILING:
@@ -579,25 +315,21 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         case UNRECOGNIZED:
           break;
       }
-      myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
+      getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
 
-      if (myTrackingAllocations) {
+      if (isTrackingAllocations()) {
         getTimeline().setStreaming(true);
         getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-        myInstructionsEaseOutModel.setCurrentPercentage(1);
+        getInstructionsEaseOutModel().setCurrentPercentage(1);
       }
     });
   }
 
-  public boolean isTrackingAllocations() {
-    return myTrackingAllocations;
-  }
-
   public long getAllocationTrackingElapsedTimeNs() {
-    if (myTrackingAllocations) {
+    if (isTrackingAllocations()) {
       try {
         TimeResponse timeResponse = getStudioProfilers().getClient().getTransportClient()
-          .getCurrentTime(TimeRequest.newBuilder().setStreamId(mySessionData.getStreamId()).build());
+          .getCurrentTime(TimeRequest.newBuilder().setStreamId(getSessionData().getStreamId()).build());
         return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
       }
       catch (StatusRuntimeException exception) {
@@ -607,65 +339,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     return INVALID_START_TIME;
   }
 
-  /**
-   * Returns the capture object whose range overlaps with a given range. If multiple captures overlap with it,
-   * the first object found is returned.
-   */
-  @Nullable
-  public CaptureDurationData<? extends CaptureObject> getIntersectingCaptureDuration(@NotNull Range range) {
-    Range intersection;
-    CaptureDurationData<? extends CaptureObject> durationData = null;
-    double overlap = 0.0f; // Weight value to determine which capture is "more" selected.
-
-    List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-      new ArrayList<>(getAllocationInfosDurations().getSeries().getSeriesForRange(range));
-    // Heap dumps break ties vs allocations.
-    series.addAll(getHeapDumpSampleDurations().getSeries().getSeriesForRange(range));
-    series.addAll(getNativeAllocationInfosDurations().getSeries().getSeriesForRange(range));
-
-    for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
-      long duration = data.value.getDurationUs();
-      if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
-        continue;
-      }
-
-      long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
-      double intersectionLen = range.getIntersectionLength(data.x, dataMax);
-      // We need both an intersection check and length requirement because the intersection might be a point.
-      if (range.intersectsWith(data.x, dataMax) && intersectionLen >= overlap) {
-        durationData = data.value;
-        overlap = intersectionLen;
-      }
-    }
-    return durationData;
-  }
-
-  @Nullable
-  private Common.Device getDeviceForSelectedSession() {
-    StudioProfilers profilers = getStudioProfilers();
-    Common.Stream stream = profilers.getStream(profilers.getSession().getStreamId());
-    if (stream.getType() == Common.Stream.Type.DEVICE) {
-      return stream.getDevice();
-    }
-    return null;
-  }
-
   public boolean isNativeAllocationSamplingEnabled() {
     Common.Device device = getDeviceForSelectedSession();
     return getStudioProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled() &&
            device != null &&
            device.getFeatureLevel() >= AndroidVersion.VersionCodes.Q;
-  }
-
-  public boolean isLiveAllocationTrackingSupported() {
-    Common.Device device = getDeviceForSelectedSession();
-    return getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
-           device != null &&
-           device.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-  }
-
-  public boolean isLiveAllocationTrackingReady() {
-    return MemoryProfiler.isUsingLiveAllocation(getStudioProfilers(), mySessionData);
   }
 
   @NotNull
@@ -680,7 +358,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   @VisibleForTesting
   public void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
-                             @Nullable Executor joiner) {
+                                    @Nullable Executor joiner) {
     StudioProfilers profilers = getStudioProfilers();
     if (durationData != null &&
         durationData.isHeapDumpData() &&
@@ -692,73 +370,14 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     }
   }
 
-  @NotNull
-  DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
-    return myAllocationSamplingRateDurations;
-  }
-
-  @NotNull
-  public List<LiveAllocationSamplingMode> getSupportedLiveAllocationSamplingMode() {
-    return Arrays.asList(LiveAllocationSamplingMode.values());
-  }
-
-  @NotNull
-  public LiveAllocationSamplingMode getLiveAllocationSamplingMode() {
-    return myLiveAllocationSamplingMode;
-  }
-
-  /**
-   * Trigger a change to the sampling mode that should be used for live allocation tracking.
-   */
-  public void requestLiveAllocationSamplingModeUpdate(@NotNull LiveAllocationSamplingMode mode) {
-    getStudioProfilers().getIdeServices().getPersistentProfilerPreferences().setInt(
-      LIVE_ALLOCATION_SAMPLING_PREF, mode.getValue(), DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue()
-    );
-
-    try {
-      MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.getValue()).build();
-
-      if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-        // TODO(b/150503095)
-        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-          Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
-                                                             .setStreamId(mySessionData.getStreamId())
-                                                             .setPid(mySessionData.getPid())
-                                                             .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
-                                                             .setMemoryAllocSampling(samplingRate))
-            .build());
-      }
-      else {
-        // TODO(b/150503095)
-        SetAllocationSamplingRateResponse response =
-          getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
-                                                                                         .setSession(mySessionData)
-                                                                                         .setSamplingRate(samplingRate)
-                                                                                         .build());
-      }
-    }
-    catch (StatusRuntimeException e) {
-      getLogger().debug(e);
-    }
-  }
-
-  private void setLiveAllocationSamplingModelInternal(@NotNull LiveAllocationSamplingMode mode) {
-    if (mode == myLiveAllocationSamplingMode) {
-      return;
-    }
-
-    myLiveAllocationSamplingMode = mode;
-    myAspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
-  }
-
   private void updateAllocationTrackingStatus() {
     List<AllocationsInfo> allocationsInfos = MemoryProfiler.getAllocationInfosForSession(getStudioProfilers().getClient(),
-                                                                                         mySessionData,
+                                                                                         getSessionData(),
                                                                                          new Range(Long.MIN_VALUE, Long.MAX_VALUE),
                                                                                          getStudioProfilers().getIdeServices());
     AllocationsInfo lastInfo = allocationsInfos.isEmpty() ? null : allocationsInfos.get(allocationsInfos.size() - 1);
-    myTrackingAllocations = lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE);
-    if (myTrackingAllocations) {
+    setTrackingAllocations(lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE));
+    if (isTrackingAllocations()) {
       setPendingCaptureStartTime(lastInfo.getStartTime());
       myPendingLegacyAllocationStartTimeNs = lastInfo.getStartTime();
     }
@@ -770,7 +389,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   private void updateNativeAllocationTrackingStatus() {
     List<Memory.MemoryNativeTrackingData> samples = MemoryProfiler
-      .getNativeHeapStatusForSession(getStudioProfilers().getClient(), mySessionData, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+      .getNativeHeapStatusForSession(getStudioProfilers().getClient(), getSessionData(), new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     if (samples.isEmpty()) {
       return;
     }
@@ -781,45 +400,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     }
   }
 
-  public AxisComponentModel getMemoryAxis() {
-    return myMemoryAxis;
-  }
-
-  public AxisComponentModel getObjectsAxis() {
-    return myObjectsAxis;
-  }
-
-  public MemoryStageLegends getLegends() {
-    return myLegends;
-  }
-
-  public MemoryStageLegends getTooltipLegends() {
-    return myTooltipLegends;
-  }
-
-  @NotNull
-  public EaseOutModel getInstructionsEaseOutModel() {
-    return myInstructionsEaseOutModel;
-  }
-
-  public EventMonitor getEventMonitor() {
-    return myEventMonitor;
-  }
-
-  @NotNull
-  public DurationDataModel<GcDurationData> getGcStatsModel() {
-    return myGcStatsModel;
-  }
-
-  public String getName() {
-    return "MEMORY";
-  }
-
-  @Override
-  public void onNavigated(@NotNull CodeLocation location) {
-    setProfilerMode(ProfilerMode.NORMAL);
-  }
-
   public static boolean canSafelyLoadHprof(long fileSize) {
     System.gc(); // To avoid overly conservative estimation of free memory
     long leeway = 300 * 1024 * 1024; // Studio needs ~300MB to run without major freezes
@@ -827,37 +407,5 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
                              Runtime.getRuntime().totalMemory() +
                              Runtime.getRuntime().freeMemory();
     return requestableMemory >= MEMORY_HPROF_SAFE_FACTOR * fileSize + leeway;
-  }
-
-  private class CaptureElapsedTimeUpdatable implements Updatable {
-    @Override
-    public void update(long elapsedNs) {
-      if (myTrackingAllocations) {
-        getCaptureSelection().getAspect().changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME);
-      }
-    }
-  }
-
-  private class AllocationSamplingRateUpdatable implements Updatable {
-    @Override
-    public void update(long elapsedNs) {
-      if (!isLiveAllocationTrackingReady()) {
-        return;
-      }
-
-      // Find the last sampling info and see if it is different from the current, if so,
-      double dataRangeMaxUs = getTimeline().getDataRange().getMax();
-      List<SeriesData<AllocationSamplingRateDurationData>> data =
-        myAllocationSamplingRateDataSeries.getDataForRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
-
-      if (data.isEmpty()) {
-        // No data available. Keep the current settings.
-        return;
-      }
-
-      MemoryAllocSamplingData samplingInfo = data.get(data.size() - 1).value.getCurrentRate();
-      LiveAllocationSamplingMode mode = LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingNumInterval());
-      setLiveAllocationSamplingModelInternal(mode);
-    }
   }
 }

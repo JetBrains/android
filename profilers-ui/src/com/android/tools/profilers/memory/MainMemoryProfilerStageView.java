@@ -27,16 +27,10 @@ import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerAction;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerCombobox;
 import com.android.tools.profilers.ProfilerComboboxCellRenderer;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.event.LifecycleTooltip;
-import com.android.tools.profilers.event.LifecycleTooltipView;
-import com.android.tools.profilers.event.UserEventTooltip;
-import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -61,11 +55,10 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<MainMemoryProfilerStage> {
+public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStageView<MainMemoryProfilerStage> {
   private static Logger getLogger() {
     return Logger.getInstance(MainMemoryProfilerStageView.class);
   }
@@ -97,20 +90,11 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private ProfilerAction myNativeAllocationAction;
   @NotNull private ProfilerAction myStopNativeAllocationAction;
-  @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myAllocationSamplingRateLabel;
   @NotNull private final LoadingPanel myHeapDumpLoadingPanel;
 
   public MainMemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MainMemoryProfilerStage stage) {
     super(profilersView, stage);
-
-    // Turns on the auto-capture selection functionality - this would select the latest user-triggered heap dump/allocation tracking
-    // capture object if an existing one has not been selected.
-    getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
-
-    getTooltipBinder().bind(MemoryUsageTooltip.class, MemoryUsageTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
-    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
 
     // Do not initialize the monitor UI if it only contains heap dump data.
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
@@ -159,11 +143,6 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
         .setActionRunnable(() -> myHeapDumpButton.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_D, AdtUiUtils.getActionMask())).build();
     myHeapDumpButton.setToolTipText(myHeapDumpAction.getDefaultToolTipText());
-
-    myCaptureElapsedTime = new JLabel("");
-    myCaptureElapsedTime.setFont(ProfilerFonts.STANDARD_FONT);
-    myCaptureElapsedTime.setBorder(JBUI.Borders.emptyLeft(5));
-    myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
     // Set to the longest text this button will show as to initialize the persistent size properly.
     // Call setPreferredSize to avoid the initialized size being overwritten.
@@ -270,11 +249,6 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
   }
 
   @VisibleForTesting
-  JLabel getAllocationCaptureElaspedTimeLabel() {
-    return myCaptureElapsedTime;
-  }
-
-  @VisibleForTesting
   @NotNull
   JComboBox getAllocationSamplingRateDropDown() {
     return myAllocationSamplingRateDropDown;
@@ -307,7 +281,7 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
       if (getStage().isNativeAllocationSamplingEnabled()) {
         toolbar.add(new FlatSeparator());
         toolbar.add(myNativeAllocationButton);
-        toolbar.add(myCaptureElapsedTime);
+        toolbar.add(getCaptureElapsedTimeLabel());
       }
 
       JComboBoxView<LiveAllocationSamplingMode, MemoryProfilerAspect> sampleRateComboView =
@@ -332,7 +306,7 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
       else {
         toolbar.add(myAllocationButton);
       }
-      toolbar.add(myCaptureElapsedTime);
+      toolbar.add(getCaptureElapsedTimeLabel());
     }
 
     StudioProfilers profilers = getStage().getStudioProfilers();
@@ -417,12 +391,6 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
 
   @VisibleForTesting
   @NotNull
-  JLabel getCaptureElapsedTimeLabel() {
-    return myCaptureElapsedTime;
-  }
-
-  @VisibleForTesting
-  @NotNull
   JLabel getCaptureInfoMessage() {
     return myLayout.getCapturePanel().getCaptureInfoMessage();
   }
@@ -463,10 +431,10 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
       myNativeAllocationButton.setText(STOP_NATIVE_TEXT);
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
       myNativeAllocationButton.setToolTipText(STOP_NATIVE_TEXT);
-      myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(0));
+      getCaptureElapsedTimeLabel().setText(TimeFormatter.getSemiSimplifiedClockString(0));
     }
     else {
-      myCaptureElapsedTime.setText("");
+      getCaptureElapsedTimeLabel().setText("");
       myAllocationButton.setText(RECORD_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myAllocationButton.setToolTipText("Record memory allocations");
@@ -481,7 +449,7 @@ public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<Mai
     if (getStage().isTrackingAllocations() &&
         (!getStage().isLiveAllocationTrackingReady() || getStage().isNativeAllocationSamplingEnabled())) {
       long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
-      myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
+      getCaptureElapsedTimeLabel().setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
   }
 

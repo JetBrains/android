@@ -775,7 +775,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       view2.getAllocationSamplingRateDropDown(),
       toolbar.getComponent(4), // FlatSeparator
       view2.getNativeAllocationButton(),
-      view2.getAllocationCaptureElaspedTimeLabel()
+      view2.getCaptureElapsedTimeLabel()
     );
   }
 
@@ -798,7 +798,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       view1.getGarbageCollectionButtion(),
       view1.getHeapDumpButton(),
       view1.getAllocationButton(),
-      view1.getAllocationCaptureElaspedTimeLabel()
+      view1.getCaptureElapsedTimeLabel()
     );
 
     // Test toolbar configuration for O+;
