@@ -381,7 +381,12 @@ class ManageSnapshotsDialogTest {
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
       // Wait for the snapshot list to be populated.
-      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      try {
+        waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      }
+      catch (e: TimeoutException) {
+        Assertions.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      }
       assertThat(table.items).hasSize(4) // No snapshots were deleted.
       // Close the "Manage Snapshots" dialog.
       ui.clickOn(rootPane1.defaultButton)
