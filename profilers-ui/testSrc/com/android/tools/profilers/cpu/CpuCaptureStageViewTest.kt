@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider
 import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.model.FakeTimer
@@ -237,8 +237,6 @@ class CpuCaptureStageViewTest {
     profilersView.studioProfilers.stage = stage
     val stageView = profilersView.stageView as CpuCaptureStageView
     val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
-    stageView.deselectAllLabel.setBounds(0, 0, 100, 100)
-    val ui = FakeUi(stageView.deselectAllLabel)
 
     // Label should be visible when selection changes.
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
@@ -246,7 +244,7 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.
-    ui.mouse.click(0, 0)
+    stageView.deselectAllLabel.doClick()
     assertThat(stage.multiSelectionModel.isEmpty).isTrue()
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
   }
