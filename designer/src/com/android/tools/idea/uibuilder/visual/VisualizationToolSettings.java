@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The settings which are shared by all projects for visualization (a.k.a. Layout Validation) tool.
+ */
 @State(name = "VisualizationTool", storages = @Storage("visualizationTool.xml"))
 public class VisualizationToolSettings implements PersistentStateComponent<VisualizationToolSettings.MyState> {
   private static final ConfigurationSet DEFAULT_CONFIGURATION_SET = ConfigurationSet.PIXEL_DEVICES;
@@ -66,7 +69,6 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
   public static class GlobalState {
     private boolean myFirstTimeOpen = true;
     private boolean myVisible = false;
-    private double myScale = 0.25;
     private boolean myShowDecoration = false;
     @NotNull private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
     @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
@@ -85,14 +87,6 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
 
     public void setVisible(boolean visible) {
       myVisible = visible;
-    }
-
-    public double getScale() {
-      return myScale;
-    }
-
-    public void setScale(double scale) {
-      myScale = scale;
     }
 
     public boolean getShowDecoration() {
