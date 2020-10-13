@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.EMPTY;
 import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL;
 import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.project.ProjectUtil.guessProjectDir;
@@ -119,8 +118,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     myListeners.listen(myValidatorPanel.getValidationResult(), result -> applyValidationResult(result));
 
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      myRootPanel = wrapWithVScroll(myValidatorPanel, EMPTY);
-      myValidatorPanel.setBorder(SMALL.border);
+      myRootPanel = wrapWithVScroll(myValidatorPanel, SMALL);
     }
     else {
       mySourceDirTitle.setVisible(false);
