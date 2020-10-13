@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.util
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -46,5 +47,6 @@ class MockCopyPasteManager: CopyPasteManager() {
   override fun addContentChangedListener(listener: ContentChangedListener, parentDisposable: Disposable) = error(NOT_IMPLEMENTED)
   override fun removeContentChangedListener(listener: ContentChangedListener) = error(NOT_IMPLEMENTED)
   override fun stopKillRings() = error(NOT_IMPLEMENTED)
+  override fun stopKillRings(document: Document) = error(NOT_IMPLEMENTED)
   override fun isCutElement(element: Any?): Boolean = error(NOT_IMPLEMENTED)
 }
