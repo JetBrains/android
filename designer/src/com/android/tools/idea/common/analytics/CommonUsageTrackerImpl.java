@@ -139,6 +139,9 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
+        // Add application id if available
+        CommonUsageTrackerKt.setApplicationId(studioEvent, myDesignSurfaceRef.get());
+
         myEventLogger.accept(studioEvent);
       });
     }
