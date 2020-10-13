@@ -311,14 +311,36 @@ public final class GradleWrapper {
     return getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
   }
 
-  public String getUpdatedDistributionUrl(String gradleVersion, boolean binOnly) throws IOException {
+  /**
+   * Return the URL for the distribution of Gradle version indicated by {@code gradleVersion}, preserving as
+   * much of the existing distributionUrl property, if any, as possible.
+   *
+   * @param gradleVersion the version number to update to
+   * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if the current URL is unparseable
+   * @return a String denoting the new Gradle distribution URL.
+   */
+  @NotNull
+  public String getUpdatedDistributionUrl(String gradleVersion, boolean binOnlyIfCurrentlyUnknown) throws IOException {
     String current = getDistributionUrl();
-    if (current == null || current.contains("://services.gradle.org/")) {
-      return GradleWrapper.getDistributionUrl(gradleVersion, binOnly);
+    if (current == null) {
+      // No idea about the current URL: return the default URL.
+      return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
+    }
+    else if (current.contains("://services.gradle.org/")) {
+      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(current);
+      if (m.matches()) {
+        // Return the canonical URL, preserving the -bin/-all suffix.
+        return GradleWrapper.getDistributionUrl(gradleVersion, "bin".equals(m.group(3)));
+      }
+      else {
+        // The current URL doesn't match; can't update, so return the default URL.
+        return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
+      }
     }
     else {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(current);
       if (m.matches()) {
+        // Return the current URL with the new version number spliced in.
         StringBuilder sb = new StringBuilder();
         sb.append(current, 0, m.start(1));
         sb.append(gradleVersion);
@@ -326,7 +348,8 @@ public final class GradleWrapper {
         return sb.toString();
       }
       else {
-        return GradleWrapper.getDistributionUrl(gradleVersion, binOnly);
+        // The current URL doesn't match; can't update, so return the default URL.
+        return GradleWrapper.getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown);
       }
     }
   }
