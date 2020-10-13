@@ -162,7 +162,7 @@ class TemplateManager private constructor() {
       return
     }
     val existingTemplate = _categoryTable!![category, name]
-    if (existingTemplate == null || template.revision > existingTemplate.revision) {
+    if (existingTemplate == null) {
       _categoryTable!!.put(category, name, template)
     }
   }
