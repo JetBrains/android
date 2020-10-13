@@ -23,6 +23,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.DataEntry
 import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkAddedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkRemovedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
@@ -250,7 +251,8 @@ class WorkManagerInspectorTabTest {
     assertThat(client.getWorkInfoCount()).isEqualTo(3)
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
-      val filterActionList = inspectorTab.getFilterActionList()
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      val filterActionList = contentView.getFilterActionList()
       assertThat(filterActionList.size).isEqualTo(3)
       assertThat(filterActionList[0].templateText).isEqualTo("All tags")
       val tag1Filter = filterActionList[1]
@@ -269,16 +271,17 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
-  fun addAndSelectWorkInfo_displayDetailedPanel() = runBlocking {
+  fun addAndSelectWorkInfo_displayDetailsView() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
 
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
 
       val table = inspectorTab.getTable()
       table.selectionModel.setSelectionInterval(0, 0)
 
-      val detailedPanel = inspectorTab.getDetailedPanel()!!
+      val detailedPanel = inspectorTab.getDetailsView()!!
 
       val descriptionPanel = detailedPanel.getCategoryPanel("Description") as JPanel
       val classComponent = descriptionPanel.getValueComponent("Class") as HyperlinkLabel
@@ -335,15 +338,15 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
-  fun updateSelectedWorkInfo_detailedPanelUpdateAccordingly() = runBlocking {
+  fun updateSelectedWorkInfo_detailsViewUpdateAccordingly() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
     lateinit var inspectorTab: WorkManagerInspectorTab
     launch(uiDispatcher) {
       inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
-
+      inspectorTab.isDetailsViewVisible = true
       val table = inspectorTab.getTable()
       table.selectionModel.setSelectionInterval(0, 0)
-      val detailedPanel = inspectorTab.getDetailedPanel()!!
+      val detailedPanel = inspectorTab.getDetailsView()!!
 
       val executionPanel = detailedPanel.getCategoryPanel("Execution") as JPanel
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
@@ -352,7 +355,7 @@ class WorkManagerInspectorTabTest {
 
     sendWorkStateUpdatedEvent(fakeWorkInfo.id, WorkInfo.State.FAILED)
     launch(uiDispatcher) {
-      val detailedPanel = inspectorTab.getDetailedPanel()!!
+      val detailedPanel = inspectorTab.getDetailsView()!!
       val executionPanel = detailedPanel.getCategoryPanel("Execution") as JPanel
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Failed")
@@ -360,21 +363,64 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
-  fun closeDetailedPanel() = runBlocking {
+  fun closeDetailsView() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
 
       val table = inspectorTab.getTable()
       table.selectionModel.setSelectionInterval(0, 0)
-      val detailedPanel = inspectorTab.getDetailedPanel()!!
+      val detailedPanel = inspectorTab.getDetailsView()!!
       val detailedPanelTitleLabel =
         TreeWalker(detailedPanel).descendantStream().filter { (it as? JLabel)?.text == "Work Details" }.findFirst().get()
       val titlePanel = detailedPanelTitleLabel.parent as JPanel
       val closeButton = titlePanel.getComponent(1) as InplaceButton
       assertThat(closeButton.toolTipText).isEqualTo("Close")
       closeButton.doClick()
-      assertThat(inspectorTab.getDetailedPanel()).isNull()
+      assertThat(inspectorTab.getDetailsView()).isNull()
+    }.join()
+  }
+
+  @Test
+  fun removeAllWorks_detailsViewClosed() = runBlocking {
+    sendWorkAddedEvent(fakeWorkInfo)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      assertThat(inspectorTab.getDetailsView()).isNotNull()
+    }.join()
+    sendWorkRemovedEvent(fakeWorkInfo.id)
+    launch(uiDispatcher) {
+      assertThat(inspectorTab.getDetailsView()).isNull()
+    }.join()
+  }
+
+  @Test
+  fun removeSelectedWork_firstRowSelected() = runBlocking {
+    val secondWork = fakeWorkInfo.toBuilder().setId("ID2").build()
+    sendWorkAddedEvent(fakeWorkInfo)
+    sendWorkAddedEvent(secondWork)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(1, 1)
+      assertThat(inspectorTab.getDetailsView()).isNotNull()
+    }.join()
+    sendWorkRemovedEvent(secondWork.id)
+
+    launch(uiDispatcher) {
+      val table = inspectorTab.getTable()
+      // Details View not empty.
+      assertThat(inspectorTab.getDetailsView()).isNotNull()
+      // First row selected.
+      assertThat(table.selectedRow).isEqualTo(0)
     }.join()
   }
 
@@ -399,7 +445,7 @@ class WorkManagerInspectorTabTest {
   private fun WorkManagerInspectorTab.getTable() =
     TreeWalker(component).descendantStream().filter { it is JTable }.findFirst().get() as JTable
 
-  private fun WorkManagerInspectorTab.getDetailedPanel(): JComponent? {
+  private fun WorkManagerInspectorTab.getDetailsView(): JComponent? {
     var detailedPanel: JComponent? = null
     ApplicationManager.getApplication().invokeAndWait {
       val splitter = TreeWalker(component).descendantStream().filter { it is JBSplitter }.findFirst().get() as JBSplitter
@@ -417,6 +463,12 @@ class WorkManagerInspectorTabTest {
   private fun sendWorkAddedEvent(workInfo: WorkInfo) {
     val workAddedEvent = WorkAddedEvent.newBuilder().setWork(workInfo).build()
     val event = Event.newBuilder().setWorkAdded(workAddedEvent).build()
+    client.handleEvent(event.toByteArray())
+  }
+
+  private fun sendWorkRemovedEvent(id: String) {
+    val workAddedEvent = WorkRemovedEvent.newBuilder().setId(id).build()
+    val event = Event.newBuilder().setWorkRemoved(workAddedEvent).build()
     client.handleEvent(event.toByteArray())
   }
 
