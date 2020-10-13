@@ -16,18 +16,14 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.testing.Sdks;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -61,15 +57,7 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
     // Prepare
     AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
     AdbDeviceFileSystemRendererFactory factory = new AdbDeviceFileSystemRendererFactory(service);
-    DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
-      @Override
-      public void onSuccess(@Nullable DeviceNameProperties result) {
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-      }
-    }, getTestRootDisposable());
+    DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(getTestRootDisposable());
 
     // Act
     AdbDeviceFileSystemRenderer renderer = factory.create(fetcher);

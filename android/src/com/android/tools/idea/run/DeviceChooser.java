@@ -151,7 +151,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
     myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer(
       AvdManagerUtils.getAvdManagerSilently(facet),
-      new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
+      new DeviceNamePropertiesFetcher(this, new FutureCallback<DeviceNameProperties>() {
         @Override
         public void onSuccess(@Nullable DeviceNameProperties result) {
           updateTable();
@@ -161,7 +161,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         public void onFailure(@NotNull Throwable t) {
           Logger.getInstance(DeviceChooser.class).warn("Error retrieving device name properties", t);
         }
-      }, this)));
+      })));
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {

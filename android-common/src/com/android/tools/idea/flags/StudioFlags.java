@@ -330,7 +330,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
-    true);
+    false);
 
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
@@ -856,23 +856,23 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
     COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
     "If enabled, the refresh button will only trigger the \"compileDebugKotlin\" task as opposed to others like" +
     "\"generateDebugSources\" or \"compileJava\".",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
     COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
     "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
@@ -883,42 +883,42 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",
     "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
     "all flags in the `compose.editor.*` namespace.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "editor.completion.presentation",
     "Custom presentation for code completion items for composable functions",
     "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "editor.completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
     COMPOSE, "editor.completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
@@ -939,35 +939,35 @@ public final class StudioFlags {
     COMPOSE, "editor.function.extraction",
     "Enables extracting @Composable function from other composables",
     "If enabled, function extracted from @Composable function will annotated @Composable",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(
     COMPOSE, "preview.animated.enable",
     "Enable animated compose preview",
     "If enabled, a user can switch compose preview to be animated",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
     COMPOSE, "preview.animated.click.enable",
     "Enable displaying clicks on the animated preview",
     "If enabled, clicking on the animated preview will generate a ripple",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
     COMPOSE, "preview.animation.inspector",
     "Enable compose preview animation inspection",
     "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
@@ -995,21 +995,21 @@ public final class StudioFlags {
     COMPOSE, "preview.blueprint",
     "Enable the blueprint mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between design and blueprint mode",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_QUICK_ANIMATED_PREVIEW = Flag.create(
     COMPOSE, "preview.animated.quick",
     "Speed up transition between static and animated compose previews",
     "If enabled, a transition between static and animated compose preview is almost instant",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
     COMPOSE, "preview.colorblind",
     "Enable the colorblind mode for Compose previews",
     "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
-    false
+    true
   );
   //endregion
 

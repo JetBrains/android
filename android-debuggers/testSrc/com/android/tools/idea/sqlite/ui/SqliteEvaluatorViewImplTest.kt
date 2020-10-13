@@ -218,14 +218,13 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     model.addDatabaseSchema(database, SqliteSchema(emptyList()))
 
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
-
     // Act
     pumpEventsAndWaitForFuture(
       controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
     assertEquals(2, table.model.columnCount)
     assertEquals("c1", table.model.getColumnName(1))
     assertEquals(1, table.model.rowCount)
@@ -309,11 +308,11 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val unrelated = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db0")))
     model.addDatabaseSchema(unrelated, SqliteSchema(emptyList()))
 
-    val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
-
     pumpEventsAndWaitForFuture(
       controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
+
     // check before that table isn't empty
     assertEquals(1, table.model.rowCount)
 
@@ -330,7 +329,47 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(0, table.model.rowCount)
   }
 
-  private fun sqliteEvaluatorController(model: DatabaseInspectorModel, repository: DatabaseRepositoryImpl): SqliteEvaluatorController {
+  fun testShowTableView() {
+    val controller = sqliteEvaluatorController()
+    controller.setUp()
+
+    val table1 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
+    val messagePanel1 = TreeWalker(view.component).descendants().first { it.name == "message-panel" }
+
+    assertNotNull(messagePanel1)
+    assertNull(table1)
+
+    view.showTableView()
+
+    val table2 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
+    val messagePanel2 = TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
+
+    assertNull(messagePanel2)
+    assertNotNull(table2)
+  }
+
+  fun testShowMessagePanel() {
+    view.showTableView()
+
+    val table1 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
+    val messagePanel1 = TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
+
+    assertNull(messagePanel1)
+    assertNotNull(table1)
+
+    view.showMessagePanel("message")
+
+    val table2 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
+    val messagePanel2 = TreeWalker(view.component).descendants().first { it.name == "message-panel" }
+
+    assertNotNull(messagePanel2)
+    assertNull(table2)
+  }
+
+  private fun sqliteEvaluatorController(
+    model: DatabaseInspectorModel = OpenDatabaseInspectorModel(),
+    repository: DatabaseRepositoryImpl = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+  ): SqliteEvaluatorController {
     return SqliteEvaluatorController(
       project,
       model,
