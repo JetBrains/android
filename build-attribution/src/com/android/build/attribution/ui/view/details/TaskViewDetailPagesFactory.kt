@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
@@ -94,7 +95,7 @@ class TaskViewDetailPagesFactory(
         }
         val info = htmlTextLabelWithFixedLines("""
           Type: ${taskUiData.taskType}<br/>
-          Duration: ${taskUiData.executionTime.durationString()}
+          Duration: ${taskUiData.executionTime.durationStringHtml()}
           """.trimIndent()
         )
         add(taskNavigationLink)
@@ -121,7 +122,7 @@ class TaskViewDetailPagesFactory(
       val tasksNumber = descriptor.filteredTaskNodes.size
       val pluginInfoText = """
         <b>${descriptor.pluginData.name}</b><br/>
-        Total duration: ${descriptor.filteredPluginTime.toTimeWithPercentage().durationString()}<br/>
+        Total duration: ${descriptor.filteredPluginTime.toTimeWithPercentage().durationStringHtml()}<br/>
         Number of tasks: ${tasksNumber.withPluralization("task")}<br/>
         <br/>
       """.trimIndent()

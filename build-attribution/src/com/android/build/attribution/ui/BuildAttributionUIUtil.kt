@@ -17,6 +17,7 @@ package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import javax.swing.Icon
@@ -25,9 +26,19 @@ import javax.swing.JComponent
 
 fun TimeWithPercentage.durationString() = durationString(timeMs)
 
-fun TimeWithPercentage.percentageString() = "%.1f%%".format(percentage)
+fun TimeWithPercentage.durationStringHtml() = durationStringHtml(timeMs)
 
-fun durationString(timeMs: Long) = "%.1fs".format(timeMs.toDouble() / 1000)
+fun TimeWithPercentage.percentageString() = if (percentage >= 0.1) "%.1f%%".format(percentage) else "<0.1%"
+
+fun TimeWithPercentage.percentageStringHtml() = StringUtil.escapeXmlEntities(percentageString())
+
+fun durationString(timeMs: Long) = when {
+  timeMs == 0L -> "0.0s"
+  timeMs < 100L -> "<0.1s"
+  else -> "%.1fs".format(timeMs.toDouble() / 1000)
+}
+
+fun durationStringHtml(timeMs: Long) = StringUtil.escapeXmlEntities(durationString(timeMs))
 
 fun warningsCountString(warningsCount: Int) = when (warningsCount) {
   0 -> ""
