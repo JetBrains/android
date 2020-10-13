@@ -8,7 +8,7 @@
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
-    <option name="VM_PARAMETERS" value="-ea -XX:MaxPermSize=512m -Xms384m -Xmx4096m -Djava.io.tmpdir=$TEST_TEMP$ -Duser.home=$TEST_TEMP$/user/home -Didea.config.path=$TEST_TEMP$/config -Didea.system.path=$TEST_TEMP$/system -Didea.plugins.path=$TEST_TEMP$/plugins" />
+    <option name="VM_PARAMETERS" value="-ea -XX:MaxPermSize=512m -Xms384m -Xmx4096m -Djava.io.tmpdir=$PROJECT_DIR$/test-temp -Duser.home=$PROJECT_DIR$/test-temp/user/home -Didea.config.path=$PROJECT_DIR$/test-temp/config -Didea.system.path=$PROJECT_DIR$/test-temp/system -Didea.plugins.path=$PROJECT_DIR$/test-temp/plugins" />
     <option name="PARAMETERS" value="" />
     <option name="PASS_PARENT_ENVS" value="false" />
     <envs>
