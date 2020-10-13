@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates.live
+package com.android.tools.compose.templates
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
