@@ -16,14 +16,13 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.idea.ServerFlag
 import com.android.tools.idea.ServerFlagData
 import com.android.tools.idea.ServerFlagList
-import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.google.common.hash.Hashing
 import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
@@ -31,8 +30,12 @@ import java.net.URL
 import java.nio.file.Path
 import kotlin.math.abs
 
-const val FILE_NAME = "serverflags.protobuf"
-const val TEMP_FILE_PREFIX = "serverflags"
+const val FILE_NAME = "serverflaglist.protobuf"
+const val DIRECTORY_PREFIX = "serverflags"
+const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
+const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
+const val VERSION_OVERRIDE_KEY = "studio.server.flags.version.override"
+const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
 
 /**
  * ServerFlagInitializer initializes the ServerFlagService.instance field.
@@ -40,21 +43,24 @@ const val TEMP_FILE_PREFIX = "serverflags"
  * from the specified URL. If it succeeds it will save the file to a local path, then initialize the service.
  * If the download fails, it will use the last successful download to initialize the service
  */
-
-const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
-const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
-
 class ServerFlagInitializer {
   companion object {
     @JvmStatic
     fun initializeService() {
       val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
-      val localPath = File(PathManager.getSystemPath()).toPath().resolve("serverflags")
-      val version = ApplicationInfo.getInstance().build.asString()
-      val experiments = AndroidStudioUsageTracker.buildActiveExperimentList()
+      val localPath = File(PathManager.getSystemPath()).toPath().resolve(DIRECTORY_PREFIX)
+      val version = System.getProperty(VERSION_OVERRIDE_KEY, ApplicationInfo.getInstance().versionString)
+      val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
 
       initializeService(baseUrl, localPath, version, experiments)
+
+      val logger = Logger.getInstance(ServerFlagInitializer::class.java)
+      val names = ServerFlagService.instance.names
+      val string = names.joinToString()
+      logger.info("Enabled server flags: " + string)
+
     }
+
     /**
      * Initialize the server flag service
      * @param baseUrl: The base url where the download files are located.
@@ -110,7 +116,7 @@ class ServerFlagInitializer {
 
     private fun downloadFile(url: URL): File? {
       try {
-        val tempFile = File.createTempFile(TEMP_FILE_PREFIX, "")
+        val tempFile = File.createTempFile(DIRECTORY_PREFIX, "")
         url.openStream().use { inputStream ->
           tempFile.outputStream().use { outputStream ->
             ByteStreams.copy(inputStream, outputStream)
@@ -142,3 +148,12 @@ private val ServerFlagData.isEnabled: Boolean
     val hash = Hashing.farmHashFingerprint64().hashString(key, Charsets.UTF_8)
     return (abs(hash.asLong()) % 100).toInt() < this.serverFlag.percentEnabled
   }
+
+private val ApplicationInfo.versionString: String
+get()  {
+  val major = majorVersion ?: return ""
+  val minor = minorVersion ?: return ""
+  val micro = microVersion ?: return ""
+  val patch = patchVersion ?: return ""
+  return "$major.$minor.$micro.$patch"
+}
