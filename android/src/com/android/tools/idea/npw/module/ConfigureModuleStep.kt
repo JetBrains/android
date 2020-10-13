@@ -44,7 +44,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.EMPTY
 import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -80,9 +79,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
   protected val validatorPanel: ValidatorPanel by lazy {
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      ValidatorPanel(this, wrapWithVScroll(createMainPanel(), EMPTY)).apply {
-        border = SMALL.border
-      }
+      ValidatorPanel(this, wrapWithVScroll(createMainPanel(), SMALL))
     }
     else {
       ValidatorPanel(this, wrapWithVScroll(createMainPanel()))
