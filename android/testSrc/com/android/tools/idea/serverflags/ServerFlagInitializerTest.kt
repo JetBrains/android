@@ -33,7 +33,7 @@ import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.Executors
 
-private const val FILE_NAME = "serverflags.protobuf"
+private const val FILE_NAME = "serverflaglist.protobuf"
 private const val VERSION = "4.2.0.0"
 private val EXPERIMENTS = listOf("boolean", "int")
 
