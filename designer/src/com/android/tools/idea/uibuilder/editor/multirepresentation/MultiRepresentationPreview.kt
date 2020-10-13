@@ -336,6 +336,13 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
   }
 
+  override fun onVisibilityChange(isVisible: Boolean) {
+    if (isVisible)
+      onActivate()
+    else
+      onDeactivate() // If the preview becomes invisible, we deactivate it
+  }
+
   /**
    * Method called when this preview becomes active.
    */

@@ -481,11 +481,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(5))
 
+  // region Lifecycle handling
+  /**
+   * True if the preview has received a [refresh] call while it was deactivated from, for example, a build listener.
+   * When the preview becomes active again, a refresh will be issued.
+   */
+  private val refreshedWhileDeactivated = AtomicBoolean(false)
+
+  /**
+   * Tracks whether this preview is active or not. The value tracks the [onActivate] and [onDeactivate] calls.
+   */
+  private val isActive = AtomicBoolean(false)
+
   /**
    * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
    * [onInit] must be called.
    */
   private val isFirstActivation = AtomicBoolean(true)
+  // endregion
 
   init {
     Disposer.register(this, ticker)
@@ -496,6 +509,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override val component = workbench
 
+  // region Lifecycle handling
   /**
    * Completes the initialization of the preview. This method is only called once after the first [onActivate]
    * happens.
@@ -539,7 +553,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
       setupOnSaveListener(project, psiFile,
                           {
-                            if (isBuildOnSaveEnabled) requestBuildForSurface(surface)
+                            if (isBuildOnSaveEnabled
+                                && isActive.get()
+                                && !hasSyntaxErrors()) requestBuildForSurface(surface)
                           }, this)
     }
 
@@ -570,11 +586,31 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override fun onActivate() {
     LOG.debug("onActivate")
-    if (isFirstActivation.getAndSet(false)) onInit()
+    isActive.set(true)
+    if (isFirstActivation.getAndSet(false))
+      onInit()
+    else
+      surface.activate()
+
+    if (refreshedWhileDeactivated.getAndSet(false)) {
+      // Refresh has been called while we were deactivated, issue a refresh on activation.
+      LOG.debug("Pending refresh")
+      refresh()
+    }
   }
+
+  override fun onDeactivate() {
+    LOG.debug("onDeactivate")
+    setInteractivePreviewElementInstance(null)
+    isLiveLiteralsEnabled = false
+    surface.deactivate()
+    isActive.set(false)
+  }
+  // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent) {
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
+    if (!isActive.get()) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
@@ -874,6 +910,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       LOG.debug("Refresh triggered", refreshTrigger)
+
+      if (!isActive.get()) {
+        LOG.debug("Refresh, the preview is not active, scheduling for later.")
+        refreshedWhileDeactivated.set(true)
+        return@launch
+      }
+
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
         return@launch
