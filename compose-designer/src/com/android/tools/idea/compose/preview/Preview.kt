@@ -349,6 +349,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
     set(value) {
+      // When always-on is enabled, we do not allow changing the value
+      if (StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) return
+
       liveLiteralsManager.isEnabled = value
       forceRefresh()
     }
@@ -505,6 +508,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+
+    isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
   }
 
   override val component = workbench

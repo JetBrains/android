@@ -31,7 +31,9 @@ internal class LiveLiteralsAction : ToggleAction("Live literals tracking") {
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any { it.hasLiveLiterals }
+    e.presentation.isVisible = StudioFlags.COMPOSE_LIVE_LITERALS.get() &&
+                               !StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get() &&
+                               findComposePreviewManagersForContext(e.dataContext).any { it.hasLiveLiterals }
   }
 
   override fun isSelected(e: AnActionEvent): Boolean =
