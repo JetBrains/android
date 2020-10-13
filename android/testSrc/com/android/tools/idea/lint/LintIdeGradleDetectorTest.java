@@ -171,6 +171,11 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testJavaLanguageLevelToplevelMissing() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
