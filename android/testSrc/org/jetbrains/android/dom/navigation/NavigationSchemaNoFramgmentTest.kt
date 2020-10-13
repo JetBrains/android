@@ -23,7 +23,7 @@ import com.intellij.util.io.ZipUtil
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
 
-class NavigationSchemaTest3 : AndroidTestCase() {
+class NavigationSchemaNoFragmentTest : AndroidTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
