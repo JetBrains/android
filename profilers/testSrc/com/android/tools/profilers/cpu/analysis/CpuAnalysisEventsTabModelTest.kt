@@ -32,7 +32,6 @@ class CpuAnalysisEventsTabModelTest {
   fun getThreadEvents() {
     val timeline = DefaultTimeline().apply {
       dataRange.set(0.0, 100.0)
-      selectionRange.set(10.0, 20.0)
     }
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(getCaptureNode(123)).thenReturn(ROOT)
@@ -42,10 +41,10 @@ class CpuAnalysisEventsTabModelTest {
       CpuThreadInfo(123, "foo"),
       timeline,
       MultiSelectionModel())
-    val model = CpuThreadAnalysisEventsTabModel(timeline.dataRange, timeline.selectionRange).apply {
+    val model = CpuThreadAnalysisEventsTabModel(timeline.dataRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
-    assertThat(model.getNodes().map { it.data.name }).containsExactly("3", "1")
+    assertThat(model.getNodes().map { it.data.name }).containsExactly("1", "2", "3", "1")
   }
 
   @Test
