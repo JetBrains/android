@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.navigation
 
 import org.jetbrains.android.AndroidTestCase
 
-class NavigationSchemaTest2 : AndroidTestCase() {
+class NavigationSchemaNoLibraryTest : AndroidTestCase() {
   fun testNoLibrary() {
     try {
       NavigationSchema.createIfNecessary(myModule)
