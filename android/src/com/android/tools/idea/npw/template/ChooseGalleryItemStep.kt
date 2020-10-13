@@ -140,12 +140,11 @@ abstract class ChooseGalleryItemStep(
     fun AndroidFacet.getModuleInfo() = AndroidModuleInfo.getInstance(this)
 
     val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
-    val moduleBuildApiLevel = sdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
     val project = renderModel.project
 
     invalidParameterMessage.set(
-      renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, project.isAndroidx(), project.isJetifierEnabled(),
+      renderModel.newTemplate.validate(moduleApiLevel, isNewModule, project.isAndroidx(), project.isJetifierEnabled(),
                                        renderModel.language.value, messageKeys)
     )
 
@@ -186,7 +185,6 @@ fun getDefaultSelectedTemplateIndex(
 
 @VisibleForTesting
 fun Template.validate(moduleApiLevel: Int,
-                      moduleBuildApiLevel: Int,
                       isNewModule: Boolean,
                       isAndroidxProject: Boolean,
                       isJetifierEnabled: Boolean,
@@ -195,7 +193,6 @@ fun Template.validate(moduleApiLevel: Int,
 ): String = when {
   this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
-  moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
   constraints.contains(TemplateConstraint.Jetifier) && isAndroidxProject && !isJetifierEnabled -> message(messageKeys.invalidJetifier)
   constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
@@ -207,7 +204,6 @@ data class WizardGalleryItemsStepMessageKeys(
   val stepTitle: String,
   val itemNotFound: String,
   val invalidMinSdk: String,
-  val invalidMinBuild: String,
   val invalidAndroidX: String,
   val invalidJetifier: String,
   val invalidNeedsKotlin: String

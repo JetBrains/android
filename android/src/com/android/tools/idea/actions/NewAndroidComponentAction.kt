@@ -64,7 +64,6 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val category: Category,
   private val templateName: String,
   private val minSdkApi: Int,
-  private val minBuildSdkApi: Int = minSdkApi,
   private val templateConstraints: Collection<TemplateConstraint> = setOf()
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
 
@@ -90,14 +89,9 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val presentation = e.presentation
     presentation.isVisible = true
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
-    val buildSdkVersion = moduleInfo.buildSdkVersion
     when {
       minSdkApi > moduleInfo.minSdkVersion.featureLevel -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
-        presentation.isEnabled = false
-      }
-      buildSdkVersion != null && minBuildSdkApi > buildSdkVersion.featureLevel -> {
-        presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
         presentation.isEnabled = false
       }
       templateConstraints.contains(TemplateConstraint.AndroidX) && !hasAndroidXEnabled(module) -> {
