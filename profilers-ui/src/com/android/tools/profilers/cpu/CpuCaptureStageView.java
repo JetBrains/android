@@ -119,6 +119,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myScrollPane.setBorder(JBUI.Borders.empty());
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
@@ -341,8 +342,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                AxisComponent.AxisOrientation.BOTTOM);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
-    // Hide the axis line so it doesn't stack with panel border.
-    timeAxis.setShowAxisLine(false);
     // Align with track content.
     axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
     return axisPanel;
