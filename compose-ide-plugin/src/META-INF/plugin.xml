@@ -21,7 +21,7 @@
     <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
     <vendor url="http://www.android.com">Android</vendor>
 
-    <idea-version since-build="191.5109.14" until-build="201.*"/>
+    <idea-version since-build="191.5109.14"/>
     <depends>org.jetbrains.android</depends>
     <depends>org.jetbrains.kotlin</depends>
 
@@ -38,8 +38,23 @@
             implementationClass="com.android.tools.compose.ComposableAnnotator"/>
         <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
         <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
+
+        <intentionAction>
+            <className>com.android.tools.compose.intentions.ComposeSurroundWithWidgetActionGroup</className>
+            <category>Compose Android</category>
+        </intentionAction>
+
+        <intentionAction>
+            <className>com.android.tools.compose.intentions.ComposeCreatePreviewAction</className>
+            <category>Compose Android</category>
+        </intentionAction>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
         <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
     </extensions>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
+    </extensions>
+
 </idea-plugin>
