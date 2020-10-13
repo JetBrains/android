@@ -37,7 +37,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
@@ -204,25 +203,28 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
+    val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
+    waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
-    val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
-
     assertThat(emulator.extendedControlsVisible).isFalse()
     emulatorController.showExtendedControls()
+    // Wait for the extended controls to show.
     waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+
+    val uiState = (contentManager.contents[0].component as EmulatorToolWindowPanel).uiState
 
     toolWindow.hide()
 
-    waitForCondition(2, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
-
-    Thread.sleep(100) // Let background activity to finish.
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    // Wait for the extended controls to close.
+    waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
+    // Wait for the prior visibility state of the extended controls to propagate to Studio.
+    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsVisible }
 
     toolWindow.show()
 
+    // Wait for the extended controls to show.
     waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
   }
 
