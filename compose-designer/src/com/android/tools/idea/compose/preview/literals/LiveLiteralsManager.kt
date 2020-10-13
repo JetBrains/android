@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.literals.EmptyLiteralReferenceSnapshot
 import com.android.tools.idea.editors.literals.LiteralReferenceSnapshot
 import com.android.tools.idea.editors.literals.LiteralsManager
 import com.android.tools.idea.editors.literals.highlightSnapshotInEditor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
@@ -109,7 +110,8 @@ class LiveLiteralsManager(private val project: Project,
       val newActivationDisposable = Disposer.newDisposable()
 
       val editor = PsiEditorUtil.findEditor(file)
-      if (editor != null) {
+      // When using "always-on" live literals, we don't show highlights.
+      if (editor != null && !StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) {
         val highlightManager = HighlightManager.getInstance(project)
         val outHighlighters = mutableSetOf<RangeHighlighter>()
         lastSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE, outHighlighters)
