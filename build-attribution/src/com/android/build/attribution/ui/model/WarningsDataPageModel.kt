@@ -378,4 +378,5 @@ class AnnotationProcessorDetailsNodeDescriptor(
     )
 }
 
-private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) = "%.1fs".format(timeMs.toDouble() / 1000)
+private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
+  if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"
