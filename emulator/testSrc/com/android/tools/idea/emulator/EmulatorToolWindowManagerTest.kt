@@ -17,12 +17,14 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
+import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdManagerConnection.getEmulatorHiddenWindowFlag
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -35,6 +37,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
@@ -52,9 +55,10 @@ import java.util.concurrent.TimeUnit
 class EmulatorToolWindowManagerTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
+  private val flagRule = RestoreFlagRule(StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS)
   private var nullableToolWindow: ToolWindow? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(flagRule).around(emulatorRule).around(EdtRule())
 
   private val project
     get() = projectRule.project
@@ -179,13 +183,56 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents[0].displayName == "No Running Emulators" }
   }
 
+  @Test
+  fun testUiStatePreservation() {
+    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true)
+
+    val factory = EmulatorToolWindowFactory()
+    assertThat(factory.shouldBeAvailable(project)).isTrue()
+    factory.createToolWindowContent(project, toolWindow)
+    val contentManager = toolWindow.contentManager
+    assertThat(contentManager.contents).isEmpty()
+
+    val tempFolder = emulatorRule.root.toPath()
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+
+    toolWindow.show()
+
+    // Start the emulator.
+    emulator.start()
+
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    assertThat(contentManager.contents).hasLength(1)
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
+
+    val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
+
+    assertThat(emulator.extendedControlsVisible).isFalse()
+    emulatorController.showExtendedControls()
+    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+
+    toolWindow.hide()
+
+    waitForCondition(2, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
+
+    Thread.sleep(100) // Let background activity to finish.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    toolWindow.show()
+
+    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+  }
+
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow = TestToolWindow(project, this)
 
-    override fun getToolWindow(id: String?): ToolWindow? {
+    override fun getToolWindow(id: String?): ToolWindow {
       assertThat(id).isEqualTo(EMULATOR_TOOL_WINDOW_ID)
       return toolWindow
     }

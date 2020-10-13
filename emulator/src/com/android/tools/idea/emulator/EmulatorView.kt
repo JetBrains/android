@@ -324,16 +324,15 @@ class EmulatorView(
    * The preferred size is null for zoom to fit.
    */
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
-    val newScale: Double
-    when (zoomType) {
+    val newScale = when (zoomType) {
       ZoomType.IN -> {
-        newScale = min(ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, MAX_SCALE)
+        min(ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, MAX_SCALE)
       }
       ZoomType.OUT -> {
-        newScale = max(ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, computeScaleToFitInParent())
+        max(ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, computeScaleToFitInParent())
       }
       ZoomType.ACTUAL -> {
-        newScale = 1.0
+        1.0
       }
       ZoomType.FIT -> {
         return null

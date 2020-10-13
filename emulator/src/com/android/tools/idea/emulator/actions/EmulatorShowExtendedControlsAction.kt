@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.idea.emulator.EmptyStreamObserver
+import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -29,16 +30,20 @@ class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-    emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
-      override fun onCompleted() {
-        emulatorController.showExtendedControls()
-      }
-    })
+    showExtendedControls(emulatorController)
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()
   }
+}
+
+internal fun showExtendedControls(emulatorController: EmulatorController) {
+  val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+  emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
+    override fun onCompleted() {
+      emulatorController.showExtendedControls()
+    }
+  })
 }
