@@ -123,6 +123,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  @Volatile var extendedControlsVisible = false
   /** Ids of snapshots that were marked "invalid" by calling the [markSnapshotInvalid] method. */
   private val invalidSnapshots = ContainerUtil.newConcurrentSet<String>()
   /** The ID of the last loaded snapshot. */
@@ -545,13 +546,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
-        sendResponse(responseObserver, ExtendedControlsStatus.getDefaultInstance())
+        val changed = !extendedControlsVisible
+        extendedControlsVisible = true
+        sendResponse(responseObserver, ExtendedControlsStatus.newBuilder().setVisibilityChanged(changed).build())
       }
     }
 
     override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
-        sendResponse(responseObserver, ExtendedControlsStatus.getDefaultInstance())
+        val changed = extendedControlsVisible
+        extendedControlsVisible = false
+        sendResponse(responseObserver, ExtendedControlsStatus.newBuilder().setVisibilityChanged(changed).build())
       }
     }
 

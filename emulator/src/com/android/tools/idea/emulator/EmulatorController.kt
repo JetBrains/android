@@ -243,7 +243,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Streams contents of the clipboard.
    */
-  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable? {
+  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("streamClipboard()")
     }
@@ -313,7 +313,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Streams a series of screenshots.
    */
-  fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable? {
+  fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("streamScreenshot(${shortDebugString(imageFormat)})")
     }
@@ -565,6 +565,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           applier.apply(headers)
         }
         catch (e: Throwable) {
+          logger.error(e)
           applier.fail(Status.UNAUTHENTICATED.withCause(e))
         }
       }
