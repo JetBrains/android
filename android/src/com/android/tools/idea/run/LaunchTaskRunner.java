@@ -229,7 +229,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                                                        boolean destroyProcessOnCancellation,
                                                        @NotNull AtomicInteger completedStepsCount,
                                                        int totalScheduledStepsCount) {
-    return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
+    // TODO(b/170750947): Parallelize this step by not using DirectExecutorService.
+    return MoreExecutors.listeningDecorator(MoreExecutors.newDirectExecutorService()).submit(() -> {
       // Update the indicator progress.
       indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
       IDevice device = launchContext.getDevice();
