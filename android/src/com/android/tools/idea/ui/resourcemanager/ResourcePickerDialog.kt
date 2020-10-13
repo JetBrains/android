@@ -73,7 +73,7 @@ class ResourcePickerDialog(
   private var pickedResourceName: String? = null
 
   init {
-    ResourceManagerTracking.logDialogOpens()
+    ResourceManagerTracking.logDialogOpens(facet)
     init()
     doValidate()
   }
