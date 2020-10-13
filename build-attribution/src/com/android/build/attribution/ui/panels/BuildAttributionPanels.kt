@@ -21,9 +21,11 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.wrapPathToSpans
 import com.android.tools.adtui.TabularLayout
@@ -60,7 +62,7 @@ private fun taskDetailsPanel(
   val taskInfo = htmlTextLabelWithLinesWrap("""
       ${determinesBuildDurationLine}<br/>
       <br/>
-      <b>Duration:</b>  ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}<br/>
+      <b>Duration:</b>  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}<br/>
       Sub-project: ${taskData.module}<br/>
       Plugin: ${taskData.pluginName}<br/>
       Type: ${taskData.taskType}<br/>

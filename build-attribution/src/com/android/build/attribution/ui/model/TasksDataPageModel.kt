@@ -368,7 +368,11 @@ class PluginDetailsNodeDescriptor(
     get() = CriticalPathChartLegend.pluginColorPalette.getColor(pluginData.name).baseColor
 }
 
-private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%.1fs %4.1f%%".format(timeS, percentage)
+private fun TimeWithPercentage.toRightAlignedNodeDurationText(): String {
+  val timeString = if (timeMs < 100) "<0.1s" else "%2.1fs".format(timeS)
+  val percentageString = if (percentage < 0.1) "<0.1%" else "%4.1f%%".format(percentage)
+  return "%s %5s".format(timeString, percentageString)
+}
 
 // TODO (mlazeba): It might be a good idea to replace all current usage of TimeWithPercentage to such way of distribution building.
 //  But it is quite a lot of places so will do later if this works fine.

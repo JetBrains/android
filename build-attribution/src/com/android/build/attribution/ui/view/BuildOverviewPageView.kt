@@ -16,10 +16,12 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
 import com.intellij.icons.AllIcons
@@ -49,11 +51,11 @@ class BuildOverviewPageView(
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
     val text = """
       <b>Build finished on ${buildFinishedTime}</b><br/>
-      Total build duration was ${buildSummary.totalBuildDuration.durationString()}.<br/>
+      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}.<br/>
       <br/>
       Includes:<br/>
-      Build configuration: ${buildSummary.configurationDuration.durationString()}<br/>
-      Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}<br/>
+      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}<br/>
+      Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
     """.trimIndent()
     add(htmlTextLabelWithFixedLines(text))
   }
@@ -82,7 +84,7 @@ class BuildOverviewPageView(
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
     val descriptionText = """
-      ${gcTime.percentageString()} of your build’s time was dedicated to garbage collection during this build (${gcTime.durationString()}).<br/>
+      ${gcTime.percentageStringHtml()} of your build’s time was dedicated to garbage collection during this build (${gcTime.durationStringHtml()}).<br/>
       To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>
       You can do this on the memory settings page.
     """.trimIndent()
