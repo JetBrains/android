@@ -50,36 +50,34 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
 
   override fun createMainPanel(): JPanel = panel {
     row {
-      cell {
-        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
 
     row {
       labelFor("Package name", packageName)
-      packageName()
+      packageName(pushX)
     }
 
     row {
       labelFor("Language", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
 
     row {
       labelFor("C++ Standard", cppStandard)
-      cppStandard()
+      cppStandard(growX)
     }
 
     row {
       labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo()
+      apiLevelCombo(growX)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       verticalGap()
       row {
-        gradleKtsCheck()
+        gradleKtsCheck(growX)
       }
     }
   }
