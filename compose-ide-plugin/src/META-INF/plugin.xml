@@ -48,6 +48,10 @@
             <className>com.android.tools.compose.intentions.ComposeCreatePreviewAction</className>
             <category>Compose Android</category>
         </intentionAction>
+
+        <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
+        <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
+
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
         <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
