@@ -39,6 +39,7 @@ iml_module(
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
