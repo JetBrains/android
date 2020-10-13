@@ -241,8 +241,8 @@ class ManageSnapshotsDialog(
     val size = getHumanizedSize(snapshot.sizeOnDisk)
     val creationTime = JBDateFormat.getFormatter().formatDateTime(snapshot.creationTime).replace(",", "")
     val folderName = htmlEscaper.escape(snapshot.snapshotFolder.fileName.toString())
-    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created ${creationTime}, ${size}"
-    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: ${folderName}"
+    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created $creationTime, $size"
+    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: $folderName"
     val errorSection = if (snapshot.isValid) ""
         else "<br><font color = ${JBColor.RED.toHtmlString()}>Incompatible with the current configuration</font>"
     val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
@@ -364,7 +364,7 @@ class ManageSnapshotsDialog(
           val error = response.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterWhileDialogIsShowing {
-            showError("""Error loading snapshot "${snapshot.displayName}"${detail}""")
+            showError("""Error loading snapshot "${snapshot.displayName}"$detail""")
           }
         }
       }
@@ -628,7 +628,7 @@ class ManageSnapshotsDialog(
   }
 
   private fun invokeLaterWhileDialogIsShowing(runnable: () -> Unit) {
-    ApplicationManager.getApplication().invokeLater(Runnable { runnable() }, ModalityState.any()) { dialogManager == null }
+    ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any()) { dialogManager == null }
   }
 
   private inner class SnapshotTableModel : ListTableModel<SnapshotInfo>() {
@@ -681,7 +681,7 @@ class ManageSnapshotsDialog(
         return snapshot == bootSnapshot
       }
 
-      override fun getColumnClass(): Class<*>? {
+      override fun getColumnClass(): Class<*> {
         return java.lang.Boolean::class.java
       }
 
@@ -754,7 +754,7 @@ class ManageSnapshotsDialog(
     }
 
     private fun invalidColumn(columnIndex: Int): Nothing {
-      throw IllegalArgumentException("Invalid column ${columnIndex}")
+      throw IllegalArgumentException("Invalid column $columnIndex")
     }
 
     fun update(snapshots: List<SnapshotInfo>, newBootSnapshot: SnapshotInfo?) {
@@ -765,18 +765,18 @@ class ManageSnapshotsDialog(
     fun update(snapshots: List<SnapshotInfo>) {
       val savedSelection = SelectionState(snapshotTable)
       items = snapshots
-      snapshotIconMap.keys.retainAll(HashSet(snapshots)) // Cleanup snapshotIconMap
+      snapshotIconMap.keys.retainAll(HashSet(snapshots)) // Clean up snapshotIconMap.
       savedSelection.restoreSelection()
       if (snapshotTable.selectedRowCount == 0 && snapshots.isNotEmpty()) {
         snapshotTable.selectionModel.addSelectionInterval(QUICK_BOOT_SNAPSHOT_MODEL_ROW, QUICK_BOOT_SNAPSHOT_MODEL_ROW)
       }
     }
 
-    override fun getDefaultSortKey(): RowSorter.SortKey? {
+    override fun getDefaultSortKey(): RowSorter.SortKey {
       return RowSorter.SortKey(nameColumnIndex, SortOrder.ASCENDING)
     }
 
-    fun getIcon(snapshot: SnapshotInfo): Icon? {
+    fun getIcon(snapshot: SnapshotInfo): Icon {
       val iconFuture = snapshotIconMap.computeIfAbsent(snapshot, ::createSnapshotIcon)
 
       if (iconFuture.isDone) {
