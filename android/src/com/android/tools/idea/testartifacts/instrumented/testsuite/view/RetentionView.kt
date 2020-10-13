@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -26,6 +27,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
 import com.android.tools.idea.testartifacts.instrumented.LOAD_RETENTION_ACTION_ID
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
@@ -39,6 +41,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.AppUIUtil
 import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
@@ -49,19 +52,17 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
 import org.apache.commons.lang.StringEscapeUtils
-import org.ini4j.Config
-import org.ini4j.Ini
 import java.awt.Desktop
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.image.ImageObserver
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
-import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.charset.Charset
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.text.DateFormat
@@ -76,9 +77,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
-private const val INI_GLOBAL_SECTION_NAME = "global"
-private const val BUILD_PROP_FILE_NAME = "build.prop"
-
 // TODO(yahan@) rework this view when we have the UI mock
 /**
  * Shows the Android Test Retention artifacts
@@ -86,7 +84,9 @@ private const val BUILD_PROP_FILE_NAME = "build.prop"
 class RetentionView(private val androidSdkHandler: AndroidSdkHandler
                     = AndroidSdkHandler.getInstance(IdeSdks.getInstance().androidSdkPath),
                     private val progressIndicator: ProgressIndicator
-                    = StudioLoggerProgressIndicator(RetentionView::class.java)) {
+                    = StudioLoggerProgressIndicator(RetentionView::class.java),
+                    private val runtime: Runtime
+                    = Runtime.getRuntime()) {
   private inner class RetentionPanel : JPanel(), DataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+).tar(.gz)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
@@ -112,25 +112,14 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
 
     override fun getData(dataId: String): Any? {
-      when {
-        dataId === EMULATOR_SNAPSHOT_ID_KEY.name -> {
-          return snapshotId
-        }
-        dataId === EMULATOR_SNAPSHOT_FILE_KEY.name -> {
-          return snapshotFile
-        }
-        dataId === PACKAGE_NAME_KEY.name -> {
-          return packageName
-        }
-        dataId === RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> {
-          return true
-        }
-        dataId === RETENTION_ON_FINISH_KEY.name -> {
-          return Runnable { myRetentionDebugButton.isEnabled = true }
-        }
-        dataId === DEVICE_NAME_KEY.name -> {
-          return androidDevice!!.deviceName
-        }
+      when (dataId) {
+        EMULATOR_SNAPSHOT_ID_KEY.name -> return snapshotId
+        EMULATOR_SNAPSHOT_FILE_KEY.name -> return snapshotFile
+        EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> return snapshotProto?.launchParametersList
+        PACKAGE_NAME_KEY.name -> return packageName
+        RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> return true
+        RETENTION_ON_FINISH_KEY.name -> return Runnable { myRetentionDebugButton.isEnabled = true }
+        DEVICE_NAME_KEY.name -> return androidDevice!!.deviceName
         else -> return null
       }
     }
@@ -212,6 +201,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
 
   private var testStartTime: Long? = null
+
   /**
    * Returns the root panel.
    */
@@ -231,10 +221,18 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     val targetWidth = rootPanel.width / 4
     val targetHeight = targetWidth * imageHeight / imageWidth
     val newImage = image.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT)
-    myImageLabel.icon = ImageIcon(newImage)
-    myInnerPanel.revalidate()
+    AppUIUtil.invokeOnEdt {
+      myImageLabel.icon = ImageIcon(newImage)
+      myInnerPanel.revalidate()
+    }
   }
 
+  /*
+   * Sets the snapshot file and updates UI.
+   *
+   * @param snapshotFile a snapshot file
+   */
+  @UiThread
   fun setSnapshotFile(snapshotFile: File?) {
     myRetentionPanel.setSnapshotFile(
       snapshotFile)
@@ -245,73 +243,82 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     image = null
     if (snapshotFile != null) {
       getInstance().ioThreadExecutor.execute {
-        try {
-          var inputStream: InputStream = FileInputStream(
-            snapshotFile)
-          if (FileNameUtils.getExtension(
-              snapshotFile.name.toLowerCase(
-                Locale.getDefault())) == "gz") {
-            inputStream = GzipCompressorInputStream(
-              inputStream)
-          }
-          val tarInputStream = TarArchiveInputStream(
-            inputStream)
-          var entry: TarArchiveEntry?
-          var snapshotProto: SnapshotOuterClass.Snapshot? = null
-          var hardwareIni: Ini? = null
-          while (tarInputStream.nextTarEntry.also { entry = it } != null) {
-            if (entry!!.name == "screenshot.png") {
-              val imageStream = ImageIO.read(
-                tarInputStream)
-              image = ImageIcon(imageStream).image
-              updateSnapshotImage(image!!, image!!.getWidth(observer),
-                                  image!!.getHeight(observer))
-            } else if (entry!!.name == "snapshot.pb") {
-              snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
-            } else if (entry!!.name == "hardware.ini") {
-              hardwareIni = Ini().apply {
-                config = Config.getGlobal().apply {
-                  isGlobalSection = true
-                  globalSectionName = INI_GLOBAL_SECTION_NAME
-                  fileEncoding = Charset.defaultCharset()
-                }
-                load(object : FilterInputStream(tarInputStream) {
-                  override fun close() {
-                    // Ini4J will close the stream, which breaks our tar stream reader.
-                    // So we override the stream with a no-op close.
-                  }
-                })
-              }
-            }
-          }
-          myRetentionPanel.snapshotProto = snapshotProto
-          if (snapshotProto == null) {
-            myRetentionDebugButton.toolTipText = "Snapshot protobuf broken, expected path: ${snapshotFile.name}:snapshot.pb"
-            return@execute
-          }
-          val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
-          if (emulatorPackage == null) {
-            myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
-            return@execute
-          }
-          // TODO(b/166826352): validate snapshot version
-          if (hardwareIni == null) {
-            myRetentionDebugButton.toolTipText = "Missing snapshot hardware.ini, expected path: ${snapshotFile.name}:hardware.ini"
-            return@execute
-          }
-          isSystemImageCompatible(hardwareIni, snapshotProto.systemImageBuildId, androidSdkHandler).also {
-            if (!it.compatible) {
-              myRetentionDebugButton.toolTipText = "Snapshot system image incompatible, reason: ${it.reason}"
-              return@execute
-            }
-          }
-          myRetentionDebugButton.isEnabled = true
-        }
-        catch (e: IOException) {
-          LOG.warn(
-            "Failed to parse retention snapshot", e)
+        scanSnapshotFileContent(snapshotFile)
+      }
+    }
+  }
+
+  private fun scanSnapshotFileContent(snapshotFile: File) {
+    try {
+      var inputStream: InputStream = FileInputStream(
+        snapshotFile)
+      if (FileNameUtils.getExtension(
+          snapshotFile.name.toLowerCase(
+            Locale.getDefault())) == "gz") {
+        inputStream = GzipCompressorInputStream(
+          inputStream)
+      }
+      val tarInputStream = TarArchiveInputStream(
+        inputStream)
+      var entry: TarArchiveEntry?
+      var snapshotProto: SnapshotOuterClass.Snapshot? = null
+      while (tarInputStream.nextTarEntry.also { entry = it } != null) {
+        if (entry!!.name == "screenshot.png") {
+          val imageStream = ImageIO.read(
+            tarInputStream)
+          image = ImageIcon(imageStream).image
+          updateSnapshotImage(image!!, image!!.getWidth(observer),
+                              image!!.getHeight(observer))
+        } else if (entry!!.name == "snapshot.pb") {
+          snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
         }
       }
+      myRetentionPanel.snapshotProto = snapshotProto
+      if (snapshotProto == null) {
+        AppUIUtil.invokeOnEdt {
+          myRetentionDebugButton.toolTipText = "Snapshot protobuf broken, expected path: ${snapshotFile.name}:snapshot.pb"
+        }
+        return
+      }
+      val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
+      val emulatorBinary = File(emulatorPackage?.location, SdkConstants.FN_EMULATOR)
+      if (!androidSdkHandler.fileOp.exists(emulatorBinary)) {
+        AppUIUtil.invokeOnEdt {
+          myRetentionDebugButton.toolTipText = "Missing emulator executables. Please download the emulator from SDK manager."
+        }
+        return
+      }
+      if (snapshotProto.launchParametersCount != 0) {
+        val args = snapshotProto
+          .launchParametersList
+          .toMutableList()
+          .apply {
+            this[0] = emulatorBinary.path
+            add("-check-snapshot-loadable")
+            add(snapshotFile.absolutePath)
+          }
+          .toTypedArray()
+        val p = runtime.exec(args.joinToString(" "))
+        p.waitFor()
+        val lines = BufferedReader(InputStreamReader(p.inputStream)).lines()
+        lines.anyMatch {
+          LOG.warn(it)
+          it.contains("Not loadable")
+        }.let {
+          if (it) {
+            AppUIUtil.invokeOnEdt {
+              myRetentionDebugButton.toolTipText = "Snapshot not loadable, reason: ${lines}"
+            }
+            return
+          }
+        }
+      }
+      AppUIUtil.invokeOnEdt {
+        myRetentionDebugButton.isEnabled = true
+      }
+    } catch (e: IOException) {
+      LOG.warn(
+        "Failed to parse retention snapshot", e)
     }
   }
 
@@ -334,7 +341,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         val attribs = Files.readAttributes(snapshotFile.toPath(), BasicFileAttributes::class.java)
         val formatted: String = attribs.creationTime().toMillis().formatTime()
         text += "Created: ${formatted.escapeHtml()}<br>"
-      } catch (ex: Exception) {
+      }
+      catch (ex: Exception) {
         // No-op
       }
     }
@@ -362,41 +370,3 @@ private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(thi
 private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
 
 data class CompatibleResult(val compatible: Boolean, val reason: String? = null)
-
-fun isSystemImageCompatible(snapshotHardwareIni: Ini,
-                            snapshotSystemImageBuildId: String,
-                            androidSdkHandler: AndroidSdkHandler): CompatibleResult {
-  val snapshotSystemImagePath = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("disk.systemPartition.initPath")
-  if (snapshotSystemImagePath.isNullOrEmpty()) {
-    return CompatibleResult(false, "Cannot find snapshot system image path.")
-  }
-  val snapshotSdkRoot = snapshotHardwareIni[INI_GLOBAL_SECTION_NAME]?.get("android.sdk.root")
-  val newSystemImagePath = if (snapshotSdkRoot == null || androidSdkHandler.location?.path.isNullOrEmpty()) {
-    snapshotSystemImagePath
-  } else {
-    snapshotSystemImagePath.replace(snapshotSdkRoot,
-                                    androidSdkHandler.location?.path ?: "")
-  }
-  val systemImageBuildPropertyPath = File(File(newSystemImagePath).parent).resolve(BUILD_PROP_FILE_NAME)
-  if (!systemImageBuildPropertyPath.isFile) {
-    return CompatibleResult(false,
-                            "Failed to find system image build property, expected path: ${systemImageBuildPropertyPath}")
-  }
-  if (!snapshotSystemImageBuildId.isNullOrEmpty()) {
-    Ini().also {
-      it.config = Config.getGlobal().apply {
-        isGlobalSection = true
-        globalSectionName = INI_GLOBAL_SECTION_NAME
-        fileEncoding = Charset.defaultCharset()
-      }
-      it.load(systemImageBuildPropertyPath)
-      if (snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.id")
-          && snapshotSystemImageBuildId != it[INI_GLOBAL_SECTION_NAME]?.get("ro.build.display.id")) {
-        return CompatibleResult(false,
-                                "System image version mismatch. Please manually download the system image with build ID"
-                                + "${snapshotSystemImageBuildId} to folder ${File(newSystemImagePath).parent}")
-      }
-    }
-  }
-  return CompatibleResult(true)
-}
