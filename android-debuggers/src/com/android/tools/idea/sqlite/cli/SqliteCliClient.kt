@@ -1,0 +1,164 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@file:Suppress("BlockingMethodInNonBlockingContext") // A dispatcher is passed in as a parameter, but it's not explicitly Kotlin's IO one.
+
+package com.android.tools.idea.sqlite.cli
+
+import com.android.annotations.concurrency.WorkerThread
+import com.intellij.openapi.diagnostic.logger
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.OutputStreamWriter
+import java.io.StringWriter
+import java.io.Writer
+import java.nio.file.Path
+import java.util.Scanner
+import kotlin.text.Charsets.UTF_8
+
+private const val sqliteCliOutputArgPrefix = ".output"
+
+/** Runs commands against the `sqlite3` CLI tool */
+interface SqliteCliClient {
+  suspend fun runSqliteCliCommand(args: List<SqliteCliArg>): SqliteCliResponse
+}
+
+data class SqliteCliArg(val rawArg: String)
+
+data class SqliteCliResponse(val exitCode: Int, val stdOutput: String, val errOutput: String)
+
+class SqliteCliArgs private constructor() {
+  companion object {
+    fun builder(): Builder = Builder()
+  }
+
+  class Builder {
+    private val args = mutableListOf<SqliteCliArg>()
+
+    fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.canonicalPath}'")) }
+    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.canonicalPath}")) }
+    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.canonicalPath}'")) }
+    fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
+    fun dump() = apply { args.add(SqliteCliArg(".dump")) }
+    fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
+    fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
+    fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '${separator}'")) }
+    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("select * from '$tableName';")) }
+    fun queryTableList() = apply { args.add(SqliteCliArg(SqliteConstants.selectTableNames + ";")) }
+    fun queryViewList() = apply { args.add(SqliteCliArg(SqliteConstants.selectViewNames + ";")) }
+    fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
+    private fun quit() = apply { args.add(SqliteCliArg(".quit")) } // exits the sqlite3 interactive mode
+
+    fun build() = this.quit().args.toList() // appends the ".quit" command as the last argument
+  }
+}
+
+object SqliteConstants {
+  const val selectTableNames = "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
+  const val selectViewNames = "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+}
+
+class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) : SqliteCliClient {
+  private val logger = logger<SqliteCliClientImpl>()
+
+  @WorkerThread
+  override suspend fun runSqliteCliCommand(args: List<SqliteCliArg>): SqliteCliResponse = withContext(dispatcher) {
+    val sqlCliPath = sqlite3.canonicalPath
+    val stringArgs = args.map { it.rawArg }
+    logger.info("Executing external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
+
+    // The sqlite3 .output parameter proved buggy on Windows with non-ascii characters, so we use stream redirection instead.
+    // If the parameter is not present, we use a StringWriter.
+    // Note that the .clone command does not have the same issue as .output, so we don't need to do anything special in the .clone case.
+    val (outputArgs, inputLines) = stringArgs.partition { it.startsWith("$sqliteCliOutputArgPrefix ") }
+    val outputArg = outputArgs.firstOrNull()
+    val outputPath = outputArg?.removePrefix("$sqliteCliOutputArgPrefix ")
+    val outputFile = outputPath?.let { File(it) }
+    val outputWriter = outputFile?.let { BufferedWriter(OutputStreamWriter(FileOutputStream(it, false), UTF_8)) } ?: StringWriter()
+
+    val errWriter = StringWriter()
+
+    outputWriter.use {
+      val exitCode = ProcessExecutor.exec(sqlCliPath, inputLines, outputWriter, errWriter, dispatcher)
+      val stdOutput = if (outputWriter is StringWriter) outputWriter.toString() else "" // in the "else" case we assume a file output
+      val errOutput = errWriter.toString()
+      SqliteCliResponse(exitCode, stdOutput, errOutput).also {
+        logger.info("Successfully executed external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
+      }
+    }
+  }
+}
+
+/**
+ * Executor consuming std/err output streams as the process is being executed.
+ * @return exitCode of the process
+ **/
+private object ProcessExecutor {
+  suspend fun exec(executable: String,
+                   inputLines: List<String>,
+                   stdWriter: Writer,
+                   errWriter: Writer,
+                   dispatcher: CoroutineDispatcher): Int = withContext(dispatcher) {
+    val process = Runtime.getRuntime().exec(executable)
+
+    val exitCode = async { process.waitFor() }
+    val errOutput = async { consumeProcessOutput(process.errorStream, errWriter, process) }
+    val stdOutput = async { consumeProcessOutput(process.inputStream, stdWriter, process) }
+    val input = async { feedProcessInput(process.outputStream, inputLines) }
+
+    input.await()
+    stdOutput.await()
+    errOutput.await()
+    exitCode.await()
+  }
+
+  // Feeds input lines to the process' outputStream
+  private fun feedProcessInput(outputStream: OutputStream, inputLines: List<String>) {
+    outputStream.writer(UTF_8).use { writer ->
+      inputLines.forEach { line ->
+        writer.write(line + System.lineSeparator())
+        writer.flush()
+      }
+    }
+  }
+
+  // Consumes output stream as the process is being executed - otherwise on Windows the process would block when the output buffer is full.
+  private suspend fun consumeProcessOutput(source: InputStream?, outputWriter: Writer, process: Process) {
+    if (source == null) return
+
+    Scanner(source, UTF_8.name()).use { scanner ->
+      while (process.isAlive || scanner.hasNextLine()) {
+        while (scanner.hasNextLine()) outputWriter.append(scanner.nextLine()).append(System.lineSeparator())
+        delay(50)
+      }
+    }
+  }
+}
+
+private val Path.canonicalPath get() = this.toFile().canonicalPath
+
+// Shortens the string if over maxLength (and adds an ellipsis at the end if the case)
+private fun String.ellipsize(maxLength: Int): String {
+  val text = this
+  return if (text.length <= maxLength) text
+  else "${text.subSequence(0, maxLength - 3)}..."
+}
