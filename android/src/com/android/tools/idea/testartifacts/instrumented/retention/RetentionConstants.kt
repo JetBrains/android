@@ -26,6 +26,8 @@ import java.io.File
 
 @JvmField val EMULATOR_SNAPSHOT_FILE_KEY = DataKey.create<File>("EmulatorSnapshotFile")
 
+@JvmField val EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS = DataKey.create<File>("EmulatorSnapshotLaunchParameters")
+
 @JvmField val PACKAGE_NAME_KEY = DataKey.create<String>("PackageName")
 
 @JvmField val DEVICE_NAME_KEY = DataKey.create<String>("DeviceName")

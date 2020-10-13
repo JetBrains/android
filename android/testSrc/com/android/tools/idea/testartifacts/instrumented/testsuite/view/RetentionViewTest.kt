@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.testutils.MockitoKt.any
 import com.android.SdkConstants
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
@@ -28,13 +29,16 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.BoundedTaskExecutor
+import java.io.File
+import java.io.FileOutputStream
+import java.io.ByteArrayInputStream
+import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import org.apache.commons.io.IOUtils
-import org.ini4j.Ini
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,21 +46,18 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
-import java.io.FileOutputStream
-import java.util.concurrent.TimeUnit
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyString
+import org.mockito.MockitoAnnotations
 
 private const val RESOURCE_BASE = "com/android/tools/idea/testartifacts/instrumented/testsuite/snapshots/"
 private const val SNAPSHOT_TAR = "fakeSnapshotWithScreenshot.tar"
 private const val SNAPSHOT_TAR_GZ = "fakeSnapshotWithScreenshot.tar.gz"
 private const val SNAPSHOT_WITH_PB_TAR = "fakeSnapshotWithPb.tar.gz"
-private const val RESOURCE_SYSTEM_IMAGE_BUILD_PROP = "systemImageBuild.prop"
-private const val SDK_SYSTEM_IMAGE_BUILD_PROP = "build.prop"
 private const val FAKE_EMULATOR_REVISION = "26.0.0"
-private const val INI_GLOBAL_SECTION_NAME = "global"
 
 @RunWith(JUnit4::class)
-@RunsInEdt
 class RetentionViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
@@ -65,7 +66,6 @@ class RetentionViewTest {
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(projectRule)
-    .around(EdtRule())
     .around(disposableRule)
     .around(temporaryFolderRule)
 
@@ -73,17 +73,32 @@ class RetentionViewTest {
   private lateinit var androidSdkHandler: AndroidSdkHandler
   private lateinit var sdkPath: File
 
+  @Mock
+  private lateinit var mockRuntime: Runtime
+
+  @Mock
+  private lateinit var mockProcess: Process
+  private val mockFileOp = MockFileOp()
+
   @Before
   fun setUp() {
+    MockitoAnnotations.initMocks(this)
     sdkPath = temporaryFolderRule.newFolder()
-
+    val emulatorFolder = sdkPath.resolve(SdkConstants.FD_EMULATOR)
+    assertThat(emulatorFolder.mkdirs()).isTrue()
+    val emulatorBinary = emulatorFolder.resolve(SdkConstants.FN_EMULATOR)
+    assertThat(emulatorBinary.createNewFile()).isTrue()
+    mockFileOp.recordExistingFile(emulatorBinary)
     val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
     p.setRevision(Revision.parseRevision(FAKE_EMULATOR_REVISION))
+    p.setInstalledPath(emulatorFolder)
     val packages = RepositoryPackages()
     packages.setLocalPkgInfos(ImmutableList.of<LocalPackage>(p))
-    val mgr: RepoManager = FakeRepoManager(null, packages)
-    androidSdkHandler = AndroidSdkHandler(sdkPath, null, MockFileOp(), mgr)
-    retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator())
+    val mgr: RepoManager = FakeRepoManager(sdkPath, packages)
+    androidSdkHandler = AndroidSdkHandler(sdkPath, sdkPath, mockFileOp, mgr)
+    `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
+    `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
+    retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime)
   }
 
   @Test
@@ -96,10 +111,14 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.image).isNotNull()
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
   }
 
   @Test
@@ -112,10 +131,14 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.image).isNotNull()
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
   }
 
   @Test
@@ -127,30 +150,19 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf broken")).isTrue()
-  }
-
-  fun setupSystemFolder() {
-    val systemImageFolder = sdkPath.resolve("system-images")
-      .resolve("android-29")
-      .resolve("google_apis_playstore")
-      .resolve("x86_64")
-    assertThat(systemImageFolder.mkdirs()).isTrue()
-    val buildPropUrl = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropUrl).isNotNull()
-    val buildPropFile = systemImageFolder.resolve(SDK_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropFile.createNewFile()).isTrue()
-    with(FileOutputStream(buildPropFile)) {
-      IOUtils.copy(buildPropUrl.openStream(), this)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf broken")).isTrue()
     }
   }
 
   @Test
   fun loadSnapshotWithPb() {
-    setupSystemFolder()
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -158,13 +170,18 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
-    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5000, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    }
   }
 
   @Test
-  fun loadSnapshotPbWithoutSystem() {
+  fun loadSnapshotWithPbNotLoadable() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Not loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -172,57 +189,31 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Failed to find system image build property")).isTrue()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot not loadable")).isTrue()
+    }
   }
 
   @Test
   fun loadNullScreenshot() {
-    retentionView.setSnapshotFile(null)
-    assertThat(retentionView.image).isNull()
-  }
-
-  @Test
-  fun checkSystemImageVersion() {
-    setupSystemFolder()
-    val hardwareIni =  Ini().also {
-      it.add(INI_GLOBAL_SECTION_NAME)
-      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
-                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
-      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
     }
-    // The system image version must match the one from ${RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP}
-    assertThat(isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).compatible).isTrue()
-  }
-
-  @Test
-  fun checkSystemImageVersionEmptyIni() {
-    val hardwareIni = Ini()
-    isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).also {
-      assertThat(it.compatible).isFalse()
-      assertThat(it.reason).isNotNull()
-    }
-  }
-
-  @Test
-  fun checkBadSystemImageVersion() {
-    setupSystemFolder()
-    val hardwareIni =  Ini().also {
-      it.add(INI_GLOBAL_SECTION_NAME)
-      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
-                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
-      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
-    }
-    isSystemImageCompatible(hardwareIni, "invalid", androidSdkHandler).also {
-      assertThat(it.compatible).isFalse()
-      assertThat(it.reason!!.contains("System image version mismatch")).isTrue()
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
     }
   }
 
   @Test
   fun checkBackgroundColor() {
-    assertThat(retentionView.myInfoText.isOpaque).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myInfoText.isOpaque).isFalse()
+    }
   }
 }
