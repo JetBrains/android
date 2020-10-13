@@ -34,5 +34,6 @@
     <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
   </component>
 </module>

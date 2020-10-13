@@ -1079,6 +1079,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
+    COMPOSE, "constraint.visualization",
+    "Enable ConstraintLayout visualization in Compose previews",
+    "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
     COMPOSE, "preview.individual.pin.enable",
     "Enable pinning of individual compose previews",
