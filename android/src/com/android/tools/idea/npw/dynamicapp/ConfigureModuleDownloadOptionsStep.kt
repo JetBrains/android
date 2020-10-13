@@ -76,14 +76,12 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     row {
-      cell {
-        labelFor(
-          "Module title (this may be visible to users)",
-          featureTitle,
-          "The platform uses this title to identify the module to users when," +
-          " for example, confirming whether the user wants to download the module."
-        )
-      }
+      labelFor(
+        "Module title (this may be visible to users)",
+        featureTitle,
+        "The platform uses this title to identify the module to users when," +
+        " for example, confirming whether the user wants to download the module."
+      )
     }
 
     row {
@@ -91,13 +89,11 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     row {
-      cell {
-        labelFor(
-          "Install-time inclusion",
-          installationOptionCombo,
-          "Specify whether to include this module at install-time unconditionally, or based on device features."
-        )
-      }
+      labelFor(
+        "Install-time inclusion",
+        installationOptionCombo,
+        "Specify whether to include this module at install-time unconditionally, or based on device features."
+      )
     }
 
     row {
