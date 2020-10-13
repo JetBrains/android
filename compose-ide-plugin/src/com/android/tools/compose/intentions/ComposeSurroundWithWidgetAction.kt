@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose.intentions
+package com.android.tools.compose.intentions
 
+import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isInsideComposableCode
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.HighPriorityAction
@@ -30,7 +31,6 @@ import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinStatementSurroundDescriptor
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.HashSet
@@ -48,7 +48,7 @@ class ComposeSurroundWithWidgetActionGroup :
     listOf(ComposeSurroundWithContainerAction(), ComposeSurroundWithRowAction(), ComposeSurroundWithColumnAction())
   ) {
   override fun getGroupText(actions: List<ComposeSurroundWithWidgetAction>) =
-    AndroidBundle.message("compose.surround.with.widget.intention.text")
+    ComposeBundle.message("surround.with.widget.intention.text")
 
   override fun chooseAction(project: Project,
                             editor: Editor,
@@ -74,7 +74,7 @@ class ComposeSurroundWithWidgetActionGroup :
     return ListPopupImpl(project, step)
   }
 
-  override fun getFamilyName() = AndroidBundle.message("compose.surround.with.widget.intention.text")
+  override fun getFamilyName() = ComposeBundle.message("surround.with.widget.intention.text")
 }
 
 /**
@@ -117,7 +117,7 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
  * Surrounds selected statements inside a @Composable function with Container widget.
  */
 class ComposeSurroundWithContainerAction : ComposeSurroundWithWidgetAction() {
-  override fun getText(): String = AndroidBundle.message("compose.surround.with.container.intention.text")
+  override fun getText(): String = ComposeBundle.message("surround.with.container.intention.text")
 
   override fun getTemplate(): TemplateImpl? {
     return TemplateSettings.getInstance().getTemplate("W", "AndroidCompose")
@@ -128,7 +128,7 @@ class ComposeSurroundWithContainerAction : ComposeSurroundWithWidgetAction() {
  * Surrounds selected statements inside a @Composable function with Row widget.
  */
 class ComposeSurroundWithRowAction : ComposeSurroundWithWidgetAction() {
-  override fun getText(): String = AndroidBundle.message("compose.surround.with.row.intention.text")
+  override fun getText(): String = ComposeBundle.message("surround.with.row.intention.text")
 
   override fun getTemplate(): TemplateImpl? {
     return TemplateSettings.getInstance().getTemplate("WR", "AndroidCompose")
@@ -139,7 +139,7 @@ class ComposeSurroundWithRowAction : ComposeSurroundWithWidgetAction() {
  * Surrounds selected statements inside a @Composable function with Column widget.
  */
 class ComposeSurroundWithColumnAction : ComposeSurroundWithWidgetAction() {
-  override fun getText(): String = AndroidBundle.message("compose.surround.with.column.intention.text")
+  override fun getText(): String = ComposeBundle.message("surround.with.column.intention.text")
 
   override fun getTemplate(): TemplateImpl? {
     return TemplateSettings.getInstance().getTemplate("WC", "AndroidCompose")

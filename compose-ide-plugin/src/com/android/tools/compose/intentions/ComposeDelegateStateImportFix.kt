@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose.intentions
+package com.android.tools.compose.intentions
 
+import com.android.tools.compose.ComposeBundle
 import com.intellij.codeInsight.daemon.QuickFixBundle
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -73,7 +73,7 @@ private class ComposeDelegateStateImportFixAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?) = true
 
-  override fun getText() = AndroidBundle.message("import.get.value")
+  override fun getText() = ComposeBundle.message("import.get.value")
 
   // Inspired by KotlinAddImportAction#addImport
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
