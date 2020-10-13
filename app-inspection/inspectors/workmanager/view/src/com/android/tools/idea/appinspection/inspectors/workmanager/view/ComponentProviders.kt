@@ -39,7 +39,6 @@ import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTable
 
 /**
  * Interface for converting some model input into a UI component.
@@ -141,22 +140,25 @@ object StringListProvider : ComponentProvider<ProtocolStringList> {
 /**
  * Provides a component that displays a list of workers, each which, when clicked, select that
  * worker in a source table.
+ *
+ * @param A callback which can be triggered to select some target worker.
  */
 class IdListProvider(private val client: WorkManagerInspectorClient,
-                     private val table: JTable,
-                     private val work: WorkInfo) : ComponentProvider<List<String>> {
+                     private val currentWork: WorkInfo,
+                     private val selectWork: (WorkInfo) -> Unit) : ComponentProvider<List<String>> {
   override fun convert(ids: List<String>): JComponent {
-    val currId = work.id
+    val currId = currentWork.id
     return if (ids.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
         ids.forEach { id ->
           val index = client.indexOfFirstWorkInfo { it.id == id }
-          if (index >= 0 && index < table.rowCount) {
+          val work = client.getWorkInfoOrNull(index)
+          if (work != null) {
             add(HyperlinkLabel().apply {
               val suffix = if (id == currId) " (Current)" else ""
               setHyperlinkText("", id, suffix)
               addHyperlinkListener {
-                table.selectionModel.setSelectionInterval(index, index)
+                selectWork(work)
               }
               client.getWorkInfoOrNull(index)?.run {
                 setIcon(state.icon())
