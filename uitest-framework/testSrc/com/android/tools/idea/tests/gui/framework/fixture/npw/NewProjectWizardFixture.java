@@ -52,7 +52,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   @NotNull
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      return new ChooseAndroidProjectStepFixture<>(this, findStepWithTitle("Project Type"));
+      return new ChooseAndroidProjectStepFixture<>(this, findStepWithTitle("Templates"));
     }
     JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.choose"));
     return new ChooseAndroidProjectStepFixture<>(this, rootPane);

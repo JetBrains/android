@@ -21,6 +21,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.createTitle
+import com.android.tools.idea.npw.project.TABLE_CELL_HEIGHT
+import com.android.tools.idea.npw.project.TABLE_CELL_LEFT_PADDING
+import com.android.tools.idea.npw.project.TABLE_CELL_WIDTH
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
@@ -56,10 +60,6 @@ import javax.swing.ListSelectionModel
 import javax.swing.SwingConstants
 import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
 
-
-private const val TABLE_CELL_WIDTH = 250
-private const val TABLE_CELL_HEIGHT = 32
-private const val TABLE_CELL_LEFT_PADDING = 16
 
 /**
  * This step allows the user to select which type of module they want to create.
@@ -168,15 +168,7 @@ class ChooseModuleTypeWizard(
 
     Disposer.register(modelWizardDialog.disposable, this)
 
-    val titleLabel = JBLabel("Templates").apply {
-      isOpaque = true
-      background = UIUtil.getListBackground()
-      foreground = UIUtil.getHeaderActiveColor()
-      preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
-      border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
-    }
-
-    leftPanel.add(titleLabel, BorderLayout.NORTH)
+    leftPanel.add(createTitle(), BorderLayout.NORTH)
     leftPanel.add(leftList, BorderLayout.CENTER)
 
     mainPanel.add(leftPanel, BorderLayout.WEST)
