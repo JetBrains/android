@@ -52,13 +52,34 @@
         <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
         <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
+        <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
+
+        <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
+        <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
+                        serviceImplementation="com.android.tools.compose.ComposeSampleResolutionService"
+                        overrides="true"
+        />
+        <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
+
+        <completion.contributor language="kotlin"
+                                implementationClass="com.android.tools.compose.ComposeCompletionContributor"
+                                order="first, before KotlinCompletionContributor"/>
+
+        <weigher key="completion"
+                 implementationClass="com.android.tools.compose.AndroidComposeCompletionWeigher"
+                 id="android.compose"
+                 order="first"/>
+        <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
+
     </extensions>
+
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
         <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
+        <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
     </extensions>
 
 </idea-plugin>

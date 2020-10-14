@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
-import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_EDITOR_SUPPORT
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -34,13 +33,12 @@ import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.Alarm
-import sun.security.jca.GetInstance
 import java.beans.PropertyChangeListener
 
 /**
  * Automatically shows quick documentation for Compose functions during code completion
  */
-class AndroidComposeAutoDocumentation(project: Project) {
+class ComposeAutoDocumentation(project: Project) {
   private val docManager = DocumentationManager.getInstance(project)
   private val lookupManager: LookupManager = LookupManager.getInstance(project)
   private val completionService: CompletionService = CompletionService.getCompletionService()
@@ -80,7 +78,7 @@ class AndroidComposeAutoDocumentation(project: Project) {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): AndroidComposeAutoDocumentation = project.getService(AndroidComposeAutoDocumentation::class.java)
+    fun getInstance(project: Project): ComposeAutoDocumentation = project.getService(ComposeAutoDocumentation::class.java)
   }
 
   private fun showJavaDoc(lookup: Lookup) {

@@ -16,6 +16,7 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants
+import com.android.tools.compose.ComposeFqNames
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -27,7 +28,6 @@ import com.intellij.lang.annotation.AnnotationSession
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.PlatformTestUtil
-import org.jetbrains.android.compose.ANDROIDX_COMPOSE_PACKAGE
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
@@ -236,7 +236,7 @@ class ComposeColorReferenceAnnotatorTest:  AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
+    myFixture.stubComposableAnnotation(ComposeFqNames.root)
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.addFileToProject(
