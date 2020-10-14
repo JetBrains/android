@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -28,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.XmlRecursiveElementVisitor;
@@ -45,8 +43,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -201,36 +197,6 @@ public abstract class ResourceManager {
     return result;
   }
 
-  public void collectLazyResourceElements(@NotNull ResourceNamespace namespace, @NotNull String resType, @NotNull String resName,
-                                          boolean withAttrs, @NotNull PsiElement context, @NotNull Collection<PsiElement> elements) {
-    List<ValueResourceInfoImpl> valueResources = findValueResourceInfos(namespace, resType, resName, false, withAttrs);
-
-    for (ValueResourceInfo resource : valueResources) {
-      elements.add(new LazyValueResourceElementWrapper(resource, context));
-    }
-
-    ResourceType resourceType = ResourceType.fromClassName(resType);
-    if (resourceType != null) {
-      if (resourceType == ResourceType.ID) {
-        elements.addAll(findIdDeclarations(namespace, resName));
-      }
-      else if (FolderTypeRelationship.getNonValuesRelatedFolder(resourceType) != null) {
-        List<ResourceItem> resources = getResources(namespace, resourceType, resName);
-        for (ResourceItem resource : resources) {
-          if (resource.isFileBased()) {
-            VirtualFile file = IdeResourcesUtil.getSourceAsVirtualFile(resource);
-            if (file != null) {
-              PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-              if (psiFile != null) {
-                elements.add(new FileResourceElementWrapper(psiFile));
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Finds resources defined in the current project matching the given namespace, type and name.
    *
@@ -298,8 +264,4 @@ public abstract class ResourceManager {
 
   @NotNull
   protected abstract Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories();
-
-  @NotNull
-  protected abstract List<ResourceItem> getResources(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName);
 }

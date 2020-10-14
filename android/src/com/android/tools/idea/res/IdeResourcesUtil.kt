@@ -161,7 +161,6 @@ import org.jetbrains.android.dom.drawable.DrawableSelector
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceElement
 import org.jetbrains.android.dom.resources.Resources
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
@@ -1323,9 +1322,6 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
  */
 @JvmField
 val RESOURCE_ELEMENT_COMPARATOR = Comparator { e1: PsiElement, e2: PsiElement ->
-  if (e1 is LazyValueResourceElementWrapper && e2 is LazyValueResourceElementWrapper) {
-    return@Comparator e1.compareTo(e2)
-  }
   val delta = compareResourceFiles(e1.containingFile, e2.containingFile)
   if (delta != 0) delta else e1.textOffset - e2.textOffset
 }

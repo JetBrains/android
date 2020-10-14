@@ -62,7 +62,6 @@ import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import javax.swing.Icon
 
 /**
@@ -98,7 +97,6 @@ class ResourceReferencePsiElement(
         is ClsFieldImpl -> convertClsFieldImpl(element)
         is XmlAttributeValue -> convertXmlAttributeValue(element)
         is PsiFile -> convertPsiFile(element)
-        is LazyValueResourceElementWrapper -> ResourceReferencePsiElement(element.resourceInfo.resource.referenceToSelf, element.manager)
         else -> null
       }
     }
