@@ -24,6 +24,8 @@ import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -40,8 +42,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
-import org.jetbrains.android.compose.ComposeLibraryNamespace
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.module

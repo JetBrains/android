@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
@@ -30,9 +33,6 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
-import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective

@@ -38,6 +38,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
 )
 

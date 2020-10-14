@@ -127,6 +127,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:androidx-test-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
+        "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
 )
 

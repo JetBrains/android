@@ -16,6 +16,8 @@ package com.android.tools.idea.compose.preview
  * limitations under the License.
  */
 import com.android.annotations.concurrency.Slow
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
@@ -27,8 +29,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.android.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective

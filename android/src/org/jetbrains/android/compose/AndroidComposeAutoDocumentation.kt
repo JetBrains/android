@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_EDITOR_SUPPORT
 import com.android.tools.idea.projectsystem.getModuleSystem

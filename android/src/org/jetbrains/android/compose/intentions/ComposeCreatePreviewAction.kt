@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.compose.intentions
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.isComposableAnnotation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.codeInsight.intention.IntentionAction
@@ -22,9 +25,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
-import org.jetbrains.android.compose.ComposeLibraryNamespace
-import org.jetbrains.android.compose.isComposableAnnotation
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtAnnotationEntry

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.intellij.codeInspection.reference.EntryPoint
 import com.intellij.codeInspection.reference.RefElement
 import com.intellij.configurationStore.deserializeInto
@@ -22,7 +23,6 @@ import com.intellij.configurationStore.serializeObjectInto
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import org.jdom.Element
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 
 /**
  * [EntryPoint] implementation to mark `@Preview` functions as entry points and avoid them being flagged as unused.
