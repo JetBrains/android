@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.tools.idea.emulator.actions.dialogs.ManageSnapshotsDialog
+import com.android.tools.idea.emulator.dialogs.ManageSnapshotsDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
