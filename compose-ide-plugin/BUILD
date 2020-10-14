@@ -18,6 +18,8 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
     ],
 )
 
