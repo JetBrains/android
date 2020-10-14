@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.search.GlobalSearchScope

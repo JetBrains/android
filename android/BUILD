@@ -384,6 +384,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.5-dev:androidx-test-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto-test[test]",
+        "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
     ],
 )
 

@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
-import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_PRESENTATION
@@ -43,7 +41,6 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
-import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -90,7 +87,7 @@ private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
  */
-class AndroidComposeCompletionContributor : CompletionContributor() {
+class ComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() ||
         parameters.position.getModuleSystem()?.usesCompose != true ||
@@ -149,9 +146,9 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val descriptor = getFunctionDescriptor()
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
-      !AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled -> super.handleInsert(context)
+      !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
-      else -> AndroidComposeInsertHandler(descriptor).handleInsert(context, this)
+      else -> ComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }
 
@@ -250,7 +247,7 @@ private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnor
 
 private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
 
-class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
+class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
 
@@ -312,7 +309,7 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
   }
 }
 
-class AndroidComposeSuppressor : InspectionSuppressor {
+class ComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
     return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
            toolId == "FunctionName" &&

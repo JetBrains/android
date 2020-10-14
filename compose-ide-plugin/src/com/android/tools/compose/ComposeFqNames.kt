@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 
 
 object ComposeFqNames {
-  private const val root = "androidx.compose.runtime"
+  const val root = "androidx.compose.runtime"
 
   object old {
     private const val root = "androidx.compose"

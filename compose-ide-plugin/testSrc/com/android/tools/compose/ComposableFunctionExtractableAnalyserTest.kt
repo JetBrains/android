@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.ExtractKotlinFunctionHandler
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractableCodeDescriptorWithConflicts
@@ -33,7 +34,7 @@ class ComposableFunctionExtractableAnalyserTest : JavaCodeInsightFixtureTestCase
   public override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
-    myFixture.stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
+    myFixture.stubComposableAnnotation(ComposeFqNames.root)
   }
 
   override fun tearDown() {
