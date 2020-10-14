@@ -65,7 +65,7 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
   private val jaxbSerializer get() = jaxbContext.createMarshaller()
   private val jaxbDeserializer get() = jaxbContext.createUnmarshaller()
 
-  override fun getVersion() = 7
+  override fun getVersion() = 8
   override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
   override fun dependsOnFileContent() = true
   override fun getName(): ID<String, NavXmlData> = NAME
