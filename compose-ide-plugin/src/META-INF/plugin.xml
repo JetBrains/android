@@ -33,7 +33,9 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <annotator
+      <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
+
+      <annotator
             language="kotlin"
             implementationClass="com.android.tools.compose.ComposableAnnotator"/>
         <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
