@@ -24,8 +24,10 @@ class AndroidTestConfigurable : BoundSearchableConfigurable("Testing", "testing.
     val configuration = AndroidTestConfiguration.getInstance()
     return panel {
       row {
-        checkBox("Always display results in the Test Matrix",
+        checkBox("Enable test runs across multiple devices in parallel.",
                  configuration::ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX)
+          .comment("This option also enables a new UI optimized for displaying both single- and multi-device test results.")
+        browserLink("Learn more", "https://d.android.com/r/studio-ui/test-matrix/help")
       }
     }
   }
