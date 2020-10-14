@@ -113,6 +113,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
   private JLabel myAppCompatComment;
+  private JComboBox myMinSdkCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -311,6 +312,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myProjectLanguage = new LanguageComboProvider().createComponent();
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
+    myMinSdkCombo = myFormFactorSdkControls.getMinSdkComboBox();
     myAppCompatComment = createCommentComponent(message("android.wizard.validate.select.appcompat"), true);
   }
 }

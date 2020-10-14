@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.project;
+package com.android.tools.idea.npw.project.deprecated;
 
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -66,7 +66,7 @@ public class FormFactorSdkControls implements Disposable {
   private JPanel myLoadingDataPanel;
   private AsyncProcessIcon myLoadingDataIcon;
   private JLabel myLoadingDataLabel;
-  private final AndroidApiLevelComboBox myMinSdkCombobox = new AndroidApiLevelComboBox();
+  private AndroidApiLevelComboBox myMinSdkCombobox;
   private JPanel myRoot;
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
@@ -101,11 +101,6 @@ public class FormFactorSdkControls implements Disposable {
         }
       }
     });
-  }
-
-  @NotNull
-  public AndroidApiLevelComboBox getMinSdkComboBox() {
-    return myMinSdkCombobox;
   }
 
   @NotNull
