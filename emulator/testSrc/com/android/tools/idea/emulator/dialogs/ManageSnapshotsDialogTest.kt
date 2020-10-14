@@ -110,11 +110,10 @@ class ManageSnapshotsDialogTest {
     val invalidSnapshotId = "invalid_snapshot"
     emulator.createInvalidSnapshot(invalidSnapshotId)
 
-    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
-    val dialogWrapper = dialogPanel.createWrapper(projectRule.project)
+    val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogWrapper.show() }) { dlg ->
+    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -141,7 +140,7 @@ class ManageSnapshotsDialogTest {
       assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT))).isFalse()
       assertThat(isPresentationEnabled(actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.REMOVE))).isFalse()
 
-      val coldBootCheckBox = ui.getComponent<JCheckBox> { it.text.contains("cold boot")}
+      val coldBootCheckBox = ui.getComponent<JCheckBox> { it.text.contains("cold boot") }
       assertThat(coldBootCheckBox.isSelected).isTrue()
 
       emulator.clearGrpcCallLog()
@@ -272,15 +271,15 @@ class ManageSnapshotsDialogTest {
     emulator.createInvalidSnapshot("invalid_snapshot2")
     emulator.pauseGrpc() // Pause emulator's gRPC to prevent the nested dialog from opening immediately.
 
-    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+    val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+    createDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
       val rootPane1 = dlg1.rootPane
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
-      createDialogAndInteractWithIt({ emulator.resumeGrpc() }) { dlg2 ->
+      createDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
         assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
         val rootPane2 = dlg2.rootPane
         val ui2 = FakeUi(rootPane2)
@@ -310,15 +309,15 @@ class ManageSnapshotsDialogTest {
     emulator.createInvalidSnapshot("invalid_snapshot2")
     emulator.pauseGrpc() // Pause emulator's gRPC to prevent the nested dialog from opening immediately.
 
-    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+    val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg1 ->
+    createDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
       val rootPane1 = dlg1.rootPane
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
-      createDialogAndInteractWithIt({ emulator.resumeGrpc() }) { dlg2 ->
+      createDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
         assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
         val rootPane2 = dlg2.rootPane
         val ui2 = FakeUi(rootPane2)
@@ -344,10 +343,10 @@ class ManageSnapshotsDialogTest {
     emulator.createInvalidSnapshot("invalid_snapshot1")
     emulator.createInvalidSnapshot("invalid_snapshot2")
 
-    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+    val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg ->
+    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane1 = dlg.rootPane
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -373,10 +372,10 @@ class ManageSnapshotsDialogTest {
     emulator.createInvalidSnapshot("invalid_snapshot1")
     emulator.createInvalidSnapshot("invalid_snapshot2")
 
-    val dialogPanel = ManageSnapshotsDialog(emulatorController, emulatorView = null)
+    val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt({ dialogPanel.createWrapper(projectRule.project).show() }) { dlg ->
+    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane1 = dlg.rootPane
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
