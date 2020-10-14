@@ -83,6 +83,7 @@ interface NavNavigationData : MaybeNavDestinationData {
   val id: String?
   val startDestination: String
   val actions: List<NavActionData>
+  val arguments: List<NavArgumentData>
   val navigations: List<NavNavigationData>
 
   /**
@@ -98,7 +99,7 @@ interface NavNavigationData : MaybeNavDestinationData {
     return object : NavDestinationData {
       override val id = id
       override val name = ".${CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, id)}"
-      override val arguments = emptyList<NavArgumentData>()
+      override val arguments = this@NavNavigationData.arguments
       override val actions = this@NavNavigationData.actions
     }
   }
