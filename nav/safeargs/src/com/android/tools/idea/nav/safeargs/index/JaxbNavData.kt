@@ -163,6 +163,9 @@ data class MutableNavNavigationData(
   @field:XmlElement(name = "action")
   override var actions: List<MutableNavActionData>,
 
+  @field:XmlElement(name = "argument")
+  override var arguments: List<MutableNavArgumentData>,
+
   @field:XmlElement(name = "navigation")
   override var navigations: List<MutableNavNavigationData>,
 
@@ -170,5 +173,5 @@ data class MutableNavNavigationData(
   @field:XmlJavaTypeAdapter(MaybeDestinationAdapter::class)
   override var potentialDestinations: List<MaybeNavDestinationData>
 ) : NavNavigationData {
-  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf())
+  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
 }

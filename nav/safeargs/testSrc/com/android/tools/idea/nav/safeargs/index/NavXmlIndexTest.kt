@@ -81,6 +81,10 @@ class NavXmlIndexTest {
           <action android:id="@+id/action_to_fragment2"
                   app:destination="@id/fragment2" />
 
+          <argument android:name="top_level_argument"
+                    app:argType="string"
+                    android:defaultValue="topLevelString" />
+
           <activity android:id="@+id/activity1"
                     android:name="test.safeargs.Activity1"
                     tools:layout="@layout/activity1">
@@ -178,6 +182,12 @@ class NavXmlIndexTest {
     data.root.actions[0].let { action ->
       assertThat(action.id).isEqualTo("action_to_fragment2")
       assertThat(action.resolveDestination()).isEqualTo("fragment2")
+    }
+    assertThat(data.root.arguments).hasSize(1)
+    data.root.arguments[0].let { argument ->
+      assertThat(argument.type).isEqualTo("string")
+      assertThat(argument.name).isEqualTo("top_level_argument")
+      assertThat(argument.defaultValue).isEqualTo("topLevelString")
     }
 
     assertThat(data.root.potentialDestinations).hasSize(3)
