@@ -41,7 +41,6 @@ public final class HyperlinkInstruction extends RenderInstruction {
   private HyperlinkInstruction(@NotNull Font font, @NotNull String text, @Nullable String url, @Nullable Runnable action) {
     myHyperlinkLabel = new HyperlinkLabel(text);
     myHyperlinkLabel.setFont(font);
-    mySize = myHyperlinkLabel.getPreferredSize();
 
     if (url != null) {
       myHyperlinkLabel.setHyperlinkTarget(url);
@@ -57,6 +56,9 @@ public final class HyperlinkInstruction extends RenderInstruction {
     }
 
     setMouseHandler(evt -> myHyperlinkLabel.dispatchEvent(evt));
+
+    // do this after setting text and icon in HyperlinkLabel
+    mySize = myHyperlinkLabel.getPreferredSize();
   }
 
   public HyperlinkInstruction(@NotNull Font font, @NotNull String text, @NotNull String url) {
