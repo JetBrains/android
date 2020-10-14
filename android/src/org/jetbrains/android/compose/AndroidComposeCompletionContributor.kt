@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_PRESENTATION

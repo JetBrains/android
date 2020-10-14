@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
+import com.android.tools.compose.findComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
@@ -29,10 +33,6 @@ import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.text.nullize
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
-import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
-import org.jetbrains.android.compose.findComposeLibraryNamespace
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation

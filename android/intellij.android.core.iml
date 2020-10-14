@@ -150,5 +150,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
   </component>
 </module>

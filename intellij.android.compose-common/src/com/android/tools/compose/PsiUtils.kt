@@ -15,7 +15,7 @@
  */
 @file:JvmName("AndroidComposablePsiUtils")
 
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getQualifiedName

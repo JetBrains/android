@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
+        "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
 )

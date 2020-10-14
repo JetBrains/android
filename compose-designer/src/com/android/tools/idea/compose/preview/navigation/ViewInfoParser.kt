@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.android.compose.COMPOSE_VIEW_ADAPTER_FQNS
 
 interface SourceLocation {
   @Deprecated("This field is not provided by the Compose runtime from dev16+")

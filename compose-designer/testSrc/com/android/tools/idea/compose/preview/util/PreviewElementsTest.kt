@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.compose.ComposeLibraryNamespace
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals

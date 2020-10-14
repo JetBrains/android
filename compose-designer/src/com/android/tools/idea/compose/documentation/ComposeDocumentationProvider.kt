@@ -18,6 +18,9 @@ package com.android.tools.idea.compose.documentation
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
@@ -44,9 +47,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.popup.AbstractPopup
-import org.jetbrains.android.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import org.jetbrains.android.compose.ComposeLibraryNamespace
-import org.jetbrains.android.compose.isComposableFunction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation

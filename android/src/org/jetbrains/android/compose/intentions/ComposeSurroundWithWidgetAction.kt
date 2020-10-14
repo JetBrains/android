@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compose.intentions
 
+import com.android.tools.compose.isInsideComposableCode
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
@@ -29,7 +30,6 @@ import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
-import org.jetbrains.android.compose.isInsideComposableCode
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinStatementSurroundDescriptor
 import org.jetbrains.kotlin.psi.KtFile

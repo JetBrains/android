@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
+import com.android.tools.compose.isInsideComposableCode
 import com.intellij.CommonBundle
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
@@ -37,7 +38,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
-import org.jetbrains.android.compose.isInsideComposableCode
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
