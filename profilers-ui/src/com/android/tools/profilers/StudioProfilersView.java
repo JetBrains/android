@@ -41,6 +41,8 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
+import com.android.tools.profilers.memory.AllocationStage;
+import com.android.tools.profilers.memory.AllocationStageView;
 import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.HeapDumpStageView;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
@@ -162,6 +164,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
     myBinder.bind(MainMemoryProfilerStage.class, MainMemoryProfilerStageView::new);
     myBinder.bind(HeapDumpStage.class, HeapDumpStageView::new);
+    myBinder.bind(AllocationStage.class, AllocationStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
@@ -217,7 +220,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  CommonButton getBackButton() {
+  public CommonButton getBackButton() {
     return myBack;
   }
 
