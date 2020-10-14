@@ -9,7 +9,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomUtil;
@@ -18,10 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.dom.resources.ResourceValue;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,10 +58,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     for (ResolveResult result : resolveResults) {
       PsiElement element = result.getElement();
 
-      if (element instanceof LazyValueResourceElementWrapper) {
-        results.add(((LazyValueResourceElementWrapper)element).computeElement());
-      }
-      else if (element instanceof ResourceElementWrapper) {
+      if (element instanceof ResourceElementWrapper) {
         results.add(((ResourceElementWrapper)element).getWrappedElement());
       }
       else if (element instanceof ResourceReferencePsiElement) {
@@ -106,18 +100,6 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
       if (element.getManager().areElementsEquivalent(target, element)) {
         return true;
-      }
-
-      if (target instanceof LazyValueResourceElementWrapper && vFile != null) {
-        final ValueResourceInfo info = ((LazyValueResourceElementWrapper)target).getResourceInfo();
-
-        if (info.getContainingFile().equals(vFile)) {
-          final XmlAttributeValue realTarget = info.computeXmlElement();
-
-          if (element.getManager().areElementsEquivalent(realTarget, element)) {
-            return true;
-          }
-        }
       }
     }
     return false;

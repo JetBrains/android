@@ -1,5 +1,7 @@
 package org.jetbrains.android.sdk;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
@@ -20,10 +22,6 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests that link an SDK up to a simple project and verify that various code browsing features
@@ -133,7 +131,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
       myFixture.getEditor().getCaretModel().getOffset());
     assertThat(elements.length).isAtLeast(1); // For strings.xml, also matches localized versions
 
-    PsiElement element = LazyValueResourceElementWrapper.computeLazyElement(elements[0]);
+    PsiElement element = elements[0];
     assertInstanceOf(element, expectedPsiClass);
     assertEquals(expectedFile, element.getContainingFile().getName());
   }

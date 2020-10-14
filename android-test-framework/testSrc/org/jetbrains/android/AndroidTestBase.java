@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -38,7 +37,6 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceContributor;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -58,7 +56,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -226,16 +223,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (elements == null) {
       return "Empty";
     }
-    List<PsiElement> sortedElements = Arrays.stream(elements).map((element) -> {
-      if (element instanceof LazyValueResourceElementWrapper) {
-        LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-        XmlAttributeValue value = wrapper.computeElement();
-        if (value != null) {
-          return value;
-        }
-      }
-      return element;
-    }).sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
+    List<PsiElement> sortedElements = Arrays.stream(elements)
+      .sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
     StringBuilder sb = new StringBuilder();
     for (PsiElement target : sortedElements) {
       appendElementDescription(sb, target);

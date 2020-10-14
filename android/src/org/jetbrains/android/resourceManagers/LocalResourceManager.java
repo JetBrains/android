@@ -352,13 +352,6 @@ public class LocalResourceManager extends ResourceManager {
     return getResourceRepository().getLeafResourceRepositories();
   }
 
-  @Override
-  @NotNull
-  protected List<ResourceItem> getResources(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName) {
-    return getResourceRepository().getResources(namespace, resourceType, resName);
-  }
-
   @NotNull
   private ResourceRepository getResourceRepository() {
     return ResourceRepositoryManager.getAppResources(myFacet);

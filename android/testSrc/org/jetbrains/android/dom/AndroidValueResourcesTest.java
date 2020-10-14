@@ -60,7 +60,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javaslang.collection.Array;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
 
@@ -534,7 +533,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = targets[0];
 
     assertInstanceOf(targetElement, XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
@@ -563,7 +562,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = targets[0];
 
     assertInstanceOf(targetElement, XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
@@ -593,7 +592,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = targets[0];
 
     assertInstanceOf(targetElement, XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;

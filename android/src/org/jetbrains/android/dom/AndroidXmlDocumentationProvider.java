@@ -64,11 +64,9 @@ import java.util.Set;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -82,10 +80,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl().toString();
-    }
-    if (element instanceof LazyValueResourceElementWrapper) {
-      ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
-      return "value resource '" + info.getName() + "' [" + info.getContainingFile().getName() + "]";
     }
     return null;
   }
@@ -106,26 +100,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         return generateDoc(originalElement, resourceUrl);
       }
     }
-    if (element instanceof LazyValueResourceElementWrapper) {
-      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-      ValueResourceInfo resourceInfo = wrapper.getResourceInfo();
-      ResourceType type = resourceInfo.getType();
-      String name = resourceInfo.getName();
-      ResourceUrl url;
-      ResourceUrl originalUrl = originalElement != null ? ResourceUrl.parse(originalElement.getText()) : null;
-      if (originalUrl != null && name.equals(originalUrl.name)) {
-        url  = originalUrl;
-      } else {
-        boolean isFramework = false;
-        if (originalUrl != null) {
-          isFramework = originalUrl.isFramework();
-        } else {
-          isFramework = resourceInfo.getResource().getNamespace().equals(ResourceNamespace.ANDROID);
-        }
-        url = ResourceUrl.create(type, name, isFramework);
-      }
-      return generateDoc(originalElement, url);
-    } else if (element instanceof ResourceReferenceCompletionElement) {
+    if (element instanceof ResourceReferenceCompletionElement) {
       return getResourceDocumentation(element.getParent(), ((ResourceReferenceCompletionElement)element).myResource);
     } else if (element instanceof XmlAttributeValue) {
       return getResourceDocumentation(element, ((XmlAttributeValue)element).getValue());

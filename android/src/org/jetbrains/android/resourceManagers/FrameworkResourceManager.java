@@ -95,14 +95,6 @@ public class FrameworkResourceManager extends ResourceManager {
     return repository == null ? ImmutableList.of() : repository.getLeafResourceRepositories();
   }
 
-  @Override
-  @NotNull
-  protected List<ResourceItem> getResources(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName) {
-    ResourceRepository repository = getResourceRepository();
-    return repository == null ? ImmutableList.of() : repository.getResources(namespace, resourceType, resName);
-  }
-
   @Nullable
   private ResourceRepository getResourceRepository() {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
