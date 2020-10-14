@@ -33,13 +33,7 @@ import javax.swing.JPanel
  * implementations
  */
 open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, UserDataHolderBase() {
-  private val previewPanel = object : JPanel(BorderLayout()) {
-    override fun setVisible(newIsVisibile: Boolean) {
-      val changed = isVisible != newIsVisibile
-      super.setVisible(newIsVisibile)
-      if (changed) onVisibilityChange(newIsVisibile)
-    }
-  }
+  private val previewPanel = JPanel(BorderLayout())
 
   override fun getComponent(): JComponent = previewPanel
   override fun getPreferredFocusedComponent(): JComponent = previewPanel
@@ -56,11 +50,4 @@ open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, 
   override fun getCurrentLocation(): FileEditorLocation? = null
   override fun getStructureViewBuilder(): StructureViewBuilder? = null
   override fun getFile() = virtualFile
-
-  /**
-   * Method called when the visibility of the editor component changes.
-   *
-   * @param isVisible the new visibility for the editor component.
-   */
-  open fun onVisibilityChange(isVisible: Boolean) {}
 }

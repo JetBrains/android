@@ -52,6 +52,7 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     MultiRepresentationPreview(psiFile, editor, providers) {
 
     init {
+      onInit()
       // Simulate initial initialization by IntelliJ of the state loaded from disk
       setState(initialState)
       // Do the activation since this is not embedded within an actual editor.
@@ -109,12 +110,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)))
 
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-    assertEmpty(multiPreview.currentRepresentationName)
-
-    multiPreview.forceUpdateRepresentations()
-
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     assertEquals("Accepting", multiPreview.currentRepresentationName)
@@ -143,12 +138,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
 
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-    assertEmpty(multiPreview.currentRepresentationName)
-
-    multiPreview.forceUpdateRepresentations()
-
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     assertEquals("Accepting", multiPreview.currentRepresentationName)
@@ -167,12 +156,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
       sampleFile,
       myFixture.editor,
       listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
-
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-    assertEmpty(multiPreview.currentRepresentationName)
-
-    multiPreview.forceUpdateRepresentations()
 
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
@@ -213,12 +196,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         TestPreviewRepresentationProvider("Accepting2", true),
         TestPreviewRepresentationProvider("NonAccepting", false)))
 
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-    assertEmpty(multiPreview.currentRepresentationName)
-
-    multiPreview.forceUpdateRepresentations()
-
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
@@ -243,11 +220,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         TestPreviewRepresentationProvider("Accepting2", true),
         TestPreviewRepresentationProvider("NonAccepting", false)),
       MultiRepresentationPreviewFileEditorState("Accepting2"))
-
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-
-    multiPreview.forceUpdateRepresentations()
 
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
@@ -280,10 +252,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         conditionallyAccepting),
       MultiRepresentationPreviewFileEditorState("ConditionallyAccepting"))
 
-    assertNull(multiPreview.currentRepresentation)
-    assertEmpty(multiPreview.representationNames)
-
-    multiPreview.forceUpdateRepresentations()
     // ConditionalAccepting is not available so it will not be restored by the surface load.
     assertEquals("Accepting", multiPreview.currentRepresentationName)
 
@@ -392,14 +360,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     multiPreview.updateNotifications()
 
-    Mockito.verify(representation1, never()).updateNotifications(any())
-    Mockito.verify(representation2, never()).updateNotifications(any())
-    Mockito.verify(representation3, never()).updateNotifications(any())
-
-    multiPreview.forceUpdateRepresentations()
-
-    multiPreview.updateNotifications()
-
     Mockito.verify(representation1).updateNotifications(multiPreview)
     Mockito.verify(representation2).updateNotifications(multiPreview)
     Mockito.verify(representation3, never()).updateNotifications(any())
@@ -446,7 +406,6 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
         TestPreviewRepresentationProvider("Representation2", true, representation2)
       ),
       MultiRepresentationPreviewFileEditorState("Representation1"))
-    multiPreview.forceUpdateRepresentations()
 
     assertEquals(1, representation1.nActivations)
     assertEquals(0, representation2.nActivations)
