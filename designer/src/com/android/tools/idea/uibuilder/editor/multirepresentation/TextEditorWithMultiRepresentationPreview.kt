@@ -19,6 +19,8 @@ import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
 
 /**
  * A generic [SeamlessTextEditorWithPreview] where a preview part of it is [MultiRepresentationPreview]. It keeps track of number of
@@ -27,33 +29,74 @@ import com.intellij.openapi.project.Project
 open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPreview>(
   private val project: Project, textEditor: TextEditor, preview: P, editorName: String) :
   SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
+  /**
+   * Whether this editor is active currently or not.
+   */
+  private var isActive = false
+
+  /**
+   * True until the first activation happens.
+   */
+  private var firstActivation = true
+
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
     preview.onRepresentationsUpdated = { isPureTextEditor = preview.representationNames.isEmpty() }
     preview.registerShortcuts(component)
+    preview.component.addComponentListener(object: ComponentListener {
+      override fun componentResized(e: ComponentEvent?) {}
+      override fun componentMoved(e: ComponentEvent?) {}
+
+      override fun componentShown(e: ComponentEvent?) {
+        // The preview has been shown but only activate if the editor is selected
+        if (isEditorSelected()) activate()
+      }
+
+      override fun componentHidden(e: ComponentEvent?) {
+        deactivate()
+      }
+    })
   }
 
   /**
    * Returns whether this preview is active. That means that the number of [selectNotify] calls is larger than
    * the number of [deselectNotify] calls.
    */
-  private fun isActive(): Boolean {
+  private fun isEditorSelected(): Boolean {
     val selectedEditors = FileEditorManager.getInstance(project).selectedEditors.filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
     return selectedEditors.any { it == this }
   }
 
+  private fun activate() {
+    if (isActive) return
+    isActive = true
+    preview.onActivate()
+  }
+
+  private fun deactivate() {
+    if (!isActive) return
+    isActive = false
+    preview.onDeactivate()
+  }
+
   final override fun selectNotify() {
     super.selectNotify()
-    if (!isActive()) return
+    if (!isEditorSelected()) return
 
-    preview.onActivate()
+    if (firstActivation) {
+      // This is the first time the editor is being activated so trigger the onInit initialization.
+      firstActivation = false
+      preview.onInit()
+    }
+
+    // The editor has been selected, but only activate if it's visible.
+    if (preview.component.isShowing) activate()
   }
 
   final override fun deselectNotify() {
     super.deselectNotify()
+    if (isEditorSelected()) return
 
-    if (isActive()) return
-
-    preview.onDeactivate()
+    deactivate()
   }
 }

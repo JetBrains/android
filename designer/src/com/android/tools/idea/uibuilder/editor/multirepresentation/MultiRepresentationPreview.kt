@@ -112,6 +112,11 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       return representations[currentRepresentationName]
     }
 
+  /**
+   * true if the [currentRepresentation] has been activated.
+   */
+  private val currentRepresentationIsActive = AtomicBoolean(false)
+
   override val representationNames: List<RepresentationName>
     get() {
       return representations.keys.sorted()
@@ -121,15 +126,20 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   override var currentRepresentationName: RepresentationName = ""
     set(value) {
       if (field != value) {
-        currentRepresentation?.onDeactivate()
+        if (currentRepresentationIsActive.get()) {
+          currentRepresentation?.onDeactivate()
+        }
         field = value
 
         onRepresentationChanged()
         if (isActive.get()) {
           LOG.debug { "[$instanceId] Activating '$value'"}
           currentRepresentation?.onActivate()
+          currentRepresentationIsActive.set(true)
         }
         else {
+          // The preview is not active so mark the current representation as not-active
+          currentRepresentationIsActive.set(false)
           LOG.debug { "[$instanceId] Did not activate '$value' since the MultiRepresentationPreview is not active."}
         }
       }
@@ -151,10 +161,11 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * We only restore the state once when the initial creation happens. After that, we do not restore it anymore.
    */
   private var hasRestoredState = false
+
   /**
    * Callback called the first time the representations are loaded. This allows restoring the initial editor status.
    */
-  private var onRepresenationsLoaded: (() -> Unit)? = null
+  private var onRepresentationsLoaded: (() -> Unit)? = null
 
   private val caretListener = object : CaretListener {
     override fun caretPositionChanged(event: CaretEvent) {
@@ -186,13 +197,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
   }
 
-  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
-    if (!isActive.get()) {
-      // Schedule the update for when the preview becomes active
-      updateRepresentationsOnActivation.set(true)
-      return@invokeLaterIfNeeded
-    }
-
+  private fun updateRepresentationsImpl() = UIUtil.invokeLaterIfNeeded {
     if (Disposer.isDisposed(this)) {
       return@invokeLaterIfNeeded
     }
@@ -201,6 +206,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (file == null || !file.isValid) {
       return@invokeLaterIfNeeded
     }
+
+    updateRepresentationsOnActivation.set(false)
 
     val providers = providers.filter { it.accept(project, file.virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
@@ -223,8 +230,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       addedRepresentations.add(provider.displayName)
     }
 
-    onRepresenationsLoaded?.invoke()
-    onRepresenationsLoaded = null
+    onRepresentationsLoaded?.invoke()
+    onRepresentationsLoaded = null
     representationsLoaded = true
 
     // update current if it was deleted
@@ -233,6 +240,16 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     representationSelectionToolbar.isVisible = representations.size > 1
 
     onRepresentationsUpdated?.invoke()
+  }
+
+  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
+    if (!isActive.get()) {
+      // Schedule the update for when the preview becomes active
+      updateRepresentationsOnActivation.set(true)
+      return@invokeLaterIfNeeded
+    }
+
+    updateRepresentationsImpl()
   }
 
   var onRepresentationsUpdated: (() -> Unit)? = null
@@ -252,7 +269,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (hasRestoredState) return
     hasRestoredState = true
     if (state is MultiRepresentationPreviewFileEditorState) {
-      onRepresenationsLoaded = {
+      onRepresentationsLoaded = {
         currentRepresentationName = state.selectedRepresentationName
         state.representations
           .filter { it.key.isNotEmpty() && it.settings.isNotEmpty() }
@@ -261,8 +278,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
       // If the representations have been initialized already, apply the changes immediately
       if (representationsLoaded) {
-        onRepresenationsLoaded?.invoke()
-        onRepresenationsLoaded = null
+        onRepresentationsLoaded?.invoke()
+        onRepresentationsLoaded = null
         updateRepresentations()
       }
     }
@@ -336,11 +353,12 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
   }
 
-  override fun onVisibilityChange(isVisible: Boolean) {
-    if (isVisible)
-      onActivate()
-    else
-      onDeactivate() // If the preview becomes invisible, we deactivate it
+  /**
+   * Method called before [onActivate] to initialize the representations. This method will only be called once while [onActivate] and
+   * [onDeactivate] might be called multiple times.
+   */
+  fun onInit() {
+    updateRepresentationsImpl()
   }
 
   /**
@@ -352,7 +370,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       // First activation, update the representations. onActivate will be called by the updateRepresentations.
       updateRepresentations()
     }
-    else {
+
+    if (!currentRepresentationIsActive.getAndSet(true)) {
       LOG.debug { "[$instanceId] Activating '$currentRepresentationName'" }
       currentRepresentation?.onActivate()
     }

@@ -599,8 +599,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     isActive.set(true)
     if (isFirstActivation.getAndSet(false))
       onInit()
-    else
-      surface.activate()
 
     if (refreshedWhileDeactivated.getAndSet(false)) {
       // Refresh has been called while we were deactivated, issue a refresh on activation.
@@ -613,7 +611,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     LOG.debug("onDeactivate")
     setInteractivePreviewElementInstance(null)
     isLiveLiteralsEnabled = false
-    surface.deactivate()
     isActive.set(false)
   }
   // endregion
