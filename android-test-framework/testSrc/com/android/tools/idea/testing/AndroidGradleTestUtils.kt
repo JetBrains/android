@@ -612,7 +612,6 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     getLatestAndroidPlatform(),
     listOf(),
     listOf(),
-    listOf(),
     LintOptionsStub(),
     listOf(),
     setOf(),

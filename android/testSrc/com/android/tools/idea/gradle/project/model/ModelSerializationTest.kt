@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.model
 
+import com.android.builder.model.NativeAndroidProject
+import com.android.builder.model.NativeArtifact
+import com.android.builder.model.NativeFile
+import com.android.builder.model.NativeSettings
+import com.android.builder.model.NativeToolchain
+import com.android.builder.model.NativeVariantAbi
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
@@ -38,12 +44,6 @@ import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
 import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
-import com.android.ide.common.gradle.model.stubs.NativeAndroidProjectStub
-import com.android.ide.common.gradle.model.stubs.NativeArtifactStub
-import com.android.ide.common.gradle.model.stubs.NativeFileStub
-import com.android.ide.common.gradle.model.stubs.NativeSettingsStub
-import com.android.ide.common.gradle.model.stubs.NativeToolchainStub
-import com.android.ide.common.gradle.model.stubs.NativeVariantAbiStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SigningConfigStub
@@ -67,6 +67,9 @@ import com.intellij.serialization.WriteConfiguration
 import junit.framework.TestCase.assertEquals
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModelImpl
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.RETURNS_SMART_NULLS
+import org.mockito.Mockito.`when`
 import java.io.File
 
 /**
@@ -116,8 +119,8 @@ class ModelSerializationTest {
 
   @Test
   fun v1NdkModel() = assertSerializable {
-    V1NdkModel(modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub()),
-               listOf(modelCache.nativeVariantAbiFrom(NativeVariantAbiStub())))
+    V1NdkModel(modelCache.nativeAndroidProjectFrom(Mockito.mock(NativeAndroidProject::class.java, RETURNS_SMART_NULLS)),
+               listOf(modelCache.nativeVariantAbiFrom(Mockito.mock(NativeVariantAbi::class.java, RETURNS_SMART_NULLS))))
   }
 
   @Test
@@ -132,7 +135,7 @@ class ModelSerializationTest {
     NdkModuleModel(
       "moduleName",
       File("some/path"),
-      modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub()),
+      modelCache.nativeAndroidProjectFrom(Mockito.mock(NativeAndroidProject::class.java, RETURNS_SMART_NULLS)),
       listOf()
     )
   }
@@ -280,32 +283,42 @@ class ModelSerializationTest {
 
   @Test
   fun nativeAndroidProjectImpl() = assertSerializable {
-    modelCache.nativeAndroidProjectFrom(NativeAndroidProjectStub())
+    modelCache.nativeAndroidProjectFrom(Mockito.mock(NativeAndroidProject::class.java, RETURNS_SMART_NULLS))
   }
 
   @Test
   fun nativeArtifact() = assertSerializable {
-    modelCache.nativeArtifactFrom(NativeArtifactStub())
+    val artifact = Mockito.mock(NativeArtifact::class.java, RETURNS_SMART_NULLS)
+    `when`(artifact.outputFile).thenReturn(File("outputFile"))
+    modelCache.nativeArtifactFrom(artifact)
   }
 
   @Test
   fun nativeFile() = assertSerializable {
-    modelCache.nativeFileFrom(NativeFileStub())
+    val file = Mockito.mock(NativeFile::class.java, RETURNS_SMART_NULLS)
+    `when`(file.filePath).thenReturn(File("filePath"))
+    `when`(file.settingsName).thenReturn("settingName")
+    `when`(file.workingDirectory).thenReturn(File("workingDirectory"))
+    modelCache.nativeFileFrom(file)
   }
 
   @Test
   fun nativeSettings() = assertSerializable {
-    modelCache.nativeSettingsFrom(NativeSettingsStub())
+    modelCache.nativeSettingsFrom(Mockito.mock(NativeSettings::class.java, RETURNS_SMART_NULLS))
   }
 
   @Test
   fun nativeToolchain() = assertSerializable {
-    modelCache.nativeToolchainFrom(NativeToolchainStub())
+    val toolchain = Mockito.mock(NativeToolchain::class.java, RETURNS_SMART_NULLS)
+    `when`(toolchain.name).thenReturn("name")
+    `when`(toolchain.cCompilerExecutable).thenReturn(File("c-compilier.exe"))
+    `when`(toolchain.cppCompilerExecutable).thenReturn(File("cpp-compilier.exe"))
+    modelCache.nativeToolchainFrom(toolchain)
   }
 
   @Test
   fun nativeVariantAbi() = assertSerializable {
-    modelCache.nativeVariantAbiFrom(NativeVariantAbiStub())
+    modelCache.nativeVariantAbiFrom(Mockito.mock(NativeVariantAbi::class.java, RETURNS_SMART_NULLS))
   }
 
   @Test
