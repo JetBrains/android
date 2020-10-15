@@ -72,7 +72,7 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.editors.theme.MaterialColorUtils
+import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.Namespacing
