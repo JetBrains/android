@@ -188,7 +188,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             .flatMap { ExternalSystemApiUtil.getChildren(it, GradleSourceSetData.KEY) }
             .filter {
                 val ktModule = it.kotlinSourceSet?.kotlinModule
-                ktModule != null && ktModule.isTestModule == testScope
+                ktModule != null && !ktModule.isTestModule
             }
         val commonSourceSetName = KotlinSourceSet.commonName(testScope)
         val isAndroidModule = getAndroidModuleModel(moduleNode) != null
@@ -220,16 +220,12 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 }
             }
 
-        val testKotlinModules =
-            gradleSourceSetDataNodes.filter { it.kotlinSourceSet?.isTestModule ?: false }.mapNotNull { modelsProvider.findIdeModule(it.data) }
-                .toSet()
-
         gradleSourceSetDataNodes.forEach { node ->
             val module = modelsProvider.findIdeModule(node.data) ?: return
             addModuleDependencyIfNeeded(rootModel, module, testScope, node.kotlinSourceSet?.isTestModule ?: false)
             val dependeeRootModel = modelsProvider.getModifiableRootModel(module)
             dependeeRootModel.getModuleDependencies(testScope).forEach { transitiveDependee ->
-                addModuleDependencyIfNeeded(rootModel, transitiveDependee, testScope, testKotlinModules.contains(transitiveDependee))
+                addModuleDependencyIfNeeded(rootModel, transitiveDependee, testScope, false)
             }
         }
     }
