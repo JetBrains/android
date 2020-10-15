@@ -68,7 +68,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_shard_count = 4,
     test_srcs = ["testSrc"],

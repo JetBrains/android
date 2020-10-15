@@ -37,7 +37,6 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

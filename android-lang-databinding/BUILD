@@ -48,7 +48,6 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
