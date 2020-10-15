@@ -57,7 +57,7 @@ public final class HyperlinkInstruction extends RenderInstruction {
 
     setMouseHandler(evt -> myHyperlinkLabel.dispatchEvent(evt));
 
-    // do this after setting text and icon in HyperlinkLabel
+    // save size after setting text and icon in HyperlinkLabel, to get the real size. Otherwise text and icon might overlap.
     mySize = myHyperlinkLabel.getPreferredSize();
   }
 
