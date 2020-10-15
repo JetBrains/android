@@ -40,7 +40,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/emulator/testData",
-        "//tools/idea/java/mockJDK-1.7",
         "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_srcs = ["testSrc"],

@@ -52,7 +52,6 @@ iml_module(
         "//tools/adt/idea/mlkit/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],

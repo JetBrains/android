@@ -55,7 +55,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
-        "//tools/idea/java/mockJDK-1.7",
     ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
