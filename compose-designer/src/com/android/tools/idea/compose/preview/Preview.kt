@@ -209,6 +209,11 @@ private const val SELECTED_GROUP_KEY = "selectedGroup"
 private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 
 /**
+ * Frames per second limit for interactive preview
+ */
+private const val FPS_LIMIT = 60
+
+/**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
@@ -478,7 +483,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-                                            if (!RenderService.isBusy()) {
+                                            if (!RenderService.isBusy() && fpsCounter.getFps() <= FPS_LIMIT) {
                                               fpsCounter.incrementFrameCounter()
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
