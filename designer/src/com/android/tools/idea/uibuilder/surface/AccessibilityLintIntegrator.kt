@@ -102,7 +102,7 @@ class NlAtfIssue(
   override val summary: String
     get() =
       when (result.mCategory) {
-        CONTENT_LABELING -> "Content labels missing or confusing"
+        CONTENT_LABELING -> "Content labels missing or ambiguous"
         TOUCH_TARGET_SIZE -> "Touch size too small"
         LOW_CONTRAST -> "Low contrast"
         else -> "Accessibility Issue"
