@@ -68,11 +68,22 @@ interface CommonUsageTracker {
   }
 }
 
+/**
+ * Adds the application id information to the event.
+ */
 fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
   getApplicationId(facet)?.let {
     setRawProjectId(it).setProjectId(AnonymizerUtil.anonymizeUtf8(it))
   }
   return this
+}
+
+/**
+ * Adds the application id information to the event.
+ */
+fun AndroidStudioEvent.Builder.setApplicationId(surface: DesignSurface?): AndroidStudioEvent.Builder {
+  val facet = surface?.models?.map { it.facet }?.first() ?: return this
+  return setApplicationId(facet)
 }
 
 internal fun getApplicationId(facet: AndroidFacet): String? {

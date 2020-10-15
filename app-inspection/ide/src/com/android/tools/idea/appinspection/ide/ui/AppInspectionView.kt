@@ -22,6 +22,8 @@ import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchParams
+import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
@@ -60,7 +62,6 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
-import javax.swing.JTabbedPane
 
 class AppInspectionView(
   private val project: Project,
@@ -93,7 +94,7 @@ class AppInspectionView(
   }
 
   @VisibleForTesting
-  val inspectorTabs = mutableListOf<AppInspectorTabMetadata>()
+  val inspectorTabs = mutableListOf<AppInspectorTabShell>()
 
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
@@ -154,9 +155,9 @@ class AppInspectionView(
       if (selectedProcess != null && !selectedProcess.isRunning) {
         // If a process was just killed, we'll get notified about that by being sent a dead
         // process. In that case, remove all inspectors except for those that opted-in to stay up
-        // in offline mode.
+        // in offline mode and those that haven't finished loading.
         inspectorTabs.removeAll { tab ->
-          !tab.provider.supportsOffline()
+          !tab.provider.supportsOffline() || !tab.isComponentSet
         }
       }
       else {
@@ -184,68 +185,79 @@ class AppInspectionView(
     launchInspectorTabsForCurrentProcess()
   }
 
-  private fun getApplicableTabProviders(): List<AppInspectorTabMetadata> {
-    return getTabProviders()
-      .filter { provider -> provider.isApplicable() }
-      .map { provider -> AppInspectorTabMetadata(provider) }
+  private val hyperlinkClicked: () -> Unit = {
+    AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+    launchInspectorTabsForCurrentProcess(true)
   }
 
-  private suspend fun launchInspectorTabsForCurrentProcess(force: Boolean = false) {
-    val tabs = getApplicableTabProviders()
-    tabs.map { tab ->
-      scope.launch {
+  private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) = scope.launch {
+    val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project)
+    // Triage the applicable inspector tab providers into those of which inspectors can be launched, and those of which can't.
+    val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
+    val incompatibleInspectorTabShells = applicableTabs
+      .filter { it.status == AppInspectorTabLaunchParams.Status.INCOMPATIBLE }
+      .map { AppInspectorTabShell(it.provider) }
+    val inspectorTabShells = applicableTabs
+      .filter { it.status == AppInspectorTabLaunchParams.Status.LAUNCH }
+      .map { AppInspectorTabShell(it.provider) }
+
+    inspectorTabShells.forEach { tab ->
+      val provider = tab.provider
+      launch {
         try {
           val client = apiServices.launchInspector(
             LaunchParameters(
               currentProcess,
-              tab.provider.inspectorId,
-              tab.provider.inspectorLaunchParams.inspectorAgentJar,
+              provider.inspectorId,
+              provider.inspectorLaunchParams.inspectorAgentJar,
               project.name,
-              (tab.provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+              (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
               force
             )
           )
           withContext(uiDispatcher) {
-            tab.setComponent(tab.provider.createTab(project, ideServices, currentProcess, client).component)
+            tab.setComponent(provider.createTab(project, ideServices, currentProcess, client).component)
           }
-          scope.launch {
+          launch {
             if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
               AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
               // Wait until AFTER we're disposed before showing the notification. This ensures if
               // the user hits restart, which requests launching a new inspector, it won't reuse
               // the existing client. (Users probably would never hit restart fast enough but it's
               // possible to trigger in tests.)
-              showCrashNotification(tab.provider.displayName)
+              showCrashNotification(provider.displayName)
             }
           }
         }
         catch (e: CancellationException) {
-          // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels
-          // all outstanding futures when it is turned off.
+          // We don't log but rethrow cancellation exceptions because they are expected as part of the operation. For example: the service
+          // cancels all outstanding futures when it is turned off.
+          throw e
         }
         catch (e: AppInspectionProcessNoLongerExistsException) {
           // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
           // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
-          tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.processName)))
+          withContext(uiDispatcher) {
+            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.processName)))
+          }
         }
         catch (e: AppInspectionLaunchException) {
           // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
           // the old inspector is still running.
-          tab.setComponent(
-            EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)))
-          ideServices.showNotification(
-            AppInspectionBundle.message("notification.failed.launch", e.message!!),
-            severity = AppInspectionIdeServices.Severity.ERROR
-          ) {
-            AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-            scope.launch { launchInspectorTabsForCurrentProcess(true) }
+          withContext(uiDispatcher) {
+            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", provider.displayName)))
+            ideServices.showNotification(
+              AppInspectionBundle.message("notification.failed.launch", e.message!!),
+              severity = AppInspectionIdeServices.Severity.ERROR,
+              hyperlinkClicked = hyperlinkClicked
+            )
           }
         }
         catch (e: AppInspectionVersionIncompatibleException) {
-          withContext(uiDispatcher) { tab.setComponent(tab.provider.toIncompatibleVersionMessage()) }
+          withContext(uiDispatcher) { tab.setComponent(provider.toIncompatibleVersionMessage()) }
         }
         catch (e: AppInspectionLibraryMissingException) {
-          withContext(uiDispatcher) { tab.setComponent(tab.provider.toIncompatibleVersionMessage()) }
+          withContext(uiDispatcher) { tab.setComponent(provider.toIncompatibleVersionMessage()) }
         }
         catch (e: Exception) {
           Logger.getInstance(AppInspectionView::class.java).error(e)
@@ -255,7 +267,7 @@ class AppInspectionView(
 
     withContext(uiDispatcher) {
       inspectorTabs.clear()
-      tabs.sorted().forEach { tab -> inspectorTabs.add(tab) }
+      (incompatibleInspectorTabShells + inspectorTabShells).sorted().forEach { tab -> inspectorTabs.add(tab) }
       updateUi()
       fireTabsChangedListener()
     }

@@ -42,6 +42,7 @@ import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.util.EditorUtil
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -62,17 +63,19 @@ class ResourcePasteProvider : PasteProvider {
     val caret = CommonDataKeys.CARET.getData(dataContext)!!
     val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return
     val psiElement = runReadAction { psiFile.findElementAt(caret.offset) }
+    val project : Project? = CommonDataKeys.PROJECT.getData(dataContext)
 
     when (psiFile.fileType) {
-      XmlFileType.INSTANCE -> performForXml(psiElement, dataContext, caret)
-      JavaFileType.INSTANCE -> performForJavaCode(dataContext, caret)
-      KotlinFileType.INSTANCE -> performForKotlinCode(psiElement, dataContext, caret)
+      XmlFileType.INSTANCE -> performForXml(psiElement, dataContext, caret, project)
+      JavaFileType.INSTANCE -> performForJavaCode(dataContext, caret, project)
+      KotlinFileType.INSTANCE -> performForKotlinCode(psiElement, dataContext, caret, project)
     }
   }
 
   private fun performForKotlinCode(psiElement: PsiElement?,
                                    dataContext: DataContext,
-                                   caret: Caret) {
+                                   caret: Caret,
+                                   project: Project?) {
     val resourceUrl = getResourceUrl(dataContext) ?: return
     if (psiElement == null) return
     val resourceCodeReference = resourceUrl.resourceCodeReference
@@ -81,17 +84,17 @@ class ResourcePasteProvider : PasteProvider {
     if (supportedKotlinElement != null) {
       supportedKotlinElement.processElement(kotlinParentElement, caret, resourceCodeReference)
       // TODO(143899540): Update tracking, to differentiate when pasting on code files.
-      ResourceManagerTracking.logPasteUrlText(resourceUrl.type)
+      ResourceManagerTracking.logPasteUrlText(project, resourceUrl.type)
     } else {
-      pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
+      pasteAtCaret(caret, resourceCodeReference, resourceUrl.type, project)
     }
   }
 
-  private fun performForJavaCode(dataContext: DataContext, caret: Caret) {
+  private fun performForJavaCode(dataContext: DataContext, caret: Caret, project: Project?) {
     val resourceUrl = getResourceUrl(dataContext) ?: return
     val resourceCodeReference = resourceUrl.resourceCodeReference
     // TODO: Add proper support for Java files
-    pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
+    pasteAtCaret(caret, resourceCodeReference, resourceUrl.type, project)
   }
 
   /**
@@ -103,14 +106,15 @@ class ResourcePasteProvider : PasteProvider {
    */
   private fun performForXml(psiElement: PsiElement?,
                             dataContext: DataContext,
-                            caret: Caret) {
+                            caret: Caret,
+                            project: Project?) {
     val resourceUrl = getResourceUrl(dataContext)
     val resourceReference = resourceUrl?.toString() ?: return
 
     if (psiElement is PsiWhiteSpace) {
       if (getFolderType(psiElement.containingFile) == ResourceFolderType.LAYOUT) {
         // TODO: Should figure out a way to have a more consistent behavior with the Drag Target in Layout Editor.
-        ResourceManagerTracking.logPasteOnBlank(resourceUrl.type)
+        ResourceManagerTracking.logPasteOnBlank(project, resourceUrl.type)
         if (IMAGE_LIKE_TYPES.contains(resourceUrl.type)) {
           insertImageView(resourceReference, psiElement, caret, isFixedDimension = resourceUrl.type == ResourceType.COLOR)
           return
@@ -123,29 +127,29 @@ class ResourcePasteProvider : PasteProvider {
     }
 
     if (psiElement !is XmlElement) {
-      pasteAtCaret(caret, resourceReference, resourceUrl.type)
+      pasteAtCaret(caret, resourceReference, resourceUrl.type, project)
       return
     }
 
     val xmlAttributeValue = psiElement.parentOfType<XmlAttributeValue>()
     if (processForValue(xmlAttributeValue, caret, resourceReference)) {
-      ResourceManagerTracking.logPasteOnXmlAttribute(resourceUrl.type)
+      ResourceManagerTracking.logPasteOnXmlAttribute(project, resourceUrl.type)
       return
     }
 
     val xmlAttribute = psiElement.parentOfType<XmlAttribute>()
     if (processForAttribute(xmlAttribute, caret, resourceReference)) {
-      ResourceManagerTracking.logPasteOnXmlAttribute(resourceUrl.type)
+      ResourceManagerTracking.logPasteOnXmlAttribute(project, resourceUrl.type)
       return
     }
 
     val xmlTag = psiElement.parentOfType<XmlTag>()
     if (processForTag(xmlTag, caret, resourceReference)) {
-      ResourceManagerTracking.logPasteOnXmlTag(resourceUrl.type)
+      ResourceManagerTracking.logPasteOnXmlTag(project, resourceUrl.type)
       return
     }
 
-    pasteAtCaret(caret, resourceReference, resourceUrl.type)
+    pasteAtCaret(caret, resourceReference, resourceUrl.type, project)
   }
 
   private fun insertIncludeTag(resourceReference: String, psiElement: PsiElement, caret: Caret) {
@@ -216,20 +220,21 @@ class ResourcePasteProvider : PasteProvider {
 
   private fun pasteAtCaret(caret: Caret,
                            resourceReference: String,
-                           type: ResourceType? = null) {
+                           type: ResourceType? = null,
+                           project: Project?) {
     runWriteAction {
       caret.editor.document.insertString(caret.offset, resourceReference)
     }
     caret.selectStringFromOffset(resourceReference, caret.offset)
-    ResourceManagerTracking.logPasteUrlText(type)
+    ResourceManagerTracking.logPasteUrlText(project, type)
   }
 
-  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String, type: ResourceType? = null) {
+  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String, type: ResourceType? = null, project: Project?) {
     runWriteAction {
       caret.editor.document.replaceString(psiElement.textRange.startOffset, psiElement.textRange.endOffset, resourceReference)
     }
     caret.selectStringFromOffset(resourceReference, psiElement.textRange.startOffset)
-    ResourceManagerTracking.logPasteUrlText(type)
+    ResourceManagerTracking.logPasteUrlText(project, type)
   }
 
   /**

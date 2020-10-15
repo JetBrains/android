@@ -26,11 +26,11 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
-import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -42,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
@@ -59,6 +60,7 @@ class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspe
   LibraryInspectorLaunchParams(TEST_JAR,
                                ArtifactCoordinate("groupId", "artifactId", "0.0.0")))
 
+@ExperimentalCoroutinesApi
 class AppInspectionViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -367,6 +369,7 @@ class AppInspectionViewTest {
         .collectIndexed { i, _ ->
           if (i == 0) {
             assertThat(inspectionView.inspectorTabs.size).isEqualTo(3)
+            inspectionView.inspectorTabs.forEach { it.waitForContent() }
             tabsAdded.complete(Unit)
           }
           else if (i == 1) {
@@ -383,6 +386,58 @@ class AppInspectionViewTest {
     transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
+
+  @Test
+  fun offlineTabsAreRemovedIfInspectorIsStillLoading() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    val tabsUpdated = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      val supportsOfflineInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+        override fun supportsOffline() = true
+      }
+
+      inspectionView = AppInspectionView(
+        projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
+        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedFlow
+        .take(2)
+        .collectIndexed { i, _ ->
+          if (i == 0) {
+            assertThat(inspectionView.inspectorTabs).hasSize(3)
+            tabsAdded.complete(Unit)
+          }
+          else if (i == 1) {
+            assertThat(inspectionView.inspectorTabs).isEmpty()
+            tabsUpdated.complete(Unit)
+          }
+        }
+    }
+
+    // Suppress the response to createInspectorCommand to simulate the tab is loading.
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      val handler = TestAppInspectorCommandHandler(timer)
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        if (!command.appInspectionCommand.hasCreateInspectorCommand()) {
+          handler.handleCommand(command, events)
+        }
+      }
+    })
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    tabsUpdated.join()
+  }
+
 
   @Test
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() = runBlocking<Unit> {

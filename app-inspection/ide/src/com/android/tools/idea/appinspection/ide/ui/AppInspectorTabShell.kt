@@ -33,13 +33,19 @@ import javax.swing.JTabbedPane
  * instead of just adding tabs as threads return them. This ensures we can keep a consistent
  * ordering across inspector launches.
  */
-class AppInspectorTabMetadata(
+class AppInspectorTabShell(
   val provider: AppInspectorTabProvider
-) : Comparable<AppInspectorTabMetadata> {
+) : Comparable<AppInspectorTabShell> {
   @VisibleForTesting
   val containerPanel = JPanel(BorderLayout())
 
   private val contentChangedDeferred = CompletableDeferred<JComponent>()
+
+  /**
+   * Will be false until [setComponent] is called
+   */
+  val isComponentSet: Boolean
+    get() = contentChangedDeferred.isCompleted
 
   init {
     containerPanel.add(EmptyStatePanel(AppInspectionBundle.message("inspector.loading", provider.displayName)))
@@ -70,5 +76,5 @@ class AppInspectorTabMetadata(
   @VisibleForTesting
   suspend fun waitForContent() = contentChangedDeferred.await()
 
-  override fun compareTo(other: AppInspectorTabMetadata) = this.provider.displayName.compareTo(other.provider.displayName)
+  override fun compareTo(other: AppInspectorTabShell) = this.provider.displayName.compareTo(other.provider.displayName)
 }

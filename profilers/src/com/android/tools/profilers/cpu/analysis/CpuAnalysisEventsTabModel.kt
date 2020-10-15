@@ -35,17 +35,16 @@ abstract class CpuAnalysisEventsTabModel<T>(val captureRange: Range) : CpuAnalys
 /**
  * Events tab model for threads.
  */
-class CpuThreadAnalysisEventsTabModel(captureRange: Range, val selectionRange: Range) : CpuAnalysisEventsTabModel<CpuThreadTrackModel>(
-  captureRange) {
+class CpuThreadAnalysisEventsTabModel(captureRange: Range) : CpuAnalysisEventsTabModel<CpuThreadTrackModel>(captureRange) {
 
   /**
-   * @return all nodes in this thread that intersects with the selection range.
+   * @return all nodes in this thread.
    */
   override fun getNodes() = dataSeries
     .mapNotNull { it.callChartModel.node }
     .flatMap {
       it.descendantsStream.filter { node ->
-        node.depth > 0 && selectionRange.intersectsWith(node.startGlobal.toDouble(), node.endGlobal.toDouble())
+        node.depth > 0
       }.toList()
     }
 }
