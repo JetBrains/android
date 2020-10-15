@@ -148,18 +148,9 @@ public class AndroidPluginVersionUpdater {
       // FIXME(xof): we should always know what we're upgrading from.  Find callers and fix them.
       oldPluginVersion = new GradleVersion(1, 0, 0);
     }
-    GradleVersion projectGradleVersion;
-    if (gradleVersion == null) {
-      // if we're not requesting an upgrade to the gradle version, use the project's current gradle version ...
-      projectGradleVersion = GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0, 0));
-    }
-    else {
-      // ... but if we are, use the to-be-upgraded version.
-      projectGradleVersion = gradleVersion;
-    }
 
     AgpClasspathDependencyRefactoringProcessor rp1 = new AgpClasspathDependencyRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
-    GMavenRepositoryRefactoringProcessor rp2 = new GMavenRepositoryRefactoringProcessor(myProject, oldPluginVersion, pluginVersion, projectGradleVersion);
+    GMavenRepositoryRefactoringProcessor rp2 = new GMavenRepositoryRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
     try {
       rp1.run();
       if (!oldPluginVersion.isAtLeast(3, 0, 0)) {
@@ -175,7 +166,7 @@ public class AndroidPluginVersionUpdater {
 
     if (result.isPluginVersionUpdated() && gradleVersion != null) {
       AgpGradleVersionRefactoringProcessor rp3 =
-        new AgpGradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion, gradleVersion);
+        new AgpGradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
       try {
         rp3.run();
         result.gradleVersionUpdated();

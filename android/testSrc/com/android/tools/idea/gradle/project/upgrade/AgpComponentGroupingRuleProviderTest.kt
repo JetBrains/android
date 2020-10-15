@@ -79,8 +79,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
     """.trimIndent())
-    val processor = AgpGradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"),
-                                                         GradleVersion.parse("6.5"))
+    val processor = AgpGradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -98,8 +97,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
           jcenter()
         }
     """.trimIndent())
-    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"),
-                                                         GradleVersion.parse("6.5"))
+    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)

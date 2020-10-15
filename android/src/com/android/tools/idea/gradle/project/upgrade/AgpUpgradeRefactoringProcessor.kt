@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
@@ -40,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
@@ -805,21 +805,11 @@ class AgpVersionUsageInfo(
 }
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
-    this.gradleVersion = gradleVersion
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    // FIXME(xof): this is (theoretically) wrong; the version in question is the version of Gradle that the project
-    //  will use, after refactoring, not necessarily the minimum-supported version of Gradle.
-    //  This means this refactoring is intertwingled with the refactoring which upgrades the Gradle version in the wrapper properties,
-    //  though in practice it is not currently a problem (the behaviour changed in Gradle 4.0).
-    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
-    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
-    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
-    //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
-    //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
-    //  them.
-    this.gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION)!!
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(processor.new)
   }
 
   var gradleVersion: GradleVersion
@@ -897,11 +887,11 @@ class RepositoriesNoGMavenUsageInfo(
 
 class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
-    this.gradleVersion = gradleVersion
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+    this.gradleVersion = getGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
-    gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
+    gradleVersion = getGradleVersion(processor.new)
   }
 
   val gradleVersion: GradleVersion
@@ -949,6 +939,36 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   companion object {
     val USAGE_TYPE = UsageType("Update Gradle distribution URL")
+
+    enum class CompatibleGradleVersion(val version: GradleVersion) {
+      // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
+      // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
+      // them using this functionality is a non-starter.
+      VERSION_4_4(GradleVersion.parse("4.4")),
+      VERSION_4_6(GradleVersion.parse("4.6")),
+      VERSION_4_10_1(GradleVersion.parse("4.10.1")),
+      VERSION_5_1_1(GradleVersion.parse("5.1.1")),
+      VERSION_5_4_1(GradleVersion.parse("5.4.1")),
+      VERSION_5_6_4(GradleVersion.parse("5.6.4")),
+      VERSION_6_1_1(GradleVersion.parse("6.1.1")),
+      VERSION_6_5(GradleVersion.parse("6.5")),
+      VERSION_FOR_DEV(GradleVersion.parse(GRADLE_MINIMUM_VERSION))
+    }
+
+    fun getGradleVersion(agpVersion: GradleVersion): GradleVersion {
+      val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
+      return when {
+        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4.version
+        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6.version
+        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1.version
+        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1.version
+        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1.version
+        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4.version
+        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1.version
+        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5.version
+        else -> VERSION_FOR_DEV.version
+      }
+    }
   }
 }
 
@@ -1379,8 +1399,9 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
           // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
           //  probably little overlap in fabric upgrades with such old projects.
+          val gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
-          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories)
+          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories, gradleVersion)
           usages.add(usageInfo)
         }
       }
@@ -1558,11 +1579,11 @@ class RemoveFabricMavenRepositoryUsageInfo(
 
 class AddGoogleMavenRepositoryUsageInfo(
   element: WrappedPsiElement,
-  private val repositories: RepositoriesModel
+  private val repositories: RepositoriesModel,
+  private val gradleVersion: GradleVersion
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    // as with NoGMavenUsageInfo this use of GRADLE_MINIMUM_VERSION is theoretically wrong and in practice fine.
-    repositories.addGoogleMavenRepository(GradleVersion.parse(GRADLE_MINIMUM_VERSION))
+    repositories.addGoogleMavenRepository(gradleVersion)
   }
 
   override fun getTooltipText() = "Add the Google Maven repository"
