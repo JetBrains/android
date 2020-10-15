@@ -305,16 +305,19 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
 
       // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
       // requests any other modules that can't be reached.
+      val propagatedToModules = LinkedList<ModuleConfiguration>()
       val visitedModules = HashSet<String>()
-      while (allModulesToSetUp.isNotEmpty()) {
-        val moduleConfiguration = allModulesToSetUp.removeFirst()
+      while (propagatedToModules.isNotEmpty() || allModulesToSetUp.isNotEmpty()) {
+        // Walk the tree of module dependencies in the breadth-first-search order.
+        val moduleConfiguration =
+          if (propagatedToModules.isNotEmpty()) propagatedToModules.removeFirst() else allModulesToSetUp.removeFirst()
         if (!visitedModules.add(moduleConfiguration.id)) continue
 
         val moduleDependencies = syncVariantAndGetModuleDependencies(
           moduleConfiguration,
           syncOptions.selectedVariants
         ) ?: continue
-        allModulesToSetUp.addAll(0, moduleDependencies) // Walk the tree of module dependencies in depth-first-search order.
+        propagatedToModules.addAll(moduleDependencies)
       }
     }
 
