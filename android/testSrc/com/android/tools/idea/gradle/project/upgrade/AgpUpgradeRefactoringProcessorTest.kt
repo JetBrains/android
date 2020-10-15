@@ -120,10 +120,10 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEnabledEffectOnAgpGradleVersion() {
     writeToBuildFile(TestFileName("AgpGradleVersion/OldGradleVersion"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
     processor.classpathRefactoringProcessor.isEnabled = false
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is AgpGradleVersionRefactoringProcessor }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/OldGradleVersionExpected"))
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/OldGradleVersion410Expected"))
   }
 }

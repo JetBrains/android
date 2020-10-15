@@ -87,7 +87,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "implementation"),
       ObsoleteConfigurationConfigurationUsageInfo(wrappedPsiElement, configurationModel, "paidReleaseImplementation"),
       RemoveFabricMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel, repositoryModel),
-      AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel),
+      AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel, GradleVersion.parse("6.1.1")),
       RemoveFabricClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel, dependencyModel),
       AddGoogleServicesClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),
       AddFirebaseCrashlyticsClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),
