@@ -442,8 +442,11 @@ public class GradleBuildInvoker {
           presentation.setIcon(AllIcons.Actions.Compile);
 
           long eventTime = System.currentTimeMillis();
-          StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
-                                                              "running...");
+          DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, executionName, workingDir, eventTime);
+          if (request.myDoNotShowBuildOutputOnFailure) {
+            buildDescriptor.setActivateToolWindowWhenFailed(false);
+          }
+          StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
           if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
             event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
@@ -609,6 +612,8 @@ public class GradleBuildInvoker {
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
     @Nullable private BuildAction myBuildAction;
     private boolean myWaitForCompletion;
+    /** If true, the build output window will not automatically be shown on failure. */
+    private boolean myDoNotShowBuildOutputOnFailure = false;
 
     public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull String... gradleTasks) {
       this(project, buildFilePath, Arrays.asList(gradleTasks));
@@ -725,6 +730,15 @@ public class GradleBuildInvoker {
       return this;
     }
 
+    /**
+     * If called, do not show automatically the build output window when errors are found.
+     */
+    @NotNull
+    public Request doNotShowBuildOutputOnFailure() {
+      myDoNotShowBuildOutputOnFailure = true;
+      return this;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -738,7 +752,8 @@ public class GradleBuildInvoker {
       return Objects.equals(myBuildFilePath, that.myBuildFilePath) &&
              Objects.equals(myGradleTasks, that.myGradleTasks) &&
              Objects.equals(myJvmArguments, that.myJvmArguments) &&
-             Objects.equals(myCommandLineArguments, that.myCommandLineArguments);
+             Objects.equals(myCommandLineArguments, that.myCommandLineArguments) &&
+             myDoNotShowBuildOutputOnFailure == that.myDoNotShowBuildOutputOnFailure;
     }
 
     @Override
@@ -754,6 +769,7 @@ public class GradleBuildInvoker {
              ", myJvmArguments=" + myJvmArguments +
              ", myCommandLineArguments=" + myCommandLineArguments +
              ", myBuildAction=" + myBuildAction +
+             ", myDoNotShowBuildOutputOnFailure=" + myDoNotShowBuildOutputOnFailure +
              '}';
     }
   }
