@@ -53,8 +53,6 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
