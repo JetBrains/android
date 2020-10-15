@@ -25,6 +25,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.impl.BuildFolderPaths
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.gradle.model.GradlePluginModel
@@ -102,10 +103,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
 
     fun populateBuildModels() {
       try {
+        val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
         val modules: List<GradleModule> =
           when (syncOptions) {
             is SyncProjectActionOptions -> {
-              val androidModules = populateAndroidModels(syncOptions)
+              val androidModules = populateAndroidModels(syncOptions, buildFolderPaths)
               // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
               // Note that "last" here means last among Android models since many non-Android models are requested after this point.
               populateProjectSyncIssues(androidModules)
@@ -114,7 +116,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
             }
             is NativeVariantsSyncActionOptions -> {
               consumer.consume(buildModels.first(), controller.getModel(IdeaProject::class.java), IdeaProject::class.java)
-              fetchNativeVariantsAndroidModels(syncOptions)
+              fetchNativeVariantsAndroidModels(syncOptions, buildFolderPaths)
             }
             // Note: No more cases.
           }
@@ -145,13 +147,12 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
      * All of the requested models are registered back to the external project system via the
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
-    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<AndroidModule> {
+    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions, buildFolderPaths: BuildFolderPaths): List<AndroidModule> {
       val isFullSync = when (syncOptions) {
         is FullSyncActionOptions -> true
         is SingleVariantSyncActionOptions -> false
         // Note: No other cases.
       }
-      val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
       val modelCache = ModelCache.create(buildFolderPaths)
       val androidModules: MutableList<AndroidModule> = mutableListOf()
       buildModels.projects.forEach { gradleProject ->
@@ -200,8 +201,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       return androidModules
     }
 
-    private fun fetchNativeVariantsAndroidModels(syncOptions: NativeVariantsSyncActionOptions): List<GradleModule> {
-      val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+    private fun fetchNativeVariantsAndroidModels(syncOptions: NativeVariantsSyncActionOptions, buildFolderPaths: BuildFolderPaths): List<GradleModule> {
       val modelCache = ModelCache.create(buildFolderPaths)
       return buildModels.projects.mapNotNull { gradleProject ->
         val projectIdentifier = gradleProject.projectIdentifier
