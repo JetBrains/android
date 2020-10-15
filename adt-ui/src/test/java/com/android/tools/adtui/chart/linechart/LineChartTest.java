@@ -435,6 +435,71 @@ public class LineChartTest {
     }
   }
 
+  @Test
+  public void drawPathWhenAllPointsAreOutsideRangeUpToEnd() {
+    // LineChart will draw on a canvas of width 4 and height 10
+    int windowWidth = 4;
+    int windowHeight = 10;
+    Range xRange = new Range(4, 8);
+    Range dataRange = new Range(0, 8);
+    Range yRange = new Range(0, 10);
+    LineChartModel model = new LineChartModel();
+
+    // We add two data points outside of the View Range. When fillEnd is set to 0.75,
+    // a line should be drawn across the entire range using the last data point.
+    //
+    //      |   |
+    //    * -----
+    //  *   |   |
+    //  2 3 4 5 6
+    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
+    testSeries.add(2, 4L);
+    testSeries.add(3, 6L);
+
+    /*
+     * We expect that our LineChart draws the last point at the beginning of the range
+     * (4,6) and extend it to (6,6).
+     * Since Swing's (0,0) is in the top left, our y values 6 will turn into 4 to represent
+     * their offset from the top; since the x values are normalized to starting at 4, we
+     * thus expect the points (0,4) and (3,4)
+     */
+    float[][] expectedPoints = {
+      {0.0f, 4.0f},
+      {3.0f, 4.0f}
+    };
+
+    RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries, dataRange);
+    model.add(rangedSeries);
+
+    // Configure Chart.
+    LineChart chart = new LineChart(model);
+    chart.setSize(windowWidth, windowHeight);
+    BasicStroke stroke = new BasicStroke(1f);
+    LineConfig config = new LineConfig(Color.BLACK).setStroke(stroke).setStepped(false);
+    chart.configure(rangedSeries, config);
+    chart.setFillEndSupplier(() -> 0.75);
+
+    // Configure Mocks.
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    ArgumentCaptor<Path2D.Float> valueCapture = ArgumentCaptor.forClass(Path2D.Float.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    doNothing().when(fakeGraphics).draw(valueCapture.capture());
+
+    // Update and draw chart.
+    shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
+    java.util.List<Path2D.Float> values = valueCapture.getAllValues();
+    assertThat(values).hasSize(1);
+
+    // Validate each point
+    PathIterator it = values.get(0).getPathIterator(null);
+    for (int i = 0; !it.isDone(); i++) {
+      float[] coords = new float[2];
+      it.currentSegment(coords);
+      assertThat(coords).usingTolerance(0.000001f).containsExactly(expectedPoints[i]);
+      it.next();
+    }
+  }
+
   /**
    * Helper function to convert from series data to expected test value.
    *
