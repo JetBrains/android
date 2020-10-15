@@ -55,6 +55,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
@@ -238,7 +239,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
         if (!commandLineArguments.contains(PARALLEL_BUILD_OPTION) &&
-            CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
+            CompilerConfiguration.getInstance(project).isParallelCompilationEnabled()) {
           commandLineArguments.add(PARALLEL_BUILD_OPTION);
         }
 
