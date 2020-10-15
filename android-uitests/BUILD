@@ -31,7 +31,6 @@ COMMON_DATA = [
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
-    "//tools/idea/bin:log.xml",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 

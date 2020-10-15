@@ -319,7 +319,7 @@ def _android_studio_os(ctx, platform, out):
     zips = []
     overrides = []
 
-    platform_zip = platform.get(ctx.attr.platform)[0]
+    platform_zip = platform.get(ctx.attr.platform.data)[0]
 
     platform_plugins = platform.get(ctx.attr.platform.plugins)
     zips += [("", zip) for zip in [platform_zip] + platform_plugins]
@@ -492,12 +492,12 @@ def _intellij_platform_impl_os(ctx, platform, data):
             plugins[plugin] = []
         plugins[plugin].append((rel, file))
 
-    base_zip = ctx.actions.declare_file("%s.platform.%s.zip" % (ctx.label.name, platform.name))
+    base_zip = ctx.actions.declare_file("%s.%s.zip" % (ctx.label.name, platform.name))
     _zipper(ctx, "base %s platform zip" % platform.name, base, base_zip)
 
     plugin_zips = []
     for plugin, files in plugins.items():
-        plugin_zip = ctx.actions.declare_file("%s.platform.plugin.%s.%s.zip" % (ctx.label.name, plugin, platform.name))
+        plugin_zip = ctx.actions.declare_file("%s.plugin.%s.%s.zip" % (ctx.label.name, plugin, platform.name))
         _zipper(ctx, "platform plugin %s %s zip" % (plugin, platform.name), files, plugin_zip)
         plugin_zips.append(plugin_zip)
     return base_zip, plugin_zips
@@ -508,11 +508,14 @@ def _intellij_platform_impl(ctx):
     base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.data)
 
     return struct(
-        files = depset([]),
-        files_linux = depset([base_linux]),
-        files_mac = depset([base_mac]),
-        files_win = depset([base_win]),
-        mappings = {},
+        files = depset([base_linux, base_mac, base_win]),
+        data = struct(
+            files = depset([]),
+            files_linux = depset([base_linux]),
+            files_mac = depset([base_mac]),
+            files_win = depset([base_win]),
+            mappings = {},
+        ),
         plugins = struct(
             files = depset([]),
             files_linux = depset(plugins_linux),
