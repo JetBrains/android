@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.DoubleSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public class LineChart extends AnimatedComponent {
@@ -61,6 +62,9 @@ public class LineChart extends AnimatedComponent {
    * how much percent the bar width and how much percent the gap, i.e. (bar + gap) = interval.
    */
   private static final double BUCKET_BAR_PERCENTAGE = 0.7;
+
+  public static final DoubleSupplier ALWAYS_0 = () -> 0;
+  public static final DoubleSupplier ALWAYS_1 = () -> 1;
 
   @NotNull final LineChartModel myModel;
 
@@ -107,10 +111,7 @@ public class LineChart extends AnimatedComponent {
 
   private boolean myRedraw;
 
-  /**
-   * If true, extends the last available data point of each series all the way to the right to fill any remaining gap.
-   */
-  private boolean myFillEndGap;
+  @NotNull private DoubleSupplier myFillEndSupplier = ALWAYS_0;
 
   @NotNull
   private final LineChartReducer myReducer;
@@ -327,9 +328,9 @@ public class LineChart extends AnimatedComponent {
         }
       }
 
-      if (myFillEndGap && path.getCurrentPoint() != null) {
+      if (path.getCurrentPoint() != null) {
         // Extends the last point on the path to the end
-        path.lineTo(Math.max(path.getCurrentPoint().getX(), 1f), path.getCurrentPoint().getY());
+        path.lineTo(Math.max(path.getCurrentPoint().getX(), myFillEndSupplier.getAsDouble()), path.getCurrentPoint().getY());
       }
 
       if (config.isFilled() && path.getCurrentPoint() != null) {
@@ -592,6 +593,15 @@ public class LineChart extends AnimatedComponent {
   }
 
   public void setFillEndGap(boolean fillEndGap) {
-    myFillEndGap = fillEndGap;
+    setFillEndSupplier(fillEndGap ? ALWAYS_1 : ALWAYS_0);
+  }
+
+  /**
+   * @param fillEndSupplier Produces the right edge, as a percentage between 0 and 1 to extend to
+   *                        (if the edge passes the last data-point).
+   *                        This means that ALWAYS_0 never fills, and ALWAYS_1 always fills.
+   */
+  public void setFillEndSupplier(@NotNull DoubleSupplier fillEndSupplier) {
+    myFillEndSupplier = fillEndSupplier;
   }
 }
