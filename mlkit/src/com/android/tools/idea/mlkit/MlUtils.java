@@ -93,7 +93,7 @@ public class MlUtils {
    */
   @NotNull
   public static List<GradleCoordinate> getMissingTfliteGpuDependencies(@NotNull Module module) {
-    return getMissingDependencies(module, ImmutableList.of("org.tensorflow:tensorflow-lite-gpu:2.2.0"));
+    return getMissingDependencies(module, ImmutableList.of("org.tensorflow:tensorflow-lite-gpu:2.3.0"));
   }
 
   /**
