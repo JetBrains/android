@@ -21,7 +21,6 @@ iml_module(
         "//tools/adt/idea/kotlin-integration/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_shard_count = 2,
     test_srcs = ["testSrc"],

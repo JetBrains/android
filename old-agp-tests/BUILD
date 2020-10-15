@@ -45,7 +45,6 @@ iml_module(
         "//tools/external/gradle:gradle-distrib-2.6",
         "//tools/external/gradle:gradle-distrib-3.5",
         "//tools/external/gradle:gradle-distrib-4.5",
-        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_shard_count = 2,

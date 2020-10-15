@@ -11,7 +11,6 @@ iml_module(
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
         "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],

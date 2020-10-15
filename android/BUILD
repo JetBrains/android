@@ -311,7 +311,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/idea/plugins/webp/lib/libwebp",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
