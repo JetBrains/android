@@ -44,6 +44,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+  val findModelRoot: Model get() = gradleProject
 
   var projectSyncIssues: List<SyncIssueData>? = null; private set
   fun setSyncIssues(issues: Collection<SyncIssue>) {
@@ -122,6 +123,7 @@ class AndroidModule private constructor(
         modelCache
       )
 
+      @Suppress("DEPRECATION")
       safeGet(androidProject::getSyncIssues, null)?.let {
         // It will be overridden if we receive something here but also a proper sync issues model later.
         syncIssues ->
@@ -132,7 +134,6 @@ class AndroidModule private constructor(
     }
   }
 
-  val findModelRoot: Model get() = gradleProject
   val projectType: Int get() = androidProject.projectType
 
   /** Names of all currently fetch variants (currently pre single-variant-sync only). */

@@ -107,12 +107,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         val modules: List<GradleModule> =
           when (syncOptions) {
             is SyncProjectActionOptions -> {
-              val androidModules = populateAndroidModels(syncOptions, buildFolderPaths)
-              // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces addition issues.
-              // Note that "last" here means last among Android models since many non-Android models are requested after this point.
-              populateProjectSyncIssues(androidModules)
-
-              androidModules
+              populateAndroidModels(syncOptions, buildFolderPaths)
             }
             is NativeVariantsSyncActionOptions -> {
               consumer.consume(buildModels.first(), controller.getModel(IdeaProject::class.java), IdeaProject::class.java)
@@ -120,6 +115,9 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
             }
             // Note: No more cases.
           }
+        // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
+        // Note that "last" here means last among Android models since many non-Android models are requested after this point.
+        populateProjectSyncIssues(modules)
         modules.forEach { it.deliverModels(consumer) }
       }
       catch (e: AndroidSyncException) {
@@ -232,7 +230,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       }.toList()
     }
 
-    private fun populateProjectSyncIssues(androidModules: List<AndroidModule>) {
+    private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
       androidModules.forEach { module ->
         val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
         if (syncIssues != null) {
