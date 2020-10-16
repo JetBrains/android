@@ -328,7 +328,7 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:perfetto-proto",
             "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
             "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
-            "//tools/adt/idea/.idea/libraries:layoutinspector-proto",
+            "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
             "//tools/adt/idea/.idea/libraries:tightvnc",
         ],
         "license": [
@@ -338,7 +338,7 @@ android_studio(
             "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
             "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
             "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains dupplicated licenses with google-login-plugin
+            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains duplicated licenses with google-login-plugin
             "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
             "//tools/vendor/google/firebase:licenses",
             "//prebuilts/studio/layoutlib:licenses",
