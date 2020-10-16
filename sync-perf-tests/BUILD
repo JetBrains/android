@@ -72,7 +72,6 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
     ],
-    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
