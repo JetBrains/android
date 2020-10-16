@@ -16,8 +16,8 @@
 package org.jetbrains.android.uipreview;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import javax.swing.Icon;
@@ -55,7 +55,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
   private GlobalState myGlobalState = new GlobalState();
 
   public static AndroidEditorSettings getInstance() {
-    return ServiceManager.getService(AndroidEditorSettings.class);
+    return ApplicationManager.getApplication().getService(AndroidEditorSettings.class);
   }
 
   @NotNull

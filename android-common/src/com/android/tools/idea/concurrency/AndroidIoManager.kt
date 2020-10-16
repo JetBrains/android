@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import java.util.concurrent.ExecutorService
@@ -25,7 +25,7 @@ class AndroidIoManager {
     private const val NAME = "Android IO tasks"
 
     @JvmStatic
-    fun getInstance(): AndroidIoManager = ServiceManager.getService(AndroidIoManager::class.java)!!
+    fun getInstance(): AndroidIoManager = ApplicationManager.getApplication().getService(AndroidIoManager::class.java)!!
   }
 
   /**

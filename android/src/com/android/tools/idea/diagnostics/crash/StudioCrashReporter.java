@@ -23,7 +23,6 @@ import com.android.utils.NullLogger;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PermanentInstallationID;
-import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +46,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
 
   @NotNull
   public static StudioCrashReporter getInstance() {
-    return ServiceManager.getService(StudioCrashReporter.class);
+    return ApplicationManager.getApplication().getService(StudioCrashReporter.class);
   }
 
   @Nullable

@@ -31,7 +31,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import java.io.File;
@@ -56,7 +55,7 @@ public class InstantAppSdks {
 
   @NotNull
   public static InstantAppSdks getInstance() {
-    return ServiceManager.getService(InstantAppSdks.class);
+    return ApplicationManager.getApplication().getService(InstantAppSdks.class);
   }
 
   /**

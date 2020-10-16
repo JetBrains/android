@@ -25,8 +25,8 @@ import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -56,7 +56,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     AndroidFacetProperties state = getState();
     //noinspection deprecation  This is one of legitimate assignments to this property.
     if (state.ALLOW_USER_CONFIGURATION) {
-      EditorTabProvider editorTabProvider = ServiceManager.getService(EditorTabProvider.class);
+      EditorTabProvider editorTabProvider = ApplicationManager.getApplication().getService(EditorTabProvider.class);
       if (editorTabProvider != null) {
         return new FacetEditorTab[]{editorTabProvider.createFacetEditorTab(editorContext, this)};
       }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.explorer.options
 
 import com.google.common.base.Strings
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.util.SystemInfo
@@ -36,7 +36,7 @@ class DeviceFileExplorerSettings : PersistentStateComponent<DeviceFileExplorerSe
   companion object {
     @JvmStatic
     fun getInstance(): DeviceFileExplorerSettings {
-      return ServiceManager.getService(DeviceFileExplorerSettings::class.java)
+      return ApplicationManager.getApplication().getService(DeviceFileExplorerSettings::class.java)
     }
   }
 

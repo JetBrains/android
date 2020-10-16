@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ModificationTracker;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class DataBindingModeTrackingService implements ModificationTracker {
   public static DataBindingModeTrackingService getInstance() {
-    return ServiceManager.getService(DataBindingModeTrackingService.class);
+    return ApplicationManager.getApplication().getService(DataBindingModeTrackingService.class);
   }
 
   private final AtomicLong myEnabledModificationCount = new AtomicLong(0);

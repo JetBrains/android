@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
@@ -42,7 +42,7 @@ public class GradleVersions {
 
   @NotNull
   public static GradleVersions getInstance() {
-    return ServiceManager.getService(GradleVersions.class);
+    return ApplicationManager.getApplication().getService(GradleVersions.class);
   }
 
   @Nullable

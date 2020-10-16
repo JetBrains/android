@@ -29,7 +29,6 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
@@ -134,7 +133,7 @@ class AarResourceRepositoryCache private constructor() {
      */
     @JvmStatic
     val instance: AarResourceRepositoryCache
-        get() = ServiceManager.getService(AarResourceRepositoryCache::class.java)
+        get() = ApplicationManager.getApplication().getService(AarResourceRepositoryCache::class.java)
 
     private fun <K, T : AarResourceRepository> getRepository(key: K, libraryName: String, cache: Cache<K, T>, factory: () -> T): T {
       val aarRepository = cache.getAndUnwrap(key, { factory() })

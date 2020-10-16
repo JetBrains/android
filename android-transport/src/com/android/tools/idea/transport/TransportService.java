@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.messages.MessageBus;
 import io.grpc.ManagedChannel;
@@ -42,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TransportService implements Disposable {
   public static TransportService getInstance() {
-    return ServiceManager.getService(TransportService.class);
+    return ApplicationManager.getApplication().getService(TransportService.class);
   }
 
   private static Logger getLogger() {

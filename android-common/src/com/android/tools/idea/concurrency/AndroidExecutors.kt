@@ -18,7 +18,6 @@ package com.android.tools.idea.concurrency
 import com.android.tools.idea.concurrency.AndroidExecutors.Companion.getInstance
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.Executor
@@ -50,6 +49,6 @@ class AndroidExecutors @NonInjectable constructor(
   )
 
   companion object {
-    fun getInstance() = ServiceManager.getService(AndroidExecutors::class.java)!!
+    fun getInstance() = ApplicationManager.getApplication().getService(AndroidExecutors::class.java)!!
   }
 }

@@ -28,7 +28,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.io.FilePaths;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class DependenciesExtractor {
   @NotNull
   public static DependenciesExtractor getInstance() {
-    return ServiceManager.getService(DependenciesExtractor.class);
+    return ApplicationManager.getApplication().getService(DependenciesExtractor.class);
   }
 
   /**

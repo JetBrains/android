@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -52,7 +52,7 @@ class DesignAssetRendererManager private constructor() {
     private val EP_NAME = ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer")
 
     fun getInstance(): DesignAssetRendererManager {
-      return ServiceManager.getService(DesignAssetRendererManager::class.java)!!
+      return ApplicationManager.getApplication().getService(DesignAssetRendererManager::class.java)!!
     }
   }
 

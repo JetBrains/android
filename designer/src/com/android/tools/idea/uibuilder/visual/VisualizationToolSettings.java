@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Transient;
@@ -34,7 +34,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
   private GlobalState myGlobalState = new GlobalState();
 
   public static VisualizationToolSettings getInstance() {
-    return ServiceManager.getService(VisualizationToolSettings.class);
+    return ApplicationManager.getApplication().getService(VisualizationToolSettings.class);
   }
 
   @NotNull

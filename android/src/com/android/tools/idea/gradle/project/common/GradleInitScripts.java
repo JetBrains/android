@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
@@ -48,7 +48,7 @@ public class GradleInitScripts {
 
   @NotNull
   public static GradleInitScripts getInstance() {
-    return ServiceManager.getService(GradleInitScripts.class);
+    return ApplicationManager.getApplication().getService(GradleInitScripts.class);
   }
 
   // Used by intellij

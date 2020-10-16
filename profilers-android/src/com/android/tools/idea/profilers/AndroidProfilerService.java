@@ -42,7 +42,6 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +55,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryAllocationDataFetchExecutor";
 
   public static AndroidProfilerService getInstance() {
-    return ServiceManager.getService(AndroidProfilerService.class);
+    return ApplicationManager.getApplication().getService(AndroidProfilerService.class);
   }
 
   /**
