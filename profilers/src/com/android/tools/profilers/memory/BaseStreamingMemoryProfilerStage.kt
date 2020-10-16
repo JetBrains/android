@@ -304,7 +304,10 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   protected fun <T: DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
 
   protected inline fun <T: DurationData> makeModel(make: DataSeriesConstructor<T>) =
-    makeModel(make(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this))
+    makeModel(applyDataSeriesConstructor(make))
+
+  protected inline fun <T: DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
+    f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
   protected fun getDeviceForSelectedSession() = studioProfilers.getStream(studioProfilers.session.streamId).let { stream ->
     if (stream.type === Common.Stream.Type.DEVICE) stream.device

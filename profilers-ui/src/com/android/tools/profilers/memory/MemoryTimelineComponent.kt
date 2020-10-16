@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.chart.linechart.AbstractDurationDataRenderer
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.common.DataVisualizationColors.toGrayscale
 import com.android.tools.adtui.instructions.IconInstruction
@@ -40,7 +41,6 @@ import javax.swing.JComponent
 class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent)
       : BaseMemoryTimelineComponent<MainMemoryProfilerStage>(stageView, timeAxis) {
   val gcDurationDataRenderer = makeGcDurationDataRenderer()
-  val allocationSamplingRateRenderer = makeAllocationSamplingRateRenderer()
   private val heapDumpRenderer = makeHeapDumpRenderer()
 
   init {
@@ -50,7 +50,7 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
       // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
       when {
         !stage.isLiveAllocationTrackingReady -> makeLegacyAllocationRenderer()
-        stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled -> allocationSamplingRateRenderer
+        stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled -> makePastAllocationRenderer()
         else -> null
       },
       // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is captured
@@ -66,6 +66,10 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
     if (!stage.hasUserUsedMemoryCapture()) {
       installProfilingInstructions()
     }
+  }
+
+  override fun makeLineChart() = super.makeLineChart().apply {
+    configure(stage.detailedMemoryUsage.objectsSeries, LineConfig(Color(0, 0, 0, 0)))
   }
 
   private fun installProfilingInstructions() {
@@ -106,13 +110,8 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
     rangeSelectionComponent.setRangeOcclusionTest(::isMouseOverHeapDump)
   }
 
-  private fun makeNativeAllocationRenderer() = makeAllocationRenderer(stage.nativeAllocationInfosDurations, "Native Allocation").apply {
-    for (series in stage.detailedMemoryUsage.series) {
-      val config = lineChart.getLineConfig(series)
-      val newConfig = LineConfig.copyOf(config).setColor(toGrayscale(config.color))
-      addCustomLineConfig(series!!, newConfig)
-    }
-  }
+  private fun makeNativeAllocationRenderer() =
+    makeAllocationRenderer(stage.nativeAllocationInfosDurations, "Native Allocation").grayOut()
 
   private fun makeLegacyAllocationRenderer() = makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").apply {
     fun add(series: RangedContinuousSeries, color: Color) =
@@ -123,5 +122,16 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
     add(stage.detailedMemoryUsage.stackSeries, ProfilerColors.MEMORY_STACK_CAPTURED)
     add(stage.detailedMemoryUsage.codeSeries, ProfilerColors.MEMORY_CODE_CAPTURED)
     add(stage.detailedMemoryUsage.otherSeries, ProfilerColors.MEMORY_OTHERS_CAPTURED)
+  }
+
+  private fun makePastAllocationRenderer() =
+    makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").grayOut()
+
+  private fun DurationDataRenderer<*>.grayOut() = apply {
+    for (series in stage.detailedMemoryUsage.series.filterNot { it.name == "Allocated"}) {
+      val config = lineChart.getLineConfig(series)
+      val newConfig = LineConfig.copyOf(config).setColor(toGrayscale(config.color))
+      addCustomLineConfig(series!!, newConfig)
+    }
   }
 }
