@@ -304,6 +304,27 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
+/**
+   * Regression test for http://b.android.com/170867656
+   * Bug: res/values files should not be considered resources, only the tags within.
+   */
+  fun testStringsFile() {
+    val file = myFixture.addFileToProject(
+      "res/values/strings.xml",
+      //language=XML
+      """
+        <resources>
+          <string name="Foo">Bar</string>
+        </resources>""".trimMargin())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat(file).isInstanceOf(PsiFile::class.java)
+    assertThat(ResourceReferencePsiElement.create(file)).isNull()
+    myFixture.moveCaret("name=\"Fo|o\"")
+    val psiElement = myFixture.elementAtCaret
+    assertThat(ResourceReferencePsiElement.create(psiElement)!!.resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "Foo"))
+  }
+
   fun testDrawableFile() {
     val file = myFixture.addFileToProject(
       "res/drawable/test.xml",

@@ -412,6 +412,17 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     doTestStyleInheritance("styles1.xml", "styles1_after.xml");
   }
 
+  /**
+   * Regression test for http://b.android.com/170867656
+   * Bug: when res/values file was renamed, the file itself was considered a resource.
+   */
+  public void testStringsXmlFile() {
+    VirtualFile stringsFile = myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.configureFromExistingVirtualFile(stringsFile);
+    myFixture.renameElement(myFixture.getFile(), "otherfile.xml");
+    assertEquals("otherfile.xml", stringsFile.getName());
+  }
+
   public void testRenameDeclareStyleableAttrFromXml() throws Throwable {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyView5.java", "src/p1/p2/MyView.java");
