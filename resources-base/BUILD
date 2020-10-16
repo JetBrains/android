@@ -2,30 +2,28 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.resources-base",
     srcs = ["src"],
     iml_files = ["intellij.android.resources-base.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:aapt-proto",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:protobuf",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.resources-base.tests",
     iml_files = ["intellij.android.resources-base.tests.iml"],
-    project = "unb",
     test_class = "com.android.tools.idea.resources.aar.ResourcesAarTestSuite",
     test_data = [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
@@ -53,9 +51,9 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.aapt-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:aapt-proto[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

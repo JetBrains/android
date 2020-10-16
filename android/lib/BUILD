@@ -1,31 +1,5 @@
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 
-# managed by go/iml_to_build [unb]
-filegroup(
-    name = "unb.asm-tools_files",
-    # do not sort: must match IML order
-    srcs = [
-        "asm-5.0.3.jar",
-        "asm-analysis-5.0.3.jar",
-        "asm-tree-5.0.3.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.android-sdk-tools-jps",
-    jars = ["jarutils.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.spantable",
-    jars = ["spantable.jar"],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "sampleData",
     srcs = glob(["sampleData/**"]),
@@ -65,24 +39,42 @@ studio_data(
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build [unb]
-java_import(
-    name = "unb.instantapps-api",
-    jars = ["instantapps-api-1.8.jar"],
-    tags = [
-        "manual",
-        "unb",
+# managed by go/iml_to_build
+filegroup(
+    name = "asm-tools_files",
+    # do not sort: must match IML order
+    srcs = [
+        "asm-5.0.3.jar",
+        "asm-analysis-5.0.3.jar",
+        "asm-tree-5.0.3.jar",
     ],
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 java_import(
-    name = "unb.pepk",
+    name = "android-sdk-tools-jps",
+    jars = ["jarutils.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "spantable",
+    jars = ["spantable.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "instantapps-api",
+    jars = ["instantapps-api-1.8.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "pepk",
     jars = ["pepk.jar"],
-    tags = [
-        "manual",
-        "unb",
-    ],
     visibility = ["//visibility:public"],
 )

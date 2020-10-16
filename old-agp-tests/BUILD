@@ -1,10 +1,9 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.old-agp-tests",
     iml_files = ["intellij.android.old-agp-tests.iml"],
-    project = "unb",
     test_class = "com.android.tools.idea.OldAgpTestSuite",
     # keep sorted
     test_data = [
@@ -67,10 +66,10 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",

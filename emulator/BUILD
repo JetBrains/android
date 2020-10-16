@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.emulator",
     srcs = ["src"],
     iml_files = ["intellij.android.emulator.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -21,19 +20,18 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/.idea/libraries:unb.emulator-proto",
-        "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
-        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/.idea/libraries:emulator-proto",
+        "//tools/adt/idea/.idea/libraries:Guava",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.emulator.tests",
     iml_files = ["intellij.android.emulator.tests.iml"],
-    project = "unb",
     test_class = "com.android.tools.idea.emulator.EmbeddedEmulatorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -59,13 +57,13 @@ iml_module(
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.assertJ[test]",
-        "//tools/adt/idea/.idea/libraries:unb.emulator-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
-        "//tools/adt/idea/.idea/libraries:unb.jimfs[test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:assertJ[test]",
+        "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
+        "//tools/adt/idea/.idea/libraries:Guava[test]",
+        "//tools/adt/idea/.idea/libraries:jimfs[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

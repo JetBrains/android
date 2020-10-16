@@ -150,7 +150,7 @@ studio_plugin(
     },
     resources = {
         "lib": [
-            "//tools/adt/idea/android/lib:unb.asm-tools_files",
+            "//tools/adt/idea/android/lib:asm-tools_files",
             "//tools/adt/idea/android/lib:bundled-libs",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",
@@ -172,21 +172,18 @@ studio_plugin(
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
@@ -196,7 +193,6 @@ studio_plugin(
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
     },
-    tags = ["manual"],
 )
 
 studio_plugin(
@@ -206,84 +202,72 @@ studio_plugin(
         "android-layoutlib-native.jar": ["//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
     },
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.appindexing",
     directory = "google-appindexing",
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct",
     directory = "google-cloud-tools-as",
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct.core",
     directory = "google-cloud-tools-core-as",
     modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct.login",
     directory = "google-login-as",
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.cluestick.studioclient",
     directory = "google-samples",
     modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct.test.recorder",
     directory = "test-recorder",
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
-    tags = ["manual"],
 )
 
 android_studio(
@@ -326,26 +310,26 @@ android_studio(
         ],
         "lib": [
             # For now listing all the project library needed until we get them from deps
-            "//tools/adt/idea/.idea/libraries:unb.javax-inject",
-            "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
-            "//tools/adt/idea/.idea/libraries:unb.studio-proto",
-            "//tools/adt/idea/.idea/libraries:unb.dexlib2",
-            "//tools/adt/idea/.idea/libraries:unb.asm-tools",
-            "//tools/adt/idea/.idea/libraries:unb.kxml2",
-            "//tools/adt/idea/.idea/libraries:unb.libam-instrumentation-data-proto",
-            "//tools/adt/idea/.idea/libraries:unb.sqlite",
-            "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
-            "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-            "//tools/adt/idea/.idea/libraries:unb.aia-proto",
-            "//tools/adt/idea/.idea/libraries:unb.baksmali",
-            "//tools/adt/idea/.idea/libraries:unb.zxing-core",
-            "//tools/adt/idea/.idea/libraries:unb.transport-proto",
-            "//tools/adt/idea/.idea/libraries:unb.emulator-proto",
-            "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
-            "//tools/adt/idea/.idea/libraries:unb.sqlite-inspector-proto",
-            "//tools/adt/idea/.idea/libraries:unb.kotlinx-coroutines-guava",
-            "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
-            "//tools/adt/idea/.idea/libraries:unb.tightvnc",
+            "//tools/adt/idea/.idea/libraries:javax-inject",
+            "//tools/adt/idea/.idea/libraries:studio-grpc",
+            "//tools/adt/idea/.idea/libraries:studio-proto",
+            "//tools/adt/idea/.idea/libraries:dexlib2",
+            "//tools/adt/idea/.idea/libraries:asm-tools",
+            "//tools/adt/idea/.idea/libraries:kxml2",
+            "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+            "//tools/adt/idea/.idea/libraries:sqlite",
+            "//tools/adt/idea/.idea/libraries:aapt-proto",
+            "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+            "//tools/adt/idea/.idea/libraries:aia-proto",
+            "//tools/adt/idea/.idea/libraries:baksmali",
+            "//tools/adt/idea/.idea/libraries:zxing-core",
+            "//tools/adt/idea/.idea/libraries:transport-proto",
+            "//tools/adt/idea/.idea/libraries:emulator-proto",
+            "//tools/adt/idea/.idea/libraries:perfetto-proto",
+            "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
+            "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
+            "//tools/adt/idea/.idea/libraries:layoutinspector-proto",
+            "//tools/adt/idea/.idea/libraries:tightvnc",
         ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
@@ -361,7 +345,6 @@ android_studio(
         ],
     },
     searchable_options = "searchable-options",
-    tags = ["manual"],
     version_eap = True,
     version_full = "dev build",
     version_micro = 0,
@@ -379,7 +362,6 @@ py_test(
         ":android-studio.mac.zip",
         ":android-studio.win.zip",
     ],
-    tags = ["manual"],
 )
 
 py_test(
@@ -396,7 +378,6 @@ py_test(
     ],
     tags = [
         "block_network",
-        "manual",
         "no_windows",
     ],
 )
@@ -411,7 +392,6 @@ py_binary(
     ],
     tags = [
         "block_network",
-        "manual",
         "no_mac",
         "no_windows",
     ],
@@ -440,7 +420,6 @@ java_binary(
     main_class = "com.intellij.updater.Runner",
     tags = [
         "block_network",
-        "manual",
         "no_mac",
         "no_windows",
     ],
@@ -458,8 +437,8 @@ java_binary(
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna-platform/5.5.0:jar",
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna/5.5.0:jar",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/studio-updater:intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater
         "//tools/analytics-library/shared:analytics-shared.jar",
         "//tools/analytics-library/tracker:analytics-tracker.jar",
@@ -468,11 +447,10 @@ java_binary(
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "studio",
     iml_files = ["studio.iml"],
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

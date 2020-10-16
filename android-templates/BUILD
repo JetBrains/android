@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.templates.tests",
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.templates.tests.iml"],
-    project = "unb",
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
         "//tools/adt/idea/android:test_deps.zip",
@@ -47,11 +46,11 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8[test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",

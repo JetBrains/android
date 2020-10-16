@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.jps",
     srcs = ["src"],
     iml_files = ["intellij.android.jps.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],

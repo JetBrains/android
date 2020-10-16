@@ -1,11 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "kotlin-integration-tests",
     iml_files = ["kotlin-integration-tests.iml"],
-    project = "unb",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [
@@ -29,7 +28,7 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8"],
+    runtime_deps = ["//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -40,13 +39,13 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth",
+        "//tools/adt/idea/.idea/libraries:truth",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",

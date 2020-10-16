@@ -1,30 +1,28 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.gradle.dsl",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.iml"],
     lint_baseline = "lint_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.gradle.dsl.tests",
     iml_files = ["intellij.android.gradle.dsl.tests.iml"],
-    project = "unb",
     test_class = "com.android.tools.idea.gradle.dsl.GradleDslTestSuite",
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
@@ -36,7 +34,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
