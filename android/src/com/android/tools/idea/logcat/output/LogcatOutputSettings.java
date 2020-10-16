@@ -16,7 +16,7 @@
 package com.android.tools.idea.logcat.output;
 
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Getter;
 
 public class LogcatOutputSettings implements Getter<LogcatOutputSettings> {
@@ -26,7 +26,7 @@ public class LogcatOutputSettings implements Getter<LogcatOutputSettings> {
   private static final boolean LOGCAT_DEBUG_OUTPUT_ENABLED_DEFAULT = true;
 
   public static LogcatOutputSettings getInstance() {
-    return ServiceManager.getService(LogcatOutputSettings.class);
+    return ApplicationManager.getApplication().getService(LogcatOutputSettings.class);
   }
 
   @Override

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public class PreSyncProjectCleanUp {
 
   @NotNull
   public static PreSyncProjectCleanUp getInstance() {
-    return ServiceManager.getService(PreSyncProjectCleanUp.class);
+    return ApplicationManager.getApplication().getService(PreSyncProjectCleanUp.class);
   }
 
   public PreSyncProjectCleanUp() {

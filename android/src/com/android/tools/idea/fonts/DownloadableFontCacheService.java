@@ -18,7 +18,7 @@ package com.android.tools.idea.fonts;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ public interface DownloadableFontCacheService {
 
   @NotNull
   static DownloadableFontCacheService getInstance() {
-    return ServiceManager.getService(DownloadableFontCacheService.class);
+    return ApplicationManager.getApplication().getService(DownloadableFontCacheService.class);
   }
 
   /**

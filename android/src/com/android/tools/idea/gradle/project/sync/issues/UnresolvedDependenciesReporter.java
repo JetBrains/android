@@ -41,8 +41,8 @@ import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -63,7 +63,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
 
   @NotNull
   public static UnresolvedDependenciesReporter getInstance() {
-    return ServiceManager.getService(UnresolvedDependenciesReporter.class);
+    return ApplicationManager.getApplication().getService(UnresolvedDependenciesReporter.class);
   }
 
   @Override

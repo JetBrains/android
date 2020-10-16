@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.precheck;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public class PreSyncChecks {
 
   @NotNull
   public static PreSyncChecks getInstance() {
-    return ServiceManager.getService(PreSyncChecks.class);
+    return ApplicationManager.getApplication().getService(PreSyncChecks.class);
   }
 
   public PreSyncChecks() {

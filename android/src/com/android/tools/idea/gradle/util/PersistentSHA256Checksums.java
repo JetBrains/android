@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.util.text.StringUtil;
@@ -33,7 +33,7 @@ public class PersistentSHA256Checksums implements PersistentStateComponent<Persi
   public HashMap<String, String> myStoredChecksums;
 
   public static PersistentSHA256Checksums getInstance() {
-    return ServiceManager.getService(PersistentSHA256Checksums.class);
+    return ApplicationManager.getApplication().getService(PersistentSHA256Checksums.class);
   }
 
   @Override

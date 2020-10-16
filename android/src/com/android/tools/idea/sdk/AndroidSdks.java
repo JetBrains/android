@@ -52,7 +52,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -95,7 +94,7 @@ public class AndroidSdks {
 
   @NotNull
   public static AndroidSdks getInstance() {
-    return ServiceManager.getService(AndroidSdks.class);
+    return ApplicationManager.getApplication().getService(AndroidSdks.class);
   }
 
   public AndroidSdks(){

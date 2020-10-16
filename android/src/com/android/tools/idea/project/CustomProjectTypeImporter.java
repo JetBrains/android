@@ -16,7 +16,7 @@
 package com.android.tools.idea.project;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ public abstract class CustomProjectTypeImporter {
 
   @NotNull
   public static MainImporter getMain() {
-    return ServiceManager.getService(MainImporter.class);
+    return ApplicationManager.getApplication().getService(MainImporter.class);
   }
 
   /**

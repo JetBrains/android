@@ -19,8 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.flags.Flag;
 import com.android.flags.FlagOverrides;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -45,7 +45,7 @@ public final class StudioFlagSettings implements FlagOverrides, PersistentStateC
    */
   @NotNull
   public static StudioFlagSettings getInstance() {
-    return ServiceManager.getService(StudioFlagSettings.class);
+    return ApplicationManager.getApplication().getService(StudioFlagSettings.class);
   }
 
   @Override

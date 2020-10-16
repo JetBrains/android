@@ -16,8 +16,8 @@
 package com.android.tools.idea.welcome.config;
 
 import com.google.common.base.Objects;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -34,7 +34,7 @@ public class AndroidFirstRunPersistentData implements PersistentStateComponent<A
   private FirstRunData myData = new FirstRunData();
 
   public static AndroidFirstRunPersistentData getInstance() {
-    return ServiceManager.getService(AndroidFirstRunPersistentData.class);
+    return ApplicationManager.getApplication().getService(AndroidFirstRunPersistentData.class);
   }
 
   public boolean isSdkUpToDate() {

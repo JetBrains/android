@@ -34,7 +34,6 @@ import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
   public static AndroidProfilerService getInstance() {
-    return ServiceManager.getService(AndroidProfilerService.class);
+    return ApplicationManager.getApplication().getService(AndroidProfilerService.class);
   }
 
   /**

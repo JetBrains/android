@@ -30,7 +30,6 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -54,7 +53,7 @@ public final class SdkSync {
 
   @NotNull
   public static SdkSync getInstance() {
-    return ServiceManager.getService(SdkSync.class);
+    return ApplicationManager.getApplication().getService(SdkSync.class);
   }
 
   @NonInjectable
