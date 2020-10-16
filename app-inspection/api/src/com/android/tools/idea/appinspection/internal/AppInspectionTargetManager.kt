@@ -85,6 +85,10 @@ internal class AppInspectionTargetManager internal constructor(
     targets.remove(descriptor)?.targetDeferred?.cancel()
   }
 
+  suspend fun getTarget(descriptor: ProcessDescriptor): AppInspectionTarget? {
+    return targets[descriptor]?.targetDeferred?.await()
+  }
+
   // Remove all current clients that belong to the provided project.
   // We dispose targets that were done and attempt to cancel those that are not.
   internal suspend fun disposeClients(project: String) {

@@ -55,4 +55,8 @@ internal class DefaultAppInspectionApiServices internal constructor(
   override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
     return doAttachToProcess(params.processDescriptor, params.projectName).launchInspector(params)
   }
+
+  override suspend fun stopInspectors(process: ProcessDescriptor) {
+    targetManager.getTarget(process)?.dispose()
+  }
 }
