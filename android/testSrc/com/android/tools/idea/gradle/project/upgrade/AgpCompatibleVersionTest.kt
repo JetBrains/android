@@ -2,6 +2,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.getCompatibleGradleVersion
 import com.google.common.truth.Expect
 import org.junit.Rule
 import org.junit.Test
@@ -27,12 +28,12 @@ class AgpCompatibleVersionTest {
       "4.2" to GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION),
     )
     data.forEach { (agpBase, expected) ->
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse(agpBase))).isEqualTo(expected)
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse("$agpBase.0"))).isEqualTo(expected)
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse("$agpBase.9"))).isEqualTo(expected)
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse("$agpBase-alpha01"))).isEqualTo(expected)
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse("$agpBase-beta02"))).isEqualTo(expected)
-      expect.that(AgpGradleVersionRefactoringProcessor.getGradleVersion(GradleVersion.parse("$agpBase-rc03"))).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse(agpBase)).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse("$agpBase.0")).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse("$agpBase.9")).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse("$agpBase-alpha01")).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse("$agpBase-beta02")).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(GradleVersion.parse("$agpBase-rc03")).version).isEqualTo(expected)
     }
   }
 }

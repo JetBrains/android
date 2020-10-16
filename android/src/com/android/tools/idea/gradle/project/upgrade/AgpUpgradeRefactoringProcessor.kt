@@ -817,10 +817,10 @@ class AgpVersionUsageInfo(
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
-    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(new)
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new).version
   }
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(processor.new)
+    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(processor.new).version
   }
 
   var gradleVersion: GradleVersion
@@ -901,13 +901,13 @@ class RepositoriesNoGMavenUsageInfo(
 class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
-    this.gradleVersion = getGradleVersion(new)
+    this.compatibleGradleVersion = getCompatibleGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
-    gradleVersion = getGradleVersion(processor.new)
+    compatibleGradleVersion = getCompatibleGradleVersion(processor.new)
   }
 
-  val gradleVersion: GradleVersion
+  val compatibleGradleVersion: CompatibleGradleVersion
 
   override fun necessity() = MANDATORY_CODEPENDENT
 
@@ -921,12 +921,13 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val gradleWrapper = GradleWrapper.get(ioFile, project)
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
-        if (gradleVersion > parsedCurrentGradleVersion) {
-          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(gradleVersion.toString(), true);
+        if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true);
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), current, new, gradleVersion, updatedUrl))
+          val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, USAGE_TYPE)
+          usages.add(GradleVersionUsageInfo(wrappedPsiElement, current, new, compatibleGradleVersion.version, updatedUrl))
         }
       }
     }
@@ -936,7 +937,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(GRADLE_VERSION)
 
-  override fun getCommandName(): String = "Upgrade Gradle version to $gradleVersion"
+  override fun getCommandName(): String = "Upgrade Gradle version to ${compatibleGradleVersion.version}"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
@@ -946,7 +947,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade Gradle version to $gradleVersion"
+      override fun getProcessedElementsHeader() = "Upgrade Gradle version to ${compatibleGradleVersion.version}"
     }
   }
 
@@ -968,18 +969,18 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
     }
 
-    fun getGradleVersion(agpVersion: GradleVersion): GradleVersion {
+    fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
       return when {
-        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4.version
-        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6.version
-        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1.version
-        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1.version
-        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1.version
-        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4.version
-        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1.version
-        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5.version
-        else -> VERSION_FOR_DEV.version
+        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4
+        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6
+        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1
+        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1
+        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1
+        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4
+        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1
+        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
+        else -> VERSION_FOR_DEV
       }
     }
   }
@@ -1436,9 +1437,9 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
           // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
           //  probably little overlap in fabric upgrades with such old projects.
-          val gradleVersion = AgpGradleVersionRefactoringProcessor.getGradleVersion(new)
+          val compatibleGradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
-          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories, gradleVersion)
+          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, current, new, repositories, compatibleGradleVersion.version)
           usages.add(usageInfo)
         }
       }
