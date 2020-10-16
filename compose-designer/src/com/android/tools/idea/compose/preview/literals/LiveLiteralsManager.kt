@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.literals
 
-import com.android.tools.idea.common.util.BuildListener
-import com.android.tools.idea.common.util.setupBuildListener
-import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.editors.literals.EmptyLiteralReferenceSnapshot
 import com.android.tools.idea.editors.literals.LiteralReferenceSnapshot
 import com.android.tools.idea.editors.literals.LiteralsManager
 import com.android.tools.idea.editors.literals.highlightSnapshotInEditor
+import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.BuildListener
+import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
