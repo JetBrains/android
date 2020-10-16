@@ -70,7 +70,7 @@ class AppInspectionProcessesModelTest {
     }
 
     // Updating the selected process removes any dead processes
-    model.selectedProcess = null
+    model.setSelectedProcess(null)
     assertThat(model.processes).isEmpty()
   }
 
@@ -87,7 +87,7 @@ class AppInspectionProcessesModelTest {
     testNotifier.fireConnected(fakeProcessB)
     assertThat(model.selectedProcess).isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
 
-    model.selectedProcess = fakeProcessB
+    model.setSelectedProcess(fakeProcessB)
     assertThat(model.selectedProcess).isSameAs(fakeProcessB)
   }
 
@@ -164,5 +164,35 @@ class AppInspectionProcessesModelTest {
     // Verify the added target.
     assertThat(model.processes.size).isEqualTo(1)
     assertThat(model.selectedProcess).isNull()
+  }
+
+  @Test
+  fun stopAndStartInspection() {
+    val testNotifier = TestProcessNotifier()
+    val model = AppInspectionProcessModel(testNotifier) { listOf("A", "B") }
+
+    val fakeStream = createFakeStream()
+    val fakeProcessA = fakeStream.createFakeProcess("A", 100)
+    val fakeProcessB = fakeStream.createFakeProcess("B", 101)
+
+    testNotifier.fireConnected(fakeProcessA)
+    testNotifier.fireConnected(fakeProcessB)
+
+    // Select a process normally
+    model.setSelectedProcess(fakeProcessB)
+    assertThat(model.selectedProcess).isSameAs(fakeProcessB)
+
+    // Stop inspection and check the new selected process is dead
+    model.stopInspection(fakeProcessB)
+    val deadProcess = model.selectedProcess
+    assertThat(deadProcess!!.isRunning).isFalse()
+
+    // Try to set selected process with isUserAction=false. Check selected process doesn't change.
+    model.setSelectedProcess(fakeProcessA)
+    assertThat(model.selectedProcess).isSameAs(deadProcess)
+
+    // Set selected process with isUserAction=true. Check selected process changed.
+    model.setSelectedProcess(fakeProcessA, isUserAction = true)
+    assertThat(model.selectedProcess).isSameAs(fakeProcessA)
   }
 }

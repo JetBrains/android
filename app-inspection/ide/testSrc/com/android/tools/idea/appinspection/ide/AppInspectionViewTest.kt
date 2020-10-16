@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -189,7 +190,7 @@ class AppInspectionViewTest {
       }
     })
 
-    processModel.selectedProcess = processModel.processes.first { it != processModel.selectedProcess }
+    processModel.setSelectedProcess(processModel.processes.first { it != processModel.selectedProcess })
 
     disposed.join()
   }
@@ -552,5 +553,46 @@ class AppInspectionViewTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     tabsAdded.join()
+  }
+
+  @Test
+  fun stopInspectionPressed_noMoreLaunchingOfInspectors() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    val firstProcessReadyDeferred = CompletableDeferred<Unit>()
+    val deadProcessAddedDeferred = CompletableDeferred<Unit>()
+    launch {
+      inspectionView.tabsChangedFlow
+        .take(2)
+        .collectIndexed { index, _ ->
+          if (index == 0) {
+            firstProcessReadyDeferred.complete(Unit)
+          }
+          else if (index == 1) {
+            deadProcessAddedDeferred.complete(Unit)
+          }
+        }
+    }
+
+    // Add a process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    // Wait for inspector to be added.
+    firstProcessReadyDeferred.await()
+
+    // Stop inspection.
+    inspectionView.processModel.stopInspection(inspectionView.processModel.selectedProcess!!)
+
+    // Wait for the offline inspector tabs to be added.
+    deadProcessAddedDeferred.await()
   }
 }
