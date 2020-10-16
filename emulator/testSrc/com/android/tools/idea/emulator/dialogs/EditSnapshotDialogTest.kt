@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -51,7 +51,7 @@ class EditSnapshotDialogTest {
   fun testDialog() {
     val dialogPanel = EditSnapshotDialog("snap_2020-09-08_18-24-23", "", false)
     val dialogWrapper = dialogPanel.createWrapper()
-    createDialogAndInteractWithIt({ dialogWrapper.show() }) { dlg ->
+    createModalDialogAndInteractWithIt({ dialogWrapper.show() }) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val nameField = ui.getComponent<JTextField>()
