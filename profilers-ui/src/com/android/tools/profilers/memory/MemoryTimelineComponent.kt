@@ -91,7 +91,6 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
                 TextInstruction(metrics, " for a heap dump")
         )
     val panel = InstructionsPanel.Builder(*instructions)
-      .setEaseOut(stage.instructionsEaseOutModel, ::remove)
       .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
       .build()
     add(panel, TabularLayout.Constraint(0, 0))

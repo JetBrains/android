@@ -35,6 +35,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
   val captureSelection = MemoryCaptureSelection(profilers.ideServices)
   protected var pendingCaptureStartTime = INVALID_START_TIME
   protected var updateCaptureOnSelection = true
+  val isPendingCapture get() = pendingCaptureStartTime != INVALID_START_TIME
 
   companion object {
     const val INVALID_START_TIME = -1L
