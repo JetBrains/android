@@ -87,7 +87,13 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = makeModel(CaptureDataSeries::ofHeapDumpSamples);
-    myAllocationDurations = makeModel(CaptureDataSeries::ofAllocationInfos);
+    myAllocationDurations =
+      isLiveAllocationTrackingSupported()
+      ? AllocationDurationData.makeModel(getTimeline().getViewRange(),
+                                         getTimeline().getDataRange(),
+                                         applyDataSeriesConstructor(CaptureDataSeries::ofAllocationInfos),
+                                         getAllocationSamplingRateDataSeries())
+      : makeModel(CaptureDataSeries::ofAllocationInfos);
     myNativeAllocationDurations = makeModel(CaptureDataSeries::ofNativeAllocationSamples);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->
@@ -386,9 +392,14 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   public void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                                     @Nullable Executor joiner) {
     StudioProfilers profilers = getStudioProfilers();
-    if (durationData != null &&
-        durationData.isSeparateStageData() &&
-        getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (durationData instanceof AllocationDurationData) {
+      profilers.setStage(AllocationStage.makeStaticStage(profilers,
+                                                         ((AllocationDurationData<?>)durationData).getStart(),
+                                                         ((AllocationDurationData<?>)durationData).getEnd()));
+    }
+    else if (durationData != null &&
+             durationData.isSeparateStageData() &&
+             getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
     }
     else {

@@ -20,7 +20,6 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.tools.adtui.model.DataSeries;
@@ -778,5 +777,15 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(dataList.get(0).value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(HeapDumpStage.class);
+  }
+
+  @Test
+  public void selectingFinishedAllocationSessionSwitchesToAllocationStage() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+    CaptureObject obj = new FakeCaptureObject.Builder().build();
+    CaptureEntry<CaptureObject> entry = new CaptureEntry<>(0, () -> obj);
+    AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);
+    myStage.selectCaptureDuration(data, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(AllocationStage.class);
   }
 }
