@@ -234,13 +234,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "layoutinspector-proto",
-    jars = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "guava-testlib",
     jars = ["//prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre:guava-testlib_files"],
     visibility = ["//visibility:public"],
@@ -257,5 +250,12 @@ java_import(
 java_import(
     name = "tightvnc",
     jars = ["//prebuilts/tools/common/tightvnc:tightvnc_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "layoutinspector-skia-proto",
+    jars = ["//tools/base/dynamic-layout-inspector/proto:layout_inspector_skia_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

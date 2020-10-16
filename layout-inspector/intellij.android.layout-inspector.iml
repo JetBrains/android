@@ -25,7 +25,7 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="layoutinspector-proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="analytics-tracker" />
