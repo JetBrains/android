@@ -104,7 +104,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="android-core-proto">
+      <library name="libandroid-core-proto">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
         </CLASSES>
@@ -113,7 +113,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
-      <library name="android-core-proto-test">
+      <library name="libandroid-core-proto-test">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto-test.jar!/" />
         </CLASSES>

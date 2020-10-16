@@ -1,10 +1,9 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.androidx-integration-tests",
     iml_files = ["intellij.android.androidx-integration-tests.iml"],
-    project = "unb",
     test_resources = ["testData"],
     test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],

@@ -1,11 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
-    project = "unb",
     split_test_targets = {
         "Base100": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
@@ -51,14 +50,14 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
+        "//tools/adt/idea/sync-perf-tests:JUnit4[test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
     ],
 )
 
@@ -124,17 +123,13 @@ maven_repo(
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 java_import(
-    name = "unb.JUnit4",
+    name = "JUnit4",
     # do not sort: must match IML order
     jars = [
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:unb.JUnit4_files",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:unb.JUnit4_files",
-    ],
-    tags = [
-        "manual",
-        "unb",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:JUnit4_files",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:JUnit4_files",
     ],
     visibility = ["//visibility:public"],
 )
