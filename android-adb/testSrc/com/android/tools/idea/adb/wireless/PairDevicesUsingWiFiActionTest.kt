@@ -16,7 +16,7 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.flags.StudioFlags
@@ -76,7 +76,7 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
     val event = TestActionEvent(action)
 
     // Act
-    createDialogAndInteractWithIt({
+    createModalDialogAndInteractWithIt({
                                     action.update(event)
                                     action.actionPerformed(event)
                                   }) {

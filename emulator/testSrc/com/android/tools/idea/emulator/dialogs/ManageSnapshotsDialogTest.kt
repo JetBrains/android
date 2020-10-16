@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.emulator.dialogs
 
-import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.adtui.ui.ImagePanel
@@ -113,7 +113,7 @@ class ManageSnapshotsDialogTest {
     val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
+    createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -274,12 +274,12 @@ class ManageSnapshotsDialogTest {
     val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
+    createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
       val rootPane1 = dlg1.rootPane
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
-      createDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
+      createModalDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
         assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
         val rootPane2 = dlg2.rootPane
         val ui2 = FakeUi(rootPane2)
@@ -312,12 +312,12 @@ class ManageSnapshotsDialogTest {
     val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
+    createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg1 ->
       val rootPane1 = dlg1.rootPane
       val ui1 = FakeUi(rootPane1)
       val table = ui1.getComponent<TableView<SnapshotInfo>>()
       /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
-      createDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
+      createModalDialogAndInteractWithIt(emulator::resumeGrpc) { dlg2 ->
         assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 invalid.
         val rootPane2 = dlg2.rootPane
         val ui2 = FakeUi(rootPane2)
@@ -346,7 +346,7 @@ class ManageSnapshotsDialogTest {
     val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
+    createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane1 = dlg.rootPane
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -375,7 +375,7 @@ class ManageSnapshotsDialogTest {
     val dialogWrapper = ManageSnapshotsDialog(emulatorController, emulatorView = null).createWrapper(projectRule.project)
 
     // Open the "Manage Snapshots" dialog.
-    createDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
+    createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane1 = dlg.rootPane
       val ui = FakeUi(rootPane1)
       val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -414,7 +414,7 @@ class ManageSnapshotsDialogTest {
   @Suppress("SameParameterValue")
   private fun editSnapshot(actionsPanel: CommonActionsPanel, name: String?, description: String?, useToBoot: Boolean?) {
     val editAction = actionsPanel.getAnActionButton(CommonActionsPanel.Buttons.EDIT)
-    createDialogAndInteractWithIt({ performAction(editAction) }) { dlg ->
+    createModalDialogAndInteractWithIt({ performAction(editAction) }) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       if (name != null) {

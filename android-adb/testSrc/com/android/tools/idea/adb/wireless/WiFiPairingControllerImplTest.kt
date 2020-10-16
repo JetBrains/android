@@ -20,7 +20,7 @@ import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -109,7 +109,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Prepare
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -126,7 +126,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf("unknown command"))))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -143,7 +143,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpEventsAndWaitForFuture(view.showDialogTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
       pumpEventsAndWaitForFuture(view.startMdnsCheckTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
@@ -160,7 +160,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -177,7 +177,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -246,7 +246,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -382,7 +382,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     }
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       val fakeUi = FakeUi(it.rootPane)
 
       // Assert
@@ -404,7 +404,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
       val pairButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
       Truth.assertThat(pairButton).isNotNull()
-      createDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pairingCodeDialog ->
+      createModalDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pairingCodeDialog ->
         enterPairingCode(pairingCodeDialog, phonePairingCode)
       }
     }
