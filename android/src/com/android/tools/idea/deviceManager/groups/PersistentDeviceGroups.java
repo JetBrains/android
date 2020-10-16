@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.deviceManager.groups;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ public final class PersistentDeviceGroups {
   }
 
   public static @NotNull PersistentDeviceGroups getInstance() {
-    return ServiceManager.getService(PersistentDeviceGroups.class);
+    return ApplicationManager.getApplication().getService(PersistentDeviceGroups.class);
   }
 
   @NotNull List<@NotNull DeviceGroup> getDeviceGroups() {

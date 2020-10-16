@@ -18,7 +18,7 @@ package com.android.tools.idea.adb;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Getter;
 import com.intellij.util.SmartList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
   }
 
   public static AdbOptionsService getInstance() {
-    return ServiceManager.getService(AdbOptionsService.class);
+    return ApplicationManager.getApplication().getService(AdbOptionsService.class);
   }
 
   @Override

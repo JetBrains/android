@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ddms.screenrecord
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
@@ -33,7 +33,7 @@ class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderP
   companion object {
     @JvmStatic
     fun getInstance(): ScreenRecorderPersistentOptions {
-      return ServiceManager.getService(ScreenRecorderPersistentOptions::class.java)
+      return ApplicationManager.getApplication().getService(ScreenRecorderPersistentOptions::class.java)
     }
   }
 

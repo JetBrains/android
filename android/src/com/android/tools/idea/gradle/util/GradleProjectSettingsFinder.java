@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.get
 public class GradleProjectSettingsFinder {
   @NotNull
   public static GradleProjectSettingsFinder getInstance() {
-    return ServiceManager.getService(GradleProjectSettingsFinder.class);
+    return ApplicationManager.getApplication().getService(GradleProjectSettingsFinder.class);
   }
 
   @Nullable

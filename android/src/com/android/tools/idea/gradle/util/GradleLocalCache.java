@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ import static java.util.Collections.sort;
 public class GradleLocalCache {
   @NotNull
   public static GradleLocalCache getInstance() {
-    return ServiceManager.getService(GradleLocalCache.class);
+    return ApplicationManager.getApplication().getService(GradleLocalCache.class);
   }
 
   @Nullable

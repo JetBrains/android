@@ -50,7 +50,7 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -663,7 +663,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (additionalConverterAnnotation != null) {
       Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
 
-      ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
+      ConverterManager converterManager = ApplicationManager.getApplication().getService(ConverterManager.class);
       //noinspection unchecked
       return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
     }

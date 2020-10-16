@@ -20,7 +20,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
 import com.android.tools.idea.project.AndroidNotification;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class SupportedModuleChecker {
   @NotNull
   public static SupportedModuleChecker getInstance() {
-    return ServiceManager.getService(SupportedModuleChecker.class);
+    return ApplicationManager.getApplication().getService(SupportedModuleChecker.class);
   }
 
   /**
