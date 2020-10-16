@@ -76,7 +76,7 @@ public final class GradleSyncInvoker {
 
   @NotNull
   public static GradleSyncInvoker getInstance() {
-    return ServiceManager.getService(GradleSyncInvoker.class);
+    return ApplicationManager.getApplication().getService(GradleSyncInvoker.class);
   }
 
   public GradleSyncInvoker() {

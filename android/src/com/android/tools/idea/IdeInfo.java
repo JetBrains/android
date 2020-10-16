@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.util.PlatformUtils.getPlatformPrefix;
@@ -23,7 +23,7 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 public class IdeInfo {
   @NotNull
   public static IdeInfo getInstance() {
-    return ServiceManager.getService(IdeInfo.class);
+    return ApplicationManager.getApplication().getService(IdeInfo.class);
   }
 
   public boolean isAndroidStudio() {

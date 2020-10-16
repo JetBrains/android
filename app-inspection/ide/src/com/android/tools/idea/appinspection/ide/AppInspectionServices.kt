@@ -31,7 +31,7 @@ import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.MessageBus
 import java.util.concurrent.ConcurrentHashMap
@@ -57,7 +57,7 @@ internal class AppInspectionHostService {
 
   companion object {
     val instance: AppInspectionHostService
-      get() = ServiceManager.getService(AppInspectionHostService::class.java)
+      get() = ApplicationManager.getApplication().getService(AppInspectionHostService::class.java)
   }
 }
 

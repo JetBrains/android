@@ -38,7 +38,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -337,7 +336,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun get(): RepositoryUrlManager = ServiceManager.getService(RepositoryUrlManager::class.java)
+    fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(RepositoryUrlManager::class.java)
   }
 }
 

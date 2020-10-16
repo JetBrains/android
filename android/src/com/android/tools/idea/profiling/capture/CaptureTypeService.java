@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ public class CaptureTypeService {
 
   @NotNull
   public static CaptureTypeService getInstance() {
-    return ServiceManager.getService(CaptureTypeService.class);
+    return ApplicationManager.getApplication().getService(CaptureTypeService.class);
   }
 
   @NotNull

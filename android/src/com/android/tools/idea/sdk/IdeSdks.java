@@ -55,7 +55,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -135,7 +134,7 @@ public class IdeSdks {
 
   @NotNull
   public static IdeSdks getInstance() {
-    return ServiceManager.getService(IdeSdks.class);
+    return ApplicationManager.getApplication().getService(IdeSdks.class);
   }
 
   public IdeSdks() {

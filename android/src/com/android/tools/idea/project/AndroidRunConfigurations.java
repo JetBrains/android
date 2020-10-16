@@ -28,8 +28,8 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidRunConfigurations {
   @NotNull
   public static AndroidRunConfigurations getInstance() {
-    return ServiceManager.getService(AndroidRunConfigurations.class);
+    return ApplicationManager.getApplication().getService(AndroidRunConfigurations.class);
   }
 
   public void createRunConfiguration(@NotNull AndroidFacet facet) {

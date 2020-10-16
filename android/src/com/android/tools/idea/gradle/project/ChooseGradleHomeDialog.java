@@ -29,7 +29,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -74,7 +73,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   public ChooseGradleHomeDialog(@NotNull @NlsContexts.DialogTitle String title, @Nullable String minimumGradleVersion) {
     super(null);
     myMinimumGradleVersion = minimumGradleVersion;
-    myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
+    myInstallationManager = ApplicationManager.getApplication().getService(GradleInstallationManager.class);
     init();
     initValidation();
     setTitle(title);

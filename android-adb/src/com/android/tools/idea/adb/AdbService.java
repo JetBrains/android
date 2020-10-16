@@ -30,7 +30,6 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -70,7 +69,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   private static final Object ADB_INIT_LOCK = new Object();
 
   public static AdbService getInstance() {
-    return ServiceManager.getService(AdbService.class);
+    return ApplicationManager.getApplication().getService(AdbService.class);
   }
 
   private AdbService() {

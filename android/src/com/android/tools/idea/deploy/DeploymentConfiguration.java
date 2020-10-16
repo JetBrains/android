@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.deploy;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.RoamingType;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -33,7 +33,7 @@ public class DeploymentConfiguration implements PersistentStateComponent<Deploym
   public boolean APPLY_CODE_CHANGES_FALLBACK_TO_RUN = false;
 
   public static DeploymentConfiguration getInstance() {
-    return ServiceManager.getService(DeploymentConfiguration.class);
+    return ApplicationManager.getApplication().getService(DeploymentConfiguration.class);
   }
 
   @Nullable

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.folding;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 })
 public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings> {
   public static AndroidFoldingSettings getInstance() {
-    return ServiceManager.getService(AndroidFoldingSettings.class);
+    return ApplicationManager.getApplication().getService(AndroidFoldingSettings.class);
   }
 
   public boolean isCollapseAndroidStrings() {
