@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.androidx-integration-tests",
     iml_files = ["intellij.android.androidx-integration-tests.iml"],
     test_resources = ["testData"],
-    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     # This tests runs in the androidx-integration branch so it should not be triggered automatically in studio-master-dev.
     test_tags = ["manual"],

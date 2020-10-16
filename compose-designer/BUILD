@@ -60,7 +60,6 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_resources = ["testData"],
-    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
