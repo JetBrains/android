@@ -15,17 +15,23 @@
  */
 package com.android.tools.profilers;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.dataviewer.ImageDataViewer;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.android.tools.profilers.stacktrace.StackTraceGroup;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -37,9 +43,13 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @NotNull private Map<JComponent, Supplier<CodeLocation>> myComponentNavigations = new HashMap<>();
@@ -214,10 +224,23 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  private CpuProfilerConfigModel myCpuConfigModel = null;
+  private Consumer<ProfilingConfiguration> myDialogCloseCallback = null;
+
   @Override
   public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
                                                    @NotNull Consumer<ProfilingConfiguration> callbackDialog) {
-    // No-op.
+    myCpuConfigModel = model;
+    myDialogCloseCallback = callbackDialog;
+  }
+
+  /**
+   * Emulate the action of closing the CPU config dialog.
+   */
+  public void closeCpuProfilingConfigurationsDialog() {
+    if (myCpuConfigModel != null && myDialogCloseCallback != null) {
+      myDialogCloseCallback.accept(myCpuConfigModel.getProfilingConfiguration());
+    }
   }
 
   public static final class StackTraceGroupStub implements StackTraceGroup {
