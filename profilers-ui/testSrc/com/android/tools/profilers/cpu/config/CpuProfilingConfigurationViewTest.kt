@@ -48,17 +48,20 @@ class CpuProfilingConfigurationViewTest {
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
   private lateinit var stage: CpuProfilerStage
   private lateinit var configurationView: CpuProfilingConfigurationView
+  private lateinit var ideProfilerServices: FakeIdeProfilerServices
+  private lateinit var ideProfilerComponents: FakeIdeProfilerComponents
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
+    ideProfilerServices = FakeIdeProfilerServices()
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    configurationView = CpuProfilingConfigurationView(stage,
-                                                                                                                FakeIdeProfilerComponents())
+    ideProfilerComponents = FakeIdeProfilerComponents()
+    configurationView = CpuProfilingConfigurationView(stage, ideProfilerComponents)
   }
 
   @Test
@@ -164,5 +167,14 @@ class CpuProfilingConfigurationViewTest {
     // Open the profiling configurations dialog with null device shouldn't crash CpuProfilerStage.
     // Dialog is expected to be open so the user can edit configurations to be used by other devices later.
     configurationView.openProfilingConfigurationsDialog()
+  }
+
+  @Test
+  fun newConfigShouldBePickedUpByComboBox() {
+    configurationView.openProfilingConfigurationsDialog()
+    ideProfilerServices.addCustomProfilingConfiguration("New Config", Cpu.CpuTraceType.ART)
+    ideProfilerComponents.closeCpuProfilingConfigurationsDialog()
+    val comboBox = configurationView.component as JComboBox<*>
+    assertThat((0 until comboBox.itemCount).map { (comboBox.getItemAt(it) as ProfilingConfiguration).name }).contains("New Config")
   }
 }
