@@ -36,7 +36,6 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
-import com.android.tools.idea.compose.preview.literals.LiveLiteralsManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
@@ -57,6 +56,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
@@ -346,9 +346,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
-  private val liveLiteralsManager = LiveLiteralsManager(project, this, psiFilePointer) {
-    surface.layoutlibSceneManagers.forEach {
-      it.requestRender()
+  private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
+    addOnLiteralsChangedListener(this) {
+      surface.layoutlibSceneManagers.forEach {
+        it.requestRender()
+      }
     }
   }
 
