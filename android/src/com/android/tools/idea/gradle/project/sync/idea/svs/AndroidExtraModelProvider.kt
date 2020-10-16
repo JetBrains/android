@@ -420,7 +420,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
        * real dependencies of each feature module variant are we can only guess.
        */
       fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
-        val rootProjectGradleDirectory = controller.buildModel.rootProject.projectIdentifier.buildIdentifier.rootDir
+        val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
         return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
           val featureModuleId = createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
           propagateVariantSelectionChangeFallback(featureModuleId)
