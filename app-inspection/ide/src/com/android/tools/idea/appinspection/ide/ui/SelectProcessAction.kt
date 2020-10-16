@@ -36,8 +36,9 @@ private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
 private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
 private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
-class SelectProcessAction(private val model: AppInspectionProcessModel) :
-  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"), ICON_PHONE) {
+class SelectProcessAction(private val model: AppInspectionProcessModel, private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
+  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
+                 ICON_PHONE) {
 
   private var lastProcess: ProcessDescriptor? = null
   private var lastProcessCount = 0
@@ -80,6 +81,17 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
       noDeviceAction.templatePresentation.isEnabled = false
       add(noDeviceAction)
     }
+    else if (model.selectedProcess?.isRunning == true) {
+      // If selected process exists and is running (not detached), then add a Stop action.
+      val stopInspectionAction = object : AnAction(AppInspectionBundle.message("action.stop.inspectors"),
+                                                   AppInspectionBundle.message("action.stop.inspectors.description"),
+                                                   StudioIcons.Shell.Toolbar.STOP) {
+        override fun actionPerformed(e: AnActionEvent) {
+          onStopAction?.invoke(model.selectedProcess!!)
+        }
+      }
+      add(stopInspectionAction)
+    }
     return true
   }
 
@@ -92,7 +104,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      model.selectedProcess = processDescriptor
+      model.setSelectedProcess(processDescriptor, isUserAction = true)
     }
   }
 
