@@ -295,6 +295,8 @@ class AppInspectionView(
     inspectorPanel.repaint()
   }
 
+  internal fun isInspectionActive() = processModel.selectedProcess?.isRunning ?: false
+
   override fun dispose() {
   }
 }
