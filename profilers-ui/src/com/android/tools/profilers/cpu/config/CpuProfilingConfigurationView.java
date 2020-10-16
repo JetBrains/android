@@ -25,13 +25,16 @@ import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JSeparator;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilingConfigurationView {
   /**
@@ -98,6 +101,8 @@ public class CpuProfilingConfigurationView {
   @VisibleForTesting
   void openProfilingConfigurationsDialog() {
     Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
+      // Update the config list to pick up any potential changes.
+      myStage.getProfilerConfigModel().updateProfilingConfigurations();
       // If there was a configuration selected when the dialog was closed,
       // make sure to select it in the combobox
       if (configuration != null) {
