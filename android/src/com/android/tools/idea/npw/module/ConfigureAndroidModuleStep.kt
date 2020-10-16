@@ -32,6 +32,7 @@ import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -47,38 +48,38 @@ class ConfigureAndroidModuleStep(
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
   override fun createMainPanel(): DialogPanel = panel {
-    row {
-      labelFor("Application/Library name", appName)
-      appName()
-    }.visible = !model.isLibrary
+    if (!model.isLibrary) {
+      row {
+        labelFor("Application/Library name", appName)
+        appName(pushX)
+      }
+    }
 
     row {
-      cell {
-        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
 
     row {
       labelFor("Package name", packageName)
-      packageName()
+      packageName(pushX)
     }
 
     row {
       labelFor("Language", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
 
     if (model.isLibrary) {
       row {
         labelFor("Bytecode Level", bytecodeCombo)
-        bytecodeCombo()
+        bytecodeCombo(growX)
       }
     }
 
     row {
       labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo()
+      apiLevelCombo(growX)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
@@ -88,7 +89,7 @@ class ConfigureAndroidModuleStep(
         gradleKtsCheck()
       }
     }
-  }
+  }.withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(appName), model.applicationName)

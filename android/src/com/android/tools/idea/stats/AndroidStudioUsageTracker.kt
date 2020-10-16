@@ -25,6 +25,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
@@ -39,6 +40,7 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
+import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -91,7 +93,8 @@ object AndroidStudioUsageTracker {
         osArchitecture = CommonMetricsData.osArchitecture
         channel = lifecycleChannelFromUpdateSettings()
         theme = currentIdeTheme()
-        addAllExperimentId(buildActiveExperimentList())
+        serverFlagsChangelist = ServerFlagService.instance.configurationVersion
+        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.names))
       }.build()
     }
 
@@ -144,17 +147,19 @@ object AndroidStudioUsageTracker {
   }
 
   @JvmStatic
-  fun setup(scheduler: ScheduledExecutorService) {
-    scheduler.submit { runStartupReports() }
+  fun setupScheduledReports() {
+    val scheduler = JobScheduler.getScheduler()
     // Send initial report immediately, daily from then on.
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
 
     subscribeToEvents()
+    runStartupReports()
   }
 
-  private fun subscribeToEvents() {
+  @JvmStatic
+  fun subscribeToEvents() {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
     connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())

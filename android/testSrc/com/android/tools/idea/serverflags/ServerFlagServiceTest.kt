@@ -95,7 +95,7 @@ class ServerFlagServiceTest {
 
   @Test
   fun testEmptyService() {
-    val service = ServerFlagService.instance
+    val service = ServerFlagServiceEmpty()
     assertThat(service.initialized).isFalse()
     assertThat(service.configurationVersion).isEqualTo(-1)
     assertThat(service.names).isEmpty()
@@ -111,8 +111,49 @@ class ServerFlagServiceTest {
   fun testProperties() {
     val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
     assertThat(service.initialized).isTrue()
+
+    val default = ServerFlagTest.newBuilder().apply {
+      content = "default"
+    }.build()
+    assertThat((service.getProtoMessage("proto", default) as ServerFlagTest).content).isEqualTo("content")
+    assertThat((service.getProtoMessage("missing", default) as ServerFlagTest).content).isEqualTo("default")
     assertThat(CONFIGURATION_VERSION).isEqualTo(service.configurationVersion)
     assertThat(listOf("boolean", "int", "float", "string", "proto")).containsExactlyElementsIn(service.names)
+  }
+
+  @Test
+  fun testToString() {
+    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
+    val expected = """
+Name: boolean
+PercentEnabled: 0
+Value: true
+
+Name: float
+PercentEnabled: 50
+Value: 1.0
+
+Name: int
+PercentEnabled: 25
+Value: 1
+
+Name: proto
+PercentEnabled: 100
+Value: custom proto
+
+Name: string
+PercentEnabled: 75
+Value: foo
+
+
+""".trimIndent()
+    assertThat(service.toString()).isEqualTo(expected)
+  }
+
+  @Test
+  fun testToStringEmpty() {
+    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, emptyMap())
+    assertThat(service.toString()).isEqualTo("No server flags are enabled.")
   }
 
   private fun <T> checkRetrieval(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T, expected: T) {

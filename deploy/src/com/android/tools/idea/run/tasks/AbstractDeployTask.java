@@ -50,6 +50,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -191,6 +192,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
       printer.stdout(content);
       logger.info("%s. %s", title, content);
+      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
     }
 
     return new LaunchResult();

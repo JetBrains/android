@@ -20,7 +20,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * The action to show the [AdbDevicePairingDialog] window.
+ * The action to show the [WiFiPairingDialog] window.
  */
 class PairDevicesUsingWiFiAction : AnAction() {
   @UiThread

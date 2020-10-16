@@ -32,12 +32,15 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.SimpleListCellRenderer;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -124,7 +127,23 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       value == ClockType.GLOBAL ? "Wall Clock Time" :
       value == ClockType.THREAD ? "Thread Time" : ""));
     clockTypeSelector.setEnabled(getModel().isCaptureDualClock());
-    return clockTypeSelector;
+
+    JLabel helpIcon = new JLabel(StudioIcons.Common.HELP);
+    HelpTooltip helpTooltip = new HelpTooltip()
+      .setDescription("Select how timing information is measured (only supported in Sample/Trace Java Methods):" +
+                      "<p><dl>" +
+                      "<dt><b>Wall clock time</b></dt>" +
+                      "<dd>Represents actual elapsed time.</dd>" +
+                      "<dt><b>Thread time</b></dt>" +
+                      "<dd>Represents actual elapsed time minus any portion of that time when the thread is not consuming CPU resources." +
+                      "</dd>" +
+                      "</dl></p>");
+    helpTooltip.installOn(helpIcon);
+
+    JPanel panel = new JPanel(new TabularLayout("Fit,Fit,6px", "Fit"));
+    panel.add(clockTypeSelector, new TabularLayout.Constraint(0, 0));
+    panel.add(helpIcon, new TabularLayout.Constraint(0, 1));
+    return panel;
   }
 
   private void updateDetailsView(@NotNull CaptureDetails captureDetails) {

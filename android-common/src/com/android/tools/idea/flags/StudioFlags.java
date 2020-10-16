@@ -339,6 +339,11 @@ public final class StudioFlags {
     "Enable the overlay provider extension point",
     true);
 
+  public static final Flag<Boolean> NELE_CLASS_BINARY_CACHE = Flag.create(
+    NELE, "toggle.layout.editor.class.binary.cache", "Enable binary cache",
+    "Enable binary cache of classes used in preview",
+    true);
+
   //endregion
 
   //region Navigation Editor

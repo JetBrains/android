@@ -70,6 +70,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.project.messages.MessageType;
@@ -97,6 +98,7 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -482,7 +484,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           "org.gradle.language.base.plugins.LifecycleBasePlugin",
           "org.gradle.api.plugins.BasePlugin",
           "org.gradle.api.plugins.ReportingBasePlugin",
-          "org.gradle.api.plugins.JavaBasePlugin",
+          "org.gradle.api.plugins.JavaBasePlugin$Inject",
+          "org.gradle.api.plugins.JvmEcosystemPlugin",
           "com.android.build.gradle.AppPlugin",
           "org.gradle.plugins.ide.idea.IdeaPlugin",
           "com.android.build.gradle.internal.plugins.AppPlugin",
@@ -590,11 +593,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     when(taskId.findProject()).thenReturn(project);
 
     // Verify that the task "help" can be found and executed.
-/* b/154962759
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
-b/154962759 */
   }
 
   public void testWithPreSyncCheckFailure() throws Exception {

@@ -15,11 +15,19 @@
  */
 package com.android.tools.adtui.ui
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.intellij.ui.scale.ScaleContext
 import java.awt.Image
 
 interface ScaledImageProvider {
+  /**
+   * Returns (optionally) the initial image to be displayed
+   */
+  val initialImage: Image?
+    @AnyThread
+    get() = null
+
   /**
    * Returns a scaled [Image] with all bits available. See [ScalingImagePanel].
    */

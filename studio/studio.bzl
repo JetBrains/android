@@ -1,6 +1,5 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
-load("//tools/base/bazel:project.bzl", "PROJECT")
 
 def _zipper(ctx, desc, map, out):
     files = [f for (p, f) in map]
@@ -455,10 +454,6 @@ def android_studio(
         modules = {},
         resources = {},
         **kwargs):
-    if PROJECT != "unb":
-        print("android_studio rule only works if /tools/base/bazel/project.bzl:PROJECT is set to 'unb'")
-        return
-
     jars, modules_list = _dict_to_lists(modules)
     resources_dirs, resources_list = _dict_to_lists(resources)
     searchable_options_dict = {}
@@ -578,6 +573,17 @@ def intellij_platform(
             "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/resources.jar"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
+    # Expose build.txt from the prebuilt SDK
+    native.filegroup(
+        name = name + "-build-txt",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/build.txt"],
+            "//conditions:default": [src + "/linux/android-studio/build.txt"],
         }),
         visibility = ["//visibility:public"],
     )

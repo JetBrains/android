@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
@@ -28,6 +29,7 @@ import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.SnapshotDetails
+import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
@@ -121,8 +123,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  @Volatile var extendedControlsVisible = false
   /** Ids of snapshots that were marked "invalid" by calling the [markSnapshotInvalid] method. */
   private val invalidSnapshots = ContainerUtil.newConcurrentSet<String>()
+  /** The ID of the last loaded snapshot. */
+  private var lastLoadedSnapshot: String? = null
 
   val serialPort
     get() = grpcPort - 3000 // Just like a real emulator.
@@ -143,7 +148,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       avd.name=${avdId}
       avd.dir=${avdFolder}
       avd.id=${avdId}
-      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "${avdId}" ${embeddedFlags}
+      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
       grpc.port=${grpcPort}
       grpc.token=RmFrZSBnUlBDIHRva2Vu
       """.trimIndent()
@@ -154,6 +159,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   fun start() {
     synchronized(lifeCycleLock) {
+      val keysToExtract = setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot", "fastboot.forceFastBoot")
+      val map = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract)
+      if (map != null) {
+        val snapshotId = when {
+          map["fastboot.forceFastBoot"] == "yes" -> "default_boot"
+          map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
+          else -> null
+        }
+        lastLoadedSnapshot = if (snapshotId == null || snapshotId in invalidSnapshots) null else snapshotId
+      }
+
       startTime = System.currentTimeMillis()
       grpcCallLog.clear()
       grpcServer.start()
@@ -454,7 +470,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
 
-    override fun listSnapshots(request: Empty, responseObserver: StreamObserver<SnapshotList>) {
+    override fun listSnapshots(request: SnapshotFilter, responseObserver: StreamObserver<SnapshotList>) {
       executor.execute {
         val response = SnapshotList.newBuilder()
         val snapshotsFolder = avdFolder.resolve("snapshots")
@@ -462,13 +478,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Files.list(snapshotsFolder).use { stream ->
             stream.forEach { snapshotFolder ->
               val snapshotId = snapshotFolder.fileName.toString()
-              if (snapshotId !in invalidSnapshots) {
+              val invalid = snapshotId in invalidSnapshots
+              if (request.statusFilter == SnapshotFilter.LoadStatus.All || !invalid) {
                 val snapshotProtoFile = snapshotFolder.resolve("snapshot.pb")
                 val snapshotMessage = Files.newInputStream(snapshotProtoFile).use {
                   Snapshot.parseFrom(it)
                 }
                 val snapshotDetails = SnapshotDetails.newBuilder()
                 snapshotDetails.snapshotId = snapshotId
+                snapshotDetails.status = when {
+                  invalid -> SnapshotDetails.LoadStatus.Incompatible
+                  snapshotId == lastLoadedSnapshot -> SnapshotDetails.LoadStatus.Loaded
+                  else -> SnapshotDetails.LoadStatus.Compatible
+                }
                 val details = Snapshot.newBuilder()
                 details.logicalName = snapshotMessage.logicalName
                 details.description = snapshotMessage.description
@@ -490,6 +512,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun loadSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
       executor.execute {
+        if (request.snapshotId !in invalidSnapshots) {
+          lastLoadedSnapshot = request.snapshotId
+        }
         sendDefaultSnapshotPackage(responseObserver)
       }
     }
@@ -519,15 +544,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     private val executor: ExecutorService
   ) : UiControllerGrpc.UiControllerImplBase() {
 
-    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
-        sendEmptyResponse(responseObserver)
+        val changed = !extendedControlsVisible
+        extendedControlsVisible = true
+        sendResponse(responseObserver, ExtendedControlsStatus.newBuilder().setVisibilityChanged(changed).build())
       }
     }
 
-    override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+    override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
-        sendEmptyResponse(responseObserver)
+        val changed = extendedControlsVisible
+        extendedControlsVisible = false
+        sendResponse(responseObserver, ExtendedControlsStatus.newBuilder().setVisibilityChanged(changed).build())
       }
     }
 
@@ -662,7 +691,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = false
-          android.sdk.root = ${sdkFolder}
+          android.sdk.root = $sdkFolder
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)
@@ -740,7 +769,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = false
-          android.sdk.root = ${sdkFolder}
+          android.sdk.root = $sdkFolder
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)
@@ -816,8 +845,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = true
-          hw.sdCard.path = ${avdFolder}/sdcard.img
-          android.sdk.root = ${sdkFolder}
+          hw.sdCard.path = $avdFolder/sdcard.img
+          android.sdk.root = $sdkFolder
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)

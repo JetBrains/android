@@ -120,7 +120,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     model.addTabModel(bottomUp);
 
     // Events
-    CpuAnalysisEventsTabModel<CpuThreadTrackModel> events = new CpuThreadAnalysisEventsTabModel(myCapture.getRange(), selectionRange);
+    CpuAnalysisEventsTabModel<CpuThreadTrackModel> events = new CpuThreadAnalysisEventsTabModel(myCapture.getRange());
     events.getDataSeries().add(this);
     model.addTabModel(events);
 

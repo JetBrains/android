@@ -182,7 +182,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
  * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
  * should be done using [SpoilingGradleBuildModelUsageInfo] instances.
  */
-abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(element) {
+abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo(element) {
   fun performRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
     logBuildModelRefactoring()
     performBuildModelRefactoring(processor)
@@ -199,6 +199,28 @@ abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(elemen
   }
 
   abstract override fun getTooltipText(): String
+
+  /**
+   * Fundamentally, implementations of [GradleBuildModelUsageInfo] are data classes, in that we expect never to mutate
+   * them, and their contents and class identity encode their semantics.  Unfortunately, there's a slight mismatch; the
+   * equality semantics of the UsageInfo PsiElement are not straightforward (they are considered equal if they point to
+   * the same range, even if they're not the identical element), but since the [UsageInfo] superclass constructor requires
+   * a PsiElement, we must have a PsiElement in the primary constructor, so the automatically-generated methods from a
+   * data class will not do the right thing.
+   *
+   * Instead, we simulate the parts of a data class we need here; by having a function which subclasses must implement, and
+   * final implementations of equals() and hashCode() which use that function.  The default implementation here encodes that
+   * document range is sufficient to discriminate between instances, which in practice will be true for replacements and
+   * deletions but will not be in general for additions.
+   */
+  open fun getDiscriminatingValues(): List<Any> = listOf()
+
+  final override fun equals(other: Any?) = super.equals(other) && when(other) {
+    is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
+    else -> false
+  }
+
+  final override fun hashCode() = super.hashCode() xor getDiscriminatingValues().hashCode()
 }
 
 /**
@@ -208,7 +230,7 @@ abstract class GradleBuildModelUsageInfo(element: PsiElement) : UsageInfo(elemen
  * and reparsed.
  */
 abstract class SpoilingGradleBuildModelUsageInfo(
-  element: PsiElement
+  element: WrappedPsiElement
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     noteForPsiSpoilingBuildModelRefactoring(processor)
@@ -897,10 +919,11 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
         if (!GradleUtil.isSupportedGradleVersion(parsedCurrentGradleVersion)) {
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(gradleVersion.toString(), true);
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), gradleVersion))
+          usages.add(GradleVersionUsageInfo(WrappedPsiElement(property.psiElement, this, USAGE_TYPE), gradleVersion, updatedUrl))
         }
       }
     }
@@ -931,14 +954,15 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
 class GradleVersionUsageInfo(
   element: WrappedPsiElement,
-  private val gradleVersion: GradleVersion
+  private val gradleVersion: GradleVersion,
+  private val updatedUrl: String
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String {
     return "Upgrade Gradle version to $gradleVersion"
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl)
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
     //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
     //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
@@ -1106,10 +1130,7 @@ class JavaLanguageLevelUsageInfo(
     }
   }
 
-  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is JavaLanguageLevelUsageInfo && propertyName == other.propertyName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(propertyName)
 }
 
 class KotlinLanguageLevelUsageInfo(
@@ -1150,10 +1171,7 @@ class KotlinLanguageLevelUsageInfo(
     documentManager.commitDocument(document)
   }
 
-  // Don't need hashCode for correctness because this is stricter than the superclass's equals().
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is KotlinLanguageLevelUsageInfo && propertyName == other.propertyName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(propertyName)
 }
 
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1275,11 +1293,7 @@ class ObsoleteConfigurationDependencyUsageInfo(
 
   override fun getTooltipText() = "Update configuration from ${dependency.configurationName()} to $newConfigurationName"
 
-  // Don't need hashCode() because this is stricter than the superclass method.
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is ObsoleteConfigurationDependencyUsageInfo &&
-           dependency == other.dependency && newConfigurationName == other.newConfigurationName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(dependency, newConfigurationName)
 }
 
 class ObsoleteConfigurationConfigurationUsageInfo(
@@ -1293,11 +1307,7 @@ class ObsoleteConfigurationConfigurationUsageInfo(
 
   override fun getTooltipText() = "Rename configuration from ${configuration.name()} to $newConfigurationName"
 
-  // Don't need hashCode() because this is stricter than the superclass method.
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) && other is ObsoleteConfigurationConfigurationUsageInfo &&
-           configuration == other.configuration && newConfigurationName == other.newConfigurationName
-  }
+  override fun getDiscriminatingValues(): List<Any> = listOf(configuration, newConfigurationName)
 }
 
 class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1475,6 +1485,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
               usages.add(usageInfo)
               seenFabricNdk = true
             }
+            dep.spec.group == "com.google.firebase" && dep.spec.name == "firebase-crashlytics-ndk" -> seenFirebaseCrashlyticsNdk = true
           }
         }
         if (seenFabricNdk && !seenFirebaseCrashlyticsNdk) {
@@ -1529,7 +1540,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 }
 
 class RemoveFabricMavenRepositoryUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val repositories: RepositoriesModel,
   private val repository: RepositoryModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1543,7 +1554,7 @@ class RemoveFabricMavenRepositoryUsageInfo(
 // TODO(xof): investigate unifying this with the NoGMavenUsageInfo class above
 
 class AddGoogleMavenRepositoryUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val repositories: RepositoriesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1555,7 +1566,7 @@ class AddGoogleMavenRepositoryUsageInfo(
 }
 
 class RemoveFabricClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1567,7 +1578,7 @@ class RemoveFabricClasspathDependencyUsageInfo(
 }
 
 class AddGoogleServicesClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1579,7 +1590,7 @@ class AddGoogleServicesClasspathDependencyUsageInfo(
 }
 
 class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1591,7 +1602,7 @@ class AddFirebaseCrashlyticsClasspathDependencyUsageInfo(
 }
 
 class ReplaceFabricPluginUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val plugin: PluginModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1602,7 +1613,7 @@ class ReplaceFabricPluginUsageInfo(
 }
 
 class ApplyGoogleServicesPluginUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val model: GradleBuildModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1613,7 +1624,7 @@ class ApplyGoogleServicesPluginUsageInfo(
 }
 
 class RemoveFabricCrashlyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1625,7 +1636,7 @@ class RemoveFabricCrashlyticsSdkUsageInfo(
 }
 
 class AddFirebaseCrashlyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1636,7 +1647,7 @@ class AddFirebaseCrashlyticsSdkUsageInfo(
 }
 
 class AddGoogleAnalyticsSdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1647,7 +1658,7 @@ class AddGoogleAnalyticsSdkUsageInfo(
 }
 
 class RemoveFabricNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel,
   private val dependency: DependencyModel
 ) : GradleBuildModelUsageInfo(element) {
@@ -1659,7 +1670,7 @@ class RemoveFabricNdkUsageInfo(
 }
 
 class AddFirebaseCrashlyticsNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val dependencies: DependenciesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1670,7 +1681,7 @@ class AddFirebaseCrashlyticsNdkUsageInfo(
 }
 
 class RemoveCrashlyticsEnableNdkUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val model: GradleBuildModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -1681,7 +1692,7 @@ class RemoveCrashlyticsEnableNdkUsageInfo(
 }
 
 class AddBuildTypeFirebaseCrashlyticsUsageInfo(
-  element: PsiElement,
+  element: WrappedPsiElement,
   private val buildType: BuildTypeModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

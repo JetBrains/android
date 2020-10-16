@@ -4,6 +4,7 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
 
@@ -42,6 +43,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -166,12 +168,21 @@ public final class ModuleClassLoader extends RenderClassLoader {
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
                     @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
                     @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations) {
-    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup);
+    this(parent, module, projectTransformations, nonProjectTransformations,
+         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(module) : ClassBinaryCache.NO_CACHE);
+  }
+
+  private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
+                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
+                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations,
+                    @NotNull ClassBinaryCache cache) {
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
     myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
 
     registerResources(module);
+    cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
   }
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {

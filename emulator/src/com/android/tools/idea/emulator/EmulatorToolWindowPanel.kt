@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.deployer.AdbClient
@@ -27,6 +28,9 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformNullable
+import com.android.tools.idea.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.emulator.actions.showExtendedControls
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -65,6 +69,7 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.EventQueue
 import java.awt.Insets
 import java.awt.LayoutManager
 import java.awt.Point
@@ -85,7 +90,12 @@ private const val isToolbarHorizontal = true
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-class EmulatorToolWindowPanel(private val project: Project, val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+class EmulatorToolWindowPanel(
+  private val project: Project,
+  val emulator: EmulatorController,
+  val uiState: EmulatorUiState
+) : BorderLayoutPanel(), DataProvider {
+
   private val mainToolbar: ActionToolbar
   private var emulatorView: EmulatorView? = null
   private val scrollPane: JScrollPane
@@ -114,6 +124,9 @@ class EmulatorToolWindowPanel(private val project: Project, val emulator: Emulat
       field = value
       floatingToolbar?.let { it.isVisible = value }
     }
+
+  private val connected
+    get() = emulator.connectionState == ConnectionState.CONNECTED
 
   init {
     background = primaryPanelBackground
@@ -214,7 +227,7 @@ class EmulatorToolWindowPanel(private val project: Project, val emulator: Emulat
       addToCenter(loadingPanel)
 
       loadingPanel.setLoadingText("Connecting to the Emulator")
-      loadingPanel.startLoading() // stopLoading is called by EmulatorView after the gRPC connection is established.
+      loadingPanel.startLoading() // The stopLoading method is called by EmulatorView after the gRPC connection is established.
 
       // Restore zoom and scroll state.
       val emulatorViewPreferredSize = savedEmulatorViewPreferredSize
@@ -224,6 +237,10 @@ class EmulatorToolWindowPanel(private val project: Project, val emulator: Emulat
       }
 
       loadingPanel.repaint()
+
+      if (uiState.extendedControlsVisible && connected) {
+        showExtendedControls(emulator)
+      }
     }
     catch (e: Exception) {
       val label = "Unable to create emulator view: $e"
@@ -232,6 +249,16 @@ class EmulatorToolWindowPanel(private val project: Project, val emulator: Emulat
   }
 
   fun destroyContent() {
+    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() && connected) {
+      emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
+        override fun onNext(response: ExtendedControlsStatus) {
+          EventQueue.invokeLater {
+            uiState.extendedControlsVisible = response.visibilityChanged
+          }
+        }
+      })
+    }
+
     savedEmulatorViewPreferredSize = emulatorView?.explicitlySetPreferredSize
     savedScrollPosition = scrollPane.viewport.viewPosition
 

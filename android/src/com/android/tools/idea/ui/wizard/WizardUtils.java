@@ -144,7 +144,8 @@ public final class WizardUtils {
   @NotNull
   public static JBScrollPane wrapWithVScroll(@NotNull JPanel innerPanel, WIZARD_BORDER wizardBorder) {
     JBScrollPane sp = new JBScrollPane(innerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    sp.setBorder(wizardBorder.border);
+    sp.setBorder(WIZARD_BORDER.EMPTY.border); // Remove outer border line decoration
+    innerPanel.setBorder(wizardBorder.border);
     return sp;
   }
 

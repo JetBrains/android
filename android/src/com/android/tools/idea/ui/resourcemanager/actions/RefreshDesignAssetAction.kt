@@ -33,7 +33,7 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
   override fun actionPerformed(e: AnActionEvent) {
     val assets = e.getData(RESOURCE_DESIGN_ASSETS_KEY)
     if (assets != null && canRefresh(assets)) {
-      ResourceManagerTracking.logRefreshAsset(assets.first().type)
+      ResourceManagerTracking.logRefreshAsset(e.project, assets.first().type)
       refreshAssetsCallback(assets)
     }
   }

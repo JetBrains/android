@@ -147,7 +147,10 @@ class SqliteEvaluatorViewImpl(
           hasFocus: Boolean
         ) {
           if (sqliteDatabase != null) {
-            icon = StudioIcons.DatabaseInspector.DATABASE
+            icon = when (sqliteDatabase) {
+              is SqliteDatabaseId.LiveSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE
+              is SqliteDatabaseId.FileSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+            }
             append(sqliteDatabase.name)
           } else {
             icon = null

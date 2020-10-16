@@ -8,7 +8,6 @@ import com.android.ide.common.rendering.api.StyleableResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
@@ -64,20 +63,13 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
         }
       }
       is StyleableAttrLightField -> {
-        if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
-          // The ResourceManager expects the resource reference name to be the entire java/kotlin field name even for styleable attrs
-          val referencePsiElement = ResourceReferencePsiElement.create(targetElement) ?: return PsiElement.EMPTY_ARRAY
-          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(referencePsiElement.resourceReference, sourceElement)
-        }
-        else {
-          // For Styleable Attr fields, we go to the reference of the attr inside the declare styleable, not necessarily the attr definition
-          val styleableAttrUrl = targetElement.styleableAttrFieldUrl
-          val styleables =
-            ResourceRepositoryManager.getInstance(sourceElement)
-              ?.allResources
-              ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
-          return findAttrElementsInStyleables(styleables, targetElement)
-        }
+        // For Styleable Attr fields, we go to the reference of the attr inside the declare styleable, not necessarily the attr definition
+        val styleableAttrUrl = targetElement.styleableAttrFieldUrl
+        val styleables =
+          ResourceRepositoryManager.getInstance(sourceElement)
+            ?.allResources
+            ?.getResources(styleableAttrUrl.styleable) ?: return PsiElement.EMPTY_ARRAY
+        return findAttrElementsInStyleables(styleables, targetElement)
       }
       is AndroidLightField -> {
         return when (targetElement.containingClass.containingClass) {

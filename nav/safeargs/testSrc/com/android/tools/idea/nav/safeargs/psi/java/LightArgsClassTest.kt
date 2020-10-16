@@ -36,8 +36,13 @@ class LightArgsClassTest {
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main"
             app:startDestination="@id/fragment1">
+
+            <argument
+                android:name="top_level_arg"
+                app:argType="string" />
 
           <fragment
               android:id="@+id/fragment1"
@@ -60,6 +65,7 @@ class LightArgsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainArgs", context)).isInstanceOf(LightArgsClass::class.java)
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context)).isInstanceOf(LightArgsClass::class.java)
 
     // ... but not generated if no arguments

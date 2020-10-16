@@ -27,7 +27,7 @@ import java.io.File
 
 class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
   fun testUpgradeBasic40() {
-    loadProject("upgrade/Projects/Basic40", null, "6.6.1", "4.0.0", "1.3.72", null)
+    loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72", null)
 
     val appModule = ModuleManager.getInstance(project).modules.first { it.name == "Basic40.app" }
     assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
@@ -36,11 +36,8 @@ class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"))
     processor.run()
 
-    // TODO(xof): assert that the post-sync was successful once 4.1.0 is released and added to prebuilts.  (For now this effectively
-    //  asserts that Sync was attempted after running the processor).
-    assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(FAILURE)
-    // TODO(xof): assert that the post-sync actually used AGP 4.1.0 once it is released and added to prebuilts.
-    //    assertThat(GradleFacet.getInstance(appModule)?.configuration?.LAST_SUCCESSFUL_SYNC_AGP_VERSION).isEqualTo("4.1.0")
+    assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
+    assertThat(GradleFacet.getInstance(appModule)?.configuration?.LAST_SUCCESSFUL_SYNC_AGP_VERSION).isEqualTo("4.1.0")
 
     // We can't straightforwardly assert the exact contents of build.gradle, because the test infrastructure patches it with repository
     // declarations to make it work in the test environment

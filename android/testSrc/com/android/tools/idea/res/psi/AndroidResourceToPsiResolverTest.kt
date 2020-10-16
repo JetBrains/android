@@ -16,9 +16,12 @@
 package com.android.tools.idea.res.psi
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
+import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
@@ -97,6 +100,24 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     val elementAtCaret = myFixture.elementAtCaret
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
     checkFileDeclarations(fakePsiElement, arrayOf("layout/layout.xml"))
+  }
+
+  fun testFrameworkFileResourceJava() {
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",  //language=JAVA
+      """
+        package p1.p2;
+        public class MyTest {
+            public MyTest() {
+                int attribute = android.R.drawable.btn_${caret}default;
+            }
+        }""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
+    assertThat(fakePsiElement.resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, "btn_default"))
+    checkFileDeclarations(fakePsiElement, arrayOf("drawable/btn_default.xml"))
   }
 
   fun testAppFileResource() {
@@ -435,7 +456,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkLocaleConfiguration(fakePsiElement, context, Locale.create("fr"), "values/strings.xml")
   }
 
-  private fun checkLocaleConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, locale: Locale, expectedFileName: String) {
+  private fun checkLocaleConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement,
+                                       context: PsiElement,
+                                       locale: Locale,
+                                       expectedFileName: String) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.localeQualifier = locale.qualifier
     val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
@@ -446,7 +470,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
   }
 
-  private fun checkDensityConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, density: Density, expectedFileName: String) {
+  private fun checkDensityConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement,
+                                        context: PsiElement,
+                                        density: Density,
+                                        expectedFileName: String) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.densityQualifier = DensityQualifier(density)
     val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(

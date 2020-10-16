@@ -283,7 +283,7 @@ class EmulatorToolWindowPanelTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
+    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController, EmulatorUiState())
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return panel

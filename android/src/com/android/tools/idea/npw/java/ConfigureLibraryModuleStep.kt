@@ -26,6 +26,7 @@ import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JTextField
 
@@ -38,22 +39,20 @@ class ConfigureLibraryModuleStep(
 
   override fun createMainPanel(): DialogPanel = panel {
     row {
-      cell {
-        labelFor("Library name:", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Library name:", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
     row {
       labelFor("Package name:", packageName)
-      packageName()
+      packageName(pushX)
     }
     row {
       labelFor("Class name:", className)
-      className()
+      className(pushX)
     }
     row {
       labelFor("Language:", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       verticalGap()
@@ -62,7 +61,7 @@ class ConfigureLibraryModuleStep(
         gradleKtsCheck()
       }
     }
-  }
+  }.withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(className), model.className)

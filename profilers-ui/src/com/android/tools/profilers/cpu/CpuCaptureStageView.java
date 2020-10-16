@@ -56,9 +56,9 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -104,7 +104,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
-  private final HoverHyperlinkLabel myDeselectAllLabel;
+  private final LinkLabel<?> myDeselectAllLabel;
   private final JPanel myDeselectAllToolbar;
 
   /**
@@ -119,6 +119,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myScrollPane.setBorder(JBUI.Borders.empty());
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
@@ -341,16 +342,13 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                AxisComponent.AxisOrientation.BOTTOM);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
-    // Hide the axis line so it doesn't stack with panel border.
-    timeAxis.setShowAxisLine(false);
     // Align with track content.
     axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
     return axisPanel;
   }
 
-  private HoverHyperlinkLabel createDeselectAllLabel() {
-    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Clear selection");
-    label.addHyperlinkListener(event -> getStage().getMultiSelectionModel().clearSelection());
+  private LinkLabel<?> createDeselectAllLabel() {
+    LinkLabel<?> label = LinkLabel.create("Clear thread/event selection", () -> getStage().getMultiSelectionModel().clearSelection());
     label.setBorder(new JBEmptyBorder(0, 0, 0, 4));
     label.setToolTipText("Click to deselect all threads/events");
     return label;
@@ -415,7 +413,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   @VisibleForTesting
-  HoverHyperlinkLabel getDeselectAllLabel() {
+  LinkLabel<?> getDeselectAllLabel() {
     return myDeselectAllLabel;
   }
 

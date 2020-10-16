@@ -222,7 +222,7 @@ private class ShowModuleDependenciesAction internal constructor(val viewModel: R
   override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowModuleDependencies = state
-    ResourceManagerTracking.logShowLocalDependenciesToggle(state)
+    ResourceManagerTracking.logShowLocalDependenciesToggle(viewModel.facet, state)
   }
 }
 
@@ -231,7 +231,7 @@ private class ShowLibrariesAction internal constructor(val viewModel: ResourceEx
   override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowLibraryDependencies = state
-    ResourceManagerTracking.logShowLibrariesToggle(state)
+    ResourceManagerTracking.logShowLibrariesToggle(viewModel.facet, state)
   }
 }
 
@@ -240,7 +240,7 @@ private class ShowFrameworkAction internal constructor(val viewModel: ResourceEx
   override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowFrameworkResources = state
-    ResourceManagerTracking.logShowFrameworkToggle(state)
+    ResourceManagerTracking.logShowFrameworkToggle(viewModel.facet, state)
   }
 }
 
@@ -249,7 +249,7 @@ private class ShowThemeAttributesAction internal constructor(val viewModel: Reso
   override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowThemeAttributes = state
-    ResourceManagerTracking.logShowThemeAttributesToggle(state)
+    ResourceManagerTracking.logShowThemeAttributesToggle(viewModel.facet, state)
   }
 }
 
@@ -276,7 +276,7 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
-      ResourceManagerTracking.logTypeFilterEnabled(viewModel.resourceType)
+      ResourceManagerTracking.logTypeFilterEnabled(viewModel.facet, viewModel.resourceType)
     }
     typeFilters.forEach { typeFilter ->
       viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)

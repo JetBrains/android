@@ -65,7 +65,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
     integrator.createIssue(createTestIssue(), null)
     assertEquals(1, integrator.issues.size)
 
-    integrator.disableAccessibilityLint()
+    integrator.clear()
     assertTrue(integrator.issues.isEmpty())
   }
 
