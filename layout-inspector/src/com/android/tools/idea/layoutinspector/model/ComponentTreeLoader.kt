@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
@@ -26,8 +25,11 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.layoutinspector.LayoutInspectorUtils.makeRequestedNodeInfo
+import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
@@ -146,8 +148,7 @@ private class ComponentTreeLoaderImpl(
     val requestedNodeInfo = allNodes.mapNotNull {
       val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
       if (bounds.isEmpty) null
-      else RequestedNodeInfo(it.drawId, bounds.width, bounds.height,
-                             bounds.x - surfaceOriginX, bounds.y - surfaceOriginY)
+      else makeRequestedNodeInfo(it.drawId, bounds.x - surfaceOriginX, bounds.y - surfaceOriginY, bounds.width, bounds.height)
     }.toList()
     if (requestedNodeInfo.isEmpty()) {
       return

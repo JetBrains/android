@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.layoutinspector.SkiaViewNode
 import org.junit.Test
 import java.awt.image.BufferedImage
 

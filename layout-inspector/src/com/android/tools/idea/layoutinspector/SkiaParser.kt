@@ -22,7 +22,6 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.model.SkiaViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
 import com.android.tools.idea.protobuf.ByteString
@@ -31,6 +30,8 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.android.tools.layoutinspector.LayoutInspectorUtils.buildTree
+import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
@@ -46,16 +47,7 @@ import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
-import java.awt.Point
-import java.awt.color.ColorSpace
-import java.awt.image.BufferedImage
-import java.awt.image.DataBuffer
-import java.awt.image.DataBufferInt
-import java.awt.image.DirectColorModel
-import java.awt.image.Raster
-import java.awt.image.SinglePixelPackedSampleModel
 import java.io.File
-import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.xml.bind.JAXBContext
@@ -72,13 +64,11 @@ private const val MAX_TIMES_TO_RETRY = 10
 class InvalidPictureException : Exception()
 class UnsupportedPictureVersionException(val version: Int) : Exception()
 
-data class RequestedNodeInfo(val drawId: Long, val width: Int, val height: Int, val x: Int, val y: Int)
-
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
   fun getViewTree(
     data: ByteArray,
-    requestedNodes: Iterable<RequestedNodeInfo>,
+    requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
     scale: Double,
     isInterrupted: () -> Boolean = { false }
   ): SkiaViewNode?
@@ -105,7 +95,7 @@ object SkiaParser : SkiaParserService {
   @Throws(InvalidPictureException::class)
   override fun getViewTree(
     data: ByteArray,
-    requestedNodes: Iterable<RequestedNodeInfo>,
+    requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
     scale: Double,
     isInterrupted: () -> Boolean
   ): SkiaViewNode? {
@@ -113,7 +103,7 @@ object SkiaParser : SkiaParserService {
     val response = server.getViewTree(data, requestedNodes, scale)
     return response?.root?.let {
       try {
-        buildTree(it, isInterrupted, requestedNodes.associateBy { req -> req.drawId })
+        buildTree(it, isInterrupted, requestedNodes.associateBy { req -> req.id })
       }
       catch (interruptedException: InterruptedException) {
         null
@@ -125,34 +115,6 @@ object SkiaParser : SkiaParserService {
   override fun shutdownAll() {
     supportedVersionMap?.values?.forEach { it.shutdown() }
     devbuildServerInfo.shutdown()
-  }
-
-  @VisibleForTesting
-  fun buildTree(
-    node: SkiaParser.InspectorView,
-    isInterrupted: () -> Boolean,
-    drawIdToRequest: Map<Long, RequestedNodeInfo>
-  ): SkiaViewNode? {
-    if (isInterrupted()) {
-      throw InterruptedException()
-    }
-
-    return if (!node.image.isEmpty) {
-      val width = if (node.width > 0) node.width else drawIdToRequest[node.id]?.width ?: return null
-      val height = if (node.height > 0) node.height else drawIdToRequest[node.id]?.height ?: return null
-      val intArray = IntArray(width * height)
-      node.image.asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(intArray)
-      val buffer = DataBufferInt(intArray, width * height)
-      val model = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, intArrayOf(0xff0000, 0xff00, 0xff, 0xff000000.toInt()))
-      val raster = Raster.createWritableRaster(model, buffer, Point(0, 0))
-      val colorModel = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                        32, 0xff0000, 0xff00, 0xff, 0xff000000.toInt(), false, DataBuffer.TYPE_INT)
-      @Suppress("UndesirableClassUsage")
-      SkiaViewNode(node.id, BufferedImage(colorModel, raster, false, null))
-    }
-    else {
-      SkiaViewNode(node.id, node.childrenList.mapNotNull { buildTree(it, isInterrupted, drawIdToRequest) })
-    }
   }
 
   /**
@@ -419,7 +381,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   @Slow
-  fun getViewTree(data: ByteArray, requestedNodes: Iterable<RequestedNodeInfo>, scale: Double): SkiaParser.GetViewTreeResponse? {
+  fun getViewTree(data: ByteArray, requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>, scale: Double): SkiaParser.GetViewTreeResponse? {
     ping()
     return getViewTreeImpl(data, requestedNodes, scale)
   }
@@ -432,21 +394,13 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
 
   private fun getViewTreeImpl(
     data: ByteArray,
-    requestedNodes: Iterable<RequestedNodeInfo>,
+    requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
     scale: Double
   ): SkiaParser.GetViewTreeResponse? {
     val request = SkiaParser.GetViewTreeRequest.newBuilder()
       .setVersion(1)
       .setSkp(ByteString.copyFrom(data))
-      .addAllRequestedNodes(requestedNodes.map {
-        SkiaParser.RequestedNodeInfo.newBuilder()
-          .setId(it.drawId)
-          .setWidth(it.width)
-          .setHeight(it.height)
-          .setX(it.x)
-          .setY(it.y)
-          .build()
-      })
+      .addAllRequestedNodes(requestedNodes)
       .setScale(scale.toFloat())
       .build()
     return getViewTreeWithRetry(request)
