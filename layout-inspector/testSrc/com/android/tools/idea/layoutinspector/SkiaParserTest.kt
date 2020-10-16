@@ -21,6 +21,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.fail
@@ -77,10 +78,10 @@ class SkiaParserTest {
     }.build()
 
     val requestedNodes = mapOf(
-      1L to RequestedNodeInfo(1, 10, 20, 0, 0),
-      4L to RequestedNodeInfo(4, 4, 5, 3, 12)
+      1L to LayoutInspectorUtils.makeRequestedNodeInfo(1, 0, 0, 10, 20)!!,
+      4L to LayoutInspectorUtils.makeRequestedNodeInfo(4, 3, 12, 4, 5)!!
     )
-    val root = SkiaParser.buildTree(tree, { false }, requestedNodes)!!
+    val root = LayoutInspectorUtils.buildTree(tree, { false }, requestedNodes)!!
 
     assertThat(root.id).isEqualTo(1)
     assertThat(root.image).isNull()
