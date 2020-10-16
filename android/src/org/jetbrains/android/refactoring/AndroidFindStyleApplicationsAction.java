@@ -1,7 +1,9 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -13,20 +15,17 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.Map;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.ErrorReporter;
 import org.jetbrains.android.util.ProjectBasedErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactoringAction {
   private final MyTestConfig myTestConfig;
@@ -108,7 +107,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     PsiElement parentStyleAttrName = null;
 
     if (parentStyleRef != null) {
-      parentStyleAttrName = resolveStyleRef(parentStyleRef, facet);
+      parentStyleAttrName = resolveStyleRef(parentStyleRef, facet, tag);
 
       if (parentStyleAttrName == null) {
         errorReporter.report("Cannot resolve parent style '" + parentStyleRef.getStyleName() + "'",
@@ -120,15 +119,15 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
                                                      styleData.getNameAttrValue(), parentStyleAttrName, context);
   }
 
-  private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet) {
+  private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet, XmlTag context) {
     ResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(styleRef.getStylePackage());
     if (resourceManager == null) {
       return null;
     }
 
-    List<ValueResourceInfoImpl> infos =
-        resourceManager.findValueResourceInfos(ResourceNamespace.TODO(), ResourceType.STYLE, styleRef.getStyleName(), true, false);
-    return infos.size() == 1 ? infos.get(0).computeXmlElement() : null;
+    PsiElement[] declarationTargets = AndroidResourceToPsiResolver.getInstance()
+      .getGotoDeclarationTargets(new ResourceReference(ResourceNamespace.TODO(), ResourceType.STYLE, styleRef.getStyleName()), context);
+    return declarationTargets.length == 0 ? null : declarationTargets[0];
   }
 
   @Nullable

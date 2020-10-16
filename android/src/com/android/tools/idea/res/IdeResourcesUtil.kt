@@ -125,7 +125,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.util.InheritanceUtil
@@ -177,7 +176,6 @@ import java.util.Comparator
 import java.util.EnumSet
 import java.util.HashMap
 import java.util.Properties
-import java.util.function.Function
 import javax.swing.Icon
 
 private const val RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME
@@ -1333,17 +1331,6 @@ val RESOURCE_ELEMENT_COMPARATOR = Comparator { e1: PsiElement, e2: PsiElement ->
   if (delta != 0) delta else e1.textOffset - e2.textOffset
 }
 
-/**
- * Comparator for [ResolveResult] using [RESOURCE_ELEMENT_COMPARATOR] on the result PSI element.
- */
-@JvmField
-val RESOLVE_RESULT_COMPARATOR: Comparator<ResolveResult> = Comparator.nullsLast(
-  Comparator.comparing(
-    Function { obj: ResolveResult -> obj.element },
-    RESOURCE_ELEMENT_COMPARATOR
-  )
-)
-
 fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
   if (context.language !== XMLLanguage.INSTANCE) {
     return false
@@ -1488,44 +1475,6 @@ fun findResourceFieldsForValueResource(tag: XmlTag, onlyInOwnPackages: Boolean):
   return findResourceFields(facet, resourceType.getName(), name, onlyInOwnPackages)
 }
 
-fun findStyleableAttributeFields(tag: XmlTag, onlyInOwnPackages: Boolean): Array<PsiField> {
-  val tagName = tag.name
-  if (SdkConstants.TAG_DECLARE_STYLEABLE == tagName) {
-    val styleableName = tag.getAttributeValue(SdkConstants.ATTR_NAME) ?: return PsiField.EMPTY_ARRAY
-    val facet = AndroidFacet.getInstance(tag) ?: return PsiField.EMPTY_ARRAY
-    val names: MutableSet<String> = Sets.newHashSet()
-    for (attr in tag.subTags) {
-      if (SdkConstants.TAG_ATTR == attr.name) {
-        val attrName = attr.getAttributeValue(SdkConstants.ATTR_NAME)
-        if (attrName != null) {
-          names.add(styleableName + '_' + attrName)
-        }
-      }
-    }
-    if (!names.isEmpty()) {
-      return findResourceFields(facet, ResourceType.STYLEABLE.getName(), names,
-                                onlyInOwnPackages)
-    }
-  }
-  else if (SdkConstants.TAG_ATTR == tagName) {
-    val parentTag = tag.parentTag
-    if (parentTag != null && SdkConstants.TAG_DECLARE_STYLEABLE == parentTag.name) {
-      val styleName = parentTag.getAttributeValue(SdkConstants.ATTR_NAME)
-      val attributeName = tag.getAttributeValue(SdkConstants.ATTR_NAME)
-      val facet = AndroidFacet.getInstance(tag)
-      if (facet != null && styleName != null && attributeName != null) {
-        return findResourceFields(
-          facet,
-          ResourceType.STYLEABLE.getName(),
-          styleName + '_' + attributeName,
-          onlyInOwnPackages
-        )
-      }
-    }
-  }
-  return PsiField.EMPTY_ARRAY
-}
-
 fun getRJavaFieldName(resourceName: String): String {
   if (resourceName.indexOf('.') == -1) {
     return resourceName
@@ -1574,14 +1523,6 @@ fun getResourceClassName(field: PsiField): String? {
     }
   }
   return null
-}
-
-// result contains XmlAttributeValue or PsiFile
-
-fun findResourcesByField(field: PsiField): List<PsiElement> {
-  val facet = AndroidFacet.getInstance(field)
-  return if (facet != null) ModuleResourceManagers.getInstance(facet).localResourceManager.findResourcesByField(field)
-  else emptyList()
 }
 
 /**
@@ -1646,13 +1587,6 @@ fun isStringResource(tag: XmlTag): Boolean {
   return tag.name == SdkConstants.TAG_STRING && tag.getAttribute(SdkConstants.ATTR_NAME) != null
 }
 
-fun findIdFields(value: XmlAttributeValue): Array<PsiField> {
-  return if (value.parent is XmlAttribute) {
-    findIdFields(value.parent as XmlAttribute)
-  }
-  else PsiField.EMPTY_ARRAY
-}
-
 fun isIdDeclaration(attrValue: String?): Boolean {
   return attrValue != null && attrValue.startsWith(SdkConstants.NEW_ID_PREFIX)
 }
@@ -1679,21 +1613,6 @@ fun isConstraintReferencedIds(value: XmlAttributeValue): Boolean {
     return isConstraintReferencedIds(nsURI, nsPrefix, key)
   }
   return false
-}
-
-fun findIdFields(attribute: XmlAttribute): Array<PsiField> {
-  val valueElement = attribute.valueElement
-  val value = attribute.value
-  if (valueElement != null && value != null && isIdDeclaration(valueElement)) {
-    val id = getResourceNameByReferenceText(value)
-    if (id != null) {
-      val facet = AndroidFacet.getInstance(attribute)
-      if (facet != null) {
-        return findResourceFields(facet, ResourceType.ID.getName(), id, false)
-      }
-    }
-  }
-  return PsiField.EMPTY_ARRAY
 }
 
 fun getResourceNameByReferenceText(text: String): String? {
@@ -2653,66 +2572,6 @@ fun findOrCreateStateListFiles(
   }
 
   return if (foundFiles) files else null
-}
-
-fun updateStateList(project: Project, stateList: StateList, files: List<VirtualFile>) {
-  if (!ensureFilesWritable(project, files)) {
-    return
-  }
-  val psiFiles: MutableList<PsiFile> = Lists.newArrayListWithCapacity(files.size)
-  val manager = PsiManager.getInstance(project)
-  for (file in files) {
-    val psiFile = manager.findFile(file)
-    if (psiFile != null) {
-      psiFiles.add(psiFile)
-    }
-  }
-  val selectors: MutableList<AndroidDomElement> = Lists.newArrayListWithCapacity(files.size)
-  val selectorClass: Class<out AndroidDomElement> = if (stateList.folderType == ResourceFolderType.COLOR) {
-    ColorSelector::class.java
-  }
-  else {
-    DrawableSelector::class.java
-  }
-  for (file in files) {
-    val selector = AndroidUtils.loadDomElement(project, file, selectorClass)
-    if (selector == null) {
-      AndroidUtils.reportError(project, file.name + " is not a statelist file")
-      return
-    }
-    selectors.add(selector)
-  }
-
-  return writeCommandAction(project, *psiFiles.toTypedArray()).withName("Change State List").run<Exception> {
-    for (selector in selectors) {
-      val tag = selector.xmlTag
-      for (subtag in tag!!.subTags) {
-        subtag.delete()
-      }
-      for (state in stateList.states) {
-        var child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.namespace, null, false)
-        child = tag.addSubTag(child, false)
-        val attributes = state.attributes
-        for (attributeName in attributes.keys) {
-          child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes[attributeName].toString())
-        }
-        if (!StringUtil.isEmpty(state.alpha)) {
-          child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.alpha)
-        }
-        if (selector is ColorSelector) {
-          child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.value)
-        }
-        else if (selector is DrawableSelector) {
-          child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.value)
-        }
-      }
-    }
-    // The following is necessary since layoutlib will look on disk for the color state list file.
-    // So as soon as a color state list is modified, the change needs to be saved on disk
-    // for the correct values to be used in the theme editor preview.
-    // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
-    FileDocumentManager.getInstance().saveAllDocuments()
-  }
 }
 
 /**

@@ -35,21 +35,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class FrameworkResourceManager extends ResourceManager {
   @NotNull private final Module myModule;
-  private final boolean myPublicOnly;
 
-  public FrameworkResourceManager(@NotNull Module module, boolean publicOnly) {
+  public FrameworkResourceManager(@NotNull Module module) {
     super(module.getProject());
     myModule = module;
-    myPublicOnly = publicOnly;
-  }
-
-  @Override
-  public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    AndroidPlatform platform = getPlatform();
-    if (platform == null) {
-      return false;
-    }
-    return !myPublicOnly || platform.getSdkData().getTargetData(platform.getTarget()).isResourcePublic(type, name);
   }
 
   @Nullable
