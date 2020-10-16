@@ -24,12 +24,6 @@ import org.jetbrains.annotations.TestOnly
 import java.util.WeakHashMap
 
 /**
- * Data class for the key tracking constants. This key allows to find the initial constant
- * and query the new values.
- */
-data class ConstantKey(val reference: String, val initialValue: Any)
-
-/**
  * Interface to be implemented by providers that can remap a constant into a different one.
  * The [remapConstant] method will be called at every use of a certain constant.
  */
@@ -54,9 +48,8 @@ interface ConstantRemapper : ModificationTracker {
    * Method called by the transformed class to obtain the new constant value.
    *
    * @param source the class instance that is obtaining the new constant value.
-   * @param isStatic when false [source] will refer to the `this` of the caller. If true, [source] will be the [Class] of the
-   * caller.
-   * @param methodName the name of the method where the constant is being loaded.
+   * @param fileName name of the file containing the constant.
+   * @param offset start offset within the file where the constant begins.
    * @param initialValue the initial value of the constant. Used to lookup the new value.
    */
   fun remapConstant(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any?
@@ -75,10 +68,10 @@ object DefaultConstantRemapper : ConstantRemapper {
   /**
    * Replaced constants indexed by [ClassLoader] and the initial value.
    */
-  private val perClassLoaderConstantMap: WeakHashMap<ClassLoader, MutableMap<ConstantKey, Any>> = WeakHashMap()
+  private val perClassLoaderConstantMap: WeakHashMap<ClassLoader, MutableMap<String, Any>> = WeakHashMap()
 
   /** Used as a "bloom filter" to decide if we need to instrument a given class/method and for debugging. */
-  private val allKeys: WeakHashMap<ConstantKey, Boolean> = WeakHashMap()
+  private val allKeys: WeakHashMap<String, Boolean> = WeakHashMap()
 
   /** Cache of all the initial values we've seen. This allows avoiding checking the cached if the constant was never there. */
   private val initialValueCache: MutableSet<String> = mutableSetOf()
@@ -88,13 +81,14 @@ object DefaultConstantRemapper : ConstantRemapper {
 
   override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any) {
     val classLoaderMap = perClassLoaderConstantMap.computeIfAbsent(classLoader) { mutableMapOf() }
-    initialValueCache.add(initialValue.toString())
-    val constantKey = ConstantKey("${reference.fileName}:${reference.range.startOffset}", initialValue)
-    if (allKeys.put(constantKey, true) == null) {
+    val serializedValue = initialValue.toString()
+    initialValueCache.add(serializedValue)
+    val lookupKey = "${reference.fileName}:${reference.range.startOffset}:$serializedValue"
+    if (allKeys.put(lookupKey, true) == null) {
       // This is a new key, update modification count.
       modificationTracker.incModificationCount()
     }
-    classLoaderMap[constantKey] = newValue
+    classLoaderMap[lookupKey] = newValue
   }
 
   override fun clearConstants(classLoader: ClassLoader?) {
@@ -111,7 +105,8 @@ object DefaultConstantRemapper : ConstantRemapper {
     allKeys.keys.joinToString("\n")
 
   override fun remapConstant(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any? {
-    if (initialValue == null || !initialValueCache.contains(initialValue.toString())) return initialValue
+    val serializedValue = initialValue?.toString()
+    if (serializedValue == null || !initialValueCache.contains(serializedValue)) return initialValue
     // For non static, the instance is passed, get the Class first and then the class loader.
     val classLoader = source?.javaClass?.classLoader
     val classLoaderMap = perClassLoaderConstantMap[classLoader]
@@ -120,7 +115,7 @@ object DefaultConstantRemapper : ConstantRemapper {
 
     // Construct the lookupKey to find the constant in the constant map.
     // For lambdas, we ignore the invoke() method name in Kotlin.
-    val lookupKey = ConstantKey("$fileName:$offset", initialValue)
+    val lookupKey = "$fileName:$offset:$serializedValue"
     LOG.debug { "Constant lookup $lookupKey" }
     return classLoaderMap.getOrDefault(lookupKey, initialValue)
   }
