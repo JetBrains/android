@@ -80,6 +80,17 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     return context;
   }
 
+  /**
+   * Regression test for http://b.android.com/170867656
+   * Bug: when res/values file was renamed, the file itself was considered a resource.
+   */
+  public void testStringsXmlFile() {
+    VirtualFile stringsFile = myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.configureFromExistingVirtualFile(stringsFile);
+    myFixture.renameElement(myFixture.getFile(), "otherfile.xml");
+    assertEquals("otherfile.xml", stringsFile.getName());
+  }
+
   public void testConstraintReferencedIds() throws Throwable {
     createManifest();
     myFixture.addClass(

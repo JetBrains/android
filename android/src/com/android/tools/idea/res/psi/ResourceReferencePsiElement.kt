@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.FileResourceNameValidator
 import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.resources.ResourceUrl
@@ -106,6 +107,9 @@ class ResourceReferencePsiElement(
         return null
       }
       val resourceFolderType = getFolderType(element) ?: return null
+
+      // Ignore any files inside a res/values folder, as the files themselves aren't resources, they only contain resources.
+      if (resourceFolderType == ResourceFolderType.VALUES) return null
       val resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType)
       val resourceNamespace = element.resourceNamespace ?: return null
       if (FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) != null) return null
