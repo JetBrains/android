@@ -21,6 +21,7 @@ import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.ProjectSyncIssues
+import com.android.builder.model.SyncIssue
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -28,6 +29,7 @@ import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.impl.BuildFolderPaths
 import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
@@ -43,6 +45,7 @@ import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
@@ -100,10 +103,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     private val consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     private val modulesById: MutableMap<String, AndroidModule> = HashMap()
+    private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+    private val modelCache = ModelCache.create(buildFolderPaths)
 
     fun populateBuildModels() {
       try {
-        val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
         val modules: List<GradleModule> =
           when (syncOptions) {
             is SyncProjectActionOptions -> {
@@ -151,7 +155,6 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         is SingleVariantSyncActionOptions -> false
         // Note: No other cases.
       }
-      val modelCache = ModelCache.create(buildFolderPaths)
       val androidModules: MutableList<AndroidModule> = mutableListOf()
       buildModels.projects.forEach { gradleProject ->
         val androidProject = findParameterizedAndroidModel(
@@ -169,7 +172,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
               shouldBuildVariant = isFullSync
             )
 
-          val module = AndroidModule.create(
+          val module = createAndroidModule(
             gradleProject,
             androidProject,
             nativeAndroidProject,
@@ -234,7 +237,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       androidModules.forEach { module ->
         val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
         if (syncIssues != null) {
-          module.setSyncIssues(syncIssues.syncIssues)
+          module.setSyncIssues(syncIssues.syncIssues.toSyncIssueData())
         }
       }
     }
@@ -444,7 +447,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val variant = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
         parameter.setVariantName(variantName)
       }
-      return variant?.let { module.addVariant(it) }
+      return variant?.let { module.addVariant(modelCache.variantFrom(it, module.modelVersion)) }
     }
 
     /**
@@ -487,7 +490,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
           parameter.setVariantName(variantName)
           parameter.setAbiName(abiToRequest)
         }?.also {
-          module.addNativeVariant(it)
+          module.addNativeVariant(modelCache.nativeVariantAbiFrom(it))
         }
       }
       return abiToRequest
@@ -496,3 +499,62 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
 }
 
 private val List<GradleBuild>.projects: Sequence<BasicGradleProject> get() = asSequence().flatMap { it.projects.asSequence() }
+
+private fun createAndroidModule(
+  gradleProject: BasicGradleProject,
+  androidProject: AndroidProject,
+  nativeAndroidProject: NativeAndroidProject?,
+  nativeModule: NativeModule?,
+  modelCache: ModelCache
+): AndroidModule {
+  val modelVersionString = ModelCache.safeGet(androidProject::getModelVersion, "")
+  val modelVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
+
+  val ideAndroidProject = modelCache.androidProjectFrom(androidProject)
+  val idePrefetchedVariants =
+    ModelCache.safeGet(androidProject::getVariants, emptyList())
+      .map { modelCache.variantFrom(it, modelVersion) }
+      .takeUnless { it.isEmpty() }
+
+  // Single-variant-sync models have variantNames property and pre-single-variant sync model should have all variants present instead.
+  val allVariantNames: Set<String>? = (ModelCache.safeGet(androidProject::getVariantNames, null)
+                                       ?: idePrefetchedVariants?.map { it.name })?.toSet()
+
+  val defaultVariantName: String? = ModelCache.safeGet(androidProject::getDefaultVariant, null)
+                                    ?: allVariantNames?.getDefaultOrFirstItem("debug")
+
+  val ideNativeAndroidProject = nativeAndroidProject?.let(modelCache::nativeAndroidProjectFrom)
+  val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
+
+  val androidModule = AndroidModule(
+    modelVersion,
+    gradleProject,
+    ideAndroidProject,
+    allVariantNames,
+    defaultVariantName,
+    idePrefetchedVariants,
+    ideNativeAndroidProject,
+    ideNativeModule
+  )
+
+  @Suppress("DEPRECATION")
+  ModelCache.safeGet(androidProject::getSyncIssues, null)?.let {
+    // It will be overridden if we receive something here but also a proper sync issues model later.
+    syncIssues ->
+    androidModule.setSyncIssues(syncIssues.toSyncIssueData())
+  }
+
+  return androidModule
+}
+
+private fun Collection<SyncIssue>.toSyncIssueData(): List<SyncIssueData> {
+  return map { syncIssue ->
+    SyncIssueData(
+      message = syncIssue.message,
+      data = syncIssue.data,
+      multiLineMessage = ModelCache.safeGet(syncIssue::multiLineMessage, null)?.toList(),
+      severity = syncIssue.severity,
+      type = syncIssue.type
+    )
+  }
+}

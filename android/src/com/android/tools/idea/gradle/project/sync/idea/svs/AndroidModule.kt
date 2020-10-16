@@ -15,15 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.builder.model.AndroidProject
-import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.SyncIssue
-import com.android.builder.model.Variant
-import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -47,16 +40,8 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
 
   var projectSyncIssues: List<SyncIssueData>? = null; private set
-  fun setSyncIssues(issues: Collection<SyncIssue>) {
-    projectSyncIssues = issues.map { syncIssue ->
-      SyncIssueData(
-        message = syncIssue.message,
-        data = syncIssue.data,
-        multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.toList(),
-        severity = syncIssue.severity,
-        type = syncIssue.type
-      )
-    }
+  fun setSyncIssues(issues: List<SyncIssueData>) {
+    projectSyncIssues = issues
   }
 
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
@@ -70,7 +55,7 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
-class AndroidModule private constructor(
+class AndroidModule internal constructor(
   val modelVersion: GradleVersion?,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProject,
@@ -81,59 +66,8 @@ class AndroidModule private constructor(
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  private val nativeModule: IdeNativeModule?,
-  private val modelCache: ModelCache
+  private val nativeModule: IdeNativeModule?
 ) : GradleModule(gradleProject) {
-  companion object {
-    @JvmStatic
-    fun create(
-      gradleProject: BasicGradleProject,
-      androidProject: AndroidProject,
-      nativeAndroidProject: NativeAndroidProject?,
-      nativeModule: NativeModule?,
-      modelCache: ModelCache
-    ): AndroidModule {
-      val modelVersionString = safeGet(androidProject::getModelVersion, "")
-      val modelVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
-
-      val ideAndroidProject = modelCache.androidProjectFrom(androidProject)
-      val idePrefetchedVariants =
-        safeGet(androidProject::getVariants, emptyList())
-          .map { modelCache.variantFrom(it, modelVersion) }
-          .takeUnless { it.isEmpty() }
-
-      // Single-variant-sync models have variantNames property and pre-single-variant sync model should have all variants present instead.
-      val allVariantNames: Set<String>? = (safeGet(androidProject::getVariantNames, null)
-                                           ?: idePrefetchedVariants?.map { it.name })?.toSet()
-
-      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null) ?: allVariantNames?.getDefaultOrFirstItem("debug")
-
-      val ideNativeAndroidProject = nativeAndroidProject?.let(modelCache::nativeAndroidProjectFrom)
-      val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
-
-      val androidModule = AndroidModule(
-        modelVersion,
-        gradleProject,
-        ideAndroidProject,
-        allVariantNames,
-        defaultVariantName,
-        idePrefetchedVariants,
-        ideNativeAndroidProject,
-        ideNativeModule,
-        modelCache
-      )
-
-      @Suppress("DEPRECATION")
-      safeGet(androidProject::getSyncIssues, null)?.let {
-        // It will be overridden if we receive something here but also a proper sync issues model later.
-        syncIssues ->
-        androidModule.setSyncIssues(syncIssues)
-      }
-
-      return androidModule
-    }
-  }
-
   val projectType: Int get() = androidProject.projectType
 
   /** Names of all currently fetch variants (currently pre single-variant-sync only). */
@@ -158,14 +92,12 @@ class AndroidModule private constructor(
   private val additionallySyncedVariants: MutableList<IdeVariant> = mutableListOf()
   private val additionallySyncedNativeVariants: MutableList<IdeNativeVariantAbi> = mutableListOf()
 
-  fun addVariant(variant: Variant): IdeVariant {
-    val ideVariant = modelCache.variantFrom(variant, modelVersion)
+  fun addVariant(ideVariant: IdeVariant): IdeVariant {
     additionallySyncedVariants.add(ideVariant)
     return ideVariant
   }
 
-  fun addNativeVariant(variant: NativeVariantAbi): IdeNativeVariantAbi {
-    val ideNativeVariantAbi = modelCache.nativeVariantAbiFrom(variant)
+  fun addNativeVariant(ideNativeVariantAbi: IdeNativeVariantAbi): IdeNativeVariantAbi {
     additionallySyncedNativeVariants.add(ideNativeVariantAbi)
     return ideNativeVariantAbi
   }
