@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -113,11 +114,13 @@ import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
+import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
 
 /**
@@ -497,6 +500,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val refreshedWhileDeactivated = AtomicBoolean(false)
 
   /**
+   * Lock used during the [onActivate]/[onDeactivate]/[onDeactivationTimeout] to avoid activations happening in the middle.
+   */
+  private val activationLock = ReentrantLock()
+
+  /**
    * Tracks whether this preview is active or not. The value tracks the [onActivate] and [onDeactivate] calls.
    */
   private val isActive = AtomicBoolean(false)
@@ -505,7 +513,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
    * [onInit] must be called.
    */
-  private val isFirstActivation = AtomicBoolean(true)
+  @GuardedBy("activationLock")
+  private var isFirstActivation = true
   // endregion
 
   init {
@@ -595,23 +604,45 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun onActivate() {
-    LOG.debug("onActivate")
-    isActive.set(true)
-    if (isFirstActivation.getAndSet(false))
-      onInit()
+    activationLock.withLock {
+      LOG.debug("onActivate")
+      isActive.set(true)
+      if (isFirstActivation) {
+        isFirstActivation = false
+        onInit()
+      }
+      else surface.activate()
 
-    if (refreshedWhileDeactivated.getAndSet(false)) {
-      // Refresh has been called while we were deactivated, issue a refresh on activation.
-      LOG.debug("Pending refresh")
-      refresh()
+      if (refreshedWhileDeactivated.getAndSet(false)) {
+        // Refresh has been called while we were deactivated, issue a refresh on activation.
+        LOG.debug("Pending refresh")
+        refresh()
+      }
+    }
+  }
+
+  /**
+   * This method will be called by [onDeactivate] after the deactivation timeout expires or the LRU queue is full.
+   */
+  private fun onDeactivationTimeout() {
+    activationLock.withLock {
+      // If the preview is still not active, deactivate the surface.
+      if (!isActive.get()) {
+        LOG.debug("Delayed surface deactivation")
+        surface.deactivate()
+      }
     }
   }
 
   override fun onDeactivate() {
-    LOG.debug("onDeactivate")
-    setInteractivePreviewElementInstance(null)
-    isLiveLiteralsEnabled = false
-    isActive.set(false)
+    activationLock.withLock {
+      LOG.debug("onDeactivate")
+      setInteractivePreviewElementInstance(null)
+      isLiveLiteralsEnabled = false
+      isActive.set(false)
+
+      project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
+    }
   }
   // endregion
 
