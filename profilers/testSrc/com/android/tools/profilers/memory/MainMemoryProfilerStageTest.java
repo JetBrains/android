@@ -623,28 +623,23 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testHasUserUsedCaptureViaHeapDump() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
     myStage.requestHeapDump();
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 
   @Test
   public void testHasUserUsedCaptureViaLegacyTracking() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 
   @Test
   public void testHasUserUsedCaptureViaSelection() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
@@ -653,7 +648,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(infoStart, FAKE_PROCESS.getPid(), info).build());
     myStage.getRangeSelectionModel().set(5, 10);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 

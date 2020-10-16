@@ -295,9 +295,6 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
               deltaAllocationList.size + deltaFreeList.size + resetDeltaAllocationList.size + resetDeltaFreeList.size > 0) {
             if (clear) {
               heapSets.forEach { it.clearClassifierSets() }
-              if (selection.selectedClassSet != null) {
-                selection.selectClassSet(ClassSet.EMPTY_SET)
-              }
             }
             if (stage.studioProfilers.ideServices.featureConfig.isMemorySnapshotEnabled) {
               snapshotList.forEach { heapSets[it.heapId].addSnapshotInstanceObject(it) }

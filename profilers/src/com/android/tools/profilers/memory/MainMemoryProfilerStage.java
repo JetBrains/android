@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
+import static com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationDataModel;
@@ -32,6 +33,8 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.RecordingOption;
+import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -46,6 +49,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
+  private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
+  private static final String LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP = "Allocation tracking isn't ready. Please wait.";
+  private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
+  private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
+  private static final String RECORD_JAVA_TOOLTIP = "View how each Java / Kotlin object was allocated over a period of time";
+  @VisibleForTesting static final String RECORD_NATIVE_TEXT = "Record native allocations";
+  @VisibleForTesting static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
+  private static final String RECORD_NATIVE_DESC = "View how each C / C++ object was allocated over a period of time";
+
+
   // The safe factor estimating how many times of memory is needed compared to hprof file size
   public static final int MEMORY_HPROF_SAFE_FACTOR =
     Math.max(1, Math.min(Integer.getInteger("profiler.memory.hprof.safeFactor", 10), 1000));
@@ -60,6 +73,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myNativeAllocationDurations;
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
   private boolean myNativeAllocationTracking = false;
+
+  private final RecordingOptionsModel myRecordingOptionsModel;
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -86,6 +101,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
     getStudioProfilers().getSessionsManager().addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
+
+    myRecordingOptionsModel = new RecordingOptionsModel();
+  }
+
+  public RecordingOptionsModel getRecordingOptionsModel() {
+    return myRecordingOptionsModel;
   }
 
   void stopRecordingOnSessionStop() {
@@ -102,8 +123,18 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @Override
   public void enter() {
     super.enter();
+    if (isLiveAllocationTrackingSupported()) {
+      // TODO(b/172695266) disable allocation tracking by default
+      requestLiveAllocationSamplingModeUpdate(NONE);
+    }
     updateAllocationTrackingStatus();
     updateNativeAllocationTrackingStatus();
+
+    myRecordingOptionsModel.addBuiltInOptions(makeHeapDumpOption());
+    if (isNativeAllocationSamplingEnabled()) {
+      myRecordingOptionsModel.addBuiltInOptions(makeNativeRecordingOption());
+    }
+    myRecordingOptionsModel.addBuiltInOptions(makeJavaRecodingOption());
   }
 
   @Override
@@ -155,7 +186,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private Transport.ExecuteResponse startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();
-    getStudioProfilers().setMemoryLiveAllocationEnabled(false);
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format(Locale.getDefault(), "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, process.getName());
     Commands.Command dumpCommand = Commands.Command.newBuilder()
@@ -176,7 +206,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   private Transport.ExecuteResponse stopNativeAllocationTracking(long startTime) {
-    getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
@@ -266,7 +295,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
     getTimeline().setStreaming(true);
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-    getInstructionsEaseOutModel().setCurrentPercentage(1);
   }
 
   private void handleHeapDumpStart(@NotNull Memory.HeapDumpStatus status) {
@@ -319,7 +347,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       if (isTrackingAllocations()) {
         getTimeline().setStreaming(true);
         getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
-        getInstructionsEaseOutModel().setCurrentPercentage(1);
       }
     });
   }
@@ -397,6 +424,36 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     if (last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS) {
       nativeAllocationTrackingStart(last);
     }
+  }
+
+  private RecordingOption makeHeapDumpOption() {
+    return new RecordingOption(CAPTURE_HEAP_DUMP_TEXT, HEAP_DUMP_TOOLTIP, () -> {
+      requestHeapDump();
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
+    });
+  }
+
+  private RecordingOption makeNativeRecordingOption() {
+    return makeToggleOption(RECORD_NATIVE_TEXT, RECORD_NATIVE_DESC, this::toggleNativeAllocationTracking);
+  }
+
+  private RecordingOption makeJavaRecodingOption() {
+    Runnable toggle =
+      isLiveAllocationTrackingSupported() ?
+      // post-O
+      () -> getStudioProfilers().setStage(AllocationStage.makeLiveStage(getStudioProfilers())) :
+      // legacy
+      () -> {
+        if (isTrackingAllocations()) {
+          getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
+        }
+        trackAllocations(!isTrackingAllocations());
+      };
+    return makeToggleOption(RECORD_JAVA_TEXT, RECORD_JAVA_TOOLTIP, toggle);
+  }
+
+  private static RecordingOption makeToggleOption(String title, String desc, Runnable toggle) {
+    return new RecordingOption(title, desc, toggle, toggle);
   }
 
   public static boolean canSafelyLoadHprof(long fileSize) {
