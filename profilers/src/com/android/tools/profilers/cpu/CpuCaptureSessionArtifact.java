@@ -158,9 +158,9 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
     return mySessionMetaData.getType() == Common.SessionMetaData.SessionType.CPU_CAPTURE;
   }
 
-  public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
-                                                          @NotNull Common.Session session,
-                                                          @NotNull Common.SessionMetaData sessionMetaData) {
+  public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
+                                                             @NotNull Common.Session session,
+                                                             @NotNull Common.SessionMetaData sessionMetaData) {
 
     Range requestRange = new Range();
     if (sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
@@ -176,7 +176,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
     List<Cpu.CpuTraceInfo> traceInfoList =
       CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange,
                                         profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
-    List<SessionArtifact> artifacts = new ArrayList<>();
+    List<SessionArtifact<?>> artifacts = new ArrayList<>();
     for (Cpu.CpuTraceInfo info : traceInfoList) {
       artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));
     }

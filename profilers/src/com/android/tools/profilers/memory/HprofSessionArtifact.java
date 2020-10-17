@@ -58,9 +58,9 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
                        getProfilers().getIdeServices().getFeatureTracker());
   }
 
-  public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
-                                                          @NotNull Common.Session session,
-                                                          @NotNull Common.SessionMetaData sessionMetaData) {
+  public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
+                                                             @NotNull Common.Session session,
+                                                             @NotNull Common.SessionMetaData sessionMetaData) {
     Range queryRangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
