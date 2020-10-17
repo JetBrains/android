@@ -45,6 +45,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
@@ -85,9 +86,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * An interface for querying artifacts that belong to a session (e.g. heap dump, cpu capture, bookmarks).
    */
   private interface ArtifactFetcher {
-    List<SessionArtifact> fetch(@NotNull StudioProfilers profilers,
-                                @NotNull Common.Session session,
-                                @NotNull Common.SessionMetaData sessionMetaData);
+    List<SessionArtifact<?>> fetch(@NotNull StudioProfilers profilers,
+                                   @NotNull Common.Session session,
+                                   @NotNull Common.SessionMetaData sessionMetaData);
   }
 
   private static final SessionArtifactComparator ARTIFACT_COMPARATOR = new SessionArtifactComparator();
@@ -160,6 +161,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
       myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     }
+    myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
   }
 
   @NotNull
