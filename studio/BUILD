@@ -363,7 +363,7 @@ android_studio(
     searchable_options = "searchable-options",
     tags = ["manual"],
     version_eap = True,
-    version_full = "{0}.{1} Dev {3}",
+    version_full = "dev build",
     version_micro = 0,
     version_patch = 0,
 )
