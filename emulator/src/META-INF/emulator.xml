@@ -35,25 +35,25 @@
   <actions>
     <group id="EmulatorToolbar">
       <action id="android.emulator.power.button" class="com.android.tools.idea.emulator.actions.EmulatorPowerButtonAction"
-              icon="StudioIcons.Emulator.POWER" text="Power" description="Press the Power button"/>
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
       <action id="android.emulator.volume.up.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
       <action id="android.emulator.volume.down.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeDownButtonAction"
-              icon="StudioIcons.Emulator.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
       <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateLeftAction"
-              icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
-              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
       <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
-              icon="StudioIcons.Emulator.BACK" text="Back" description="Press the Back button"/>
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
       <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
-              icon="StudioIcons.Emulator.HOME" text="Home" description="Press the Home button"/>
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
       <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
-              icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press the Overview button"/>
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
-              icon="StudioIcons.Emulator.SNAPSHOTS"
+              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS"
               text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More"
