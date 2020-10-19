@@ -217,7 +217,7 @@ class DataBindingFindUsagesTest() {
           res/layout (1 usage)
            activity_main.xml (1 usage)
             7android:id="@+id/button"
-        Unclassified usage (1 usage)
+        Unclassified (1 usage)
          app (1 usage)
           java.test.db (1 usage)
            MainActivity (1 usage)
