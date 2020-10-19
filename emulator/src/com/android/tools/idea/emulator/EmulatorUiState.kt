@@ -1,3 +1,3 @@
 package com.android.tools.idea.emulator
 
-class EmulatorUiState(var extendedControlsVisible: Boolean = false)
+class EmulatorUiState(var manageSnapshotsDialogShown: Boolean = false, var extendedControlsShown: Boolean = false)

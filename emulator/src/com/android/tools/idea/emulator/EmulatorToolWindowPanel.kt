@@ -29,7 +29,9 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.emulator.actions.showExtendedControls
+import com.android.tools.idea.emulator.actions.showManageSnapshotsDialog
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.google.common.util.concurrent.Futures
@@ -48,6 +50,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.ui.IdeBorderFactory
@@ -238,8 +241,13 @@ class EmulatorToolWindowPanel(
 
       loadingPanel.repaint()
 
-      if (uiState.extendedControlsVisible && connected) {
-        showExtendedControls(emulator)
+      if (connected) {
+        if (uiState.manageSnapshotsDialogShown) {
+          showManageSnapshotsDialog(emulatorView, project)
+        }
+        if (uiState.extendedControlsShown) {
+          showExtendedControls(emulator)
+        }
       }
     }
     catch (e: Exception) {
@@ -249,11 +257,15 @@ class EmulatorToolWindowPanel(
   }
 
   fun destroyContent() {
+    val manageSnapshotsDialog = emulatorView?.let { findManageSnapshotDialog(it) }
+    uiState.manageSnapshotsDialogShown = manageSnapshotsDialog != null
+    manageSnapshotsDialog?.close(DialogWrapper.CLOSE_EXIT_CODE)
+
     if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() && connected) {
       emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
         override fun onNext(response: ExtendedControlsStatus) {
           EventQueue.invokeLater {
-            uiState.extendedControlsVisible = response.visibilityChanged
+            uiState.extendedControlsShown = response.visibilityChanged
           }
         }
       })

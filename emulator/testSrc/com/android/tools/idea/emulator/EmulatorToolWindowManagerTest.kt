@@ -224,7 +224,7 @@ class EmulatorToolWindowManagerTest {
     // Wait for the extended controls to close.
     waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
-    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsVisible }
+    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsShown }
 
     toolWindow.show()
 
