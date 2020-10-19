@@ -815,6 +815,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/viewpager/viewpager/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/viewpager2/viewpager2/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/25.4.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/28.0.0:aar",
