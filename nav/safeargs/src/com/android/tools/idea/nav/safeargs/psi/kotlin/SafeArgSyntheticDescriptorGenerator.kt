@@ -19,6 +19,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.withMethodIcon
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -60,14 +61,14 @@ internal fun ClassDescriptorImpl.createMethod(
   }
 
   return method.initialize(null, dispatchReceiver.thisAsReceiverParameter, emptyList(),
-                           valueParametersProvider(method), returnType, Modality.FINAL, Visibilities.PUBLIC)
+                           valueParametersProvider(method), returnType, Modality.FINAL, DescriptorVisibilities.PUBLIC)
 }
 
 internal fun ClassDescriptorImpl.createConstructor(
   valueParameterProvider: (ClassConstructorDescriptor) -> List<ValueParameterDescriptor> = { emptyList() }
 ): ClassConstructorDescriptor {
   return ClassConstructorDescriptorImpl.createSynthesized(this, Annotations.EMPTY, true, this.source).apply {
-    this.initialize(valueParameterProvider(this), Visibilities.PUBLIC)
+    this.initialize(valueParameterProvider(this), DescriptorVisibilities.PUBLIC)
     this.returnType = this@createConstructor.defaultType
   }
 }
@@ -82,7 +83,7 @@ internal fun ClassDescriptorImpl.createProperty(
     null,
     Annotations.EMPTY,
     Modality.FINAL,
-    Visibilities.PUBLIC,
+    DescriptorVisibilities.PUBLIC,
     false,
     Name.identifier(name),
     CallableMemberDescriptor.Kind.SYNTHESIZED,
@@ -100,7 +101,7 @@ internal fun ClassDescriptorImpl.createProperty(
     property,
     Annotations.EMPTY,
     Modality.FINAL,
-    Visibilities.PUBLIC,
+    DescriptorVisibilities.PUBLIC,
     false,
     false,
     false,
