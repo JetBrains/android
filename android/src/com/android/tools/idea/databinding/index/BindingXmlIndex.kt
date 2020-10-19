@@ -28,10 +28,16 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.indexing.*
-import com.intellij.util.io.*
+import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
+import com.intellij.util.indexing.FileBasedIndex
+import com.intellij.util.indexing.FileContent
+import com.intellij.util.indexing.ID
+import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
+import com.intellij.util.indexing.SingleEntryIndexer
+import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil.readINT
 import com.intellij.util.io.DataInputOutputUtil.writeINT
+import com.intellij.util.io.IOUtil
 import com.intellij.util.text.CharArrayUtil
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
@@ -147,7 +153,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
     return object : SingleEntryIndexer<BindingXmlData>(false) {
-      override fun computeValue(inputData: FileContent): BindingXmlData? {
+      override fun computeValue(inputData: FileContent): BindingXmlData {
         var isDataBindingLayout = false
         var customBindingName: String? = null
         var viewBindingIgnore = false
@@ -294,7 +300,7 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
       var nextChar: Char = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
       var skipChar = false
       if (nextChar == '&') {
-        assert(buffer.isEmpty())
+        assert(buffer.length == 0)
 
         buffer.append(nextChar)
         while (true) {
