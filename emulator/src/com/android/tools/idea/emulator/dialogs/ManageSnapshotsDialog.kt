@@ -793,7 +793,7 @@ class ManageSnapshotsDialog(
       return AndroidIoManager.getInstance().getBackgroundDiskIoExecutor().submit(Callable<Icon> {
         val snapshotImageIcon = createBaseSnapshotIcon(snapshot)
         val decorator = if (snapshot.isValid) EmptyIcon.ICON_16
-        else IconUtil.toSize(StudioIcons.Emulator.INVALID_SNAPSHOT_DECORATOR, snapshotImageIcon.iconWidth, snapshotImageIcon.iconHeight)
+        else IconUtil.toSize(StudioIcons.Emulator.Snapshots.INVALID_SNAPSHOT_DECORATOR, snapshotImageIcon.iconWidth, snapshotImageIcon.iconHeight)
         val icon = createDecoratedIcon(snapshotImageIcon, decorator)
 
         // Schedule a table cell update on the UI thread.
@@ -832,7 +832,7 @@ class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.LOAD_SNAPSHOT) {
+  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
