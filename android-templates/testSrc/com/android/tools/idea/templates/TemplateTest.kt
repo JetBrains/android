@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -130,6 +131,8 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
     projectData.language = Language.Kotlin
+    // Use the Kotlin version for tests
+    projectData.kotlinVersion = TestUtils.getKotlinVersionForTests()
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(

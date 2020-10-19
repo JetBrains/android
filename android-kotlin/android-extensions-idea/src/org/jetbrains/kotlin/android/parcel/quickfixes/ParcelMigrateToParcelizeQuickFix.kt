@@ -21,6 +21,7 @@ import kotlinx.android.parcel.Parceler
 import org.jetbrains.kotlin.android.parcel.ANDROID_PARCELABLE_CREATOR_CLASS_FQNAME
 import org.jetbrains.kotlin.android.parcel.ANDROID_PARCEL_CLASS_FQNAME
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -73,7 +74,7 @@ class ParcelMigrateToParcelizeQuickFix(function: KtClass) : AbstractParcelableQu
                    && valueParameters.size == 2
                    && typeParameters.size == 0
                    && valueParameters[0].typeReference?.getFqName() == ANDROID_PARCEL_CLASS_FQNAME.asString()
-                   && valueParameters[1].typeReference?.getFqName() == KotlinBuiltIns.FQ_NAMES._int.asString()
+                   && valueParameters[1].typeReference?.getFqName() == StandardNames.FqNames._int.asString()
         }
 
         private fun KtNamedFunction.doesLookLikeNewArrayOverride(): Boolean {
@@ -82,7 +83,7 @@ class ParcelMigrateToParcelizeQuickFix(function: KtClass) : AbstractParcelableQu
                    && receiverTypeReference == null
                    && valueParameters.size == 1
                    && typeParameters.size == 0
-                   && valueParameters[0].typeReference?.getFqName() == KotlinBuiltIns.FQ_NAMES._int.asString()
+                   && valueParameters[0].typeReference?.getFqName() == StandardNames.FqNames._int.asString()
         }
 
         private fun KtNamedFunction.doesLookLikeDescribeContentsOverride(): Boolean {
@@ -91,7 +92,7 @@ class ParcelMigrateToParcelizeQuickFix(function: KtClass) : AbstractParcelableQu
                    && receiverTypeReference == null
                    && valueParameters.size == 0
                    && typeParameters.size == 0
-                   && typeReference?.getFqName() == KotlinBuiltIns.FQ_NAMES._int.asString()
+                   && typeReference?.getFqName() == StandardNames.FqNames._int.asString()
         }
 
         private fun KtClass.findWriteToParcelOverride() = findFunction { doesLookLikeWriteToParcelOverride() }
@@ -148,7 +149,7 @@ class ParcelMigrateToParcelizeQuickFix(function: KtClass) : AbstractParcelableQu
                    && valueParameters.size == 2
                    && typeParameters.size == 0
                    && valueParameters[0].typeReference?.getFqName() == ANDROID_PARCEL_CLASS_FQNAME.asString()
-                   && valueParameters[1].typeReference?.getFqName() == KotlinBuiltIns.FQ_NAMES._int.asString()
+                   && valueParameters[1].typeReference?.getFqName() == StandardNames.FqNames._int.asString()
         }
 
         private fun KtNamedFunction.doesLookLikeCreateImplementation(): Boolean {
