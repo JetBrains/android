@@ -117,7 +117,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     val elementAtCaret = file.findElementAt(myFixture.caretOffset)
     val usageType = getUsageType(elementAtCaret!!)
     assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("{0} in Gradle build script")
+    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
   }
 
   /**
@@ -140,12 +140,12 @@ class UsageTypeProvidersTest : AndroidTestCase() {
       "res/values/colors.xml",
       //language=XML
       """<resources><color name="color${caret}Primary">#008577</color></resources>""")
-    checkUsageTypeText(colorsFile.virtualFile, "{0} in Android resources XML")
+    checkUsageTypeText(colorsFile.virtualFile, "In Android resources XML")
   }
 
   fun testManifestDomElement() {
     val manifestFile = myFixture.findFileInTempDir(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    checkUsageTypeText(manifestFile, "{0} in Android manifest")
+    checkUsageTypeText(manifestFile, "In Android manifest")
   }
 
   /**
