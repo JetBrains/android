@@ -50,14 +50,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getPathToAapt(): Path
 
   /**
-   * Initiates an incremental build of the entire project. Blocks the caller until the build
-   * is completed.
-   *
-   * TODO: Make this asynchronous and return something like a ListenableFuture.
-   */
-  fun buildProject()
-
-  /**
    * Returns true if the project allows adding new modules.
    */
   fun allowsFileCreation(): Boolean
@@ -89,6 +81,8 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
    */
   fun getSyncManager(): ProjectSystemSyncManager
+
+  fun getBuildManager(): ProjectSystemBuildManager
 
   /**
    * [PsiElementFinder]s used with the given build system, e.g. for the R classes.

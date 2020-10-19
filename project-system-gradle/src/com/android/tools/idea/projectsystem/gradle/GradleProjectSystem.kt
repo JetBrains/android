@@ -31,6 +31,7 @@ import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
@@ -72,6 +73,7 @@ import java.util.function.Function
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+  private val myBuildManager: ProjectSystemBuildManager = GradleProjectSystemBuildManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
   private val myPsiElementFinders: List<PsiElementFinder> = run {
@@ -83,6 +85,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
+  override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
@@ -106,10 +109,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .filterNotNull()
       .find { it.exists() }
       ?.let { VfsUtil.findFileByIoFile(it, true) }
-  }
-
-  override fun buildProject() {
-    GradleProjectBuilder.getInstance(project).compileJava()
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
