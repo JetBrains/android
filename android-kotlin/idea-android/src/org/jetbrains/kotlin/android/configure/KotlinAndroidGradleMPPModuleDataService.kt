@@ -44,6 +44,8 @@ import org.jetbrains.kotlin.idea.configuration.kotlinSourceSet
 class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<ModuleData, Void>() {
     override fun getTargetDataKey() = ProjectKeys.MODULE
 
+    private class IndexedModules(val byId: Map<String, DataNode<ModuleData>>, val byIdeName: Map<String, DataNode<ModuleData>>)
+
     private fun shouldCreateEmptySourceRoots(
         moduleDataNode: DataNode<ModuleData>,
         module: Module
@@ -64,6 +66,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
         project: Project,
         modelsProvider: IdeModifiableModelsProvider
     ) {
+        val projectIndexedModules = mutableMapOf<DataNode<ProjectData>, IndexedModules>()
         for (nodeToImport in toImport) {
             val projectNode = ExternalSystemApiUtil.findParent(nodeToImport, ProjectKeys.PROJECT) ?: continue
             val moduleData = nodeToImport.data
@@ -82,8 +85,15 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                     }
                 }
             }
-            addExtraDependeeModules(nodeToImport, projectNode, modelsProvider, rootModel, false)
-            addExtraDependeeModules(nodeToImport, projectNode, modelsProvider, rootModel, true)
+            val indexedModules = projectIndexedModules.getOrPut(projectNode) {
+                val moduleNodes = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE)
+                IndexedModules(
+                    byId = moduleNodes.associateBy { it.data.id },
+                    byIdeName = moduleNodes.mapNotNull { node -> modelsProvider.findIdeModule(node.data)?.let { it.name to node } }.toMap()
+                )
+            }
+            addExtraDependeeModules(nodeToImport, indexedModules, modelsProvider, rootModel, false)
+            addExtraDependeeModules(nodeToImport, indexedModules, modelsProvider, rootModel, true)
 
             if (nodeToImport.kotlinAndroidSourceSets == null) {
                 continue
@@ -135,10 +145,10 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     private fun getDependeeModuleNodes(
-        moduleNode: DataNode<ModuleData>,
-        projectNode: DataNode<ProjectData>,
-        modelsProvider: IdeModifiableModelsProvider,
-        testScope: Boolean
+      moduleNode: DataNode<ModuleData>,
+      indexedModules: IndexedModules,
+      modelsProvider: IdeModifiableModelsProvider,
+      testScope: Boolean
     ): List<DataNode<out ModuleData>> {
         val androidModel = getAndroidModuleModel(moduleNode)
         if (androidModel != null) {
@@ -149,19 +159,18 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             } ?: return emptyList()
             return dependencies
                 .moduleDependencies
-                .mapNotNull { projectNode.findChildModuleById(it.projectPath!!) }
+                .mapNotNull { indexedModules.byId[it.projectPath!!] }
         }
 
         val javaModel = getJavaModuleModel(moduleNode)
         if (javaModel != null) {
             val scope = if (testScope) DependencyScope.TEST.name else DependencyScope.COMPILE.name
-            val moduleNames = javaModel
+            return javaModel
                 .javaModuleDependencies
                 .filter { scope == it.scope ?: DependencyScope.COMPILE.name }
-                .mapTo(HashSet()) { it.moduleName }
-            return ExternalSystemApiUtil
-                .getChildren(projectNode, ProjectKeys.MODULE)
-                .filter { modelsProvider.findIdeModule(it.data)?.name in moduleNames }
+                .map { it.moduleName }
+                .distinct()
+                .mapNotNull { indexedModules.byIdeName[it] }
         }
 
         return emptyList()
@@ -176,14 +185,14 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     private fun addExtraDependeeModules(
-        moduleNode: DataNode<ModuleData>,
-        projectNode: DataNode<ProjectData>,
-        modelsProvider: IdeModifiableModelsProvider,
-        rootModel: ModifiableRootModel,
-        testScope: Boolean
+      moduleNode: DataNode<ModuleData>,
+      indexedModules: IndexedModules,
+      modelsProvider: IdeModifiableModelsProvider,
+      rootModel: ModifiableRootModel,
+      testScope: Boolean
     ) {
         val legacyMode = !Registry.`is`("kotlin.android.import.mpp.all.transitive", true)
-        val dependeeModuleNodes = getDependeeModuleNodes(moduleNode, projectNode, modelsProvider, testScope)
+        val dependeeModuleNodes = getDependeeModuleNodes(moduleNode, indexedModules, modelsProvider, testScope)
         val relevantNodes = dependeeModuleNodes
             .flatMap { ExternalSystemApiUtil.getChildren(it, GradleSourceSetData.KEY) }
             .filter {
