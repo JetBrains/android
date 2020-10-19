@@ -15,12 +15,10 @@
  */
 package com.android.build.attribution.ui.view
 
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
-import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
@@ -83,11 +81,13 @@ class BuildOverviewPageView(
     layout = BorderLayout(5, 5)
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
-    val descriptionText = """
-      ${gcTime.percentageStringHtml()} of your build’s time was dedicated to garbage collection during this build (${gcTime.durationStringHtml()}).<br/>
-      To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>
-      You can do this on the memory settings page.
-    """.trimIndent()
+    val descriptionText: String = buildString {
+      append("${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
+      if (model.shouldWarnAboutGC) {
+        append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
+      }
+      append("You can change the Gradle daemon heap size on the memory settings page.")
+    }
     val action = object : AbstractAction("Edit memory settings") {
       override fun actionPerformed(e: ActionEvent?) = actionHandlers.openMemorySettings()
     }
