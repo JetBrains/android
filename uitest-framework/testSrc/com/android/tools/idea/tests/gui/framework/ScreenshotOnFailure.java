@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import org.fest.swing.image.ScreenshotTaker;
+import java.util.function.Supplier;
+import org.fest.swing.core.Robot;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -24,7 +26,11 @@ import java.io.File;
 /** Rule that takes a screenshot when the test fails. */
 class ScreenshotOnFailure extends TestWatcher {
 
-  private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
+  private final @NotNull Supplier<Robot> myRobotSupplier;
+
+  public ScreenshotOnFailure(@NotNull Supplier<Robot> robotSupplier) {
+    myRobotSupplier = robotSupplier;
+  }
 
   @Override
   protected void failed(Throwable throwable, Description description) {
@@ -33,11 +39,12 @@ class ScreenshotOnFailure extends TestWatcher {
     try {
       File file = new File(GuiTests.getFailedTestScreenshotDirPath(), fileName);
       file.delete();
-      myScreenshotTaker.saveDesktopAsPng(file.getPath());
+      new ScreenshotTaker(myRobotSupplier.get()).saveDesktopAsPng(file.getPath());
       System.out.println("Screenshot: " + file);
     }
     catch (Throwable t) {
       System.out.println("Screenshot failed. " + t.getMessage());
+      t.printStackTrace();
     }
   }
 }

@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
+  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest(guiTest::robot);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test

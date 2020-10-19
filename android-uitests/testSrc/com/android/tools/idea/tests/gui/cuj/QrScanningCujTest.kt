@@ -50,7 +50,7 @@ class QrScanningCujTest {
 
   @Rule
   @JvmField
-  val screenshotsRule = ScreenshotsDuringTest()
+  val screenshotsRule = ScreenshotsDuringTest(guiTest::robot)
 
   @Test
   @RunIn(TestGroup.UNRELIABLE)

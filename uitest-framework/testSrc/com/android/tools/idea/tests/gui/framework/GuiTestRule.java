@@ -143,7 +143,7 @@ public class GuiTestRule implements TestRule {
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new ScreenshotOnFailure())
+      .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(myInnerTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
@@ -178,7 +178,7 @@ public class GuiTestRule implements TestRule {
               boolean hasTestPassed = errors.isEmpty();
               errors.addAll(tearDown());  // shouldn't throw, but called inside a try-finally for defense in depth
               if (hasTestPassed && !errors.isEmpty()) { // If we get a problem during tearDown, take a snapshot.
-                new ScreenshotOnFailure().failed(errors.get(0), description);
+                new ScreenshotOnFailure(myRobotTestRule::getRobot).failed(errors.get(0), description);
               }
             } finally {
               //noinspection ThrowFromFinallyBlock; assertEmpty is intended to throw here

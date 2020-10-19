@@ -53,7 +53,7 @@ class LocalApkProjTest {
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @get:Rule
-  val screenshotsRule = ScreenshotsDuringTest()
+  val screenshotsRule = ScreenshotsDuringTest(guiTest::robot)
 
   /**
    * Verifies source code directories are set for locally built APKs.
