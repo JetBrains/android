@@ -511,7 +511,24 @@ iml_module(
 iml_module(
     name = "intellij.android.studio.tests",
     iml_files = ["tests/intellij.android.studio.tests.iml"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.testutils.JarTestSuite",
+    test_data = [
+        ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
+        ":android-studio.win.zip",
+    ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
-    deps = ["//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+    ],
 )
