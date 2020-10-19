@@ -43,7 +43,7 @@ class GradleUsageTypeProvider : UsageTypeProvider {
   }
 
   companion object {
-    private val GRADLE_USAGE_TYPE = UsageType("{0} in Gradle build script")
+    private val GRADLE_USAGE_TYPE = UsageType("In Gradle build script")
   }
 }
 
@@ -62,8 +62,8 @@ class AndroidDomUsageTypeProvider : UsageTypeProvider {
   }
 
   companion object {
-    private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("{0} in Android resources XML")
-    private val ANDROID_MANIFEST_USAGE_TYPE = UsageType("{0} in Android manifest")
+    private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("In Android resources XML")
+    private val ANDROID_MANIFEST_USAGE_TYPE = UsageType("In Android manifest")
   }
 }
 
