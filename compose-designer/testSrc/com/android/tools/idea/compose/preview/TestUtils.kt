@@ -27,8 +27,8 @@ import org.jetbrains.uast.UMethod
 internal val namespaceVariations = listOf(
   arrayOf("androidx.ui.tooling.preview", "androidx.compose"),
   arrayOf("androidx.ui.tooling.preview", "androidx.compose.runtime"),
-  arrayOf("androidx.compose.tooling.preview", "androidx.compose"),
-  arrayOf("androidx.compose.tooling.preview", "androidx.compose.runtime")
+  arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
+  arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
 )
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =

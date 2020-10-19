@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.uast.UAnnotation
 
 private const val UI_PACKAGE = "androidx.ui"
-private const val COMPOSE_PACKAGE = "androidx.compose"
+private const val COMPOSE_PACKAGE = "androidx.compose.ui"
 
 /** Preview element name */
 const val COMPOSE_PREVIEW_ANNOTATION_NAME = "Preview"
@@ -60,14 +60,17 @@ enum class ComposeLibraryNamespace(val packageName: String) {
 }
 
 /** Only composables with this annotations will be rendered to the surface. */
+@JvmField
 val COMPOSE_VIEW_ADAPTER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.composableAdapterName,
                                       ComposeLibraryNamespace.ANDROIDX_COMPOSE.composableAdapterName)
 
 /** FQNs for the `@Preview` annotation. Only composables with this annotations will be rendered to the surface. */
+@JvmField
 val PREVIEW_ANNOTATION_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationName,
                                     ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName)
 
 /** Annotations FQNs for `Preview` annotated parameters. */
+@JvmField
 val PREVIEW_PARAMETER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.previewParameterAnnotationName,
                                    ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewParameterAnnotationName)
 
