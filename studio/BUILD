@@ -506,3 +506,12 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
     ],
 )
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.tests",
+    iml_files = ["tests/intellij.android.studio.tests.iml"],
+    test_srcs = ["tests/testSrc"],
+    visibility = ["//visibility:public"],
+    deps = ["//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]"],
+)
