@@ -65,7 +65,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/media/media/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/recyclerview/recyclerview/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-core/3.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-idling-resource/3.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/monitor/1.1.0:aar",
