@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -46,6 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -75,9 +77,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun allowsFileCreation() = false
 
-  override fun buildProject() {
-  }
-
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
     override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
@@ -90,6 +89,9 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun isSyncNeeded() = false
     override fun getLastSyncResult() = SyncResult.SUCCESS
   }
+
+  override fun getBuildManager(): ProjectSystemBuildManager =
+    throw UnsupportedOperationException("ProjectSystemBuildManager is not supported by the DefaultProjectSystem")
 
   override val projectSystem = this
 

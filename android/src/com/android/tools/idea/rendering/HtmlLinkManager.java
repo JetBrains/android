@@ -401,7 +401,7 @@ public class HtmlLinkManager {
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
-    ProjectSystemUtil.getProjectSystem(project).buildProject();
+    ProjectSystemUtil.getProjectSystem(project).getBuildManager().compileProject();
   }
 
   public String createSyncProjectUrl() {
