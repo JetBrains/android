@@ -706,6 +706,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/viewpager/viewpager/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/viewpager2/viewpager2/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/databinding/baseLibrary/4.0.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/databinding/baseLibrary/4.1.0:jar",
         "//prebuilts/tools/common/m2/repository/com/android/signflinger/4.0.0:jar",
