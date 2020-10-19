@@ -1791,7 +1791,7 @@ public final class AndroidResourceUtil {
     if (rootTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
       String base = prefix;
       for (int i = 2; ; i++) {
-        prefix = base + Integer.toString(i);
+        prefix = base + i;
         if (rootTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
           break;
         }

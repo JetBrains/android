@@ -110,7 +110,7 @@ public class IconPickerDialogTest extends PlatformTestCase {
                                      int cellWidth) {
     StringBuilder sb = new StringBuilder();
 
-    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    String formatString = "%-" + cellWidth + "s";
     for (int row = Math.max(0, startRow); row < Math.min(endRow, table.getRowCount()); row++) {
       for (int column = Math.max(0, startColumn); column < Math.min(table.getColumnCount(), endColumn); column++) {
         Object value = table.getValueAt(row, column);

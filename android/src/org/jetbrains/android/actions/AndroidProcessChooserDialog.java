@@ -550,7 +550,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
                                    attr.getBgColor(), this);
 
         if (clientData.isValidUserId() && clientData.getUserId() != 0) {
-          append(" (user " + Integer.toString(clientData.getUserId()) + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+          append(" (user " + clientData.getUserId() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
       }
     }

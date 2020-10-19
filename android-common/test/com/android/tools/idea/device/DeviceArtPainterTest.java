@@ -438,7 +438,7 @@ public class DeviceArtPainterTest {
     int input = Integer.parseInt(word);
     @SuppressWarnings("ConstantConditions")
     int replaced = replace.apply(input);
-    return file.substring(0, index) + Integer.toString(replaced) + file.substring(lineEnd);
+    return file.substring(0, index) + replaced + file.substring(lineEnd);
   }
 
   private static void writeCropped(File srcDir, File destDir, DeviceArtDescriptor spec, Rectangle cropRect, @Nullable File imageFile)

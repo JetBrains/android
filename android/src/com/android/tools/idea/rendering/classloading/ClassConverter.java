@@ -70,7 +70,7 @@ public class ClassConverter {
     if (version >= 53) {
       return Integer.toString(version - 53 + 9);
     }
-    return "1." + Integer.toString(version - 44); // 47 => 1.3, 50 => 1.6, ...
+    return "1." + (version - 44); // 47 => 1.3, 50 => 1.6, ...
   }
 
   /** Given a set of exceptions, return the highest known classfile version format */

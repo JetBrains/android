@@ -209,7 +209,7 @@ public class TargetMenuAction extends DropDownAction {
         return Integer.toString(version.getApiLevel());
       }
       else {
-        return target.getName() + ':' + Integer.toString(version.getApiLevel());
+        return target.getName() + ':' + version.getApiLevel();
       }
     }
 
