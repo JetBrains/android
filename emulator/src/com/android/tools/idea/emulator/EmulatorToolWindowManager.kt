@@ -428,7 +428,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   companion object {
-    private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
+    private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.frame.visible"
     private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"
     private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
