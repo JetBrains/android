@@ -530,9 +530,6 @@ android-studio/bin/lldb/lib/zipapp.py
 android-studio/bin/lldb/lib/zipfile.py
 android-studio/bin/lldb/lib/zipimport.py
 android-studio/bin/lldb/shared/jobject_printers/jstring_reader.py
-android-studio/bin/lldb/shared/stl_printers/gdb/__init__.py
-android-studio/bin/lldb/shared/stl_printers/gdb/printing.py
-android-studio/bin/lldb/shared/stl_printers/load_script
 android-studio/bin/log.xml
 android-studio/bin/profiler.bat
 android-studio/bin/profiler.exe
