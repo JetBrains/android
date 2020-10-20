@@ -93,7 +93,6 @@ class LintIdeTest : UsefulTestCase() {
     myModule = moduleFixtureBuilder.fixture!!.module
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.allowTreeAccessForAllFiles()
-    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics())
   }
 
   override fun tearDown() {
