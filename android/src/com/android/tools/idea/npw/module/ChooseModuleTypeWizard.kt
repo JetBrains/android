@@ -17,6 +17,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.tools.adtui.util.FormScalingUtil
+import com.android.tools.idea.adb.wireless.UIColors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
@@ -41,6 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SeparatorWithText
+import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.IconUtil
@@ -168,8 +170,11 @@ class ChooseModuleTypeWizard(
 
     Disposer.register(modelWizardDialog.disposable, this)
 
-    leftPanel.add(createTitle(), BorderLayout.NORTH)
-    leftPanel.add(leftList, BorderLayout.CENTER)
+    leftPanel.apply {
+      border = CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 0, 0, 0, 1)
+      add(createTitle(), BorderLayout.NORTH)
+      add(leftList, BorderLayout.CENTER)
+    }
 
     mainPanel.add(leftPanel, BorderLayout.WEST)
 
