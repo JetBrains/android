@@ -106,11 +106,15 @@ public class AndroidGradleTests {
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
-  private static Long overriddenTimeout = null;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
+    waitForSourceFolderManagerToProcessUpdates(project, null);
+  }
+
+  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_MILLIS : timeoutMillis;
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
-      PlatformTestUtil.waitForFuture(future, (overriddenTimeout != null) ? overriddenTimeout : DEFAULT_TIMEOUT_MILLIS);
+      PlatformTestUtil.waitForFuture(future, timeout);
       return null;
     });
   }
@@ -130,7 +134,7 @@ public class AndroidGradleTests {
     public List<SyncIssueData> getIssues() {
       return issues;
     }
-  };
+  }
 
   /** Interface to allow tests to accept sync issues as valid when they load a project */
   public interface SyncIssueFilter {
@@ -642,13 +646,5 @@ public class AndroidGradleTests {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
     return jdkRootPath.getCanonicalPath();
-  }
-
-  public static void overrideWaitForSourceFolderTimeout(long timeoutMillis) {
-    overriddenTimeout = timeoutMillis;
-  }
-
-  public static void resetWaitForSourceFolderTimeout() {
-    overriddenTimeout = null;
   }
 }

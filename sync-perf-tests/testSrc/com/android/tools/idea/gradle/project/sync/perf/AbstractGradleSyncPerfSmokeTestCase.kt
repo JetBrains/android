@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.perf
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationInfoImpl
 import com.intellij.openapi.util.Disposer
@@ -40,6 +38,7 @@ import java.io.File
 abstract class AbstractGradleSyncPerfSmokeTestCase {
   abstract val relativePath: String
   protected open val buildTask: String? = "assembleDebug"
+  protected open val buildTaskTimeout: Long? = null
 
   protected val projectRule = AndroidGradleProjectRule()
   @get:Rule
@@ -54,7 +53,6 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
 
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("sync-perf-tests") + File.separator + "testData"
     disableExpensivePlatformAssertions(projectRule.fixture)
-    AndroidGradleTests.overrideWaitForSourceFolderTimeout(5000)
   }
 
   /**
@@ -77,7 +75,7 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
   open fun testSyncsAndBuildsJdk8() {
     overrideJdkTo8()
     try {
-      verifySync();
+      verifySync()
       verifyBuild()
     }
     finally {
@@ -93,7 +91,7 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
   private fun verifyBuild() {
     if (buildTask == null) return
     ApplicationManager.getApplication().invokeAndWait {
-      projectRule.invokeTasks(buildTask!!).apply {
+      projectRule.invokeTasks(buildTaskTimeout, buildTask!!).apply {
         buildError?.printStackTrace()
         assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
       }
@@ -102,9 +100,8 @@ abstract class AbstractGradleSyncPerfSmokeTestCase {
 
   private fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
     ApplicationInfoImpl.setInStressTest(true)
-    Disposer.register(fixture.testRootDisposable, Disposable {
+    Disposer.register(fixture.testRootDisposable, {
       ApplicationInfoImpl.setInStressTest(false)
-      AndroidGradleTests.resetWaitForSourceFolderTimeout()
     })
   }
 }
