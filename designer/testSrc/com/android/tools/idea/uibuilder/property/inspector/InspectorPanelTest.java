@@ -31,8 +31,8 @@ import static com.android.SdkConstants.ATTR_TYPEFACE;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
@@ -80,7 +80,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myPropertiesComponent = mock(PropertiesComponent.class);
+    myPropertiesComponent = new PropertiesComponentMock();
     registerApplicationService(PropertiesComponent.class, myPropertiesComponent);
     myInspector = new NlInspectorPanel(getTestRootDisposable(), new JLabel());
   }
@@ -173,7 +173,7 @@ public class InspectorPanelTest extends PropertyTestCase {
 
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isTrue();
     checkInvisibleRowsWithoutFilter();
-    verify(myPropertiesComponent).setValue("inspector.open.textAppearance", true);
+    assertThat(myPropertiesComponent.getValue("inspector.open.textAppearance")).isEqualTo(Boolean.TRUE.toString());
   }
 
   public void testExpandParentGroupWithClosedChildGroup() {
