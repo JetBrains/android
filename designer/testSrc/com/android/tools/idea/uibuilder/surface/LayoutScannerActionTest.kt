@@ -19,7 +19,6 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.actions.LAYOUT_SCANNER_KEY
 import com.android.tools.idea.actions.NOTIFICATION_KEY
 import com.android.tools.idea.common.editor.DesignSurfaceNotificationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.alwaysEnableLayoutScanner
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.ide.util.PropertiesComponent
@@ -44,7 +43,7 @@ class LayoutScannerActionTest : LayoutTestCase() {
     val action = LayoutScannerAction.getInstance()
     action.update(event)
 
-    assertEquals(StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get(), presentation.isVisible)
+    assertTrue(presentation.isVisible)
   }
 
   fun testShowNotification() {
