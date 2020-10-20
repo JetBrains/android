@@ -333,16 +333,29 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
+    return invokeGradleTasks(project, null, tasks);
+  }
+
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @Nullable Long timeoutMillis, @NotNull String... tasks)
+    throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
     return invokeGradle(project, gradleInvoker ->
-      gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks), Lists.newArrayList("--offline")));
+      gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks), Lists.newArrayList("--offline")), timeoutMillis);
   }
 
   @NotNull
   protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
     throws InterruptedException {
+    return invokeGradle(project, gradleInvocationTask, null);
+  }
+
+  @NotNull
+  protected static GradleInvocationResult invokeGradle(@NotNull Project project,
+                                                       @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask,
+                                                       @Nullable Long sourceFolderTimeoutMillis
+  ) throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
@@ -366,7 +379,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     refreshProjectFiles();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {
-        waitForSourceFolderManagerToProcessUpdates(project);
+        waitForSourceFolderManagerToProcessUpdates(project, sourceFolderTimeoutMillis);
       }
       catch (Exception e) {
         e.printStackTrace();
