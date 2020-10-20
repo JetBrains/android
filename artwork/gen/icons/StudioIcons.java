@@ -708,7 +708,7 @@ public class StudioIcons {
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.svg"); // 13x13
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.svg"); // 13x13
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.svg"); // 13x13
-      public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.svg"); // 16x16
+      public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.svg"); // 13x13
       public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.svg"); // 13x13
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.svg"); // 13x13
       public static final Icon MULTI_PREVIEW = load("/studio/icons/shell/tool-windows/multi-preview.svg"); // 13x13
