@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.NdkSourceNode;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
@@ -42,25 +48,22 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.KeyStroke;
+import javax.swing.tree.TreeModel;
+import org.apache.commons.lang3.StringUtils;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.fixture.JTreePathFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.TreeModel;
-import java.awt.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
-import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
 
@@ -211,8 +214,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
       for (NodeFixture child : nativeLibs) {
         if (child.myNode instanceof LibraryNode) {
           String libName = child.myNode.toTestString(null);
-          if(libName != null) {
-            if(libraryName.equals(libName)) {
+          if (libName != null) {
+            if (libraryName.equals(libName)) {
               return child;
             }
           }
@@ -221,16 +224,31 @@ public class ProjectViewFixture extends ToolWindowFixture {
       throw new IllegalStateException("Unable to find native library node for " + libraryName);
     }
 
-    public IdeFrameFixture clickPath(@NotNull final String... paths) {
-      return clickPath(MouseButton.LEFT_BUTTON, paths);
+    public void doubleClickPath(@NotNull final String... path) {
+      Preconditions.checkArgument(path.length > 0, "You must specify a non empty path");
+      myTree.doubleClickPath(StringUtils.join(path, '/'));
     }
 
-    public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
-      StringBuilder totalPath = new StringBuilder(paths[0]);
-      for (int i = 1; i < paths.length; i++) {
+    public boolean hasPath(@NotNull final String... path) {
+      Preconditions.checkArgument(path.length > 0, "You must specify a non empty path");
+      try {
+        myTree.node(StringUtils.join(path, '/'));
+          return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    }
+
+    public IdeFrameFixture clickPath(@NotNull final String... path) {
+      return clickPath(MouseButton.LEFT_BUTTON, path);
+    }
+
+    public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... path) {
+      StringBuilder totalPath = new StringBuilder(path[0]);
+      for (int i = 1; i < path.length; i++) {
         myTree.selectPath(totalPath.toString());
         myTree.robot().pressAndReleaseKey(KeyEvent.VK_ADD);
-        totalPath.append('/').append(paths[i]);
+        totalPath.append('/').append(path[i]);
       }
       myTree.clickPath(totalPath.toString(), button);
       return myIdeFrameFixture;
