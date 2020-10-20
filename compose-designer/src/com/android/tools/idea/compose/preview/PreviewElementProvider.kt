@@ -31,6 +31,13 @@ interface PreviewElementProvider {
 }
 
 /**
+ * [PreviewElementProvider] that does not contain [PreviewElement]s.
+ */
+object EmptyPreviewElementProvider : PreviewElementProvider {
+  override val previewElements: Sequence<PreviewElement> = emptySequence()
+}
+
+/**
  * Returns the list of available group names in this [PreviewElementProvider]. If this provider does any filtering, the groups
  * returned here will be the ones after the filtering is applied.
  */
@@ -88,4 +95,12 @@ class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvide
         return cachedPreviewElements.asSequence()
       }
     }
+}
+
+/**
+ * A [PreviewElementProvider] that allows combining multiple [PreviewElementProvider]s into one.
+ */
+class CombinedPreviewElementProvider(private val previewElementProviders: Collection<PreviewElementProvider>): PreviewElementProvider {
+  override val previewElements: Sequence<PreviewElement>
+    get() = previewElementProviders.asSequence().flatMap { it.previewElements }
 }

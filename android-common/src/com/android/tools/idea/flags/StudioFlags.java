@@ -1033,6 +1033,13 @@ public final class StudioFlags {
     "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_PIN_PREVIEW = Flag.create(
+    COMPOSE, "preview.pin.enable",
+    "Enable pinning compose previews",
+    "If enabled, a user can pin a preview",
+    false
+  );
   //endregion
 
   //region Manifests

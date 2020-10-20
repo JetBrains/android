@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -49,7 +50,7 @@ import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
-import com.android.tools.idea.compose.preview.util.sortBySourcePosition
+import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -132,14 +133,17 @@ private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
 
 /**
  * [NlModel] associated preview data
- *
+ * @param project the [Project] used by the current view.
+ * @param composePreviewManager [ComposePreviewManager] of the Preview.
  * @param previewElement the [PreviewElement] associated to this model
  */
-private class ModelDataContext(private val composePreviewManager: ComposePreviewManager,
+private class ModelDataContext(private val project: Project,
+                               private val composePreviewManager: ComposePreviewManager,
                                private val previewElement: PreviewElement) : DataContext {
   override fun getData(dataId: String): Any? = when (dataId) {
     COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
     COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+    CommonDataKeys.PROJECT.name -> project
     else -> null
   }
 }
@@ -240,12 +244,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider,
-                                                                        ModificationTracker {
-                                                                          ReadAction.compute<Long, Throwable> {
-                                                                            psiFilePointer.element?.modificationStamp ?: -1
-                                                                          }
-                                                                        })
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(
+    CombinedPreviewElementProvider(listOf(previewProvider, PinnedPreviewElementManager.getPreviewElementProvider(project))),
+    ModificationTracker {
+      ReadAction.compute<Long, Throwable> {
+        psiFilePointer.element?.modificationStamp ?: -1
+      }
+    })
   private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
 
   /**
@@ -404,6 +409,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // The Compose preview NlModels do not point to the actual file but to a synthetic file
         // generated for Layoutlib. This ensures we return the right file.
         CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
+        CommonDataKeys.PROJECT.name -> project
         else -> null
       }
     }
@@ -784,7 +790,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val isFirstRender = !hasRenderedAtLeastOnce.get()
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.toMutableList()
-    val previewElementsList = previewElementProvider.previewElements.toList()
+    val previewElementsList = previewElementProvider.previewElements.toList().sortByDisplayAndSourcePosition()
 
     val modelIndices = matchElementsToModels(existingModels, previewElementsList)
     // Now we generate all the models (or reuse) for the PreviewElements.
@@ -829,7 +835,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           reusedModel.updateFileContentBlocking(fileContents)
           // Reconfigure the model by setting the new display name and applying the configuration values
           reusedModel.modelDisplayName = previewElement.displaySettings.name
-          reusedModel.dataContext = ModelDataContext(this, previewElement)
+          reusedModel.dataContext = ModelDataContext(project, this, previewElement)
           // We call addModel even though the model might not be new. If we try to add an existing model,
           // this will trigger a new render which is exactly what we want.
           configureLayoutlibSceneManager(surface.addModelWithoutRender(reusedModel) as LayoutlibSceneManager,
@@ -851,7 +857,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
             .withComponentRegistrar(surface.componentRegistrar)
-            .withDataContext(ModelDataContext(this, previewElement))
+            .withDataContext(ModelDataContext(project, this, previewElement))
             .withXmlProvider(BiFunction<Project, VirtualFile, XmlFile> { project, virtualFile ->
               NlModelBuilder.getDefaultFile(project, virtualFile).also {
                 it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
@@ -871,7 +877,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
         }
 
-        navigationHandler.setDefaultLocation(model, psiFile, offset)
+        val defaultFile = previewElement.previewElementDefinitionPsi?.virtualFile?.let {
+          AndroidPsiUtils.getPsiFileSafely(project, it)
+        } ?: psiFile
+
+        navigationHandler.setDefaultLocation(model, defaultFile, offset)
 
         previewElement.configuration.applyTo(model.configuration)
 
@@ -968,7 +978,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
             .toList()
-            .sortBySourcePosition()
+            .sortByDisplayAndSourcePosition()
         }
 
         if (filePreviewElements == previewElements) {
