@@ -1037,9 +1037,6 @@ Android Studio.app/Contents/bin/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio.app/Contents/bin/lldb/lib64/python/lldb/utils/symbolication.py
 Android Studio.app/Contents/bin/lldb/lib64/python/six.py
 Android Studio.app/Contents/bin/lldb/shared/jobject_printers/jstring_reader.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/gdb/__init__.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/gdb/printing.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/load_script
 Android Studio.app/Contents/bin/log.xml
 Android Studio.app/Contents/bin/printenv.py
 Android Studio.app/Contents/bin/profiler.sh

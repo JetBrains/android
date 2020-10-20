@@ -1026,9 +1026,6 @@ android-studio/bin/lldb/lib64/liblldb.so.11git
 android-studio/bin/lldb/lib64/libpython3.8.so.1.0
 android-studio/bin/lldb/lib64/libxml2.so.2.9.10
 android-studio/bin/lldb/shared/jobject_printers/jstring_reader.py
-android-studio/bin/lldb/shared/stl_printers/gdb/__init__.py
-android-studio/bin/lldb/shared/stl_printers/gdb/printing.py
-android-studio/bin/lldb/shared/stl_printers/load_script
 android-studio/bin/log.xml
 android-studio/bin/printenv.py
 android-studio/bin/profiler.sh
