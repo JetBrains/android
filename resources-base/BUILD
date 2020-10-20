@@ -59,7 +59,7 @@ iml_module(
 java_binary(
     name = "framework-res-jar-creator",
     main_class = "com.android.tools.idea.resources.aar.FrameworkResJarCreator",
-    runtime_deps = [":intellij.android.resources-base_runtime"],
+    runtime_deps = [":intellij.android.resources-base"],
 )
 
 genrule(
