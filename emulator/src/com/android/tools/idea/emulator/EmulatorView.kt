@@ -108,12 +108,13 @@ import com.android.emulator.control.MouseEvent as MouseEventMessage
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
+ * @param parentDisposable the disposable parent
  * @param emulator the handle of the Emulator
- * @param deviceFrameVisible if true, the device frame is cropped to maximize the size of the display image
+ * @param deviceFrameVisible controls visibility of the device frame
  */
 class EmulatorView(
-  val emulator: EmulatorController,
   parentDisposable: Disposable,
+  val emulator: EmulatorController,
   deviceFrameVisible: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 

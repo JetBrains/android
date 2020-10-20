@@ -216,7 +216,7 @@ class EmulatorToolWindowPanel(
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
 
-      val emulatorView = EmulatorView(emulator, disposable, deviceFrameVisible)
+      val emulatorView = EmulatorView(disposable, emulator, deviceFrameVisible)
       emulatorView.background = background
       this.emulatorView = emulatorView
       scrollPane.setViewportView(emulatorView)
