@@ -65,6 +65,9 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
         listOfNotNull(
           Separator(),
           LayoutlibSceneManagerRefreshIconAction(sceneView.scene.sceneManager as LayoutlibSceneManager).visibleOnlyInComposeStaticPreview(),
+          StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
+            PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+          },
           StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
             ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
           },

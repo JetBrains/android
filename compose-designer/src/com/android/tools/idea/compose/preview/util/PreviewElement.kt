@@ -259,6 +259,11 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
 private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
 
+enum class DisplayPositioning {
+  TOP, // Previews with this priority will be displayed at the top
+  NORMAL
+}
+
 /**
  * Settings that modify how a [PreviewElement] is rendered
  *
@@ -273,7 +278,8 @@ data class PreviewDisplaySettings(val name: String,
                                   val group: String?,
                                   val showDecoration: Boolean,
                                   val showBackground: Boolean,
-                                  val backgroundColor: String?)
+                                  val backgroundColor: String?,
+                                  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL)
 
 /**
  * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
@@ -390,6 +396,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    showDecorations: Boolean = false,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
+                   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
                    configuration: PreviewConfiguration = nullConfiguration,
                    uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_UI) =
       SinglePreviewElementInstance(composableMethodFqn,
@@ -398,7 +405,8 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                      groupName,
                                      showDecorations,
                                      showBackground,
-                                     backgroundColor),
+                                     backgroundColor,
+                                     displayPositioning),
                                    null, null,
                                    configuration,
                                    uiToolingPackageName)
@@ -546,16 +554,12 @@ interface FilePreviewElementFinder {
 private val PreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
-/**
- * Sorts the [PreviewElement]s in alphabetical order of their display name.
- */
-fun Collection<PreviewElement>.sortByDisplayName(): List<PreviewElement> = sortedWith(Comparator { o1, o2 ->
-  o1.displaySettings.name.compareTo(o2.displaySettings.name)
-})
+private val sourceOffsetComparator = compareBy<PreviewElement> { it.sourceOffset }
+private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySettings.displayPositioning }
 
 /**
- * Sorts the [PreviewElement]s by source code line number, smaller first.
+ * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
  */
-fun Collection<PreviewElement>.sortBySourcePosition(): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
-  sortedWith(Comparator { o1, o2 -> o1.sourceOffset - o2.sourceOffset })
+fun <T: PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = ReadAction.compute<List<T>, Throwable> {
+  sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator))
 }
