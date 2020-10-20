@@ -137,51 +137,6 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     usages.forEach { assertNotNull(it.tooltipText) }
   }
 
-  @Test
-  fun testKotlinPluginVersionInLiteral() {
-    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginVersionInLiteral"))
-    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginVersionInLiteralExpected"))
-  }
-
-  @Test
-  fun testKotlinPluginVersionInInterpolatedVariable() {
-    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginVersionInInterpolatedVariable"))
-    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginVersionInInterpolatedVariableExpected"))
-  }
-
-  @Test
-  fun testKotlinPluginVersionPlus() {
-    writeToBuildFile(TestFileName("AgpGradleVersion/KotlinPluginVersionPlus"))
-    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/KotlinPluginVersionPlus"))
-  }
-
-  @Test
-  fun testSafeArgsVersionInLiteral() {
-    writeToBuildFile(TestFileName("AgpGradleVersion/SafeArgsVersionInLiteral"))
-    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/SafeArgsVersionInLiteral"))
-  }
-
-  @Test
-  fun testSafeArgsVersionInInterpolatedVariable() {
-    writeToBuildFile(TestFileName("AgpGradleVersion/SafeArgsVersionInInterpolatedVariable"))
-    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/SafeArgsVersionInInterpolatedVariable"))
-  }
-
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
   //  GRADLE_MINIMUM_VERSION changes)
