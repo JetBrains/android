@@ -106,8 +106,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -134,7 +134,8 @@ public class LayoutlibSceneManager extends SceneManager {
   @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
-  private long myTaskStartTimeNanos;
+  private SessionClock mySessionClock;
+  private final Supplier<SessionClock> mySessionClockFactory;
   // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
   // since RenderTask is able to handle those safely.
   private final Object myRenderingTaskLock = new Object();
@@ -274,6 +275,7 @@ public class LayoutlibSceneManager extends SceneManager {
    *                                   {@link NlComponent} to {@link SceneComponent}s.
    * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
+   * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
@@ -281,11 +283,13 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
-                                  @NotNull LayoutScannerConfiguration layoutScannerConfig) {
+                                  @NotNull LayoutScannerConfiguration layoutScannerConfig,
+                                  @NotNull Supplier<SessionClock> sessionClockFactory) {
     super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
     myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
+    mySessionClockFactory = sessionClockFactory;
     createSceneView();
     updateTrackingConfiguration();
 
@@ -321,43 +325,40 @@ public class LayoutlibSceneManager extends SceneManager {
 
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
    * @param sceneComponentProvider a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
    *                               {@link SceneComponent}s.
+   * @param sceneUpdateListener    a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
+   * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @NotNull SceneManager.SceneUpdateListener sceneUpdateListener) {
+                               @NotNull SceneManager.SceneUpdateListener sceneUpdateListener,
+                               @NotNull Supplier<SessionClock> sessionClockFactory) {
     this(
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
-      disposable -> new MergingRenderingQueue(disposable),
+      MergingRenderingQueue::new,
       sceneComponentProvider,
       sceneUpdateListener,
-      LayoutScannerConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED(),
+      sessionClockFactory);
   }
 
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(
-      model,
-      designSurface,
-      PooledThreadExecutor.INSTANCE,
-      disposable -> new MergingRenderingQueue(disposable),
-      new LayoutlibSceneManagerHierarchyProvider(),
-      null,
-      LayoutScannerConfiguration.getDISABLED());
+    this(model, designSurface, LayoutScannerConfiguration.getDISABLED());
   }
 
   /**
@@ -371,10 +372,11 @@ public class LayoutlibSceneManager extends SceneManager {
       model,
       designSurface,
       PooledThreadExecutor.INSTANCE,
-      disposable -> new MergingRenderingQueue(disposable),
+      MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
-      config);
+      config,
+      RealTimeSessionClock::new);
   }
 
   @NotNull
@@ -461,7 +463,8 @@ public class LayoutlibSceneManager extends SceneManager {
           Logger.getInstance(LayoutlibSceneManager.class).warn(t);
         }
       }
-      myTaskStartTimeNanos = System.nanoTime();
+      // TODO(b/168445543): move session clock to RenderTask
+      mySessionClock = mySessionClockFactory.get();
       myRenderTask = newTask;
     }
   }
@@ -1462,11 +1465,6 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Boolean> executeCallbacks() {
-    return executeCallbacks(currentTimeNanos());
-  }
-
-  @NotNull
-  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
@@ -1475,13 +1473,13 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(false);
       }
-      return myRenderTask.executeCallbacks(timeNanos);
+      return myRenderTask.executeCallbacks(currentTimeNanos());
     }
   }
 
   private long currentTimeNanos() {
     synchronized (myRenderingTaskLock) {
-      return System.nanoTime() - myTaskStartTimeNanos;
+      return mySessionClock.getTimeNanos();
     }
   }
 
@@ -1493,8 +1491,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  protected CompletableFuture<Void> triggerTouchEvent(
-    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y, long timeNanos) {
+  public CompletableFuture<Void> triggerTouchEvent(
+    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
@@ -1504,14 +1502,8 @@ public class LayoutlibSceneManager extends SceneManager {
         return CompletableFuture.completedFuture(null);
       }
       myTouchEventsCounter.incrementAndGet();
-      return myRenderTask.triggerTouchEvent(type, x, y, timeNanos);
+      return myRenderTask.triggerTouchEvent(type, x, y, currentTimeNanos());
     }
-  }
-
-  @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(
-    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    return triggerTouchEvent(type, x, y, currentTimeNanos());
   }
 
   /**

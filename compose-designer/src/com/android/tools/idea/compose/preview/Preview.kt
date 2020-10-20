@@ -73,6 +73,7 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
@@ -381,7 +382,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()).apply {
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() }).apply {
         addRenderListener(object : RenderListener {
           override fun onInflateStarted() {
             // Reset to false since we don't know if there are live literals available. Once the inflation happens, we will be able to know
