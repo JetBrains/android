@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AvdManagerUtils {
+  static final String NO_SKIN = "_no_skin";
+
   public static boolean reloadAvds(@NotNull AvdManager manager, @NotNull Project project) {
     try {
       MessageBuildingSdkLog log = new MessageBuildingSdkLog();

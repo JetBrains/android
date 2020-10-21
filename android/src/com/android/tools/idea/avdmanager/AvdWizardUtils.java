@@ -149,7 +149,11 @@ public class AvdWizardUtils {
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
-  public static final File NO_SKIN = new File("_no_skin");
+  /**
+   * @deprecated Use fileSystem.getPath({@link AvdManagerUtils#NO_SKIN})
+   */
+  @Deprecated
+  static final File NO_SKIN = new File(AvdManagerUtils.NO_SKIN);
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
