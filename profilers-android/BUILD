@@ -67,10 +67,8 @@ kotlin_test(
         "no_test_mac",  # b/168793471
     ],
     test_class = "com.android.testutils.JarTestSuite",
-    runtime_deps = [
-        ":intellij.android.profilersAndroid_testlib",
-    ],
     deps = [
+        ":intellij.android.profilersAndroid_testlib",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
