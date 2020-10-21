@@ -18,6 +18,7 @@ package com.android.tools.idea.emulator
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -62,14 +63,13 @@ class EmulatorViewRule : TestRule {
     return view
   }
 
-  fun getDataContext(emulatorView: EmulatorView): DataContext {
-    return TestDataContext(emulatorView)
-  }
-
   fun executeAction(actionId: String, emulatorView: EmulatorView) {
     val actionManager = ActionManager.getInstance()
     val action = actionManager.getAction(actionId)
-    val event = AnActionEvent(null, getDataContext(emulatorView), ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+    val presentation = Presentation()
+    val event = AnActionEvent(null, TestDataContext(emulatorView), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
+    action.update(event)
+    assertThat(presentation.isEnabledAndVisible).isTrue()
     action.actionPerformed(event)
   }
 
