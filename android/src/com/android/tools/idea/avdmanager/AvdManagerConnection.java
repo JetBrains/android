@@ -654,8 +654,9 @@ public class AvdManagerConnection {
     // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
     return isEmulatorToolWindowAvailable(project) && // Emulator tool window is available only for Android projects.
            !isFoldable(avd) &&
-           !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
-           !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
+           (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() ||
+            !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
+            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID)));
   }
 
   public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
