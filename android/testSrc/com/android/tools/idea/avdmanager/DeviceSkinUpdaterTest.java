@@ -44,12 +44,48 @@ public final class DeviceSkinUpdaterTest {
   private final Path mySdkSkins = myFileSystem.getPath("/home/juancnuno/Android/Sdk/skins");
 
   @Test
+  public void updateSkinsDeviceToStringIsEmpty() {
+    // Arrange
+    Path device = myFileSystem.getPath("");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsDeviceIsAbsolute() {
+    // Arrange
+    Path device = myFileSystem.getPath("/home/juancnuno/Android/Sdk/platforms/android-30/skins/HVGA");
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
+  public void updateSkinsDeviceEqualsNoSkin() {
+    // Arrange
+    Path device = myFileSystem.getPath(AvdManagerUtils.NO_SKIN);
+
+    // Act
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, myFileSystem, true);
+
+    // Assert
+    assertEquals(device, deviceSkins);
+  }
+
+  @Test
   public void updateSkinsStudioSkinsIsNullAndSdkSkinsIsNull() {
     // Arrange
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, null, myFileSystem, true);
 
     // Assert
     assertEquals(device, deviceSkins);
@@ -61,7 +97,7 @@ public final class DeviceSkinUpdaterTest {
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, mySdkSkins, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, null, mySdkSkins, myFileSystem, true);
 
     // Assert
     assertEquals(mySdkSkins.resolve(device), deviceSkins);
@@ -73,7 +109,7 @@ public final class DeviceSkinUpdaterTest {
     Path device = myFileSystem.getPath("pixel_4");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, myStudioSkins, null, true);
+    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, myStudioSkins, null, myFileSystem, true);
 
     // Assert
     assertEquals(myStudioSkins.resolve(device), deviceSkins);
