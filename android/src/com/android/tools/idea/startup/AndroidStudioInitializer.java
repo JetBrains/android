@@ -162,7 +162,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
-        !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+          !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
         ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
       }
     }
@@ -182,10 +182,11 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       return AndroidStudioEvent.IdeBrand.GAME_TOOLS;
     }
     // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
-    // builds, it is just "Blaze"
-    return Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> plugin.isBundled() && plugin.getName().contains("Blaze"))
-      ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
-      : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
+    // builds, it is just "G3Plugins"
+    boolean isAswb = Arrays.stream(PluginManagerCore.getPlugins())
+      .filter(plugin -> plugin.isBundled())
+      .anyMatch(plugin -> plugin.getName().contains("G3Plugins") || plugin.getName().contains("Blaze"));
+    return isAswb ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {
