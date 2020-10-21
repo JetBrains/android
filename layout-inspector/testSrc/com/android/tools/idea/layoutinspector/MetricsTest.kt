@@ -61,6 +61,7 @@ class MetricsTest {
     studioEvent = usages[1].studioEvent
     assertEquals(deviceInfo, studioEvent.deviceInfo)
     assertEquals(ATTACH_SUCCESS, studioEvent.dynamicLayoutInspectorEvent.type)
+    assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
   }
 
   @Test
@@ -84,6 +85,7 @@ class MetricsTest {
 
     val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
     assertEquals(ATTACH_REQUEST, inspectorEvent.type)
+    assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
   }
 }
 

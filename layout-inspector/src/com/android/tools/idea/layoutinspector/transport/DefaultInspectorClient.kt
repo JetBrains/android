@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -399,6 +400,7 @@ class DefaultInspectorClient(
           val builder = AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
             .setDynamicLayoutInspectorEvent(inspectorEvent)
+            .withProjectId(project)
           if (bridge != null) {
             findDevice(bridge, stream)?.let {
               builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it))
