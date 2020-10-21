@@ -86,7 +86,7 @@ class BuildOverviewPageView(
       if (model.shouldWarnAboutGC) {
         append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
       }
-      append("You can change Gradle daemon heap size on the memory settings page.")
+      append("You can change the Gradle daemon heap size on the memory settings page.")
     }
     val action = object : AbstractAction("Edit memory settings") {
       override fun actionPerformed(e: ActionEvent?) = actionHandlers.openMemorySettings()
