@@ -34,7 +34,6 @@ import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
-import org.junit.Ignore
 import java.awt.Color
 import java.awt.FontMetrics
 import java.awt.Paint
@@ -198,7 +197,6 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
-  @Ignore
   fun testSystemTraceColors() {
     val invalidModel = SyscallModel("write")
     try {
