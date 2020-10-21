@@ -43,8 +43,8 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.HeapDumpStageView;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.memory.MemoryProfilerStageView;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -160,7 +160,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
-    myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
+    myBinder.bind(MainMemoryProfilerStage.class, MainMemoryProfilerStageView::new);
     myBinder.bind(HeapDumpStage.class, HeapDumpStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
@@ -601,7 +601,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
-      MemoryProfilerStage.class, "MEMORY",
+      MainMemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",
       EnergyProfilerStage.class, "ENERGY",
       CustomEventProfilerStage.class, "CUSTOM EVENTS");

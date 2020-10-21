@@ -65,9 +65,9 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryProfilerStage> {
+public class MainMemoryProfilerStageView extends BaseMemoryProfilerStageView<MainMemoryProfilerStage> {
   private static Logger getLogger() {
-    return Logger.getInstance(MemoryProfilerStageView.class);
+    return Logger.getInstance(MainMemoryProfilerStageView.class);
   }
 
   private static final String RECORD_TEXT = "Record";
@@ -101,7 +101,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
   @NotNull private final JLabel myAllocationSamplingRateLabel;
   @NotNull private final LoadingPanel myHeapDumpLoadingPanel;
 
-  public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
+  public MainMemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MainMemoryProfilerStage stage) {
     super(profilersView, stage);
 
     // Turns on the auto-capture selection functionality - this would select the latest user-triggered heap dump/allocation tracking

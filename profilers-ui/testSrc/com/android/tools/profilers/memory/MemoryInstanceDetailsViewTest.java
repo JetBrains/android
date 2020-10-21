@@ -67,7 +67,7 @@ public class MemoryInstanceDetailsViewTest {
     new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService());
 
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private FakeCaptureObject myFakeCaptureObject;
@@ -78,8 +78,8 @@ public class MemoryInstanceDetailsViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer),
-                              loader);
+      new MainMemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer),
+                                  loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents, myStage.getTimeline());
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE").build();
   }

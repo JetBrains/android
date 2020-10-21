@@ -24,7 +24,6 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;

@@ -38,7 +38,7 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.CaptureSelectionAspect;
@@ -103,7 +103,7 @@ public class LiveAllocationCaptureObjectTest {
   protected final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
   protected final Executor LOAD_JOINER = MoreExecutors.directExecutor();
 
-  protected MemoryProfilerStage myStage;
+  protected MainMemoryProfilerStage myStage;
 
   protected final AspectObserver myAspectObserver = new AspectObserver();
 
@@ -112,7 +112,7 @@ public class LiveAllocationCaptureObjectTest {
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
+    myStage = new MainMemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
 
     long dataStartTime = CAPTURE_START_TIME;
     long dataEndTime = TimeUnit.SECONDS.toNanos(8);
@@ -578,11 +578,11 @@ public class LiveAllocationCaptureObjectTest {
     @Test
     public void testInfoMessageBasedOnSelection() {
       MemoryAllocSamplingData fullData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
       MemoryAllocSamplingData sampledData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
       MemoryAllocSamplingData noneData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
       if (myNewPipeline) {
         myTransportService.addEventToStream(
           ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()

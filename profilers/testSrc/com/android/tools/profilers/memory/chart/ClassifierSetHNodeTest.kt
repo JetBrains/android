@@ -25,7 +25,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -39,14 +39,14 @@ class ClassifierSetHNodeTest {
                                       FakeTransportService(myTimer),
                                       FakeProfilerService(myTimer),
                                       FakeMemoryService())
-  private lateinit var myStage: MemoryProfilerStage
+  private lateinit var myStage: MainMemoryProfilerStage
 
   @Before
   fun before() {
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
     val fakeIdeProfilerServices = FakeIdeProfilerServices()
-    myStage = MemoryProfilerStage(
+    myStage = MainMemoryProfilerStage(
       StudioProfilers(ProfilerClient(myGrpcChannel.channel), fakeIdeProfilerServices, FakeTimer()),
       loader)
   }

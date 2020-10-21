@@ -76,7 +76,7 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements CodeNavigator.Listener {
+public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
   public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
 
@@ -88,7 +88,7 @@ public class MemoryProfilerStage extends BaseStreamingMemoryProfilerStage implem
     Math.max(1, Math.min(Integer.getInteger("profiler.memory.hprof.safeFactor", 10), 1000));
 
   private static Logger getLogger() {
-    return Logger.getInstance(MemoryProfilerStage.class);
+    return Logger.getInstance(MainMemoryProfilerStage.class);
   }
 
   private final DetailedMemoryUsage myDetailedMemoryUsage;
@@ -126,11 +126,11 @@ public class MemoryProfilerStage extends BaseStreamingMemoryProfilerStage implem
   @NotNull private final AllocationSamplingRateUpdatable myAllocationSamplingRateUpdatable;
   @NotNull private LiveAllocationSamplingMode myLiveAllocationSamplingMode;
 
-  public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
   }
 
-  public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers, loader);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;

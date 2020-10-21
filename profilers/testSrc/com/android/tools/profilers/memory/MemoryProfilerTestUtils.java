@@ -115,7 +115,7 @@ public class MemoryProfilerTestUtils {
   }
 
 
-  public static void startTrackingHelper(MemoryProfilerStage stage,
+  public static void startTrackingHelper(MainMemoryProfilerStage stage,
                                          boolean unifiedPipeline,
                                          FakeTransportService transportService,
                                          FakeMemoryService memoryService,
@@ -140,7 +140,7 @@ public class MemoryProfilerTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
-  public static void stopTrackingHelper(MemoryProfilerStage stage,
+  public static void stopTrackingHelper(MainMemoryProfilerStage stage,
                                         boolean unifiedPipeline,
                                         FakeTransportService transportService,
                                         FakeMemoryService memoryService,
@@ -166,7 +166,7 @@ public class MemoryProfilerTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
-  public static void heapDumpHelper(MemoryProfilerStage stage,
+  public static void heapDumpHelper(MainMemoryProfilerStage stage,
                                     boolean unifiedPipeline,
                                     FakeTransportService transportService,
                                     FakeMemoryService memoryService,

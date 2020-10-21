@@ -63,7 +63,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import java.io.File;
@@ -1553,7 +1553,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testMemoryLiveAllocationIsDisabledIfApplicable() throws InterruptedException {
     // Initialize all conditions to false.
-    myServices.getPersistentProfilerPreferences().setInt(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
+    myServices.getPersistentProfilerPreferences().setInt(MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
     myServices.enableLiveAllocationsSampling(false);
     addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
     ProfilingConfiguration config = new ArtInstrumentedConfiguration("My Instrumented Config");
@@ -1627,10 +1627,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
       assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
-                   .getLastSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+                   .getLastSamplingRate()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
     }
     else {
-      assertThat(myMemoryService.getSamplingRate()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
+      assertThat(myMemoryService.getSamplingRate()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
     }
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
     if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {

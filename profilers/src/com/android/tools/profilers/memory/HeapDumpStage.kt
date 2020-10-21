@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.adtui.model.Timeline
-import com.android.tools.profilers.Stage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import java.util.concurrent.Executor
@@ -36,7 +34,7 @@ class HeapDumpStage(profilers: StudioProfilers,
     loader.stop()
   }
 
-  override fun getParentStage() = MemoryProfilerStage(studioProfilers, loader)
-  override fun getHomeStageClass() = MemoryProfilerStage::class.java
+  override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
+  override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
   override fun isInteractingWithTimeline() = false
 }

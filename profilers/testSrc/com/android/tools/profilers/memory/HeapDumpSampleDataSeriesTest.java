@@ -54,13 +54,13 @@ public class HeapDumpSampleDataSeriesTest {
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myTransportService, myService);
 
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
 
   @Before
   public void setUp() {
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, new FakeTimer()),
-                              new FakeCaptureObjectLoader());
+      new MainMemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, new FakeTimer()),
+                                  new FakeCaptureObjectLoader());
   }
 
   @Test

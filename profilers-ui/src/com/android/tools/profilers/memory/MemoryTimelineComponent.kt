@@ -70,7 +70,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class MemoryTimelineComponent(stageView: MemoryProfilerStageView, timeAxis: JComponent)
+class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent)
       : JBPanel<MemoryTimelineComponent>(TabularLayout("*")) {
   private val stage = stageView.stage
   val rangeSelectionComponent = makeRangeSelectionComponent()
@@ -290,7 +290,7 @@ class MemoryTimelineComponent(stageView: MemoryProfilerStageView, timeAxis: JCom
   }
 }
 
-private class FlexibleLegendPanel(stage: MemoryProfilerStage, lineChart: LineChart): JBPanel<FlexibleLegendPanel>(BorderLayout()) {
+private class FlexibleLegendPanel(stage: MainMemoryProfilerStage, lineChart: LineChart): JBPanel<FlexibleLegendPanel>(BorderLayout()) {
   private val fullLegend = makeLegendComponent(stage, lineChart, true)
   private val compactLegend = makeLegendComponent(stage, lineChart, false)
   init {
@@ -309,7 +309,7 @@ private class FlexibleLegendPanel(stage: MemoryProfilerStage, lineChart: LineCha
   }
 
   private companion object {
-    private fun makeLegendComponent(stage: MemoryProfilerStage, lineChart: LineChart, full: Boolean): LegendComponent {
+    private fun makeLegendComponent(stage: MainMemoryProfilerStage, lineChart: LineChart, full: Boolean): LegendComponent {
       val legends = stage.legends
       val memoryUsage = stage.detailedMemoryUsage
       return LegendComponent.Builder(legends)

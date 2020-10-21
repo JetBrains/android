@@ -37,15 +37,13 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
-import com.android.tools.profilers.memory.CaptureSelectionAspect;
-import com.android.tools.profilers.memory.MemoryCaptureSelection;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -441,6 +439,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                                                                 .setStreamId(mySession.getStreamId())
                                                                                 .setId(Long.toString(myHeapDumpInfo.getStartTime()))
                                                                                 .build());
-    return MemoryProfilerStage.canSafelyLoadHprof(response.getSerializedSize());
+    return MainMemoryProfilerStage.canSafelyLoadHprof(response.getSerializedSize());
   }
 }

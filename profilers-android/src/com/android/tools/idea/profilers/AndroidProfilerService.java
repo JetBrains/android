@@ -33,7 +33,7 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -107,16 +107,16 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
       if (shouldEnableMemoryLiveAllocation(runConfig)) {
         liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
-          IntellijProfilerPreferences.getProfilerPropertyName(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+          IntellijProfilerPreferences.getProfilerPropertyName(MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
+          MainMemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
       }
       else {
-        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+        liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
       }
     }
     else {
       // Sampling feature is disabled, use full mode.
-      liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+      liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
     }
     configBuilder
       .setCommon(

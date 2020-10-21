@@ -43,7 +43,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull private final DurationDataModel<GcDurationData> myGcDurations;
   @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
 
-  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull MemoryProfilerStage memoryProfilerStage) {
+  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull MainMemoryProfilerStage memoryProfilerStage) {
     super(profilers);
 
     myProfilers = profilers;
