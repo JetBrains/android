@@ -33,10 +33,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRe
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -91,7 +87,7 @@ public class MemoryProfiler extends StudioProfiler {
 
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                               () -> {
-                                                MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers);
+                                                MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers);
                                                 myProfilers.setStage(stage);
                                                 stage.setPendingCaptureStartTimeGuarded(myProfilers.getSession().getStartTimestamp());
                                                 StreamingTimeline timeline = myProfilers.getTimeline();
@@ -339,7 +335,7 @@ public class MemoryProfiler extends StudioProfiler {
                                            profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
     List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForRange(new Range(startTimeUs, endTimeUs));
     return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRate().getSamplingNumInterval() ==
-                                        MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+                                        MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }
 
   public static void saveHeapDumpToFile(@NotNull ProfilerClient client,

@@ -59,7 +59,7 @@ import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfiler;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -254,7 +254,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           setStage(new CpuProfilerStage(this));
         }
         else if (startupMemoryProfilingStarted()) {
-          setStage(new MemoryProfilerStage(this));
+          setStage(new MainMemoryProfilerStage(this));
         }
       }
       else {
@@ -920,7 +920,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public List<Class<? extends Stage>> getDirectStages() {
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
-    listBuilder.add(MemoryProfilerStage.class);
+    listBuilder.add(MainMemoryProfilerStage.class);
     listBuilder.add(NetworkProfilerStage.class);
     // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
     boolean hasSession = mySelectedSession.getSessionId() != 0;
@@ -969,8 +969,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
         isAgentAttached()) {
       int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
-        MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-      int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+        MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+      int samplingRateOff = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
       // If live allocation is already disabled, don't send any request.
       if (savedSamplingRate != samplingRateOff) {
         MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder()

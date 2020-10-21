@@ -30,7 +30,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
 import org.junit.Assume
@@ -82,8 +82,8 @@ class SessionItemTest(newPipeline: Boolean) {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
 
     // Navigate to a random stage, and make sure selecting the session item will go back to StudioMonitorStage.
-    myProfilers.stage = MemoryProfilerStage(myProfilers)
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    myProfilers.stage = MainMemoryProfilerStage(myProfilers)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
     Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
@@ -117,13 +117,13 @@ class SessionItemTest(newPipeline: Boolean) {
     val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
     sessionsManager.update()
     sessionsManager.setSession(session)
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
 
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
     // Selecting a memory capture session should not navigate to StudioMonitorStage
-    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
   }
 
   @Test

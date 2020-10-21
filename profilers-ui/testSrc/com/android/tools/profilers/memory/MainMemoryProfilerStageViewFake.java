@@ -21,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class MemoryProfilerStageViewFake extends MemoryProfilerStageView {
-  public MemoryProfilerStageViewFake(@NotNull StudioProfilersView profilersView,
-                                     @NotNull MemoryProfilerStage stage) {
+public class MainMemoryProfilerStageViewFake extends MainMemoryProfilerStageView {
+  public MainMemoryProfilerStageViewFake(@NotNull StudioProfilersView profilersView,
+                                         @NotNull MainMemoryProfilerStage stage) {
     super(profilersView, stage);
   }
 

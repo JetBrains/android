@@ -33,7 +33,7 @@ import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryClassifierView
 import com.android.tools.profilers.memory.MemoryObjectTreeNode
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
@@ -58,7 +58,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   private val ideServices = FakeIdeProfilerServices()
   private val timer = FakeTimer()
   private lateinit var profilers: StudioProfilers
-  private lateinit var stage: MemoryProfilerStage
+  private lateinit var stage: MainMemoryProfilerStage
   private val capture = FakeCaptureObject.Builder().build()
   private lateinit var view: MemoryClassifierView
 
@@ -74,7 +74,9 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   @Before
   fun init() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
-    stage = MemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply { setReturnImmediateFuture(true) })
+    stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply {
+      setReturnImmediateFuture(true)
+    })
   }
 
   @Test

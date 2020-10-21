@@ -54,7 +54,7 @@ public final class AllocationInfosDataSeriesTest {
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocationInfosDataSeriesTest", myTransportService, myService);
 
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
 
   private final boolean myNewEventPipeline;
 
@@ -66,8 +66,8 @@ public final class AllocationInfosDataSeriesTest {
   @Before
   public void setUp() {
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, new FakeTimer()),
-                              new FakeCaptureObjectLoader());
+      new MainMemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, new FakeTimer()),
+                                  new FakeCaptureObjectLoader());
   }
 
   @Test

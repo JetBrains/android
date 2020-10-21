@@ -50,7 +50,7 @@ class MemoryUsageTooltipView extends TooltipView {
       legend.configure(legends.getGcDurationLegend(), new LegendConfig(IconType.NONE, ProfilerColors.MEMORY_OBJECTS_CAPTURED));
       legend.configure(legends.getSamplingRateDurationLegend(),
                        new LegendConfig(legendStr -> MemoryTimelineComponent.getIconForSamplingMode(
-                         MemoryProfilerStage.LiveAllocationSamplingMode.getModeFromDisplayName(legendStr)),
+                         MainMemoryProfilerStage.LiveAllocationSamplingMode.getModeFromDisplayName(legendStr)),
                                         ProfilerColors.TRANSPARENT_COLOR));
     }
     else {

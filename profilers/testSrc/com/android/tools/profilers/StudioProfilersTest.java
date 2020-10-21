@@ -37,7 +37,7 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
@@ -560,7 +560,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getProcess().getPid()).isEqualTo(20);
     assertThat(myProfilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
   }
 
   @Test
@@ -1210,7 +1210,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When energy flag is enabled and device is O, GetDirectStages returns Energy stage.
@@ -1222,7 +1222,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
@@ -1232,7 +1232,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
@@ -1241,7 +1241,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       CustomEventProfilerStage.class).inOrder();
 
@@ -1251,7 +1251,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
   }
 
@@ -1276,7 +1276,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When energy flag is enabled and the session is O, GetDirectStages returns Energy stage.
@@ -1296,7 +1296,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
@@ -1305,7 +1305,7 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
   }
 

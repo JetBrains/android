@@ -28,7 +28,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.StudioProfilersViewTest
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
@@ -41,7 +40,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
-import kotlin.streams.toList
 
 class CapturePanelTest {
 
@@ -83,7 +81,7 @@ class CapturePanelTest {
     insts.forEach { allHeap.addDeltaInstanceObject(it) }
 
 
-    val stage = MemoryProfilerStage(profilers, FakeCaptureObjectLoader())
+    val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
     val selection = MemoryCaptureSelection(profilers.ideServices)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val panel = CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange,

@@ -43,7 +43,7 @@ import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
@@ -102,7 +102,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(StudioMonitorStage.class, AndroidProfilerEvent.Stage.OVERVIEW_STAGE)
       .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
       .put(CpuCaptureStage.class, AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE)
-      .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
+      .put(MainMemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
       .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
       .build();
