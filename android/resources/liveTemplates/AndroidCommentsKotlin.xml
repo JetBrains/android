@@ -13,8 +13,12 @@
     <variable name="date" expression="date()" defaultValue="" alwaysStopAt="false" />
     <variable name="todo" expression="" defaultValue="" alwaysStopAt="true" />
     <context>
-      <option name="KOTLIN" value="true" />
-      <option name="KOTLIN_COMMENT" value="false" />
+      <!--"KOTLIN" scope is not declared as a workaround for https://youtrack.jetbrains.com/issue/KTIJ-386 -->
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+      <option name="KOTLIN_CLASS" value="true" />
+      <option name="KOTLIN_STATEMENT" value="true" />
+      <option name="KOTLIN_EXPRESSION" value="true" />
     </context>
   </template>
   <template name="fixme" value="// FIXME: $date$ $todo$ " description="adds // FIXME" toReformat="true" toShortenFQNames="true">
@@ -35,8 +39,12 @@
   </template>
   <template name="noop" value="/* no-op */" description="indicate that a method does not have any operations" toReformat="true" toShortenFQNames="true">
     <context>
-      <option name="KOTLIN" value="true" />
-      <option name="KOTLIN_COMMENT" value="false" />
+      <!--"KOTLIN" scope is not declared as a workaround for https://youtrack.jetbrains.com/issue/KTIJ-386 -->
+      <option name="KOTLIN_TOPLEVEL" value="true" />
+      <option name="KOTLIN_OBJECT_DECLARATION" value="true" />
+      <option name="KOTLIN_CLASS" value="true" />
+      <option name="KOTLIN_STATEMENT" value="true" />
+      <option name="KOTLIN_EXPRESSION" value="true" />
     </context>
   </template>
 </templateSet>
