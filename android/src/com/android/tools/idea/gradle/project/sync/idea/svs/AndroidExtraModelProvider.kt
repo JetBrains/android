@@ -111,7 +111,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         val modules: List<GradleModule> =
           when (syncOptions) {
             is SyncProjectActionOptions -> {
-              populateAndroidModels(syncOptions, buildFolderPaths)
+              populateAndroidModels(syncOptions)
             }
             is NativeVariantsSyncActionOptions -> {
               consumer.consume(buildModels.first(), controller.getModel(IdeaProject::class.java), IdeaProject::class.java)
@@ -149,7 +149,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
      * All of the requested models are registered back to the external project system via the
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
-    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions, buildFolderPaths: BuildFolderPaths): List<AndroidModule> {
+    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<AndroidModule> {
       val isFullSync = when (syncOptions) {
         is FullSyncActionOptions -> true
         is SingleVariantSyncActionOptions -> false
@@ -384,10 +384,13 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val module = modulesById[moduleConfiguration.id]
                    ?: return null
       val variant = syncAndAddVariant(module, moduleConfiguration.variant) ?: return null
+      val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
+      if (abiToRequest != null) {
+        syncAndAddNativeVariantAbi(module, variant.name, abiToRequest)
+      }
       val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, variant)
       val variantDiffChange = VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails,
                                                                                    base = selectedVariantDetails)
-      val abi = syncAndAddNativeVariantAbi(module, variant.name, moduleConfiguration.abi)
 
       fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
         val dependencyModule = modulesById[dependencyModuleId] ?: return null
@@ -401,7 +404,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         // Make sure the variant name we guessed in fact exists.
         if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
 
-        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abi)
+        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToRequest)
       }
 
       fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
@@ -410,7 +413,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
           val dependencyModuleId = createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
           val dependencyVariant = moduleDependency.variant
           if (dependencyVariant != null) {
-            ModuleConfiguration(dependencyModuleId, dependencyVariant, abi)
+            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToRequest)
           }
           else {
             propagateVariantSelectionChangeFallback(dependencyModuleId)
@@ -433,13 +436,6 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       return (generateDirectModuleDependencies() + generateDynamicFeatureDependencies())
     }
 
-    /**
-     * Query Gradle for the [Variant] of the [module] with the given [variantName]. Gradle's parameterized tooling API is used in order
-     * to pass the name of the variant and whether or not sources should be generated to the ModelBuilder via the [ModelBuilderParameter].
-     *
-     * @param[module] the module to request a [Variant] for
-     * @param[variantName] the name of the [Variant] that should be requested
-     */
     private fun syncAndAddVariant(
       module: AndroidModule,
       variantName: String
@@ -450,33 +446,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       return variant?.let { module.addVariant(modelCache.variantFrom(it, module.modelVersion)) }
     }
 
-    /**
-     * Query Gradle for the abi name of the [module] with the given [variantName]. Gradle's parameterized tooling API is used in order
-     * to pass the name of the variant and the abi name to the ModelBuilder via the [ModelBuilderParameter].
-     *
-     * If the passed [module] doesn't have a NativeAndroidProject then this method does nothing.
-     *
-     * @param[module] the module to request a [Variant] for
-     * @param[variantName] the name of the [Variant] that should be requested
-     * @param[selectedAbi] which abi to select, if null or the abi doesn't exist a default will be picked. This default will be "x86" if
-     *                     it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
-     *                     chosen.
-     */
     private fun syncAndAddNativeVariantAbi(
       module: AndroidModule,
       variantName: String,
-      selectedAbi: String?
-    ): String? {
-      // This module is not a native one, nothing to do
-      if (module.nativeModelVersion == NativeModelVersion.None) return null
-
-      // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
-      // Otherwise return from this method with a null result as abis are not supported.
-      val abiNames = module.getVariantAbiNames(variantName) ?: return null
-
-      val abiToRequest = (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-                         ?: throw AndroidSyncException("No valid Native abi found to request!")
-
+      abiToRequest: String
+    ) {
       if (module.nativeModelVersion == NativeModelVersion.V2) {
         // V2 model is available, trigger the sync with V2 API
         controller.findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
@@ -493,7 +467,22 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
           module.addNativeVariant(modelCache.nativeVariantAbiFrom(it))
         }
       }
-      return abiToRequest
+    }
+
+    private fun chooseAbiToRequest(
+      module: AndroidModule,
+      variantName: String,
+      selectedAbi: String?
+    ): String? {
+      // This module is not a native one, nothing to do
+      if (module.nativeModelVersion == NativeModelVersion.None) return null
+
+      // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
+      // Otherwise return from this method with a null result as abis are not supported.
+      val abiNames = module.getVariantAbiNames(variantName) ?: return null
+
+      return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
+             ?: throw AndroidSyncException("No valid Native abi found to request!")
     }
   }
 }
