@@ -61,11 +61,9 @@ kotlin_test(
     ]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.performance.jar"],
     test_class = "com.android.testutils.JarTestSuite",
-    runtime_deps = [
-        ":intellij.android.profilers_testlib",
-    ],
     deps = [
         ":intellij.android.profilers",
+        ":intellij.android.profilers_testlib",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
         "//tools/adt/idea/android-transport:intellij.android.transport",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
