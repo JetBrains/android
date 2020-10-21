@@ -266,7 +266,7 @@ object AndroidAttributeFact {
       "flow_firstHorizontalStyle" -> return NelePropertyType.ENUM
       "flow_firstVerticalBias" -> return NelePropertyType.FLOAT
       "flow_firstVerticalStyle" -> return NelePropertyType.ENUM
-      "flow_horizontalAlign" -> return NelePropertyType.FLOAT  // This should be ENUM, see b/168495397
+      "flow_horizontalAlign" -> return NelePropertyType.ENUM
       "flow_horizontalBias" -> return NelePropertyType.FLOAT
       "flow_horizontalGap" -> return NelePropertyType.DIMENSION
       "flow_horizontalStyle" -> return NelePropertyType.ENUM
