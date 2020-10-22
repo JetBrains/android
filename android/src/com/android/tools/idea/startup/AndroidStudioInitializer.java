@@ -27,6 +27,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
@@ -169,24 +170,12 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());
-    UsageTracker.setIdeBrand(getIdeBrand());
+    UsageTracker.setIdeBrand(IdeBrandProviderKt.currentIdeBrand());
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.subscribeToEvents();
     new GcPauseWatcher();
-  }
-
-  private static AndroidStudioEvent.IdeBrand getIdeBrand() {
-    if (IdeInfo.isGameTool()) {
-      return AndroidStudioEvent.IdeBrand.GAME_TOOLS;
-    }
-    // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
-    // builds, it is just "G3Plugins"
-    boolean isAswb = Arrays.stream(PluginManagerCore.getPlugins())
-      .filter(plugin -> plugin.isBundled())
-      .anyMatch(plugin -> plugin.getName().contains("G3Plugins") || plugin.getName().contains("Blaze"));
-    return isAswb ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {

@@ -874,6 +874,8 @@
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ndk.nativeWorkspaceProvider"
                     interface="com.android.tools.idea.ndk.NativeWorkspaceProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.analytics.ideBrandProvider"
+                    interface="com.android.tools.idea.analytics.IdeBrandProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
