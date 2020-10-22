@@ -80,17 +80,17 @@ class AppInspectorTabLaunchSupportTest {
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
       TestAppInspectorCommandHandler(timer, getLibraryVersionsResponse = { getLibraryVersionsCommand ->
-        AppInspection.GetLibraryVersionsResponse.newBuilder().addAllResponses(
-          getLibraryVersionsCommand.targetVersionsList.map {
-            if (it.minVersion == "INCOMPATIBLE") {
-              AppInspection.LibraryVersionResponse.newBuilder().setStatus(
-                AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE)
-                .setVersionFileName(it.versionFileName).setVersion(it.minVersion).build()
+        AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(
+          getLibraryVersionsCommand.targetLibrariesList.map { coordinate ->
+            if (coordinate.version == "INCOMPATIBLE") {
+              AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
+                AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
+                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
             }
             else {
-              AppInspection.LibraryVersionResponse.newBuilder().setStatus(
-                AppInspection.LibraryVersionResponse.Status.COMPATIBLE)
-                .setVersionFileName(it.versionFileName).setVersion(it.minVersion).build()
+              AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
+                AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
+                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
             }
           }.toList()).build()
       }))

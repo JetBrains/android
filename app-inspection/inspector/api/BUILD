@@ -14,5 +14,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/.idea/libraries:transport-proto",
     ],
 )

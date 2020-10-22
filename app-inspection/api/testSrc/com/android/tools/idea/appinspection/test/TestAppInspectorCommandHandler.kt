@@ -35,7 +35,8 @@ import com.android.tools.profiler.proto.Common
  */
 class TestAppInspectorCommandHandler(
   timer: FakeTimer,
-  private val getLibraryVersionsResponse: ((AppInspection.GetLibraryVersionsCommand) -> AppInspection.GetLibraryVersionsResponse)? = null,
+  private val getLibraryVersionsResponse: ((AppInspection.GetLibraryCompatibilityInfoCommand) ->
+  AppInspection.GetLibraryCompatibilityInfoResponse)? = null,
   private val rawInspectorResponse: (() -> AppInspection.AppInspectionResponse)? = null,
   private val disposeInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_DISPOSE_INSPECTOR_RESPONSE,
   private val createInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_CREATE_INSPECTOR_RESPONSE
@@ -70,13 +71,13 @@ class TestAppInspectorCommandHandler(
           )
         )
       }
-      command.appInspectionCommand.hasGetLibraryVersionsCommand() -> {
+      command.appInspectionCommand.hasGetLibraryCompatibilityInfoCommand() -> {
         events.add(
           createResponse(command,
                          AppInspection.AppInspectionResponse.newBuilder()
                            .setCommandId(command.appInspectionCommand.commandId)
-                           .setLibraryVersionsResponse(
-                             getLibraryVersionsResponse?.let { it(command.appInspectionCommand.getLibraryVersionsCommand) }
+                           .setGetLibraryCompatibilityResponse(
+                             getLibraryVersionsResponse?.let { it(command.appInspectionCommand.getLibraryCompatibilityInfoCommand) }
                              ?: getDefaultLibraryVersionsResponse(command)
                            )
                            .build()
@@ -96,12 +97,12 @@ private val DEFAULT_DISPOSE_INSPECTOR_RESPONSE = {
     .setDisposeInspectorResponse(AppInspection.DisposeInspectorResponse.getDefaultInstance()).build()
 }
 
-private fun getDefaultLibraryVersionsResponse(command: Commands.Command): AppInspection.GetLibraryVersionsResponse {
-  val responses = command.appInspectionCommand.getLibraryVersionsCommand.targetVersionsList.map { target ->
-    AppInspection.LibraryVersionResponse.newBuilder().setVersionFileName(target.versionFileName).setVersion(target.minVersion).setStatus(
-      AppInspection.LibraryVersionResponse.Status.COMPATIBLE).build()
+private fun getDefaultLibraryVersionsResponse(command: Commands.Command): AppInspection.GetLibraryCompatibilityInfoResponse {
+  val responses = command.appInspectionCommand.getLibraryCompatibilityInfoCommand.targetLibrariesList.map { target ->
+    AppInspection.LibraryCompatibilityInfo.newBuilder().setTargetLibrary(target).setStatus(
+      AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE).build()
   }
-  return AppInspection.GetLibraryVersionsResponse.newBuilder()
+  return AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
     .addAllResponses(responses).build()
 }
 

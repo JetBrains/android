@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryVersionResponse
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 
 /**
@@ -39,10 +39,10 @@ abstract class AppInspectionTarget {
   internal abstract suspend fun dispose()
 
   /**
-   * For each of the provided target, check its version compatibility and returns the result in [LibraryVersionResponse].
+   * For each of the provided target, check its version compatibility and returns the result in [LibraryCompatbilityInfo].
    *
-   * The version check result can be in several different states. See [LibraryVersionResponse.Status] for details.
+   * The version check result can be in several different states. See [LibraryCompatbilityInfo.Status] for details.
    */
   @WorkerThread
-  abstract suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryVersionResponse>
+  abstract suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo>
 }
