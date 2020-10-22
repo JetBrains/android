@@ -73,6 +73,13 @@ object AppInspectionTestUtils {
     project: String = TEST_PROJECT
   ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_ARTIFACT)
 
+  fun createArtifactCoordinate(
+    groupId: String,
+    artifactId: String,
+    version: String,
+    type: ArtifactCoordinate.Type = ArtifactCoordinate.Type.JAR
+  ) = ArtifactCoordinate(groupId, artifactId, version, type)
+
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.
    */

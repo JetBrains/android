@@ -23,8 +23,9 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.process.toTransportImpl
-import com.android.tools.idea.appinspection.internal.toLibraryVersionResponse
+import com.android.tools.idea.appinspection.internal.toLibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createArtifactCoordinate
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeLaunchParameters
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -200,23 +201,23 @@ class AppInspectionTargetTest {
 
     // The fake response to be manually sent.
     val fakeLibraryVersionsResponse = listOf(
-      AppInspection.LibraryVersionResponse.newBuilder()
-        .setStatus(AppInspection.LibraryVersionResponse.Status.COMPATIBLE)
-        .setVersionFileName("1st_file.version")
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
+        .setTargetLibrary(createArtifactCoordinate("1st", "file", "1.0.0").toArtifactCoordinateProto())
         .build(),
-      AppInspection.LibraryVersionResponse.newBuilder()
-        .setStatus(AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE)
-        .setVersionFileName("2nd_file.version")
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
+        .setTargetLibrary(createArtifactCoordinate("2nd", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("incompatible")
         .build(),
-      AppInspection.LibraryVersionResponse.newBuilder()
-        .setStatus(AppInspection.LibraryVersionResponse.Status.LIBRARY_MISSING)
-        .setVersionFileName("3rd_file.version")
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING)
+        .setTargetLibrary(createArtifactCoordinate("3rd", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("missing")
         .build(),
-      AppInspection.LibraryVersionResponse.newBuilder()
-        .setStatus(AppInspection.LibraryVersionResponse.Status.SERVICE_ERROR)
-        .setVersionFileName("4th_file.version")
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.SERVICE_ERROR)
+        .setTargetLibrary(createArtifactCoordinate("4th", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("error")
         .build()
     )
@@ -225,7 +226,7 @@ class AppInspectionTargetTest {
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-          if (command.appInspectionCommand.hasGetLibraryVersionsCommand()) {
+          if (command.appInspectionCommand.hasGetLibraryCompatibilityInfoCommand()) {
             // Reply with fake response.
             events.add(
               Common.Event.newBuilder()
@@ -237,8 +238,8 @@ class AppInspectionTargetTest {
                 .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
                                             .setCommandId(command.appInspectionCommand.commandId)
                                             .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-                                            .setLibraryVersionsResponse(
-                                              AppInspection.GetLibraryVersionsResponse.newBuilder().addAllResponses(
+                                            .setGetLibraryCompatibilityResponse(
+                                              AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(
                                                 fakeLibraryVersionsResponse
                                               )
                                             )
@@ -274,6 +275,6 @@ class AppInspectionTargetTest {
     // Verify response.
     val responses = appInspectionRule.apiServices.attachToProcess(process, TEST_PROJECT).getLibraryVersions(targets)
     assertThat(responses).containsExactlyElementsIn(
-      fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryVersionResponse(targets[i]) })
+      fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryCompatibilityInfo(targets[i]) })
   }
 }
