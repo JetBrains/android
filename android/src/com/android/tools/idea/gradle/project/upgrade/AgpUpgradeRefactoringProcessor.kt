@@ -1452,7 +1452,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
             // if enableNdk is true (not false or null/non-existent), remove it ...
             run {
               val psiElement = model.crashlytics().enableNdk().psiElement ?: model.crashlytics().psiElement ?: modelPsiElement
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO)
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE)
               val usageInfo = RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, model)
               usages.add(usageInfo)
             }
@@ -1460,7 +1460,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
             run {
               val releaseBuildType = model.android().buildTypes().first { it.name() == "release" }
               val psiElement = releaseBuildType.psiElement ?: model.android().psiElement ?: modelPsiElement
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD)
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE)
               val usageInfo = AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, releaseBuildType)
               usages.add(usageInfo)
             }
@@ -1528,8 +1528,8 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 
     val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricNdkUsageType"))
     val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNdkUsageType"))
-    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_INFO = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageInfoUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUpload"))
+    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUploadUsageType"))
   }
 }
 
