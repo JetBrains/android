@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.tests
 
-package com.android.tools.tests;
+import com.android.testutils.JarTestSuiteRunner
+import com.android.testutils.JarTestSuiteRunner.ExcludeClasses
+import com.android.tools.tests.ComposeTestSuite
+import org.junit.runner.RunWith
 
-import com.android.testutils.JarTestSuiteRunner;
-import org.junit.runner.RunWith;
-
-@RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(ComposeTestSuite.class)  // a suite mustn't contain itself
-public class ComposeTestSuite extends IdeaTestSuiteBase {
+@RunWith(JarTestSuiteRunner::class)
+@ExcludeClasses(ComposeTestSuite::class) // a suite mustn't contain itself
+class ComposeTestSuite : IdeaTestSuiteBase() {
+  companion object {
+    init {
+      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+      unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip")
+    }
+  }
 }
