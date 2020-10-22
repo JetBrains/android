@@ -17,6 +17,7 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.idea.ServerFlag
+import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.Message
 
 class ServerFlagServiceImpl(override val configurationVersion: Long, private val flags: Map<String, ServerFlag>) : ServerFlagService {
@@ -54,12 +55,21 @@ class ServerFlagServiceImpl(override val configurationVersion: Long, private val
     return flag.booleanValue
   }
 
-  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): Message {
+  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T {
     val flag = flags[name] ?: return defaultInstance
     if (!flag.hasProtoValue()) {
       throw IllegalArgumentException(name)
     }
-    return defaultInstance.parserForType.parseFrom(flag.protoValue)
+
+    val any = flag.protoValue ?: return defaultInstance
+
+    return try {
+      @Suppress("UNCHECKED_CAST")
+      defaultInstance.parserForType.parseFrom(any.value) as T
+    }
+    catch (e: InvalidProtocolBufferException) {
+      return defaultInstance
+    }
   }
 
   override fun toString(): String {

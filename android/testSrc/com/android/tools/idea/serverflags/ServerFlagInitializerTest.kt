@@ -18,9 +18,11 @@ package com.android.tools.idea.serverflags
 import com.android.tools.idea.ServerFlag
 import com.android.tools.idea.ServerFlagData
 import com.android.tools.idea.ServerFlagList
+import com.android.tools.idea.ServerFlagTest
 import com.android.utils.FileUtils
 import com.google.common.base.Charsets
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Any
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createFile
 import com.sun.net.httpserver.HttpExchange
@@ -36,6 +38,9 @@ import java.util.concurrent.Executors
 private const val FILE_NAME = "serverflaglist.protobuf"
 private const val VERSION = "4.2.0.0"
 private val EXPERIMENTS = listOf("boolean", "int")
+private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
+  content = "content"
+}.build()
 
 class ServerFlagInitializerTest : TestCase() {
   lateinit var testDirectoryPath: Path
@@ -171,6 +176,12 @@ class ServerFlagInitializerTest : TestCase() {
       ServerFlag.newBuilder().apply {
         percentEnabled = 100
         stringValue = "foo"
+      }.build(),
+      ServerFlag.newBuilder().apply {
+        percentEnabled = 100
+        protoValue = Any.pack(ServerFlagTest.newBuilder().apply {
+          content = "content"
+        }.build())
       }.build()
     )
 
@@ -178,7 +189,8 @@ class ServerFlagInitializerTest : TestCase() {
       makeServerFlagData("boolean", flags[0]),
       makeServerFlagData("int", flags[1]),
       makeServerFlagData("float", flags[2]),
-      makeServerFlagData("string", flags[3])
+      makeServerFlagData("string", flags[3]),
+      makeServerFlagData("proto", flags[4])
     )
 
     val builder = ServerFlagList.newBuilder().apply {
@@ -197,6 +209,7 @@ class ServerFlagInitializerTest : TestCase() {
       assertThat(getInt("int")).isEqualTo(1)
       assertThat(getFloat("float")).isNull()
       assertThat(getFloat("string")).isNull()
+      assertThat(getProtoMessage(name, TEST_PROTO).content).isEqualTo("content")
     }
 
     val actual = loadServerFlagList(localPath)

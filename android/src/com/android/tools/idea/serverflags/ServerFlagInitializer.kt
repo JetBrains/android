@@ -30,6 +30,7 @@ import java.net.URL
 import java.nio.file.Path
 import kotlin.math.abs
 
+
 const val FILE_NAME = "serverflaglist.protobuf"
 const val DIRECTORY_PREFIX = "serverflags"
 const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/"
@@ -57,8 +58,7 @@ class ServerFlagInitializer {
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
       val names = ServerFlagService.instance.names
       val string = names.joinToString()
-      logger.info("Enabled server flags: " + string)
-
+      logger.info("Enabled server flags: $string")
     }
 
     /**
@@ -150,10 +150,10 @@ private val ServerFlagData.isEnabled: Boolean
   }
 
 private val ApplicationInfo.versionString: String
-get()  {
-  val major = majorVersion ?: return ""
-  val minor = minorVersion ?: return ""
-  val micro = microVersion ?: return ""
-  val patch = patchVersion ?: return ""
-  return "$major.$minor.$micro.$patch"
-}
+  get() {
+    val major = majorVersion ?: return ""
+    val minor = minorVersion ?: return ""
+    val micro = microVersion ?: return ""
+    val patch = patchVersion ?: return ""
+    return "$major.$minor.$micro.$patch"
+  }

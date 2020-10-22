@@ -32,7 +32,7 @@ interface ServerFlagService {
   fun getFloat(name: String, defaultValue: Float): Float = getFloat(name) ?: defaultValue
   fun getBoolean(name: String, defaultValue: Boolean): Boolean = getBoolean(name) ?: defaultValue
 
-  fun <T : Message> getProtoMessage(name: String, defaultInstance: T): Message
+  fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T
 
   companion object {
     var instance : ServerFlagService = ServerFlagServiceEmpty()

@@ -42,7 +42,7 @@ class ServerFlagServiceEmpty : ServerFlagService {
     return null
   }
 
-  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): Message {
+  override fun <T : Message> getProtoMessage(name: String, defaultInstance: T): T {
     checkInternalDebugBuild()
     return defaultInstance
   }
