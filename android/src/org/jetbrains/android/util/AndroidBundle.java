@@ -16,6 +16,7 @@
 package org.jetbrains.android.util;
 
 import com.intellij.CommonBundle;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
@@ -46,5 +47,9 @@ public final class AndroidBundle {
 
   public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
     return CommonBundle.message(getBundle(), key, params);
+  }
+
+  public static Supplier<String> lazyMessage(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+    return () -> message(key, params);
   }
 }
