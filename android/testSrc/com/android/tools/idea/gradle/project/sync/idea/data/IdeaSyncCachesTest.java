@@ -21,6 +21,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGra
 import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -128,8 +129,13 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
     // Verify that libraries folder exists.
     assertExists(librariesFolderPath);
 
-    // Verify that after invalidating cache, libraries folder is deleted.
+    // Verify that after invalidating cache, libraries folder is deleted (only in Android Studio).
     myInvalidator.invalidateCaches();
-    assertDoesntExist(librariesFolderPath);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertDoesntExist(librariesFolderPath);
+    }
+    else {
+      assertExists(librariesFolderPath);
+    }
   }
 }
