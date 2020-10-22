@@ -152,7 +152,7 @@ public class RenderTask {
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
-  @NotNull private final RenderTaskContext myContext;
+  @NotNull private final RenderContext myContext;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -245,11 +245,10 @@ public class RenderTask {
       }
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
       myLocale = configuration.getLocale();
-      myContext = new RenderTaskContext(module.getProject(),
-                                        module,
-                                        configuration,
-                                        moduleInfo,
-                                        renderService.getPlatform(facet));
+      myContext = new RenderContext(module,
+                                    configuration,
+                                    moduleInfo,
+                                    renderService.getPlatform(facet));
       myDefaultQuality = quality;
       restoreDefaultQuality();
       myManifestProvider = manifestProvider;
@@ -563,7 +562,7 @@ public class RenderTask {
    */
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = context.getModule();
     if (module.isDisposed()) {
       return null;
@@ -1090,7 +1089,7 @@ public class RenderTask {
   public CompletableFuture<BufferedImage> renderDrawable(@NotNull ResourceValue drawableResourceValue) {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = getContext().getModule();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
@@ -1141,7 +1140,7 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = context.getModule();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
@@ -1267,7 +1266,7 @@ public class RenderTask {
 
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     ResourceResolver resolver = context.getConfiguration().getResourceResolver();
 
     myLayoutlibCallback.reset();
@@ -1314,7 +1313,7 @@ public class RenderTask {
    * Returns the context used in this render task. The context includes things like platform information, file or module.
    */
   @NotNull
-  public RenderTaskContext getContext() {
+  public RenderContext getContext() {
     return myContext;
   }
 

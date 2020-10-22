@@ -41,7 +41,6 @@ public class RenderResult {
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
   @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
   @NotNull private final ImagePool.Image myImage;
-  @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   @NotNull private final Map<Object, ResourceReference> myDefaultStyles;
@@ -50,12 +49,15 @@ public class RenderResult {
   @Nullable private final Object myValidatorResult;
   private final long myInflateDurationMs;
   private final long myRenderDurationMs;
+  private final boolean myHasRequestedCustomViews;
+  @Nullable private final RenderContext myRenderContext;
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
                          @NotNull Module module,
                          @NotNull RenderLogger logger,
-                         @Nullable RenderTask renderTask,
+                         @Nullable RenderContext renderContext,
+                         boolean hasRequestedCustomViews,
                          @NotNull Result renderResult,
                          @NotNull ImmutableList<ViewInfo> rootViews,
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
@@ -65,8 +67,8 @@ public class RenderResult {
                          @Nullable Object validatorResult,
                          long inflateDurationMs,
                          long renderDurationMs) {
-    myRenderTask = renderTask;
     myModule = module;
+    myRenderContext = renderContext;
     myFile = file;
     myLogger = logger;
     myRenderResult = renderResult;
@@ -78,6 +80,7 @@ public class RenderResult {
     myValidatorResult = validatorResult;
     myInflateDurationMs = inflateDurationMs;
     myRenderDurationMs = renderDurationMs;
+    myHasRequestedCustomViews = hasRequestedCustomViews;
   }
 
   /**
@@ -129,7 +132,8 @@ public class RenderResult {
       file,
       renderTask.getContext().getModule(),
       logger,
-      renderTask,
+      renderTask.getContext(),
+      renderTask.getLayoutlibCallback().isUsed(),
       session.getResult(),
       rootViews != null ? ImmutableList.copyOf(rootViews) : ImmutableList.of(),
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
@@ -156,7 +160,8 @@ public class RenderResult {
       myFile,
       myModule,
       myLogger,
-      myRenderTask,
+      myRenderContext,
+      myHasRequestedCustomViews,
       myRenderResult,
       myRootViews,
       mySystemRootViews,
@@ -178,7 +183,8 @@ public class RenderResult {
       myFile,
       myModule,
       myLogger,
-      myRenderTask,
+      myRenderContext,
+      myHasRequestedCustomViews,
       myRenderResult,
       myRootViews,
       mySystemRootViews,
@@ -226,6 +232,7 @@ public class RenderResult {
       module,
       logger != null ? logger : new RenderLogger(null, module),
       null,
+      false,
       errorResult,
       ImmutableList.of(),
       ImmutableList.of(),
@@ -269,8 +276,8 @@ public class RenderResult {
   }
 
   @Nullable
-  public RenderTask getRenderTask() {
-    return myRenderTask;
+  public RenderContext getRenderContext() {
+    return myRenderContext;
   }
 
   @NotNull
@@ -309,6 +316,13 @@ public class RenderResult {
   @NotNull
   public Map<Object, ResourceReference> getDefaultStyles() {
     return myDefaultStyles;
+  }
+
+  /**
+   * Returns whether the render has requested any custom views.
+   */
+  public boolean hasRequestedCustomViews() {
+    return myHasRequestedCustomViews;
   }
 
   @Override
