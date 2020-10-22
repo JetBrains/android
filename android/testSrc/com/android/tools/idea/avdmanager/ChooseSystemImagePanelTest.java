@@ -59,6 +59,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageDescription myAutomotivePsImageDescription;
   private Device myBigPhone;
   private Device myFoldable;
+  private Device myRollable;
   private Device myGapiPhoneDevice;
   private Device myPlayStorePhoneDevice;
   private Device mySmallTablet;
@@ -243,6 +244,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     // Get a big phone, a bigger foldable, and a small tablet
     myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");
     myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
+    myRollable = devMgr.getDevice("7.4in Rollable", "Generic");
     mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
 
     // Get an Automotive device
@@ -290,25 +292,31 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   public void testPhoneVsTablet() {
     assertFalse(DeviceDefinitionList.isTablet(myBigPhone));
     assertFalse(DeviceDefinitionList.isTablet(myFoldable));
+    assertFalse(DeviceDefinitionList.isTablet(myRollable));
     assertTrue(DeviceDefinitionList.isTablet(mySmallTablet));
     assertTrue(DeviceDefinitionList.isTablet(myFreeform));
   }
 
   public void testImageChosenForDevice() {
-      assertFalse(systemImageMatchesDevice(myWearImageDescription, myFoldable));
-      assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFoldable));
-      assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFoldable));
-      assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFoldable));
-      assertFalse(systemImageMatchesDevice(myWearImageDescription, myFreeform));
-      assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFreeform));
-      assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFreeform));
-      assertFalse(systemImageMatchesDevice(myGapi29ImageDescription, myFreeform));
-      assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(myWearImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFoldable));
+    assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(myWearImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(myGapiImageDescription, myRollable));
+    assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(myWearImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(myWear29ImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(myGapiImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(myGapi29ImageDescription, myFreeform));
+    assertTrue(systemImageMatchesDevice(myGapi30ImageDescription, myFreeform));
   }
 
   public void testDeviceType() {
     assertEquals("Phone", DeviceDefinitionList.getCategory(myBigPhone));
     assertEquals("Phone", DeviceDefinitionList.getCategory(myFoldable));
+    assertEquals("Phone", DeviceDefinitionList.getCategory(myRollable));
     assertEquals("Phone", DeviceDefinitionList.getCategory(myGapiPhoneDevice));
     assertEquals("Phone", DeviceDefinitionList.getCategory(myPlayStorePhoneDevice));
     assertEquals("Tablet", DeviceDefinitionList.getCategory(mySmallTablet));

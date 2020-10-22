@@ -27,6 +27,16 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_COUNT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_DEFAULTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_DIRECTION;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RADIUS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
+
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
@@ -989,6 +999,19 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_HINGE_AREAS, "0-1318-1080-1");
       hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
       hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
+    }
+    if (device.getId().equals("7.4in Rollable")) {
+      hardwareProperties.put(AVD_INI_ROLL, "yes");
+      hardwareProperties.put(AVD_INI_ROLL_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "3");
+      hardwareProperties.put(AVD_INI_ROLL_RANGES, "58.55-100");
+      hardwareProperties.put(AVD_INI_ROLL_DEFAULTS, "67.5");
+      hardwareProperties.put(AVD_INI_ROLL_RADIUS, "3");
+      hardwareProperties.put(AVD_INI_ROLL_DIRECTION, "1");
+      hardwareProperties.put(AVD_INI_ROLL_RESIZE_1_AT_POSTURE, "1");
+      hardwareProperties.put(AVD_INI_ROLL_RESIZE_2_AT_POSTURE, "2");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
+      hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
