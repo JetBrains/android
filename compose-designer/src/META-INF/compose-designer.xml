@@ -70,6 +70,14 @@
                      key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.PropKeysLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.no.label.parameter.set.name"
+                     level="WARNING"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
