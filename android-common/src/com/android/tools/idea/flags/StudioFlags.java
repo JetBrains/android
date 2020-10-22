@@ -956,6 +956,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION = Flag.create(
+    COMPOSE, "preview.animation.label.inspection",
+    "Enable 'label' parameter inspection of Compose animations PropKeys",
+    "If enabled, show a warning when the 'label' parameter of Compose animations PropKeys are not set.",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_LIVE_LITERALS = Flag.create(
     COMPOSE, "preview.live.literals",
     "Enable the live literals",
