@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.File;
@@ -65,8 +66,13 @@ public class IdeaSyncCachesInvalidatorTest extends AndroidGradleTestCase {
     // Verify that libraries folder exists.
     assertExists(librariesFolderPath);
 
-    // Verify that after invalidating cache, libraries folder is deleted.
+    // Verify that after invalidating cache, libraries folder is deleted only in Android Studio
     myInvalidator.invalidateCaches();
-    assertDoesntExist(librariesFolderPath);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertDoesntExist(librariesFolderPath);
+    }
+    else {
+      assertExists(librariesFolderPath);
+    }
   }
 }
