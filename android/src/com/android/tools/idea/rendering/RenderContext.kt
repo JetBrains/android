@@ -22,13 +22,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.sdk.AndroidPlatform
 
-class RenderTaskContext(
-  val project: Project,
+class RenderContext(
   val module: Module,
   val configuration: Configuration,
   moduleInfo: AndroidModuleInfo,
   val platform: AndroidPlatform?
 ) {
+  val project: Project
+    get() = module.project
   val minSdkVersion = moduleInfo.minSdkVersion
   val targetSdkVersion = moduleInfo.targetSdkVersion
   var folderType: ResourceFolderType? = null

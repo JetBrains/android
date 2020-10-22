@@ -412,7 +412,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.lang.Thread.run(Thread.java:680)\n");
       logger.error(null, null, throwable, null, null);
       //noinspection ConstantConditions
-      target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
+      target.set(render.getRenderContext().getConfiguration().getRealTarget());
 
       assertTrue(logger.hasProblems());
     };
@@ -651,7 +651,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logger.error(null, null, throwable, null, null);
 
       //noinspection ConstantConditions
-      target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
+      target.set(render.getRenderContext().getConfiguration().getRealTarget());
     };
 
     List<RenderErrorModel.Issue> issues =
