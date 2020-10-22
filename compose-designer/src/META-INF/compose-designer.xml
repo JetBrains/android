@@ -34,35 +34,40 @@
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     displayName="inspection.no.parameters.name"
+                     groupKey="inspection.group.name"
+                     key="inspection.no.parameters.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     displayName="inspection.no.composable.name"
+                     groupKey="inspection.group.name"
+                     key="inspection.no.composable.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     displayName="inspection.top.level.function"
+                     groupKey="inspection.group.name"
+                     key="inspection.top.level.function"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     displayName="inspection.dimension.limit.name"
+                     groupKey="inspection.group.name"
+                     key="inspection.dimension.limit.name"
                      level="WARNING"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     displayName="inspection.no.multiple.preview.provider.description"
+                     groupKey="inspection.group.name"
+                     key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
