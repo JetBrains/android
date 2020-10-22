@@ -1668,7 +1668,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           return;
       }
 
-      if (parent != null && parent.getChildren().length == 1 && parent.getChildren()[0] instanceof PsiWhiteSpace) {
+      // Avoid the next check for files. If they have not been loaded, getFirstChild will trigger a file load
+      // that can be expensive.
+      PsiElement firstChild = parent != null && !(parent instanceof PsiFile) ? parent.getFirstChild() : null;
+      if (firstChild instanceof PsiWhiteSpace && firstChild == parent.getLastChild()) {
         // This event is just adding white spaces.
         return;
       }
