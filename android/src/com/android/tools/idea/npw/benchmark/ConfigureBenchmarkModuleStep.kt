@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.verticalGap
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 
 class ConfigureBenchmarkModuleStep(
@@ -32,25 +33,23 @@ class ConfigureBenchmarkModuleStep(
 ) {
   override fun createMainPanel(): DialogPanel = panel {
     row {
-      cell {
-        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
 
     row {
       labelFor("Package name", packageName)
-      packageName()
+      packageName(pushX)
     }
 
     row {
       labelFor("Language", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
 
     row {
       labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo()
+      apiLevelCombo(growX)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
@@ -60,7 +59,7 @@ class ConfigureBenchmarkModuleStep(
         gradleKtsCheck()
       }
     }
-  }
+  }.withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
 }

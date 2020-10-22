@@ -178,52 +178,21 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     }
     coldBootAvd = mAvdManager.reloadAvd(coldBootAvd, log);
 
-    // Create a third AVD
-    String coldBootOnceName = "coldBootOnceAvd";
-    File coldBootOnceFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, coldBootOnceName, mFileOp, false);
-    AvdInfo coldBootOnceAvd = mAvdManager.createAvd(
-      coldBootOnceFolder,
-      coldBootOnceName,
-      mSystemImage,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      true,
-      false,
-      log);
-
-    // Modify the third AVD's config.ini file so the AVD does a single cold boot
-    File coldOnceConfigIniFile = new File(coldBootOnceFolder, "config.ini");
-    FileOpFileWrapper coldOnceConfigIniWrapper = new FileOpFileWrapper(coldOnceConfigIniFile,
-                                                                     mFileOp, false);
-    Map<String, String> coldOnceIniProperties = ProjectProperties.parsePropertyFile(coldOnceConfigIniWrapper, log);
-    coldOnceIniProperties.put(AVD_INI_FORCE_COLD_BOOT_MODE, "once");
-
-    try (OutputStreamWriter iniWriter = new OutputStreamWriter(mFileOp.newFileOutputStream(coldOnceConfigIniFile), Charsets.UTF_8)) {
-      for (Map.Entry<String, String> mapEntry : coldOnceIniProperties.entrySet()) {
-        iniWriter.write(String.format("%1$s=%2$s\n", mapEntry.getKey(), mapEntry.getValue()));
-      }
-    }
-    coldBootOnceAvd = mAvdManager.reloadAvd(coldBootOnceAvd, log);
-
     // Test all three AVDs using an Emulator that does not support fast boot
     String COLD_BOOT_COMMAND = "-no-snapstorage";
     String COLD_BOOT_ONCE_COMMAND = "-no-snapshot-load";
     GeneralCommandLine cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false , cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootOnceAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
@@ -232,17 +201,17 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Re-test all AVDs using an Emulator that DOES support fast boot
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false, cmdLine);
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootOnceAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
   }

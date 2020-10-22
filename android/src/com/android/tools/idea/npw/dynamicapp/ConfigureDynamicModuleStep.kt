@@ -35,6 +35,7 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -56,36 +57,32 @@ class ConfigureDynamicModuleStep(
   override fun createMainPanel(): DialogPanel = panel {
     row {
       labelFor("Base Application Module", baseApplication)
-      baseApplication()
+      baseApplication(growX)
     }
 
     row {
-      cell {
-        labelFor("Module name", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Module name", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
 
     row {
       labelFor("Package name", packageName)
-      packageName()
+      packageName(pushX)
     }
 
     row {
       labelFor("Language", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
 
     row {
       labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo()
+      apiLevelCombo(growX)
     }
 
     if (model.isInstant) {
       row {
-        cell {
-          labelFor("Module title", moduleTitle, "This may be visible to users")
-        }
+        labelFor("Module title", moduleTitle, "This may be visible to users")
         moduleTitle()
       }
     }
@@ -93,7 +90,6 @@ class ConfigureDynamicModuleStep(
     verticalGap()
 
     row {
-      // TODO(qumeric): labelFor?
       fusingCheckbox()
     }
 
@@ -102,7 +98,7 @@ class ConfigureDynamicModuleStep(
         gradleKtsCheck()
       }
     }
-  }
+  }.withBorder(empty(6))
 
   init {
     AndroidProjectInfo.getInstance(model.project)

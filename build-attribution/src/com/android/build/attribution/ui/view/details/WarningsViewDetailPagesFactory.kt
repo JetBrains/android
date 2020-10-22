@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
@@ -95,11 +96,11 @@ class WarningsViewDetailPagesFactory(
     val timeContribution = tasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
     val tableRows = tasksWithWarnings.map { (task, _) ->
       // TODO add warning count for the task to the table
-      "<td>${task.taskPath}</td><td>${task.executionTime.durationString()}</td>"
+      "<td>${task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${task.executionTime.durationStringHtml()}</td>"
     }
     val content = """
       <b>${pluginName}</b><br/>
-      Duration: ${durationString(timeContribution)} <br/>
+      Duration: ${durationStringHtml(timeContribution)} <br/>
       <br/>
       <b>${warningsCountString(tasksWithWarnings.size)}</b>
       <table>
@@ -112,10 +113,10 @@ class WarningsViewDetailPagesFactory(
   private fun createTaskWarningTypeDetailsPage(warningType: TaskIssueType, warnings: List<TaskIssueUiData>) = JPanel().apply {
     layout = BorderLayout()
     val timeContribution = warnings.sumByLong { it.task.executionTime.timeMs }
-    val tableRows = warnings.map { "<td>${it.task.taskPath}</td><td>${it.task.executionTime.durationString()}</td>" }
+    val tableRows = warnings.map { "<td>${it.task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${it.task.executionTime.durationStringHtml()}</td>" }
     val content = """
       <b>${warningType.uiName}</b><br/>
-      Duration: ${durationString(timeContribution)} <br/>
+      Duration: ${durationStringHtml(timeContribution)} <br/>
       <br/>
       <b>${warningsCountString(warnings.size)}</b>
       <table>

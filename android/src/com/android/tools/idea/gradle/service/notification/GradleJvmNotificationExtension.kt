@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
 import org.jetbrains.plugins.gradle.util.GradleBundle
 
@@ -25,10 +29,23 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
     super.customize(notificationData, project, error)
     if (notificationData.message.startsWith(GradleBundle.message("gradle.jvm.is.invalid"))) {
       val registeredListeners = notificationData.registeredListenerIds
-      if ((registeredListeners != null) && (!registeredListeners.contains(UseProjectJdkAsGradleJvmListener.ID))) {
-        val listener = UseProjectJdkAsGradleJvmListener(project)
-        notificationData.message = notificationData.message + "<a href=\"${UseProjectJdkAsGradleJvmListener.ID}\">Use JDK from project structure</a>"
-        notificationData.setListener(UseProjectJdkAsGradleJvmListener.ID, listener)
+      val gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project) ?: return
+      if (gradleProjectSettings.gradleJvm != null && gradleProjectSettings.gradleJvm != USE_PROJECT_JDK) {
+        if ((registeredListeners != null) && (!registeredListeners.contains(UseProjectJdkAsGradleJvmListener.ID))) {
+          val listener = UseProjectJdkAsGradleJvmListener(project)
+          notificationData.message = notificationData.message + "<a href=\"${UseProjectJdkAsGradleJvmListener.ID}\">Use JDK from project structure</a>"
+          notificationData.setListener(UseProjectJdkAsGradleJvmListener.ID, listener)
+        }
+      }
+      else {
+        if ((registeredListeners != null) && (!registeredListeners.contains(OpenProjectJdkLocationListener.ID))) {
+          val service = ProjectSettingsService.getInstance(project)
+          if (service is AndroidProjectSettingsService) {
+            val listener = OpenProjectJdkLocationListener(service)
+            notificationData.message = notificationData.message + "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>"
+            notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
+          }
+        }
       }
     }
   }

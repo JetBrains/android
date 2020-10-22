@@ -50,7 +50,7 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
 
   public ChooseAndroidProjectStepFixture<W> selectTab(@NotNull FormFactor formFactor) {
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      JLabel listTitle = waitUntilShowing(robot(), target(), JLabelMatcher.withText("Project Type"));
+      JLabel listTitle = waitUntilShowing(robot(), target(), JLabelMatcher.withText("Templates"));
       JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), listTitle.getParent(), byType(JBList.class)));
       listFixture.clickItem(formFactor.toString());
       return this;

@@ -87,7 +87,7 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
   val component: JComponent
     get() = this
 
-  var zoomToolbarIsVisible = false
+  var zoomToolbarVisible = false
     set(value) {
       field = value
       floatingToolbar?.let { it.isVisible = value }
@@ -149,21 +149,21 @@ class EmulatorToolWindowPanel(val emulator: EmulatorController) : BorderLayoutPa
   }
 
 
-  fun setCropFrame(value: Boolean) {
-    emulatorView?.cropFrame = value
+  fun setDeviceFrameVisible(visible: Boolean) {
+    emulatorView?.deviceFrameVisible = visible
   }
 
-  fun createContent(cropSkin: Boolean) {
+  fun createContent(deviceFrameVisible: Boolean) {
     try {
       val disposable = Disposer.newDisposable()
       contentDisposable = disposable
 
       val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
-      toolbar.isVisible = zoomToolbarIsVisible
+      toolbar.isVisible = zoomToolbarVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
 
-      val emulatorView = EmulatorView(emulator, disposable, cropSkin)
+      val emulatorView = EmulatorView(emulator, disposable, deviceFrameVisible)
       emulatorView.background = background
       this.emulatorView = emulatorView
       scrollPane.setViewportView(emulatorView)

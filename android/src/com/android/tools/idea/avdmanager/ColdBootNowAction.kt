@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.avdmanager.AvdWizardUtils.COLD_BOOT_ONCE_VALUE
-import com.android.tools.idea.avdmanager.AvdWizardUtils.USE_COLD_BOOT
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -36,17 +33,8 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
 
   override fun actionPerformed(actionEvent: ActionEvent) {
     val project = myAvdInfoProvider.project
-
-    val origAvdInfo = avdInfo ?: return
-    val origSystemImage = origAvdInfo.systemImage ?: return
-
-    val coldBootProperties = mutableMapOf<String, String>()
-    coldBootProperties.putAll(origAvdInfo.properties)
-    coldBootProperties.put(USE_COLD_BOOT, COLD_BOOT_ONCE_VALUE)
-    val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath,
-        origSystemImage, coldBootProperties)
-
-    val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, coldBootAvdInfo)
+    val avd = avdInfo ?: return
+    val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, avd)
     Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance())
   }
 
