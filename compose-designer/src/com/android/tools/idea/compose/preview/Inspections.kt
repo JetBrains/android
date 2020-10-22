@@ -31,7 +31,12 @@ import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
 import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 /**
  * Base class for inspection that depend on methods annotated with `@Preview`.
@@ -40,13 +45,14 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
   /** Will be true if the inspected file imports the `@Preview` annotation. This is used as a shortcut to avoid analyzing all kotlin files */
   var isPreviewFile: Boolean = false
 
+  override fun getGroupDisplayName() = message("inspection.group.name")
+
   /**
    * Called for every function annotated with `@Preview` annotation.
    *
    * @param holder A [ProblemsHolder] user to report problems
    * @param function The function that was annotated with `@Preview`
    * @param previewAnnotation The `@Preview` annotation
-   * @param functionAnnotations All the annotations of the method indexed by the FQN, including the `@Preview` annotation.
    */
   abstract fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
@@ -54,7 +60,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 
   final override fun buildVisitor(holder: ProblemsHolder,
                                   isOnTheFly: Boolean,
-                                  session: LocalInspectionToolSession) =
+                                  session: LocalInspectionToolSession): PsiElementVisitor =
     if (StudioFlags.COMPOSE_PREVIEW.get() &&
         (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode)) {
       object : KtVisitorVoid() {
