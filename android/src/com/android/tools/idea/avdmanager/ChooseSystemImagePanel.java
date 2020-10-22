@@ -195,7 +195,8 @@ public class ChooseSystemImagePanel extends JPanel
     // hinge foldable device requires API30 and above
     if (deviceId.equals("7.6in Foldable") ||
         deviceId.equals("8in Foldable") ||
-        deviceId.equals("6.7in Foldable")) {
+        deviceId.equals("6.7in Foldable") ||
+        deviceId.equals("7.4in Rollable")) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
         return false;
       }
