@@ -25,6 +25,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Charsets;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -33,6 +34,9 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
@@ -128,23 +132,29 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
-    disposeArchive();
-
-    try {
-      // this temporary copy is destroyed while disposing the archive, see #disposeArchive
-      Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
-      Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
-      myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
-      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
-      myApkViewPanel.setListener(this);
-      mySplitter.setFirstComponent(myApkViewPanel.getContainer());
-      selectionChanged(null);
-    }
-    catch (IOException e) {
-      getLog().error(e);
-      disposeArchive();
-      mySplitter.setFirstComponent(new JBLabel(e.toString()));
-    }
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Reading APK contents") {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        disposeArchive();
+        try {
+          // this temporary copy is destroyed while disposing the archive, see #disposeArchive
+          Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
+          Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
+          myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
+          myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
+          myApkViewPanel.setListener(ApkEditor.this);
+          ApplicationManager.getApplication().invokeLater(() -> {
+            mySplitter.setFirstComponent(myApkViewPanel.getContainer());
+            selectionChanged(null);
+          });
+        }
+        catch (IOException e) {
+          getLog().error(e);
+          disposeArchive();
+          mySplitter.setFirstComponent(new JBLabel(e.toString()));
+        }
+      }
+    });
   }
 
   /**
