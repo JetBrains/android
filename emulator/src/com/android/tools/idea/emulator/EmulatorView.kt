@@ -804,10 +804,10 @@ class EmulatorView(
     init {
       val format = emulatorImage.format
       shape = DisplayShape(format.width, format.height, format.rotation.rotation)
-      pixels = getPixels(emulatorImage.image, width, height, format.format)
+      pixels = getPixels(emulatorImage.image, width, height)
     }
 
-    private fun getPixels(imageBytes: ByteString, width: Int, height: Int, format: ImageFormat.ImgFormat): IntArray {
+    private fun getPixels(imageBytes: ByteString, width: Int, height: Int): IntArray {
       val pixels = IntArray(width * height)
       val byteIterator = imageBytes.iterator()
       val alpha = 0xFF shl 24
@@ -815,10 +815,6 @@ class EmulatorView(
         val red = byteIterator.nextByte().toInt() and 0xFF
         val green = byteIterator.nextByte().toInt() and 0xFF
         val blue = byteIterator.nextByte().toInt() and 0xFF
-        // TODO(b/168140748): Remove this check after the fix for b/150494232 is released.
-        if (format == ImageFormat.ImgFormat.RGBA8888) { // Due to b/150494232 emulator returned RGBA8888 despite RGB888 being requested.
-          byteIterator.nextByte() // Alpha is ignored since the screenshots are always opaque.
-        }
         pixels[i] = alpha or (red shl 16) or (green shl 8) or blue
       }
       return pixels
