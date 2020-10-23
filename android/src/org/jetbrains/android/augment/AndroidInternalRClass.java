@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
@@ -98,6 +99,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       super(AndroidInternalRClass.this, resourceType);
     }
 
+    @Slow
     @Override
     @NotNull
     protected PsiField[] doGetFields() {
