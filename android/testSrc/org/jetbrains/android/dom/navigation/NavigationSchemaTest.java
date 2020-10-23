@@ -15,10 +15,13 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
+import com.android.tools.idea.testing.Dependencies;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.WriteAction;
@@ -26,6 +29,10 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -34,10 +41,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +82,29 @@ public class NavigationSchemaTest extends AndroidTestCase {
       LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
       PsiTestUtil.addLibrary(myFixture.getModule(), path);
     }
+
+    // Add app compat to the main module and a library to test fragments being
+    // available from multiple locations
+    Dependencies.INSTANCE.add(myFixture, APPCOMPAT_LIB_ARTIFACT_ID);
+
+    Module libModule = getAdditionalModuleByName("myLibrary");
+    LibraryTable table = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+
+    for (Library library :table.getLibraries()) {
+      if (library.getName().startsWith(APPCOMPAT_LIB_ARTIFACT_ID)) {
+        ModuleRootModificationUtil.addDependency(libModule, library);
+        break;
+      }
+    }
+
     NavigationSchema.createIfNecessary(myModule);
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    super.configureAdditionalModules(projectBuilder, modules);
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
   }
 
   public void testDumbMode() throws Exception {

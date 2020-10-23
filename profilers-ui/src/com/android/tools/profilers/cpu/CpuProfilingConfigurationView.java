@@ -102,6 +102,8 @@ public class CpuProfilingConfigurationView {
   @VisibleForTesting
   void openProfilingConfigurationsDialog() {
     Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
+      // Update the config list to pick up any potential changes.
+      myStage.getProfilerConfigModel().updateProfilingConfigurations();
       // If there was a configuration selected when the dialog was closed,
       // make sure to select it in the combobox
       if (configuration != null) {

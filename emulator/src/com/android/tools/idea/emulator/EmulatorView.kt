@@ -71,6 +71,7 @@ import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_KP_DOWN
@@ -192,6 +193,7 @@ class EmulatorView(
           when (event.keyCode) {
             VK_BACK_SPACE -> "Backspace"
             VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+            VK_ENTER -> "Enter"
             VK_ESCAPE -> "Escape"
             VK_TAB -> "Tab"
             VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
