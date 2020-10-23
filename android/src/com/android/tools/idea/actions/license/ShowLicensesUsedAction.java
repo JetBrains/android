@@ -117,10 +117,8 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
     protected JComponent createCenterPanel() {
       JPanel panel = new JPanel(new BorderLayout());
 
-      String text = "<html>" + myLicenseText + "</html>";
-      JTextPane label = new JTextPane();
-      label.setEditorKit(UIUtil.getHTMLEditorKit());
-      label.setText(text);
+      JLabel label = new JLabel();
+      label.setText(myLicenseText);
       JBScrollPane pane = new JBScrollPane(label);
 
       pane.setPreferredSize(JBUI.size(600, 400));
