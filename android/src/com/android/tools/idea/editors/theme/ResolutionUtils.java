@@ -23,7 +23,7 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static com.android.SdkConstants.TAG_ATTR;
 import static com.android.SdkConstants.TAG_STYLE;
 
-import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -51,7 +51,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -149,7 +148,6 @@ public class ResolutionUtils {
   public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration,
                                                                @NotNull ResourceReference styleReference) {
     ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
     StyleResourceValue style = resolver.getStyle(styleReference);
     return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style);
   }
@@ -201,9 +199,6 @@ public class ResolutionUtils {
       assert facet != null : String.format("Module %s is not an Android module", module.getName());
 
       definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
-    }
-    if (definitions == null) {
-      return null;
     }
     return definitions.getAttrDefByName(getNameFromQualifiedName(name));
   }
@@ -278,31 +273,13 @@ public class ResolutionUtils {
   @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
   public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
-    return getAttrType(item, resolver, configuration.getModule());
+    return getAttrType(item, resolver);
   }
 
   @Nullable
-  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull ResourceResolver resolver, @NotNull Module module) {
+  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull ResourceResolver resolver) {
     ResourceValue resolvedValue = resolver.resolveResValue(item);
-    ResourceType attrType = resolvedValue.getResourceType();
-    if (attrType != null) {
-      return attrType;
-    }
-    else {
-      ResourceReference attr = item.getAttr();
-      AttributeDefinition def = attr == null ? null : getAttributeDefinition(module, attr);
-      if (def != null) {
-        for (AttributeFormat attrFormat : def.getFormats()) {
-          attrType = AndroidDomUtil.getResourceType(attrFormat);
-          if (attrType != null) {
-            return attrType;
-          }
-        }
-      }
-    }
-    // sometimes we won't find the type of the attr, this means it's either a reference that points to @null, or a enum
-    return null;
+    return resolvedValue == null ? null : resolvedValue.getResourceType();
   }
 
   /**
