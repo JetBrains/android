@@ -40,6 +40,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.lint.common.LintIdeClient;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
@@ -56,7 +57,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -284,10 +284,12 @@ public class ResolutionUtils {
 
   /**
    * Gets the {@link FolderConfiguration} of a ResourceValue
-   * e.g. if we resolve a drawable using a mdpi configuration, yet that drawable only exists inside xhdpi, this method will return xhdpi
+   * e.g. if we resolve a drawable using a mdpi configuration, yet that drawable only exists inside xhdpi, this method will return xhdpi.
+   *
    * @param configuration the FolderConfiguration that was used for resolving the ResourceValue
    * @return the FolderConfiguration of the ResourceValue
    */
+  @Slow
   @NotNull
   public static FolderConfiguration getFolderConfiguration(@NotNull AndroidFacet facet, @NotNull ResourceValue resolvedValue, @NotNull FolderConfiguration configuration) {
     List<? extends Configurable> configurables;
