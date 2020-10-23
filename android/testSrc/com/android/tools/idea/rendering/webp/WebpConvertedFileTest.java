@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering.webp;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
 
 public class WebpConvertedFileTest extends AndroidTestCase {

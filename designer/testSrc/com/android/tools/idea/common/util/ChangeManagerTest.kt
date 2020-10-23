@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.tools.idea.editors.setupChangeListener
+import com.android.tools.idea.editors.setupOnSaveListener
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager

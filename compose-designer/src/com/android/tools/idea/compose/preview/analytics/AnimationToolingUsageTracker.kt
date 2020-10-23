@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
+import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -47,10 +48,13 @@ private class AnimationToolingNopTracker : AnimationToolingUsageTracker {
 /**
  * Default [AnimationToolingUsageTracker] implementation that sends the event to the analytics backend.
  */
-private class InternalAnimationToolingUsageTracker(val executor: Executor, val studioEventTracker: Consumer<AndroidStudioEvent.Builder>)
-  : AnimationToolingUsageTracker {
+private class InternalAnimationToolingUsageTracker(
+  private val executor: Executor,
+  private val surface: DesignSurface?,
+  private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>
+  ) : AnimationToolingUsageTracker {
   override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
-    event.createAndroidStudioEvent().let {
+    event.createAndroidStudioEvent().setApplicationId(surface).let {
       executor.execute { studioEventTracker.accept(it) }
       return it
     }

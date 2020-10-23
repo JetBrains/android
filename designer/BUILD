@@ -1,13 +1,12 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.designer",
     srcs = ["src"],
     iml_files = ["intellij.android.designer.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
     lint_baseline = "lint_baseline.xml",
-    project = "unb",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -30,23 +29,22 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",
-        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
-    project = "unb",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
@@ -68,7 +66,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_shard_count = 4,
     test_srcs = ["testSrc"],
@@ -85,10 +82,10 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/assistant[module]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module, test]",
@@ -104,14 +101,14 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
-        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native[test]",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
     ],
 )

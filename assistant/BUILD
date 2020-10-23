@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "assistant",
     srcs = ["src"],
     iml_files = ["assistant.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -19,11 +18,10 @@ iml_module(
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "assistant-test",
     iml_files = ["assistant-test.iml"],
-    project = "unb",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.assistant.view.AssistantTestSuite",
     # keep sorted
@@ -41,8 +39,8 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/assistant[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",

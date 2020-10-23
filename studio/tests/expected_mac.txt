@@ -1037,9 +1037,6 @@ Android Studio.app/Contents/bin/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio.app/Contents/bin/lldb/lib64/python/lldb/utils/symbolication.py
 Android Studio.app/Contents/bin/lldb/lib64/python/six.py
 Android Studio.app/Contents/bin/lldb/shared/jobject_printers/jstring_reader.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/gdb/__init__.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/gdb/printing.py
-Android Studio.app/Contents/bin/lldb/shared/stl_printers/load_script
 Android Studio.app/Contents/bin/log.xml
 Android Studio.app/Contents/bin/printenv.py
 Android Studio.app/Contents/bin/profiler.sh
@@ -1581,7 +1578,7 @@ Android Studio.app/Contents/lib/kotlinx-coroutines-guava-1.2.1.jar
 Android Studio.app/Contents/lib/kotlinx-coroutines-jdk8-1.3.4.jar
 Android Studio.app/Contents/lib/kryo-2.24.0.jar
 Android Studio.app/Contents/lib/kxml2-2.3.0.jar
-Android Studio.app/Contents/lib/layout_inspector_java_proto.jar
+Android Studio.app/Contents/lib/layout_inspector_skia_java_proto.jar
 Android Studio.app/Contents/lib/libam-instrumentation-data-proto.jar
 Android Studio.app/Contents/lib/libstudio.proto.jar
 Android Studio.app/Contents/lib/log4j.jar

@@ -145,6 +145,10 @@ class EmulatorToolWindowManagerTest {
 
     // Close the panel corresponding to emulator1.
     contentManager.removeContent(contentManager.contents[0], true)
+    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
+      val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/closeExtendedControls")
+    }
     val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
@@ -220,7 +224,7 @@ class EmulatorToolWindowManagerTest {
     // Wait for the extended controls to close.
     waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
-    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsVisible }
+    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsShown }
 
     toolWindow.show()
 

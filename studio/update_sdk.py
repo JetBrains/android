@@ -84,7 +84,7 @@ def list_plugin_jars(sdk):
 
 
 def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
- 
+
   suffix = {
     ALL: "",
     MAC: "_darwin",
@@ -196,17 +196,28 @@ def check_artifacts(dir):
 
 
 def download(workspace, bid):
-  ret = os.system("prodcertstatus")
-  if ret:
-    sys.exit("You need prodaccess to download artifacts")
+  fetch_artifact = "/google/data/ro/projects/android/fetch_artifact"
+  auth_flag = ""
+  if os.path.exists("/usr/bin/prodcertstatus"):
+    if os.system("prodcertstatus"):
+      sys.exit("You need prodaccess to download artifacts")
+  else:
+    fetch_artifact = "/usr/bin/fetch_artifact"
+    auth_flag = "--use_oauth2"
+    if not os.path.exists(fetch_artifact):
+      sys.exit("""You need to install fetch_artifact:
+sudo glinux-add-repo android stable && \\
+sudo apt update && \\
+sudo apt install android-fetch-artifact""")
+
   if not bid:
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
   for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar"]:
     os.system(
-        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk '%s' %s"
-        % (bid, artifact, dir))
+        "%s %s --bid %s --target studio-sdk '%s' %s"
+        % (fetch_artifact, auth_flag, bid, artifact, dir))
 
   return dir
 
@@ -293,7 +304,7 @@ def main(workspace, args):
     delete_path = True
   if path:
     version = extract(workspace, path, delete_path)
-  
+
   update_files(workspace, version)
 
 if __name__ == "__main__":

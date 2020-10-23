@@ -74,27 +74,13 @@
           </component>
         </children>
       </grid>
-      <component id="ff05c" class="com.intellij.ui.components.JBLabel">
+      <vspacer id="5d0c0">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="24"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="12"/>
           </grid>
         </constraints>
-        <properties>
-          <font style="0"/>
-          <labelFor value="37c5e"/>
-          <text value="Minimum SDK"/>
-          <verticalAlignment value="0"/>
-        </properties>
-      </component>
-      <component id="60e72" class="com.android.tools.idea.npw.module.AndroidApiLevelComboBox" binding="myMinSdkCombobox">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <model/>
-        </properties>
-      </component>
+      </vspacer>
     </children>
   </grid>
 </form>

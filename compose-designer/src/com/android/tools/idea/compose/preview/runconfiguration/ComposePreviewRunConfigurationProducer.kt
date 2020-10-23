@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -24,7 +25,6 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction

@@ -55,8 +55,8 @@ public class MemoryNavigationTest {
     new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService());
 
-  private MemoryProfilerStage myStage;
-  private MemoryProfilerStageView myStageView;
+  private MainMemoryProfilerStage myStage;
+  private MainMemoryProfilerStageView myStageView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
 
   @Before
@@ -68,8 +68,8 @@ public class MemoryNavigationTest {
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(profilers, loader);
-    myStageView = new MemoryProfilerStageView(profilersView, myStage);
+    myStage = new MainMemoryProfilerStage(profilers, loader);
+    myStageView = new MainMemoryProfilerStageView(profilersView, myStage);
   }
 
   @Test

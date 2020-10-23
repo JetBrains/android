@@ -97,6 +97,9 @@ class AppInspectionView(
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
 
+  @VisibleForTesting
+  val selectProcessAction: SelectProcessAction
+
   private val noInspectorsMessage = EmptyStatePanel(
     AppInspectionBundle.message("select.process"),
     UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help")
@@ -134,7 +137,13 @@ class AppInspectionView(
     val edtExecutor = EdtExecutorService.getInstance()
     processModel = AppInspectionProcessModel(edtExecutor, apiServices.processNotifier, getPreferredProcesses)
     Disposer.register(this, processModel)
-    val group = DefaultActionGroup().apply { add(SelectProcessAction(processModel)) }
+    selectProcessAction = SelectProcessAction(processModel) {
+      scope.launch {
+        apiServices.stopInspectors(it)
+        processModel.stopInspection(it)
+      }
+    }
+    val group = DefaultActionGroup().apply { add(selectProcessAction) }
     val toolbar = ActionManager.getInstance().createActionToolbar("AppInspection", group, true)
     toolbar.setTargetComponent(component)
     component.add(toolbar.component, TabularLayout.Constraint(0, 0))
@@ -294,6 +303,8 @@ class AppInspectionView(
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }
+
+  internal fun isInspectionActive() = processModel.selectedProcess?.isRunning ?: false
 
   override fun dispose() {
   }

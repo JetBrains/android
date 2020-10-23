@@ -30,6 +30,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -197,20 +198,31 @@ class TestProjectSystem @JvmOverloads constructor(
     override fun getLastSyncResult() = lastSyncResult
   }
 
+  override fun getBuildManager(): ProjectSystemBuildManager = object : ProjectSystemBuildManager {
+    override fun compileProject() {
+      error("not supported for the test implementation")
+    }
+
+    override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult {
+      error("not supported for the test implementation")
+    }
+
+    override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
+      error("not supported for the test implementation")
+    }
+
+  }
+
   override fun getDefaultApkFile(): VirtualFile? {
-    TODO("not implemented")
+    error("not supported for the test implementation")
   }
 
   override fun getPathToAapt(): Path {
-    TODO("not implemented")
-  }
-
-  override fun buildProject() {
-    TODO("not implemented")
+    error("not supported for the test implementation")
   }
 
   override fun allowsFileCreation(): Boolean {
-    TODO("not implemented")
+    error("not supported for the test implementation")
   }
 
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()

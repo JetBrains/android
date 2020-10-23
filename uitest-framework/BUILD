@@ -1,13 +1,12 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.guiTestFramework",
     srcs = ["src"],
     iml_files = ["intellij.android.guiTestFramework.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
     test_data = [
@@ -22,8 +21,8 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/swing-testing/fest-swing[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/android/lib:unb.spantable[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
@@ -34,7 +33,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-layout-inspector[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
@@ -66,7 +65,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/media/media/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/recyclerview/recyclerview/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-core/3.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-idling-resource/3.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/test/monitor/1.1.0:aar",

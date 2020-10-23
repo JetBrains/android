@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
     test_srcs = ["test"],
@@ -17,15 +16,15 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )

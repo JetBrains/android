@@ -94,7 +94,7 @@ public class MemoryClassifierViewTest {
                         new FakeMemoryService());
 
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
 
   @Before
@@ -104,7 +104,7 @@ public class MemoryClassifierViewTest {
     FakeIdeProfilerServices fakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     myStage =
-      new MemoryProfilerStage(
+      new MainMemoryProfilerStage(
         new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), fakeIdeProfilerServices, new FakeTimer()),
         loader);
     myClassifierView = new MemoryClassifierView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents);

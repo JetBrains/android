@@ -21,6 +21,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import javax.swing.JPanel
 
 open class TestPreviewRepresentation : PreviewRepresentation {
@@ -39,12 +41,13 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 
   override fun onDeactivate() {
+    assertTrue("onDeactivate called more times than onActivate (nActivations = $nActivations)", nActivations > 0)
     nActivations--
   }
 
   override fun setState(state: PreviewRepresentationState) {
     restoreCount++
-    LightJavaCodeInsightFixtureTestCase.assertEquals("restoreState must not be called more than once", 1, restoreCount)
+    assertEquals("restoreState must not be called more than once", 1, restoreCount)
     this.state = state
   }
 

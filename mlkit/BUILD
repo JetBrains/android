@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.mlkit",
     srcs = ["src"],
     iml_files = ["intellij.android.mlkit.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -25,16 +24,15 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.mlkit.tests",
     iml_files = ["intellij.android.mlkit.tests.iml"],
-    project = "unb",
     tags = [
         "no_test_windows",  # b/135665870
     ],
@@ -52,7 +50,6 @@ iml_module(
         "//tools/adt/idea/mlkit/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
@@ -67,16 +64,16 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/.idea/libraries:unb.Guava[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",

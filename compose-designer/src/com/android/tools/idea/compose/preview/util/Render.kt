@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import org.jetbrains.android.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import java.util.concurrent.CompletableFuture
 
 

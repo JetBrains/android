@@ -40,13 +40,9 @@
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
     <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
-  </extensions>
 
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
-    </component>
-  </project-components>
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+  </extensions>
 
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
@@ -144,11 +140,17 @@
     />
 
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
-                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
-                        overrides="true"/>
+                    serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
+                    overrides="true"/>
 
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
                     serviceImplementation="org.jetbrains.android.compose.ComposeSampleResolutionService"
+                    overrides="true"
+    />
+
+    <!-- DO NOT move to oproject-system-gradle-plugin.xml. It should run in Android Studio only. -->
+    <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
+                    serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"
     />
 

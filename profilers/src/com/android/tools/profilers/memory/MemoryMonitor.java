@@ -72,7 +72,7 @@ public class MemoryMonitor extends ProfilerMonitor {
 
   @Override
   public void expand() {
-    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
   }
 
   @NotNull

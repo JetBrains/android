@@ -49,13 +49,11 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       model,
       model.getSurface(),
       EdtExecutorService.getInstance(),
-      d -> new RenderingQueue() {
-        @Override
-        public void queue(@NotNull Update update) { update.run(); }
-      },
+      d -> Runnable::run,
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
-      LayoutScannerConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED(),
+      RealTimeSessionClock::new);
     myDefaultProperties = new HashMap<>();
   }
 

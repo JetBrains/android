@@ -76,21 +76,8 @@ class NavigationTest {
     motionRule.enableFileOpenCaptures()
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-  }
-
   @Test
   fun testConstraintSet() {
-    motionRule.selectConstraintSet("start")
-    check(ANDROID_URI, ATTR_ID, CONSTRAINTSET, SCENE_FILE, 6, "android:id=\"@+id/start\"")
-    check(AUTO_URI, DERIVE_CONSTRAINTS_FROM, CONSTRAINTSET, SCENE_FILE, 67, "<ConstraintSet android:id=\"@+id/base\">")
-  }
-
-  @Test
-  fun testConstraintSetWithResolveUsingRepos() {
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
     motionRule.selectConstraintSet("start")
     check(ANDROID_URI, ATTR_ID, CONSTRAINTSET, SCENE_FILE, 6, "android:id=\"@+id/start\"")
     check(AUTO_URI, DERIVE_CONSTRAINTS_FROM, CONSTRAINTSET, SCENE_FILE, 67, "<ConstraintSet android:id=\"@+id/base\">")

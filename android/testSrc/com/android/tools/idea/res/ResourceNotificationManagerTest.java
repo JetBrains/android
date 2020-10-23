@@ -258,10 +258,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     };
     manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
-    // New resource renaming does not require the extension anymore.
-    String newResourceName = StudioFlags.RESOLVE_USING_REPOS.get() ? "newLayout" : "newLayout.xml";
     ApplicationManager.getApplication()
-      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename(newResourceName));
+      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
   }
 

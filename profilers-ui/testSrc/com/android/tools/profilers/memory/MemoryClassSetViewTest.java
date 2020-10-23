@@ -77,7 +77,7 @@ public class MemoryClassSetViewTest {
   @Rule public final FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
 
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
 
   private MemoryClassSetView myClassSetView;
   private JTree myClassSetTree;
@@ -87,7 +87,7 @@ public class MemoryClassSetViewTest {
 
   private MemoryObjectTreeNode<HeapSet> myClassifierSetHeapNode;
   private MemoryObjectTreeNode<MemoryObject> myClassSetRootNode;
-  private MemoryProfilerStageView myStageView;
+  private MainMemoryProfilerStageView myStageView;
   private JTree myClassifierSetTree;
 
   @Before
@@ -97,8 +97,8 @@ public class MemoryClassSetViewTest {
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(profilers, loader);
-    myStageView = new MemoryProfilerStageView(profilersView, myStage);
+    myStage = new MainMemoryProfilerStage(profilers, loader);
+    myStageView = new MainMemoryProfilerStageView(profilersView, myStage);
 
     myCaptureObject = new FakeCaptureObject.Builder().build();
     myInstanceObjects = Arrays.asList(

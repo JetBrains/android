@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
+import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;

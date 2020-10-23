@@ -32,6 +32,7 @@ import java.util.WeakHashMap
 import java.util.function.Function.identity
 
 private val DUMMY_HOLDER = Any()
+
 /**
  * A [ClassLoader] for the [Module] dependencies.
  */

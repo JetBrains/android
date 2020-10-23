@@ -322,7 +322,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LAYOUT_SCANNER_IN_EDITOR = Flag.create(
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
@@ -641,7 +641,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
     EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
     "Enables the extended controls in the Embedded Emulator",
-    false);
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -718,13 +718,6 @@ public final class StudioFlags {
     "Collapse the android namespace in XML code completion",
     "If enabled, XML code completion doesn't include resources from the android namespace. Instead a fake completion item " +
     "is used to offer just the namespace prefix.", true);
-
-  public static final Flag<Boolean> RESOLVE_USING_REPOS = Flag.create(
-    EDITOR,
-    "resolve.using.repos",
-    "Resolve references using resource repositories",
-    "Use ResourceRepository to resolve references, not ResourceManager.",
-    true);
 
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
     EDITOR, "advanced.jni.assistance",
@@ -967,6 +960,13 @@ public final class StudioFlags {
     COMPOSE, "preview.live.literals",
     "Enable the live literals",
     "If enabled, the live literals feature is enabled",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_ALWAYS_ON_LIVE_LITERALS = Flag.create(
+    COMPOSE, "preview.always.on.live.literals",
+    "Enable the \"always on\" live literals",
+    "If enabled, live literals are always enabled without user interaction",
     false
   );
 

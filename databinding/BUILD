@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.databinding",
     srcs = ["src"],
     iml_files = ["intellij.android.databinding.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     test_resources = ["testData"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -14,19 +13,18 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.databinding.tests",
     iml_files = ["intellij.android.databinding.tests.iml"],
-    project = "unb",
     split_test_targets = {
         "gradle": {
             "tags": ["cpu:3"],
@@ -54,7 +52,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/data-binding:integration-test-projects",
-        "//tools/idea/java/mockJDK-1.7",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
@@ -69,12 +66,12 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates.live
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 
 /**
@@ -33,10 +32,6 @@ class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
       "liveTemplates/AndroidParcelable",
       "liveTemplates/AndroidXML"
     )
-    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
-      templates.add("liveTemplates/AndroidCompose")
-      templates.add("liveTemplates/AndroidComposePreview")
-    }
 
     return templates.toTypedArray()
   }

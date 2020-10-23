@@ -6,7 +6,6 @@ import com.android.SdkConstants.DOT_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.res.addAarDependency
@@ -1515,11 +1514,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testAttrReferences1() {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      doTestHighlighting("attrReferences1_repos.xml", "res/layout/attr_references1.xml")
-    } else {
-      doTestHighlighting("attrReferences1.xml", "res/layout/attr_references1.xml")
-    }
+    doTestHighlighting("attrReferences1.xml", "res/layout/attr_references1.xml")
   }
 
   fun testAttrReferences2() {

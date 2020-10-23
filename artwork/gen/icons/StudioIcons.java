@@ -169,18 +169,23 @@ public class StudioIcons {
   }
 
   public static class Emulator {
-    public static final Icon BACK = load("/studio/icons/emulator/back.svg"); // 16x16
-    public static final Icon HOME = load("/studio/icons/emulator/home.svg"); // 16x16
-    public static final Icon INVALID_SNAPSHOT_DECORATOR = load("/studio/icons/emulator/invalid-snapshot-decorator.svg"); // 16x16
-    public static final Icon LOAD_SNAPSHOT = load("/studio/icons/emulator/load-snapshot.svg"); // 16x16
-    public static final Icon OVERVIEW = load("/studio/icons/emulator/overview.svg"); // 16x16
-    public static final Icon POWER = load("/studio/icons/emulator/power.svg"); // 16x16
-    public static final Icon ROTATE_LEFT = load("/studio/icons/emulator/rotate-left.svg"); // 16x16
-    public static final Icon ROTATE_RIGHT = load("/studio/icons/emulator/rotate-right.svg"); // 16x16
-    public static final Icon SCREENSHOT = load("/studio/icons/emulator/screenshot.svg"); // 16x16
-    public static final Icon SNAPSHOTS = load("/studio/icons/emulator/snapshots.svg"); // 16x16
-    public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/volume-down.svg"); // 16x16
-    public static final Icon VOLUME_UP = load("/studio/icons/emulator/volume-up.svg"); // 16x16
+    public static class Snapshots {
+      public static final Icon INVALID_SNAPSHOT_DECORATOR = load("/studio/icons/emulator/snapshots/invalid-snapshot-decorator.svg"); // 16x16
+      public static final Icon LOAD_SNAPSHOT = load("/studio/icons/emulator/snapshots/load-snapshot.svg"); // 16x16
+    }
+
+    public static class Toolbar {
+      public static final Icon BACK = load("/studio/icons/emulator/toolbar/back.svg"); // 16x16
+      public static final Icon HOME = load("/studio/icons/emulator/toolbar/home.svg"); // 16x16
+      public static final Icon OVERVIEW = load("/studio/icons/emulator/toolbar/overview.svg"); // 16x16
+      public static final Icon POWER = load("/studio/icons/emulator/toolbar/power.svg"); // 16x16
+      public static final Icon ROTATE_LEFT = load("/studio/icons/emulator/toolbar/rotate-left.svg"); // 16x16
+      public static final Icon ROTATE_RIGHT = load("/studio/icons/emulator/toolbar/rotate-right.svg"); // 16x16
+      public static final Icon SCREENSHOT = load("/studio/icons/emulator/toolbar/screenshot.svg"); // 16x16
+      public static final Icon SNAPSHOTS = load("/studio/icons/emulator/toolbar/snapshots.svg"); // 16x16
+      public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/toolbar/volume-down.svg"); // 16x16
+      public static final Icon VOLUME_UP = load("/studio/icons/emulator/toolbar/volume-up.svg"); // 16x16
+    }
   }
 
   public static class LayoutEditor {
@@ -703,7 +708,7 @@ public class StudioIcons {
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.svg"); // 13x13
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.svg"); // 13x13
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.svg"); // 13x13
-      public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.svg"); // 16x16
+      public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.svg"); // 13x13
       public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.svg"); // 13x13
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.svg"); // 13x13
       public static final Icon MULTI_PREVIEW = load("/studio/icons/shell/tool-windows/multi-preview.svg"); // 13x13

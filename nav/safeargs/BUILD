@@ -1,12 +1,11 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.nav.safeargs",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -18,18 +17,17 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:Guava",
+        "//tools/adt/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
-    project = "unb",
     split_test_targets = {
         "gradle": {
             "tags": ["cpu:3"],
@@ -53,8 +51,6 @@ iml_module(
         "//tools/adt/idea/nav/safeargs/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
@@ -64,8 +60,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
@@ -75,7 +71,7 @@ iml_module(
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
     ],
 )

@@ -105,10 +105,16 @@ public class AndroidGradleTests {
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
+  private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
+    waitForSourceFolderManagerToProcessUpdates(project, null);
+  }
+
+  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_MILLIS : timeoutMillis;
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
-      PlatformTestUtil.waitForFuture(future, 1000);
+      PlatformTestUtil.waitForFuture(future, timeout);
       return null;
     });
   }
@@ -128,7 +134,7 @@ public class AndroidGradleTests {
     public List<SyncIssueData> getIssues() {
       return issues;
     }
-  };
+  }
 
   /** Interface to allow tests to accept sync issues as valid when they load a project */
   public interface SyncIssueFilter {
@@ -579,7 +585,7 @@ public class AndroidGradleTests {
     if (issueFilter != null) {
       errorStream = errorStream.filter(data -> !issueFilter.ignoreIssue(data));
     }
-    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("/n"));
+    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }

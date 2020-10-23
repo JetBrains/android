@@ -16,26 +16,18 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.ImageFormat
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
@@ -73,19 +65,14 @@ import kotlin.streams.toList
  */
 @RunsInEdt
 class EmulatorViewTest {
-  private val projectRule = AndroidProjectRule.inMemory()
-  private val emulatorRule = FakeEmulatorRule()
-  private var nullableEmulator: FakeEmulator? = null
-  private val filesOpened = mutableListOf<VirtualFile>()
+  private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(emulatorViewRule).around(EdtRule())
+  private val filesOpened = mutableListOf<VirtualFile>()
 
-  private var emulator: FakeEmulator
-    get() = nullableEmulator ?: throw IllegalStateException()
-    set(value) { nullableEmulator = value }
 
   private val testRootDisposable
-    get() = projectRule.fixture.testRootDisposable
+    get() = emulatorViewRule.testRootDisposable
 
   @Before
   fun setUp() {
@@ -97,12 +84,14 @@ class EmulatorViewTest {
     `when`(fileEditorManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     `when`(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
+    emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   @Test
   fun testEmulatorView() {
-    val view = createEmulatorView()
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
     container.isFocusable = true
@@ -183,7 +172,7 @@ class EmulatorViewTest {
     assertThat(view.canZoomToFit()).isFalse()
 
     // Check rotation.
-    executeAction("android.emulator.rotate.left", view)
+    emulatorViewRule.executeAction("android.emulator.rotate.left", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
@@ -219,6 +208,11 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Enter"""")
+
     ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -252,7 +246,7 @@ class EmulatorViewTest {
     assertThat(tabEvent).isNotNull()
 
     // Check clockwise rotation.
-    executeAction("android.emulator.rotate.right", view)
+    emulatorViewRule.executeAction("android.emulator.rotate.right", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
@@ -300,28 +294,29 @@ class EmulatorViewTest {
 
   @Test
   fun testActions() {
-    val view = createEmulatorView()
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
 
     // Check EmulatorBackButtonAction.
-    executeAction("android.emulator.back.button", view)
+    emulatorViewRule.executeAction("android.emulator.back.button", view)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "GoBack"""")
 
     // Check EmulatorHomeButtonAction.
-    executeAction("android.emulator.home.button", view)
+    emulatorViewRule.executeAction("android.emulator.home.button", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
 
     // Check EmulatorOverviewButtonAction.
-    executeAction("android.emulator.overview.button", view)
+    emulatorViewRule.executeAction("android.emulator.overview.button", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AppSwitch"""")
 
     // Check EmulatorScreenshotAction.
-    executeAction("android.emulator.screenshot", view)
+    emulatorViewRule.executeAction("android.emulator.screenshot", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/getScreenshot")
     assertThat((call.request as ImageFormat).format).isEqualTo(ImageFormat.ImgFormat.PNG)
@@ -337,31 +332,11 @@ class EmulatorViewTest {
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(view: EmulatorView, frameNumber: Int): GrpcCallRecord {
+    val emulator = emulatorViewRule.getFakeEmulator(view)
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
     view.waitForFrame(frameNumber, 2, TimeUnit.SECONDS)
     return call
-  }
-
-  private fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    val actionManager = ActionManager.getInstance()
-    val action = actionManager.getAction(actionId)
-    val event = AnActionEvent(null, TestContext(emulatorView), ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
-    action.actionPerformed(event)
-  }
-
-  private fun createEmulatorView(): EmulatorView {
-    val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
-    emulator.start()
-    val emulators = catalog.updateNow().get()
-    assertThat(emulators).hasSize(1)
-    val emulatorController = emulators.first()
-    val view = EmulatorView(emulatorController, testRootDisposable, true)
-    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
-    return view
   }
 
   @Throws(TimeoutException::class)
@@ -376,18 +351,6 @@ class EmulatorViewTest {
 
   private fun getGoldenFile(name: String): File {
     return TestUtils.getWorkspaceRoot().toPath().resolve("${GOLDEN_FILE_PATH}/${name}.png").toFile()
-  }
-
-  private inner class TestContext(private val emulatorView: EmulatorView) : DataContext {
-
-    override fun getData(dataId: String): Any? {
-      return when (dataId) {
-        EMULATOR_CONTROLLER_KEY.name -> emulatorView.emulator
-        EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        else -> null
-      }
-    }
   }
 }
 

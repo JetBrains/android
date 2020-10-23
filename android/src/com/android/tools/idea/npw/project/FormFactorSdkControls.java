@@ -66,7 +66,7 @@ public class FormFactorSdkControls implements Disposable {
   private JPanel myLoadingDataPanel;
   private AsyncProcessIcon myLoadingDataIcon;
   private JLabel myLoadingDataLabel;
-  private AndroidApiLevelComboBox myMinSdkCombobox;
+  private final AndroidApiLevelComboBox myMinSdkCombobox = new AndroidApiLevelComboBox();
   private JPanel myRoot;
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
@@ -101,6 +101,11 @@ public class FormFactorSdkControls implements Disposable {
         }
       }
     });
+  }
+
+  @NotNull
+  public AndroidApiLevelComboBox getMinSdkComboBox() {
+    return myMinSdkCombobox;
   }
 
   @NotNull

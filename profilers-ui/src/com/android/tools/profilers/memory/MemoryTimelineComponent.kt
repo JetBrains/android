@@ -47,10 +47,9 @@ import com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PA
 import com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN
 import com.android.tools.profilers.ProfilerScrollbar
 import com.android.tools.profilers.event.EventMonitorView
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode.FULL
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode.NONE
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
@@ -71,7 +70,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class MemoryTimelineComponent(stageView: MemoryProfilerStageView, timeAxis: JComponent)
+class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent)
       : JBPanel<MemoryTimelineComponent>(TabularLayout("*")) {
   private val stage = stageView.stage
   val rangeSelectionComponent = makeRangeSelectionComponent()
@@ -167,7 +166,7 @@ class MemoryTimelineComponent(stageView: MemoryProfilerStageView, timeAxis: JCom
   private fun makeAllocationSamplingRateRenderer() =
     DurationDataRenderer.Builder(stage.allocationSamplingRateDurations, JBColor.BLACK)
       .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
-      .setIconMapper { getIconForSamplingMode(LiveAllocationSamplingMode.getModeFromFrequency(it.currentRate.samplingNumInterval)) }
+      .setIconMapper { getIconForSamplingMode(getModeFromFrequency(it.currentRate.samplingNumInterval)) }
       .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconWidth / 2f,
                        StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.iconHeight / 2f)
       .setHostInsets(JBUI.insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
@@ -291,7 +290,7 @@ class MemoryTimelineComponent(stageView: MemoryProfilerStageView, timeAxis: JCom
   }
 }
 
-private class FlexibleLegendPanel(stage: MemoryProfilerStage, lineChart: LineChart): JBPanel<FlexibleLegendPanel>(BorderLayout()) {
+private class FlexibleLegendPanel(stage: MainMemoryProfilerStage, lineChart: LineChart): JBPanel<FlexibleLegendPanel>(BorderLayout()) {
   private val fullLegend = makeLegendComponent(stage, lineChart, true)
   private val compactLegend = makeLegendComponent(stage, lineChart, false)
   init {
@@ -310,7 +309,7 @@ private class FlexibleLegendPanel(stage: MemoryProfilerStage, lineChart: LineCha
   }
 
   private companion object {
-    private fun makeLegendComponent(stage: MemoryProfilerStage, lineChart: LineChart, full: Boolean): LegendComponent {
+    private fun makeLegendComponent(stage: MainMemoryProfilerStage, lineChart: LineChart, full: Boolean): LegendComponent {
       val legends = stage.legends
       val memoryUsage = stage.detailedMemoryUsage
       return LegendComponent.Builder(legends)

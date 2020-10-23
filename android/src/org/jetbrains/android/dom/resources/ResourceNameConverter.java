@@ -8,7 +8,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -104,7 +103,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
                                String stringValue,
                                @Nullable String resolveResult,
                                ConvertContext context) {
-    if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+    if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getPsiManager().areElementsEquivalent(element, resolve(stringValue, context));
     }
     return super.isReferenceTo(element, stringValue, resolveResult, context);

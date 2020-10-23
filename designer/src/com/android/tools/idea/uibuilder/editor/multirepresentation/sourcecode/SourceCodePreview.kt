@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.openapi.application.ApplicationManager

@@ -1,28 +1,66 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 
-# managed by go/iml_to_build [unb]
+SYNC_PERFGATE_TAGS = [
+    "block-network",
+    "no_test_mac",
+    "no_test_windows",
+    "perfgate",
+]
+
+# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
-    project = "unb",
     split_test_targets = {
+        # Smoke tests
+        "AverageSmoke": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AverageSmokeTest",
+            "timeout": "long",
+        },
+        "Base100Smoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        "DolphinSmoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        "SantaTrackerSmoke": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerSmokeTest",
+            "timeout": "long",
+            "tags": ["no_windows"],
+        },
+        # Perfgate tests
         "Base100": {
+            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
         },
         "Dolphin": {
+            "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
+        },
+        "SantaTracker": {
+            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTest",
+            "tags": SYNC_PERFGATE_TAGS,
         },
         # This split test target contains AveragePerfTest, and other unspecified tests if
         # they exist. Additional targets should be made if this one begins taking a long time.
         "other": {
+            "tags": SYNC_PERFGATE_TAGS,
         },
     },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
         ":test_deps.zip",
-        "//prebuilts/studio/buildbenchmarks:Base100_project",
-        "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -34,14 +72,9 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
     ],
-    test_runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-        "perfgate",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -51,14 +84,15 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/sync-perf-tests:unb.JUnit4[test]",
+        "//tools/adt/idea/sync-perf-tests:JUnit4[test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:protobuf[test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
@@ -124,17 +158,13 @@ maven_repo(
     visibility = ["//visibility:public"],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 java_import(
-    name = "unb.JUnit4",
+    name = "JUnit4",
     # do not sort: must match IML order
     jars = [
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:unb.JUnit4_files",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:unb.JUnit4_files",
-    ],
-    tags = [
-        "manual",
-        "unb",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:JUnit4_files",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:JUnit4_files",
     ],
     visibility = ["//visibility:public"],
 )

@@ -74,6 +74,7 @@ import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_KP_DOWN
@@ -107,12 +108,13 @@ import com.android.emulator.control.MouseEvent as MouseEventMessage
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
+ * @param parentDisposable the disposable parent
  * @param emulator the handle of the Emulator
- * @param deviceFrameVisible if true, the device frame is cropped to maximize the size of the display image
+ * @param deviceFrameVisible controls visibility of the device frame
  */
 class EmulatorView(
-  val emulator: EmulatorController,
   parentDisposable: Disposable,
+  val emulator: EmulatorController,
   deviceFrameVisible: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
@@ -199,6 +201,7 @@ class EmulatorView(
           when (event.keyCode) {
             VK_BACK_SPACE -> "Backspace"
             VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+            VK_ENTER -> "Enter"
             VK_ESCAPE -> "Escape"
             VK_TAB -> "Tab"
             VK_LEFT, VK_KP_LEFT -> "ArrowLeft"

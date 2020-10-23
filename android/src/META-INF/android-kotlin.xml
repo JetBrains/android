@@ -36,15 +36,6 @@
             <category>Kotlin Android</category>
         </intentionAction>
 
-        <intentionAction>
-            <className>org.jetbrains.android.compose.intentions.ComposeSurroundWithWidgetActionGroup</className>
-            <category>Compose Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <className>org.jetbrains.android.compose.intentions.ComposeCreatePreviewAction</className>
-            <category>Compose Android</category>
-        </intentionAction>
 
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
 
@@ -118,7 +109,6 @@
         <syntheticResolveExtension implementation="org.jetbrains.kotlin.android.parcel.IDEParcelableResolveExtension"/>
         <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
         <quickFixContributor implementation="org.jetbrains.kotlin.android.parcel.quickfixes.ParcelableQuickFixContributor"/>
-        <quickFixContributor implementation="org.jetbrains.android.compose.intentions.ComposeDelegateStateImportFixContributor"/>
 
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 

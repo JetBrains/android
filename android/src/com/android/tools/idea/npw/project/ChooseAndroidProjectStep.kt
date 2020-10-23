@@ -60,9 +60,10 @@ import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionListener
 
-private const val TABLE_CELL_WIDTH = 240
-private const val TABLE_CELL_HEIGHT = 32
-private const val TABLE_CELL_LEFT_PADDING = 16
+const val TABLE_CELL_WIDTH = 260
+const val TABLE_CELL_HEIGHT = 32
+const val TABLE_CELL_LEFT_PADDING = 20
+const val TABLE_TITLE_PADDING = 20
 
 /**
  * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its
@@ -148,14 +149,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     }
 
     if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      val titleLabel = JBLabel("Project Type").apply {
-        isOpaque = true
-        background = UIUtil.getListBackground()
-        foreground = UIUtil.getHeaderActiveColor()
-        preferredSize = JBUI.size(-1, TABLE_CELL_HEIGHT)
-        border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
-      }
-
       leftList.setCellRenderer { _, value, _, isSelected, cellHasFocus ->
         JBLabel(value.formFactor.toString()).apply {
           isOpaque = true
@@ -179,7 +172,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       }
 
       val leftPanel = JPanel(BorderLayout()).apply {
-        add(titleLabel, BorderLayout.NORTH)
+        add(createTitle(), BorderLayout.NORTH)
         add(leftList, BorderLayout.CENTER)
       }
 
@@ -254,6 +247,15 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   companion object {
+    fun createTitle(): JBLabel {
+      return JBLabel("Templates").apply {
+        isOpaque = true
+        background = UIUtil.getListBackground()
+        foreground = UIUtil.getHeaderActiveColor()
+        border = JBUI.Borders.empty(TABLE_TITLE_PADDING, TABLE_CELL_LEFT_PADDING, TABLE_TITLE_PADDING, TABLE_TITLE_PADDING)
+      }
+    }
+
     private fun FormFactor.getProjectTemplates() = TemplateResolver.getAllTemplates()
         .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == this }
 

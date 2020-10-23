@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestResources;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.awt.Dimension;

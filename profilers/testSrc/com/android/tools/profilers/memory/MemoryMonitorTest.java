@@ -52,6 +52,6 @@ public class MemoryMonitorTest {
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     Truth.assertThat(profilers.getStage().getClass()).isEqualTo(NullMonitorStage.class);
     monitor.expand();
-    Truth.assertThat(profilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    Truth.assertThat(profilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
   }
 }

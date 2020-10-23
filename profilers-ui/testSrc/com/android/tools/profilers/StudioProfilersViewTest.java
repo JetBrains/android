@@ -41,7 +41,7 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
@@ -139,7 +139,7 @@ public class StudioProfilersViewTest {
     myUi.layout();
     // Test the second monitor goes to memory profiler
     myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
@@ -223,7 +223,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testMemoryStage() throws Exception {
-    transitionStage(new MemoryProfilerStage(myProfilers));
+    transitionStage(new MainMemoryProfilerStage(myProfilers));
   }
 
   @Test
@@ -521,7 +521,7 @@ public class StudioProfilersViewTest {
     myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
     assertThat(myView.getRightToolbar().isVisible()).isFalse();
 
-    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
     assertThat(myView.getRightToolbar().isVisible()).isTrue();
   }
 

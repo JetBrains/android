@@ -31,12 +31,12 @@ import org.jetbrains.annotations.NotNull;
  * Helper class to query for native allocation recordings and convert them to capture objects.
  */
 class NativeAllocationSamplesSeries extends CaptureDataSeries<CaptureObject> {
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final BaseMemoryProfilerStage myStage;
 
   NativeAllocationSamplesSeries(@NotNull ProfilerClient client,
                                 @NotNull Common.Session session,
                                 @NotNull FeatureTracker featureTracker,
-                                @NotNull MemoryProfilerStage stage) {
+                                @NotNull BaseMemoryProfilerStage stage) {
     super(client, session, featureTracker);
     myStage = stage;
   }

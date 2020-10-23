@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.NULL_RESOURCE;
@@ -25,8 +23,8 @@ import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.android.tools.idea.res.IdeResourcesUtil.VALUE_RESOURCE_TYPES;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -40,8 +38,8 @@ import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -338,7 +336,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                String stringValue,
                                @Nullable ResourceValue resolveResult,
                                ConvertContext context) {
-    if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+    if (element instanceof ResourceReferencePsiElement) {
       ResourceReference reference = ((ResourceReferencePsiElement)element).getResourceReference();
       XmlElement xmlElement = context.getXmlElement();
       if (xmlElement != null && resolveResult != null) {
@@ -752,22 +750,6 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String resType = resValue.getResourceType();
     if (resType == null) {
       return PsiReference.EMPTY_ARRAY;
-    }
-
-
-    if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
-      // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-      //    android:layout_alignLeft="@+id/foo"
-      // is a reference to R.id.foo, but
-      //    android:id="@+id/foo"
-      // is not; it's the place we're defining it.
-      if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
-        XmlAttribute attribute = (XmlAttribute)element.getParent();
-        if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-          // When defining an id, don't point to another reference
-          return PsiReference.EMPTY_ARRAY;
-        }
-      }
     }
 
     AndroidResourceReference resourceReference = new AndroidResourceReference(value, facet, resValue, myIncludeDynamicFeatures);

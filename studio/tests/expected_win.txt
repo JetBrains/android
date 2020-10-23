@@ -530,9 +530,6 @@ android-studio/bin/lldb/lib/zipapp.py
 android-studio/bin/lldb/lib/zipfile.py
 android-studio/bin/lldb/lib/zipimport.py
 android-studio/bin/lldb/shared/jobject_printers/jstring_reader.py
-android-studio/bin/lldb/shared/stl_printers/gdb/__init__.py
-android-studio/bin/lldb/shared/stl_printers/gdb/printing.py
-android-studio/bin/lldb/shared/stl_printers/load_script
 android-studio/bin/log.xml
 android-studio/bin/profiler.bat
 android-studio/bin/profiler.exe
@@ -1085,7 +1082,7 @@ android-studio/lib/kotlinx-coroutines-guava-1.2.1.jar
 android-studio/lib/kotlinx-coroutines-jdk8-1.3.4.jar
 android-studio/lib/kryo-2.24.0.jar
 android-studio/lib/kxml2-2.3.0.jar
-android-studio/lib/layout_inspector_java_proto.jar
+android-studio/lib/layout_inspector_skia_java_proto.jar
 android-studio/lib/libam-instrumentation-data-proto.jar
 android-studio/lib/libstudio.proto.jar
 android-studio/lib/log4j.jar

@@ -59,7 +59,11 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
 
   createBuildTasks(modules).forEach {
     val path = moduleFinder.getRootProjectPath(it.key)
-    GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
+    val request = GradleBuildInvoker.Request(project, path.toFile(), it.value).apply {
+      doNotShowBuildOutputOnFailure()
+      taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(this, "Build")
+    }
+    GradleBuildInvoker.getInstance(project).executeTasks(request)
   }
 }
 

@@ -41,17 +41,10 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   }
 
   override fun setUp() {
-
-    // Compute the workspace root before any IDE code starts messing with user.dir:
-
     // Compute the workspace root before any IDE code starts messing with user.dir:
     TestUtils.getWorkspaceRoot()
     VfsRootAccess.allowRootAccess(testRootDisposable,
                                   FileUtil.toCanonicalPath(AndroidTestBase.getAndroidPluginHome()))
-    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics())
-    val analyticsSettings = AnalyticsSettingsData()
-    analyticsSettings.optedIn = false
-    AnalyticsSettings.setInstanceForTest(analyticsSettings)
     myVisibilityInspection = createTool()
     super.setUp()
   }

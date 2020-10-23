@@ -22,7 +22,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.model
@@ -89,7 +90,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaint() {
-    setLookAndFeel(IntelliJLaf(), ImageDiffUtil.getDefaultFont())
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")
 

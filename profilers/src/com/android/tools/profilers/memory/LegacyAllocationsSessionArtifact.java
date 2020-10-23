@@ -110,9 +110,9 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
     }
 
     // If memory profiler is not yet open, we need to do it.
-    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MemoryProfilerStage);
+    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MainMemoryProfilerStage);
     if (needsToOpenMemoryProfiler) {
-      myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+      myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
     }
 
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
@@ -122,8 +122,8 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
     }
     else {
       // Adjust the view range to fit the capture object.
-      assert myProfilers.getStage() instanceof MemoryProfilerStage;
-      MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+      assert myProfilers.getStage() instanceof MainMemoryProfilerStage;
+      MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
       Range captureRange = new Range(startTimestamp, endTimestamp);
       myProfilers.getTimeline().adjustRangeCloseToMiddleView(captureRange);
 

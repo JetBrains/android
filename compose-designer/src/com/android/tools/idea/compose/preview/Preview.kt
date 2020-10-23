@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -27,12 +28,8 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
-import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.asLogString
-import com.android.tools.idea.common.util.setupBuildListener
-import com.android.tools.idea.common.util.setupChangeListener
-import com.android.tools.idea.common.util.setupOnSaveListener
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
@@ -61,10 +58,14 @@ import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.setupChangeListener
+import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.util.BuildListener
+import com.android.tools.idea.gradle.util.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
@@ -72,6 +73,7 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
@@ -113,11 +115,13 @@ import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
+import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
 
 /**
@@ -207,6 +211,11 @@ private const val SELECTED_GROUP_KEY = "selectedGroup"
  * Key for the persistent build on save state for the Compose Preview.
  */
 private const val BUILD_ON_SAVE_KEY = "buildOnSave"
+
+/**
+ * Frames per second limit for interactive preview
+ */
+private const val FPS_LIMIT = 60
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
@@ -349,6 +358,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isEnabled
     set(value) {
+      // When always-on is enabled, we do not allow changing the value
+      if (StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()) return
+
       liveLiteralsManager.isEnabled = value
       forceRefresh()
     }
@@ -370,7 +382,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()).apply {
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() }).apply {
         addRenderListener(object : RenderListener {
           override fun onInflateStarted() {
             // Reset to false since we don't know if there are live literals available. Once the inflation happens, we will be able to know
@@ -475,7 +487,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-                                            if (!RenderService.isBusy()) {
+                                            if (!RenderService.isBusy() && fpsCounter.getFps() <= FPS_LIMIT) {
                                               fpsCounter.incrementFrameCounter()
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
@@ -489,6 +501,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val refreshedWhileDeactivated = AtomicBoolean(false)
 
   /**
+   * Lock used during the [onActivate]/[onDeactivate]/[onDeactivationTimeout] to avoid activations happening in the middle.
+   */
+  private val activationLock = ReentrantLock()
+
+  /**
    * Tracks whether this preview is active or not. The value tracks the [onActivate] and [onDeactivate] calls.
    */
   private val isActive = AtomicBoolean(false)
@@ -497,7 +514,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Tracks whether the preview has received an [onActivate] call before or not. This is used to decide whether
    * [onInit] must be called.
    */
-  private val isFirstActivation = AtomicBoolean(true)
+  @GuardedBy("activationLock")
+  private var isFirstActivation = true
   // endregion
 
   init {
@@ -505,6 +523,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
+
+    isLiveLiteralsEnabled = StudioFlags.COMPOSE_ALWAYS_ON_LIVE_LITERALS.get()
   }
 
   override val component = workbench
@@ -585,26 +605,45 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun onActivate() {
-    LOG.debug("onActivate")
-    isActive.set(true)
-    if (isFirstActivation.getAndSet(false))
-      onInit()
-    else
-      surface.activate()
+    activationLock.withLock {
+      LOG.debug("onActivate")
+      isActive.set(true)
+      if (isFirstActivation) {
+        isFirstActivation = false
+        onInit()
+      }
+      else surface.activate()
 
-    if (refreshedWhileDeactivated.getAndSet(false)) {
-      // Refresh has been called while we were deactivated, issue a refresh on activation.
-      LOG.debug("Pending refresh")
-      refresh()
+      if (refreshedWhileDeactivated.getAndSet(false)) {
+        // Refresh has been called while we were deactivated, issue a refresh on activation.
+        LOG.debug("Pending refresh")
+        refresh()
+      }
+    }
+  }
+
+  /**
+   * This method will be called by [onDeactivate] after the deactivation timeout expires or the LRU queue is full.
+   */
+  private fun onDeactivationTimeout() {
+    activationLock.withLock {
+      // If the preview is still not active, deactivate the surface.
+      if (!isActive.get()) {
+        LOG.debug("Delayed surface deactivation")
+        surface.deactivate()
+      }
     }
   }
 
   override fun onDeactivate() {
-    LOG.debug("onDeactivate")
-    setInteractivePreviewElementInstance(null)
-    isLiveLiteralsEnabled = false
-    surface.deactivate()
-    isActive.set(false)
+    activationLock.withLock {
+      LOG.debug("onDeactivate")
+      setInteractivePreviewElementInstance(null)
+      isLiveLiteralsEnabled = false
+      isActive.set(false)
+
+      project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
+    }
   }
   // endregion
 

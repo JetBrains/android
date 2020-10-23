@@ -49,6 +49,14 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
     })
   }
 
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    val emulatorController = getEmulatorController(event)
+    if (emulatorController != null) {
+      event.presentation.isVisible = emulatorController.emulatorConfig.hasOrientationSensors
+    }
+  }
+
   /**
    * Rounds the given angle to a multiple of 90 degrees and puts it in the [-180, 180) interval.
    */

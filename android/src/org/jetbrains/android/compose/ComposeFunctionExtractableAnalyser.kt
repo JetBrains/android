@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.AdditionalExtractableAnalyser
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractableCodeDescriptor
@@ -32,7 +33,8 @@ class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
     val sourceFunction = descriptor.extractionData.targetSibling
     if (sourceFunction is KtAnnotated) {
       val annotationDescriptors = sourceFunction.annotationEntries.mapNotNull { bindingContext.get(BindingContext.ANNOTATION, it) }
-      val composableAnnotation = annotationDescriptors.find { COMPOSABLE_FQ_NAMES.contains(it.fqName?.asString())  } ?: return descriptor
+      val composableAnnotation = annotationDescriptors.find {
+        COMPOSABLE_FQ_NAMES.contains(it.fqName?.asString())  } ?: return descriptor
       return descriptor.copy(annotations = descriptor.annotations + composableAnnotation)
     }
 

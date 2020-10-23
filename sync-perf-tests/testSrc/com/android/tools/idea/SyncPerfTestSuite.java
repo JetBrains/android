@@ -16,11 +16,13 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfSmokeTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
+import java.util.logging.Logger;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -28,22 +30,46 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses({
   SyncPerfTestSuite.class,              // a suite mustn't contain itself
   AbstractGradleSyncPerfTestCase.class, // Abstract class
+  AbstractGradleSyncPerfSmokeTestCase.class, // Abstract class
 })
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
   @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
-  static {
-    setUpSourceZip("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/src.zip",
-                   // We unzip the source code into the same directory containing other test data.
-                   "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.DOLPHIN_PROJECT_ROOT,
-                   new DiffSpec("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/setupForSyncTest.diff", 2));
-    setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
-                   "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100,
-                   new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncTest.diff", 2));
+  private static final Logger LOG = Logger.getLogger(SyncPerfTestSuite.class.getName());
 
-    unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip");
-    unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
+  static {
+    try {
+      setUpSourceZip("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/src.zip",
+                     // We unzip the source code into the same directory containing other test data.
+                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.DOLPHIN_PROJECT_ROOT,
+                     new DiffSpec("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/setupForSyncTest.diff", 2));
+      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip");
+    }
+    catch(Exception e) {
+      LOG.warning("Could not prepare Dolphin project: " + e);
+    }
+
+    try {
+      setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
+                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100,
+                     new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncTest.diff", 2));
+      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
+    }
+    catch(Exception e) {
+      LOG.warning("Could not prepare Base100 project: " + e);
+    }
+
+    try {
+      setUpSourceZip("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
+                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.SANTA_TRACKER,
+                     new DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2));
+      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip");
+    }
+    catch(Exception e) {
+      LOG.warning("Could not prepare SantaTracker project: " + e);
+    }
+
     unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
   }

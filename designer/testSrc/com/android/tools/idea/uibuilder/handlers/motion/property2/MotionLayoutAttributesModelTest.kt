@@ -36,7 +36,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType.CUSTOM_STRING
 import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -139,7 +138,6 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     motionRule.selectConstraintSet("start")
     val property = model.allProperties[CONSTRAINTSET]!![ANDROID_URI, ATTR_ID]
-    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> NeleIdRenameProcessor.RefactoringChoice.YES }
     property.value = "different_start"
     motionRule.update()
 

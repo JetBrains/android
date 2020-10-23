@@ -23,30 +23,82 @@ package com.android.tools.idea.rendering.classloading;
 @SuppressWarnings("ConstantConditions")
 public class PrimitiveTypeRemapper {
   public static float remapFloat(Object source, String fileName, int offset, float value) {
-    return (Float)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).floatValue();
+    }
+
+    // Return default value
+    return value;
   }
 
   public static double remapDouble(Object source, String fileName, int offset, double value) {
-    return (Double)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).doubleValue();
+    }
+
+    // Return default value
+    return value;
   }
 
   public static short remapShort(Object source, String fileName, int offset, short value) {
-    return (Short)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).shortValue();
+    }
+
+    // Return default value
+    return value;
   }
 
   public static int remapInt(Object source, String fileName, int offset, int value) {
-    return (Integer)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).intValue();
+    }
+
+    // Return default value
+    return value;
   }
 
   public static long remapLong(Object source, String fileName, int offset, long value) {
-    return (Long)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).longValue();
+    }
+
+    // Return default value
+    return value;
+  }
+
+  public static byte remapByte(Object source, String fileName, int offset, byte value) {
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).byteValue();
+    }
+
+    // Return default value
+    return value;
   }
 
   public static char remapChar(Object source, String fileName, int offset, char value) {
-    return (Character)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Character) {
+      return (Character)constant;
+    }
+
+    // Return default value
+    return value;
   }
 
   public static boolean remapBoolean(Object source, String fileName, int offset, boolean value) {
-    return (Boolean)ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    if (constant instanceof Boolean) {
+      return (Boolean)constant;
+    }
+
+    // Return default value
+    return value;
   }
 }
