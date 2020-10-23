@@ -103,7 +103,7 @@ fun RecipeExecutor.generateCommonModule(
     when(iconsGenerationStyle) {
       IconsGenerationStyle.ALL -> copyIcons(resOut)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
-      IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.png")
+      IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
       IconsGenerationStyle.NONE -> Unit
     }
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
