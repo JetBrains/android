@@ -590,7 +590,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/databinding/databinding-common/4.1.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/databinding/databinding-compiler-common/4.0.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/databinding/databinding-compiler-common/4.1.0:jar",
-        "//prebuilts/tools/common/m2/repository/androidx/databinding/viewbinding/4.2.0-dev:aar",
         "//prebuilts/tools/common/m2/repository/androidx/documentfile/documentfile/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/drawerlayout/drawerlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/drawerlayout/drawerlayout/1.1.1:aar",
