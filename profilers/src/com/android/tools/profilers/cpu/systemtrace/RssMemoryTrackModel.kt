@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.profilers.cpu.LazyDataSeries
-import java.util.function.Supplier
 
 /**
  * Track model for RSS (Resident Set Size) memory counter in CPU capture stage.
@@ -37,7 +36,7 @@ class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
     val yRange = Range(0.0, maxValue.toDouble())
     axisComponentModel = ResizingAxisComponentModel.Builder(yRange, axisFormatter).build()
     memoryCounterSeries = RangedContinuousSeries(
-      "RSS", viewRange, yRange, LazyDataSeries(Supplier { dataSeries })
+      "RSS", viewRange, yRange, LazyDataSeries { dataSeries }
     )
     add(memoryCounterSeries)
   }
@@ -50,9 +49,9 @@ class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
 
     val includedCountersNameMap = sortedMapOf(
       "mem.rss" to "Total",
-      "mem.rss.anon" to "Anonymous",
-      "mem.rss.file" to "File",
-      "mem.rss.shmem" to "Shared Memory"
+      "mem.rss.anon" to "Allocated",
+      "mem.rss.file" to "File Mappings",
+      "mem.rss.shmem" to "Shared"
     )
   }
 }
