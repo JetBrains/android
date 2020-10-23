@@ -22,10 +22,10 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +77,12 @@ public class AndroidDebugBridgeUtils {
 
   public static void enableFakeAdbServerMode(int port) {
     // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    Disposer.dispose(AdbService.getInstance());
+    try {
+      AdbService.getInstance().terminateDdmlib();
+    } catch (TimeoutException e) {
+      Logger.getInstance(AndroidDebugBridgeUtils.class)
+        .warn("Timed out waiting for AdbService to terminate on enabling fake Adb server mode");
+    }
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridge.enableFakeAdbServerMode(port);
   }

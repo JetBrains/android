@@ -437,7 +437,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       @Override
       public void run() {
         final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
-        if (debugBridge != null && AdbService.isDdmsCorrupted(debugBridge)) {
+        if (debugBridge != null && isDdmsCorrupted(debugBridge)) {
           ApplicationManager.getApplication().invokeLater(() -> {
             Messages.showErrorDialog(myContentPanel, AndroidBundle.message("ddms.corrupted.error"));
             AndroidProcessChooserDialog.this.close(1);
@@ -686,6 +686,23 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)selectionPath.getPathComponent(2);
     final Object obj = selectedNode.getUserObject();
     return obj instanceof Client ? (Client)obj : null;
+  }
+
+  public static boolean isDdmsCorrupted(@NotNull AndroidDebugBridge bridge) {
+    // TODO: find other way to check if debug service is available
+
+    IDevice[] devices = bridge.getDevices();
+    if (devices.length > 0) {
+      for (IDevice device : devices) {
+        Client[] clients = device.getClients();
+
+        if (clients.length > 0) {
+          ClientData clientData = clients[0].getClientData();
+          return clientData.getVmIdentifier() == null;
+        }
+      }
+    }
+    return false;
   }
 
   private static class MyProcessTreeCellRenderer extends ColoredTreeCellRenderer {

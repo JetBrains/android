@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.adb;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.util.concurrent.Uninterruptibles.getUninterruptibly;
+
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.DdmPreferences;
 import com.android.testutils.TestUtils;
-import com.google.common.truth.Truth;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.testFramework.LightPlatformTestCase;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
@@ -48,10 +51,10 @@ public class AdbServiceTest extends LightPlatformTestCase {
 
     // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
-    AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
+    AndroidDebugBridge bridge = getUninterruptibly(future);
 
     // Assert
-    Truth.assertThat(bridge.isConnected()).isTrue();
+    assertThat(bridge.isConnected()).isTrue();
   }
 
   public void testInvalidAdbFile() {
@@ -62,36 +65,59 @@ public class AdbServiceTest extends LightPlatformTestCase {
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(invalidAdbPath.toFile());
     AndroidDebugBridge bridge = null;
     try {
-      bridge = Uninterruptibles.getUninterruptibly(future);
+      bridge = getUninterruptibly(future);
     }
     catch (ExecutionException expected) {
     }
 
     // Assert
-    Truth.assertThat(bridge).isNull();
+    assertThat(bridge).isNull();
   }
 
   /**
    * Tests that if the connection to the bridge is broken, re-initing works.
    */
-  public void testReinit() throws ExecutionException {
+  public void testReinit() throws Exception {
     // Prepare
     Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
 
     // Act
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
-    AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
+    AndroidDebugBridge bridge = getUninterruptibly(future);
+    assertThat(bridge.isConnected()).isTrue();
 
-    // Assert
-    Truth.assertThat(bridge.isConnected()).isTrue();
-
-    // Simulate disconnect
-    AdbService.getInstance().cancelFutureForTesting();
+    // Terminate
+    AdbService.getInstance().terminateDdmlib();
 
     // Reinit
-    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+    AndroidDebugBridge newBridge = getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+    assertThat(newBridge.isConnected()).isTrue();
+    assertThat(newBridge).isNotSameAs(bridge);
 
     // Get again
-    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+    assertThat(getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()))).isSameAs(newBridge);
+    assertThat(newBridge.isConnected()).isTrue();
+  }
+
+  public void testOptionsChanged() throws Exception {
+    Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+    boolean testOptionSetting = StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get();
+
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge0 = getUninterruptibly(future);
+    assertThat(bridge0.isConnected()).isTrue();
+    assertThat(DdmPreferences.isJdwpProxyEnabled()).isEqualTo(testOptionSetting);
+
+    // Change options and notify AdbService.
+    testOptionSetting = !testOptionSetting;
+    StudioFlags.ENABLE_JDWP_PROXY_SERVICE.override(testOptionSetting);
+    AdbService.getInstance().optionsChanged();
+
+    // Ensure new bridge is recreated with new settings.
+    future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge1 = getUninterruptibly(future);
+    assertThat(bridge1.isConnected()).isTrue();
+    assertThat(DdmPreferences.isJdwpProxyEnabled()).isEqualTo(testOptionSetting);
+    assertThat(bridge1).isNotSameAs(bridge0);
   }
 }
