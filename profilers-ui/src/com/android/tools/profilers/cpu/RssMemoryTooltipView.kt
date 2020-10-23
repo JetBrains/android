@@ -37,23 +37,41 @@ class RssMemoryTooltipView(parent: JComponent, val tooltip: RssMemoryTooltip) : 
   }
 
   private fun updateView() {
-    descriptionLabel.text = "<html>${tooltip.counterName}: ${getDescriptionText(tooltip.counterName)}</html>"
+    descriptionLabel.text = "<html>${getDescriptionText(tooltip.counterName)}</html>"
     val rssValueText = NumberFormatter.formatFileSize(tooltip.activeValueBytes)
-    valueLabel.text = "Value: $rssValueText"
+    valueLabel.text = "${getTitle(tooltip.counterName)}: $rssValueText"
   }
+
+  private fun getTitle(counterName: String) =
+    when (counterName) {
+      "mem.rss" -> "Total Resident Memory Utilization"
+      "mem.rss.anon" -> "Resident Memory Allocations"
+      "mem.rss.file" -> "Resident File Mapping Memory"
+      "mem.rss.shmem" -> "Resident Shared Memory"
+      else -> "Value"
+    }
 
   private fun getDescriptionText(counterName: String) =
     when (counterName) {
-      "mem.rss" -> "Resident set size. <br>Sum of anonymous, file, and shared memory."
-      "mem.rss.anon" -> "Size of resident anonymous memory."
-      "mem.rss.file" -> "Size of resident file mappings."
-      "mem.rss.shmem" -> "Size of resident shared memory."
-      else -> "Unknown."
+      "mem.rss" -> "The total of all physical memory in use by the process,<br>" +
+                   "including allocations, file mappings and shared memory.<br><br>" +
+                   "/proc/&lt;pid&gt;/status reports this value as \"VmRSS\"."
+      "mem.rss.anon" -> "The amount of physical memory the process is using for normal<br>" +
+                        "memory allocations (those backed by the swap file, and that<br>" +
+                        "are not shared).<br><br>" +
+                        "/proc/&lt;pid&gt;/status reports this value as \"RssAnon\"."
+      "mem.rss.file" -> "The amount of physical memory the process is using for file mappings -<br>" +
+                        "that is, memory which is used for files that have been mapped into<br>" +
+                        "a region of memory by the memory manager.<br><br>" +
+                        "/proc/&lt;pid&gt;/status reports this value as \"RssFile\""
+      "mem.rss.shmem" -> "The amount of physical memory the process is using for interprocess sharing.<br><br>" +
+                         "/proc/&lt;pid&gt;/status reports this value as \"RssShmem\"."
+      else -> ""
     }
 
   init {
-    content.add(descriptionLabel, TabularLayout.Constraint(0, 0))
-    content.add(valueLabel, TabularLayout.Constraint(1, 0))
+    content.add(valueLabel, TabularLayout.Constraint(0, 0))
+    content.add(descriptionLabel, TabularLayout.Constraint(1, 0))
     tooltip.addDependency(this).onChange(RssMemoryTooltip.Aspect.VALUE_CHANGED) { updateView() }
     updateView()
   }
