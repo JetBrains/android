@@ -134,7 +134,7 @@ fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters:
 fun getThemeAttributes(forFacet: AndroidFacet,
                        type: ResourceType,
                        typeFilters: List<TypeFilter>,
-                       resourceResolver: ResourceResolver): ResourceSection? {
+                       resourceResolver: ResourceResolver): ResourceSection {
   val repoManager = ResourceRepositoryManager.getInstance(forFacet)
   val projectThemeAttributes =
     repoManager.projectResources.let { resourceRepository ->
@@ -294,9 +294,7 @@ private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNa
   accept { resourceItem ->
     if (resourceItem.type == ResourceType.ATTR && namespaces.contains(resourceItem.namespace) && visibilityFilter(resourceItem)) {
       resourceResolver.findItemInTheme(resourceItem.referenceToSelf)?.let { attributeValue ->
-        if (attributeValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(attributeValue,
-                                                                                     resourceResolver,
-                                                                                     facet.module) == targetType)) {
+        if (attributeValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(attributeValue, resourceResolver) == targetType)) {
           if (typeFilters.isNotEmpty()) {
             // Should be filtered
             val resolvedThemeAttribute = resourceResolver.resolveResValue(attributeValue)
