@@ -26,8 +26,9 @@ import java.util.HashSet
 /**
  * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.
  *
- * This class tests related items for Kotlin/Java activities and fragments. These include related xml layouts and manifest declarations.
- * It also tests the corresponding activities and fragments for layout files. Also checks the LineMarkers are present.
+ * This class tests related items for Kotlin/Java activities and fragments. These include related xml layouts, menus and manifest
+ * declarations. It also tests the corresponding activities and fragments for layout and menu files. Also checks the LineMarkers are
+ * present.
  */
 class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
 
@@ -62,32 +63,28 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckNoLineMarkers()
   }
 
-  fun testKotlinActivityToLayout() {
+  fun testKotlinActivityToLayoutAndMenu() {
     createManifest()
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
+    val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
-    doTestGotoRelatedFile(activityFile, setOf(layoutFile), PsiFile::class.java)
-    doCheckLineMarkers(setOf(layoutFile), PsiFile::class.java,"Related XML file")
+    doTestGotoRelatedFile(activityFile, setOf(layoutFile, menuFile), PsiFile::class.java)
+    doCheckLineMarkers(setOf(layoutFile, menuFile), PsiFile::class.java,"Related XML file")
   }
 
-  fun testKotlinActivityToLayoutAndManifest() {
+  fun testKotlinActivityToLayoutAndManifestAndMenu() {
     val manifestFile = myFixture.addFileToProject("AndroidManifest.xml", MANIFEST).virtualFile
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
+    val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
     val items = doGotoRelatedFile(activityFile)
-    assertThat(items).hasSize(2)
-    var manifestDeclarationTarget: XmlAttributeValue? = null
-    var psiFileTarget: PsiFile? = null
+    assertThat(items).hasSize(3)
 
-    for (item in items) {
-      when (val element = item.element) {
-        is PsiFile -> psiFileTarget = element
-        is XmlAttributeValue -> manifestDeclarationTarget = element
-        else -> TestCase.fail("Unexpected element: " + element!!)
-      }
-    }
-    assertThat(psiFileTarget!!.virtualFile).isEqualTo(layoutFile)
-    assertThat(manifestDeclarationTarget!!.containingFile.virtualFile).isEqualTo(manifestFile)
+    val fileElements = items.map { it.element }.filterIsInstance<PsiFile>()
+    assertThat(fileElements.map { it.virtualFile }).containsAllOf(menuFile, layoutFile)
+
+    val manifestElements = items.map { it.element }.filterIsInstance<XmlAttributeValue>()
+    assertThat(manifestElements.first().containingFile.virtualFile).isEqualTo(manifestFile)
   }
 
   fun testActivityToLayout() {
@@ -158,6 +155,14 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val expectedTargetFiles = ImmutableSet.of(layout, layoutLand)
     doTestGotoRelatedFile(fragmentFile, expectedTargetFiles, PsiFile::class.java)
     doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java, "Related XML file")
+  }
+
+  fun testMenuToActivity() {
+    createManifest()
+    val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
+    val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
+    doTestGotoRelatedFile(menuFile, setOf(activityFile), KtClass::class.java)
+    doCheckLineMarkers(setOf(activityFile), KtClass::class.java,"Related Kotlin class")
   }
 
   fun testLayoutToJavaContext() {
@@ -289,10 +294,18 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
         import android.app.Activity
         import android.os.Bundle
 
+        import p1.p2.R.layout.layout
+        import p1.p2.R as AliasR
+
         class MyActivity : Activity() {
         ${caret}
           public override fun onCreate(state: Bundle?) {
-            setContentView(R.layout.layout)
+            setContentView(layout)
+          }
+
+          override fun onCreateOptionsMenu(menu: Menu): Boolean {
+              menuInflater.inflate(AliasR.menu.menu_main, menu)
+              return true
           }
         }
       """.trimIndent()
@@ -306,6 +319,21 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
             <activity android:name="p1.p2.MyActivity"/>
           </application>
         </manifest>
+      """.trimIndent()
+
+    private val MENU =
+      //language=XML
+      """
+        <menu xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            tools:context="com.example.myapplication.MainActivity">
+            <item
+                android:id="@+id/action_settings"
+                android:orderInCategory="100"
+                android:title="@string/action_settings"
+                app:showAsAction="never" />
+        </menu>
       """.trimIndent()
   }
 }
