@@ -172,8 +172,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorConfig = config
     skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
 
-    // TODO: Change 4 to 3 after b/150494232 is fixed.
-    maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
+    maxInboundMessageSize = config.displayWidth * config.displayHeight * 3 + 100 // Three bytes per pixel.
 
     connectGrpc(maxInboundMessageSize)
     sendKeepAlive()
