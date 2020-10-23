@@ -53,7 +53,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -168,7 +167,7 @@ public class DeploymentTest {
       assertThat(status).isTrue();
     }
 
-    Disposer.dispose(AdbService.getInstance());
+    AdbService.getInstance().terminateDdmlib();
     AndroidDebugBridge.disableFakeAdbServerMode();
 
     GeneralSettings.getInstance().setProcessCloseConfirmation(myOriginalProcessCloseConfirmationSetting);
