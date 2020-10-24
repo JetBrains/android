@@ -22,6 +22,7 @@ import com.intellij.ide.wizard.StepListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsSafe;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -119,9 +120,10 @@ public final class ModuleWizardStepAdapterTest {
     ModuleWizardStepAdapterKt.setLogForTesting(testLogger);
 
     ModuleWizardStepAdapter.AdapterModel model = new ModuleWizardStepAdapter.AdapterModel(myToWrap);
-    doThrow(new CommitStepException("Test Message")).when(myToWrap).onWizardFinished();
+    @NlsSafe String testMessage = "Test Message";
+    doThrow(new CommitStepException(testMessage)).when(myToWrap).onWizardFinished();
     model.handleFinished();
-    verify(testLogger).error("Test Message");
+    verify(testLogger).error(testMessage);
 
     ModuleWizardStepAdapterKt.setLogForTesting(null);
   }
