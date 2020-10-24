@@ -254,7 +254,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
       for (String path : proguardOsCfgPaths) {
         if (!new File(path).isFile()) {
-          throw new CommitStepException("Cannot find file " + path);
+          throw new CommitStepException(AndroidBundle.message("android.cannot.find.file.error", path));
         }
       }
       compileScope.putUserData(AndroidCompileUtil.PROGUARD_CFG_PATHS_KEY, proguardPathsStr);
