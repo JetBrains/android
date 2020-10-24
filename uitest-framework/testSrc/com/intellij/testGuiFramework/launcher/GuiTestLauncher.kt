@@ -63,9 +63,7 @@ object GuiTestLauncher {
 
   init {
     LOG.setLevel(Level.INFO)
-    if (!GuiTestOptions.isRunningOnRelease()) {
-      buildClasspathJar()
-    }
+    buildClasspathJar()
   }
 
   fun runIde (port: Int) {
@@ -108,12 +106,7 @@ object GuiTestLauncher {
     FileUtil.createTempFile("studio_uitests.vmoptions", "", true).apply {
       FileUtil.writeToFile(this, """${originalFile.readText()}
 -Didea.gui.test.port=$port
--Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}
--Didea.gui.test.remote.ide.path=${GuiTestOptions.getRemoteIdePath()}
--Didea.gui.test.running.on.release=true
--Didea.gui.test.from.standalone.runner=${GuiTestOptions.isStandaloneMode()}
--Didea.config.path=${GuiTests.getConfigDirPath()}
--Didea.system.path=${GuiTests.getSystemDirPath()}""" + if (GuiTestOptions.isDebug()) """
+-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}""" + if (GuiTestOptions.isDebug()) """
 -Didea.debug.mode=true
 -Xdebug
 -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}""" else "" )

@@ -28,9 +28,7 @@ object GuiTestOptions {
   const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
   const val REMOTE_IDE_VM_OPTIONS_PATH_KEY = "idea.gui.test.remote.ide.vmoptions"
-  const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
   const val RESTART_POLICY = "idea.gui.test.restart.policy"
-  const val STANDALONE_MODE = "idea.gui.test.from.standalone.runner"
 
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
@@ -51,8 +49,6 @@ object GuiTestOptions {
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
   fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
-  fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
-  fun isStandaloneMode(): Boolean = getSystemProperty(STANDALONE_MODE, false)
   fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR_OR_JUNIT_TIMEOUT"))
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
