@@ -32,6 +32,7 @@ import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.LintFix.LintFixGroup;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
+import com.android.tools.lint.detector.api.LintFix.ShowUrl;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
@@ -69,7 +70,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -727,6 +727,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         case ALTERNATIVES:
           return fixes;
       }
+    }
+    else if (lintFix instanceof ShowUrl) {
+      return new LintIdeQuickFix[]{new ShowUrlQuickFix((ShowUrl)lintFix)};
     }
     return LintIdeQuickFix.EMPTY_ARRAY;
   }
