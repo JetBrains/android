@@ -79,7 +79,7 @@ interface SkiaParserService {
 // The minimum version of a skia parser component required by this version of studio.
 // It's the parser's responsibility to be compatible with all supported studio versions.
 private val minimumRevisions = mapOf(
-  "skiaparser;1" to Revision(5)
+  "skiaparser;1" to Revision(4)
 )
 
 object SkiaParser : SkiaParserService {
