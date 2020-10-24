@@ -61,7 +61,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -349,9 +348,6 @@ public class AndroidGradleTests {
     List<File> repositories = new ArrayList<>();
     if (TestUtils.runningFromBazel()) {
       repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
-    }
-    else if (System.getProperty("idea.gui.test.running.on.release") != null) {
-      repositories.add(new File(PathManager.getHomePath(), "gradle"));
     }
     else {
       repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
