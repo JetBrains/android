@@ -41,7 +41,8 @@
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
     <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
 
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+    <statusBarWidgetFactory id="UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.PositiveUserSentimentWidgetFactory"/>
+    <statusBarWidgetFactory id="UserSentimentPanelNegative" order="after UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.NegativeUserSentimentWidgetFactory"/>
   </extensions>
 
   <actions>
