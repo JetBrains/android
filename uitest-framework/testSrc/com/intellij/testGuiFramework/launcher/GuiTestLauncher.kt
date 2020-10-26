@@ -185,7 +185,7 @@ object GuiTestLauncher {
         println("BLeak JVMTI agent not found. Falling back to Java implementation: application threads will not be paused, and traversal roots will be different")
       }
     } else {
-      options += "-XX:+UseConcMarkSweepGC"
+      options += "-XX:+UseG1GC"
     }
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
@@ -230,7 +230,8 @@ object GuiTestLauncher {
       return urls.map { Paths.get(it.toURI()).toFile() }
     } else {
       // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
-      // Fortunately, under these circumstances, java.class.path has everything we need.
+      // Fortunately, under these circumstances, java.class.path has everything we need. ἑλληνικός ἀλφάβητος hellēnikós
+
       return System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
     }
   }
