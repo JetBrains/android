@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,6 +59,10 @@ final class DeviceSkinUpdaterService {
 
   static @NotNull DeviceSkinUpdaterService getInstance() {
     return ServiceManager.getService(DeviceSkinUpdaterService.class);
+  }
+
+  @NotNull Executor getExecutor() {
+    return myExecutorService;
   }
 
   @AnyThread

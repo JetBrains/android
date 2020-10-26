@@ -48,15 +48,16 @@ import com.android.tools.idea.observable.BatchInvoker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import org.jetbrains.android.AndroidTestCase;
@@ -346,6 +347,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   }
 
   private @NotNull SkinChooser newSkinChooser() {
-    return new SkinChooser(getProject(), () -> Futures.immediateFuture(Collections.emptyList()), EdtExecutorService.getInstance());
+    Executor executor = MoreExecutors.directExecutor();
+    return new SkinChooser(getProject(), () -> Futures.immediateFuture(Collections.emptyList()), executor, executor);
   }
 }

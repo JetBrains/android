@@ -63,11 +63,15 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   static final File FAILED_TO_LOAD_SKINS = new File("_failed_to_load_skins");
 
   private final @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> myUpdateSkins;
-  private final @NotNull Executor myExecutor;
+  private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
+  private final @NotNull Executor myEdtExecutor;
   private List<ItemListener> myListeners = Lists.newArrayList();
 
   SkinChooser(@Nullable Project project, boolean includeSdkHandlerSkins) {
-    this(project, updateSkins(includeSdkHandlerSkins), EdtExecutorService.getInstance());
+    this(project,
+         updateSkins(includeSdkHandlerSkins),
+         DeviceSkinUpdaterService.getInstance().getExecutor(),
+         EdtExecutorService.getInstance());
   }
 
   private static @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins(boolean includeSdkHandlerSkins) {
@@ -81,9 +85,11 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   @VisibleForTesting
   SkinChooser(@Nullable Project project,
               @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins,
-              @NotNull Executor executor) {
+              @NotNull Executor deviceSkinUpdaterServiceExecutor,
+              @NotNull Executor edtExecutor) {
     myUpdateSkins = updateSkins;
-    myExecutor = executor;
+    myDeviceSkinUpdaterServiceExecutor = deviceSkinUpdaterServiceExecutor;
+    myEdtExecutor = edtExecutor;
 
     getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
       @Override
@@ -151,9 +157,11 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     setItems(Collections.singletonList(LOADING_SKINS));
 
     @SuppressWarnings("UnstableApiUsage")
-    ListenableFuture<Collection<Path>> future = Futures.transform(myUpdateSkins.get(), SkinChooser::transform, myExecutor);
+    ListenableFuture<Collection<Path>> future = Futures.transform(myUpdateSkins.get(),
+                                                                  SkinChooser::transform,
+                                                                  myDeviceSkinUpdaterServiceExecutor);
 
-    FutureUtils.addCallback(future, myExecutor, new FutureCallback<Collection<Path>>() {
+    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<Collection<Path>>() {
       @Override
       public void onSuccess(@Nullable Collection<@NotNull Path> skins) {
         assert skins != null;
