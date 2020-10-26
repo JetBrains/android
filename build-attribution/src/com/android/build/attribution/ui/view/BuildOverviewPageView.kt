@@ -78,7 +78,7 @@ class BuildOverviewPageView(
 
   private val garbageCollectionIssuePanel = JPanel().apply {
     name = "memory"
-    layout = BorderLayout(5, 5)
+    layout = VerticalLayout(5)
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
     val descriptionText: String = buildString {
@@ -97,10 +97,19 @@ class BuildOverviewPageView(
     }
     val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
 
-    add(htmlTextLabelWithFixedLines(panelHeader), BorderLayout.NORTH)
-    add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-    add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
-    add(controlsPanel, BorderLayout.SOUTH)
+    val switchToParallelGcSuggestion = htmlTextLabelWithFixedLines("""
+      |G1 Garbage Collector was used in this build. We noticed in our benchmarks that Gradle builds tend to be faster with ParallelGC than with G1GC.<br/>
+      |You can try adding -XX:+UseParallelGC to org.gradle.jvmargs in your gradle.properties file to see if it makes your builds faster.
+    """.trimMargin())
+
+    add(htmlTextLabelWithFixedLines(panelHeader))
+    add(JPanel().apply {
+      layout = BorderLayout(5, 5)
+      add(JLabel(icon).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
+      add(htmlTextLabelWithFixedLines(descriptionText), BorderLayout.CENTER)
+    })
+    add(controlsPanel)
+    if (model.shouldSuggestSwitchingToParallelGC) add(switchToParallelGcSuggestion)
   }
 
   override val component: JPanel = JPanel().apply {

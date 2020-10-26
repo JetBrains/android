@@ -29,4 +29,7 @@ class GarbageCollectionAnalyzer(override val warningsFilter: BuildAttributionWar
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     garbageCollectionData = androidGradlePluginAttributionData.garbageCollectionData.map { GarbageCollectionData(it.key, it.value) }
   }
+
+  fun isAffectedByPotentialG1GCRegression(): Boolean = garbageCollectionData
+    .any { it.name == "G1 Old Generation" || it.name == "G1 Young Generation" }
 }
