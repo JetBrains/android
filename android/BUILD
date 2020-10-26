@@ -27,19 +27,6 @@ iml_module(
         "resources",
         "src",
     ],
-    bundle_data = [
-        "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/lib:licenses",
-        "//tools/adt/idea/android/lib:bundled-libs",
-        "//tools/adt/idea/android/lib:sample-data",
-        "//tools/adt/idea/android:profiler-artifacts",
-        "//tools/adt/idea/android:transport-artifacts",
-        "//tools/base/bazel:studio-proto",
-        "//tools/base/bazel:studio-grpc",
-        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
-    ] + glob([
-        "build.xml",
-    ]),
     bundled_deps = [
         "//tools/adt/idea/android/lib:spantable",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
