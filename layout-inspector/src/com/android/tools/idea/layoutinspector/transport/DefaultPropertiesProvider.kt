@@ -150,7 +150,7 @@ class DefaultPropertiesProvider(
    */
   private fun completeProperties(view: ViewNode, propertiesData: PropertiesData): PropertiesTable<InspectorPropertyItem> {
     val properties = propertiesData.properties
-    if (properties.isEmpty || properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) {
+    if (propertiesData == EMPTY_PROPERTIES_DATA || properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) {
       return properties
     }
     if (view !is ComposeViewNode) {
