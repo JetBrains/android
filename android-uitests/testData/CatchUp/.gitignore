@@ -1,0 +1,3 @@
+.gradle
+buildSrc/.gradle
+buildSrc/build

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.layout.SKIP_PERSISTED_LAYOUT
@@ -48,7 +50,9 @@ class AutoArrangeActionTest : NavTestCase() {
     }.`when`(manager).requestRender()
 
     `when`(surface.sceneManager).thenReturn(manager)
-    AutoArrangeAction(surface).actionPerformed(mock(AnActionEvent::class.java))
+    val actionEvent = mock(AnActionEvent::class.java)
+    `when`(actionEvent.getRequiredData(DESIGN_SURFACE)).thenReturn(surface)
+    AutoArrangeAction.instance.actionPerformed(actionEvent)
     root.children.forEach { component ->
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
     }
