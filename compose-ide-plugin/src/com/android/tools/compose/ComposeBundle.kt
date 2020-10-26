@@ -15,12 +15,30 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.localization.MessageBundleReference
+import com.intellij.AbstractBundle
 import org.jetbrains.annotations.PropertyKey
+import java.lang.ref.Reference
+import java.lang.ref.SoftReference
+import java.util.ResourceBundle
 
 private const val BUNDLE_NAME = "messages.ComposeBundle"
 
-internal object ComposeBundle   {
-  private val bundleRef = MessageBundleReference(BUNDLE_NAME)
-  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
+class ComposeBundle private constructor() {
+  companion object {
+    private var ourBundle: Reference<ResourceBundle?>? = null
+
+    private fun getBundle(): ResourceBundle {
+      var bundle: ResourceBundle? = com.intellij.reference.SoftReference.dereference(ourBundle)
+      if (bundle == null) {
+        bundle = ResourceBundle.getBundle(BUNDLE_NAME)
+        ourBundle = SoftReference(bundle)
+      }
+      return bundle!!
+    }
+
+    @JvmStatic
+    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
+      return AbstractBundle.message(getBundle(), key, *params)
+    }
+  }
 }
