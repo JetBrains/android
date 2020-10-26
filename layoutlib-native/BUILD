@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.layoutlib-native",
     srcs = ["src"],
-    bundle_data = ["//prebuilts/studio/layoutlib:licenses"],
     bundled_deps = ["//prebuilts/studio/layoutlib/data:layoutlib_native"],
     iml_files = ["intellij.android.layoutlib-native.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
