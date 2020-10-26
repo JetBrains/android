@@ -38,7 +38,7 @@ public final class SkinChooserTest {
     Executor executor = MoreExecutors.directExecutor();
 
     // Act
-    SkinChooser chooser = new SkinChooser(null, () -> future, executor);
+    SkinChooser chooser = new SkinChooser(null, () -> future, executor, executor);
 
     // Assert
     assertFalse(chooser.isEnabled());
