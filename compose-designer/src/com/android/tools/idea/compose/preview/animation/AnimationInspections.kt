@@ -52,7 +52,7 @@ class PropKeysLabelInspection : AbstractKotlinInspection() {
           // First, check we're analyzing a PropKey
           val propKey = (expression.firstChild as? KtNameReferenceExpression)
                     ?.resolveToCall()?.resultingDescriptor?.returnType?.fqName ?: return
-          if (!propKey.shortName().toString().endsWith(PROP_KEY_SUFFIX)) return
+          if (propKey.shortNameOrSpecial().isSpecial || !propKey.shortName().toString().endsWith(PROP_KEY_SUFFIX)) return
           // Next, double-check they're defined within the Compose Animation package
           if (!propKey.parent().toString().startsWith(COMPOSE_ANIMATION_PACKAGE)) return
 
