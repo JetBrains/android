@@ -65,6 +65,7 @@ class BuildAttributionReportBuilder(
     override val configurationDuration = pluginConfigurationTimeReport.totalConfigurationTime
     override val garbageCollectionTime =
       TimeWithPercentage(buildAnalysisResult.getTotalGarbageCollectionTimeMs(), buildAnalysisResult.getTotalBuildTimeMs())
+    override val shouldSuggestSwitchingToParallelGC = buildAnalysisResult.isAffectedByPotentialG1GCRegression()
   }
 
   private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {
