@@ -28,7 +28,7 @@ final class AndroidPlugin {
     @Override
     public void customize(@NotNull ActionManager actionManager) {
       if (!IdeInfo.getInstance().isAndroidStudio()) {
-        initializeForNonStudio(actionManager);
+        initializeForNonStudio();
       }
       setUpActionsUnderFlag(actionManager);
     }

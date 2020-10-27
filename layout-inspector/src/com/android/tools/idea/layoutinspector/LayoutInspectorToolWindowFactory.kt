@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
@@ -111,7 +110,7 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
     if (windowVisibilityChanged && isWindowVisible) {
       UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
                          .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                    .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
+                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
     }
     val preferredProcess = getPreferredInspectorProcess(project) ?: return
     if (!windowVisibilityChanged || !isWindowVisible) {

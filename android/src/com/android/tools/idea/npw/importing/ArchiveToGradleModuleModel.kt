@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.importing
 
 import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
-import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -30,6 +29,7 @@ import com.android.tools.idea.observable.expressions.bool.BooleanExpression
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.utils.FileUtils
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction

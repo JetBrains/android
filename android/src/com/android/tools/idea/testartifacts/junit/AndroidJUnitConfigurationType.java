@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
-
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
@@ -74,15 +72,9 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
       public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
         ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
       }
-
-      @Override
-      public @NotNull String getId() {
-        return "Android JUnit";
-      }
     };
   }
 
-  @NotNull
   @Override
   @NotNull
   public String getDisplayName() {

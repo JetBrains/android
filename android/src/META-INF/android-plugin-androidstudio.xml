@@ -45,7 +45,7 @@
     <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
                         serviceImplementation="com.android.tools.idea.welcome.config.AndroidDefaultJdkConfiguratorImpl" overrides="true"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.BuildModelErrorReporter"
-                        serviceImplementation="com.android.tools.idea.gradle.dsl.api.BuildModelStudioCrashReporter"
+                        serviceImplementation="com.android.tools.idea.gradle.dsl.api.repositories.BuildModelStudioCrashReporter"
                         overrides="true"/>
     <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
     <postStartupActivity implementation="com.android.tools.idea.stats.AndroidStudioUsageTracker$JetnewsUsageTracker" />

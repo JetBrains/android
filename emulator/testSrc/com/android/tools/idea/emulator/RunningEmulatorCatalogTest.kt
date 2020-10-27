@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.rules.TempDirectory
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -28,13 +29,14 @@ import java.util.concurrent.TimeUnit
  */
 class RunningEmulatorCatalogTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val emulatorRule = FakeEmulatorRule()
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule)
+  private val tempDirectory = TempDirectory()
+  private val emulatorRule = FakeEmulatorRule(tempDirectory)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule)
 
   @Test
   fun testCatalogUpdates() {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = tempDirectory.root.toPath()
     val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555)
 

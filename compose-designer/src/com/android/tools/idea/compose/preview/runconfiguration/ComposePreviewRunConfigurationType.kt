@@ -27,7 +27,7 @@ class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePrevi
                                                                    "Compose Preview",
                                                                    "Compose Preview Run Configuration Type",
                                                                    NotNullLazyValue.createValue {
-                                                                     StudioIcons.Compose.RUN_CONFIGURATION
+                                                                     StudioIcons.Compose.Toolbar.RUN_CONFIGURATION
                                                                    }) {
   init {
     if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {

@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.rules.TempDirectory
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
@@ -74,11 +75,12 @@ import kotlin.streams.toList
 @RunsInEdt
 class EmulatorViewTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val emulatorRule = FakeEmulatorRule()
+  private val tempDirectory = TempDirectory()
+  private val emulatorRule = FakeEmulatorRule(tempDirectory)
   private var nullableEmulator: FakeEmulator? = null
   private val filesOpened = mutableListOf<VirtualFile>()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
@@ -350,7 +352,7 @@ class EmulatorViewTest {
 
   private fun createEmulatorView(): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = tempDirectory.root.toPath()
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()

@@ -115,7 +115,7 @@ class DeployTaskTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallOnCurrentUser().setInstallFullApk().build()
 
-    val deployTask = DeployTask(project, mapOf(), null, false)
+    val deployTask = DeployTask(project, mapOf(), null, false, installPathProvider)
     deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
   }

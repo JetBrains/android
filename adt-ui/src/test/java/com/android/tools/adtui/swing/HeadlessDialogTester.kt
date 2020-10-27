@@ -47,7 +47,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.openapi.wm.impl.IdeFrameImpl
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
-import com.intellij.openapi.wm.impl.customFrameDecorations.header.CustomFrameDialogContent
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
@@ -245,7 +244,7 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
       }
       if (window == null) {
         for (frameHelper in windowManager.projectFrameHelpers) {
-          if (frameHelper.frame.isActive) {
+          if (frameHelper.frame!!.isActive) {
             break
           }
         }
@@ -387,10 +386,11 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
         Disposer.register(wrapper.disposable, Disposable { runnable.run() })
       }
     }
-    val contentPane = contentPane
-    if (contentPane is CustomFrameDialogContent) {
-      contentPane.updateLayout()
-    }
+    // FIXME-ank4: CustomFrameDialogContent is internal class. What is this `updateLayout` for?
+    //val contentPane = contentPane
+    //if (contentPane is CustomFrameDialogContent) {
+    //  contentPane.updateLayout()
+    //}
     rootPane.size = rootPane.preferredSize
     anCancelAction.registerCustomShortcutSet(CommonShortcuts.ESCAPE, rootPane)
     disposeActions.add(Runnable { anCancelAction.unregisterCustomShortcutSet(rootPane) })

@@ -66,7 +66,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   @VisibleForTesting
   ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
     super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.VIDEO_CAPTURE);
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.Toolbar.VIDEO_CAPTURE);
 
     myFeatures = features;
     myProject = project;

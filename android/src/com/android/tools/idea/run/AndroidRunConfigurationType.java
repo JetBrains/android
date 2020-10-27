@@ -21,7 +21,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
           AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
-    addFactory(new AndroidRunConfigurationFactory("Android App"));
+    addFactory(new AndroidRunConfigurationFactory());
   }
 
   @Override

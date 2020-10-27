@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android;
 
@@ -9,6 +9,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -47,7 +48,6 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -58,6 +58,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
@@ -88,6 +89,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -174,6 +176,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
+    myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
@@ -464,15 +467,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    ServiceContainerUtil.replaceService(getProject(), serviceType, newServiceInstance, getTestRootDisposable());
-  }
-
-  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, getTestRootDisposable());
-  }
-
-  public <T> void registerApplicationServiceInstance(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), serviceType, newServiceInstance);
+    myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
   }
 
   protected final static class MyAdditionalModuleData {

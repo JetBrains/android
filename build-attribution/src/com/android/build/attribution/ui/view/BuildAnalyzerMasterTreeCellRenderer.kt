@@ -28,8 +28,8 @@ import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.render.RenderingHelper.SHRINK_LONG_RENDERER
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.ui.tree.ui.DefaultTreeUI
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -46,7 +46,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null
 
   init {
-    putClientProperty(DefaultTreeUI.SHRINK_LONG_RENDERER, true)
+    putClientProperty(SHRINK_LONG_RENDERER, true)
   }
 
   override fun customizeCellRenderer(

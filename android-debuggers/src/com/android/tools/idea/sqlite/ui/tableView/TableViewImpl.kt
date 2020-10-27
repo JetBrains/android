@@ -481,7 +481,7 @@ class TableViewImpl : TableView {
 
   private class MyColoredTableCellRenderer : ColoredTableCellRenderer() {
     override fun customizeCellRenderer(
-      table: JTable?,
+      table: JTable,
       value: Any?,
       selected: Boolean,
       focused: Boolean,

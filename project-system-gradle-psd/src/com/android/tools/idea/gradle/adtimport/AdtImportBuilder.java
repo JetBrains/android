@@ -33,11 +33,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
-import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectImportBuilder;
 import java.io.File;
 import java.io.IOException;
@@ -162,7 +162,8 @@ public final class AdtImportBuilder extends ProjectImportBuilder<String> {
         request.isNewProject = true;
         importer.importProjectNoSync(request);
         Path projectDir = getBaseDirPath(request.project).getAbsoluteFile().toPath();
-        PlatformProjectOpenProcessor.openExistingProject(projectDir, projectDir, new OpenProjectTask(true, null, false, false, project, null, false, false, true, null, null, null, -1, -1));
+        ProjectManagerEx.getInstanceEx().openProject(projectDir, new OpenProjectTask(true, null, false, false, project, null, true, null, null, -1, -1,
+                                                                                     true, false, true, null, false, true, null, null, null));
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);

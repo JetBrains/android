@@ -149,7 +149,7 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                         // the case above - a 1-arg method call within a closure - is usually (though not always) a Dsl property
                         // assignment.  All other method calls (0 or 2+ arguments) are not, so check it as a method call.
                         Map<String, String> namedArguments = Maps.newHashMap();
-                        List<String> unnamedArguments = Lists.newArrayList();
+                        List<String> unnamedArguments = new ArrayList<>();
                         extractMethodCallArguments(assignment, unnamedArguments, namedArguments);
                         for (GradleScanner detector : detectors) {
                           detector

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * See {@see AndroidStartupActivity} extension point to register initialization procedures.
  */
 // TODO(b/150674051): Re-implemented not as ProjectComponent which is deprecated.
+// FIXME-ank4: re-implement as service
 public class AndroidProjectComponent implements ProjectComponent, Disposable {
   private final Project myProject;
 

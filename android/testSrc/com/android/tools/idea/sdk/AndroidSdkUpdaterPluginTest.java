@@ -20,13 +20,12 @@ import static org.junit.Assert.assertEquals;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.ApplicationRule;
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import org.jetbrains.android.AndroidTestCase;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -37,11 +36,16 @@ public class AndroidSdkUpdaterPluginTest {
   @Rule
   public ApplicationRule myApplicationRule = new ApplicationRule();
 
+  private final StudioSettingsController controller = new StudioSettingsController();
+
+  @After
+  public void teardown(){
+    //noinspection SSBasedInspection
+    controller.dispose();
+  }
+
   @Test
   public void testAuthenticator() throws Exception {
-    StudioSettingsController controller =
-      (StudioSettingsController)StudioSettingsController.getInstance(); // make sure authenticator initialized
-    Disposer.register(getTestRootDisposable(), controller);
     String url = "http://example.com/foo/bar.xml" + System.currentTimeMillis();
     String serviceName = AndroidAuthenticator.getCredentialServiceName(url);
     String user = "testUser";

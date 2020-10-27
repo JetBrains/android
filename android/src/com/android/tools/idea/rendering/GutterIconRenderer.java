@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.EmptyIcon;
@@ -54,8 +55,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link com.intellij.openapi.editor.markup.GutterIconRenderer} for Drawable resource references in XML files.
  */
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
-  private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
-  private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
+  private final static int PREVIEW_MAX_WIDTH = JBUIScale.scale(128);
+  private final static int PREVIEW_MAX_HEIGHT = JBUIScale.scale(128);
   private final static String PREVIEW_TEXT = "Click Image to Open Resource";
 
   @NotNull private final ResourceResolver myResourceResolver;

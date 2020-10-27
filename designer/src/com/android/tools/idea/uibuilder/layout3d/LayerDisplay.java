@@ -1,6 +1,7 @@
 package com.android.tools.idea.uibuilder.layout3d;
 
 import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;

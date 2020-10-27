@@ -25,6 +25,8 @@ public class HeapProfdMemoryCaptureFileType extends AndroidProfilerCaptureFileTy
   public static final HeapProfdMemoryCaptureFileType INSTANCE = new HeapProfdMemoryCaptureFileType();
   public static final String EXTENSION = "heapprofd";
 
+  // FIXME-ank4: add private constructor (filetypes are singletones)
+
   @NotNull
   @Override
   public String getName() {

@@ -26,8 +26,6 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -35,10 +33,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.mockito.Mock;
-
 import java.util.Collection;
 import java.util.Collections;
 import org.mockito.Mock;

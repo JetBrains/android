@@ -29,7 +29,7 @@
     <orderEntry type="module" module-name="intellij.properties" />
     <orderEntry type="module" module-name="intellij.testng" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
-    <orderEntry type="module" module-name="intellij.java" />
+    <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.rt" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" />
@@ -160,7 +160,7 @@
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -181,6 +181,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.webp" />
     <orderEntry type="library" scope="PROVIDED" name="bouncy-castle-provider" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="jaxb-runtime" level="project" />

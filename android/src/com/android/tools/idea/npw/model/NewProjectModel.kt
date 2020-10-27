@@ -56,6 +56,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -121,7 +122,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       isNewProject = false,  // We have already created a new project.
       forceOpenInNewFrame = true
     )
-    PlatformProjectOpenProcessor.openExistingProject(projectBaseDirectory.toPath(), projectBaseDirectory.toPath(), openProjectTask)
+    ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 

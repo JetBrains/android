@@ -576,28 +576,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        // FIXME-ank4: just use Java 11 API
-        //CausedFocusEventWrapper causedFocusEvent = CausedFocusEventWrapper.newInstanceOrNull(e);
-        //if (causedFocusEvent != null && causedFocusEvent.isTraversalBackward()) {
-
-        boolean traversalBackward = false;
-
-        if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
-          try {
-            Method getCause = FocusEvent.class.getMethod("getCause");
-            Enum<?> cause = (Enum<?>)getCause.invoke(e);
-            traversalBackward = "TRAVERSAL_BACKWARD".equals(cause.name());
-          }
-          catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
-          }
-        }
-        else {
-          traversalBackward =
-            (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
-        }
-
-        if (traversalBackward) {
+        if (e.getCause() == FocusEvent.Cause.TRAVERSAL_BACKWARD) {
           backwardAction.doAction(table);
         }
         else {

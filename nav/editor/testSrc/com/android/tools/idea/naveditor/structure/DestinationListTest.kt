@@ -179,7 +179,7 @@ class DestinationListTest : NavTestCase() {
     val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })
     val event = MouseEvent(list.myList, MouseEvent.MOUSE_CLICKED, 1, 0, point.x, point.y, 1, true)
     list.myList.dispatchEvent(event)
-    verify(actionManager).showPopup(ArgumentMatchers.eq(event), any())
+    verify(actionManager).getPopupMenuActions(any())
   }
 
   fun testRendering() {

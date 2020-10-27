@@ -26,11 +26,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
-
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_URL;
+import org.jetbrains.annotations.NotNull;
 
 public class ModuleDownloadConditions {
   private static final String myLinkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/conditional-delivery";

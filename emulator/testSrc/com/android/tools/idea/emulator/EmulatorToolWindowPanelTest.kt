@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.rules.TempDirectory
 import com.intellij.ui.UiTestRule
 import org.junit.Before
 import org.junit.ClassRule
@@ -55,10 +56,11 @@ class EmulatorToolWindowPanelTest {
   }
 
   private val projectRule = AndroidProjectRule.inMemory()
-  private val emulatorRule = FakeEmulatorRule()
+  private val tempDirectory = TempDirectory()
+  private val emulatorRule = FakeEmulatorRule(tempDirectory)
   private var nullableEmulator: FakeEmulator? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
@@ -196,7 +198,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
+    val tempFolder = tempDirectory.root.toPath()
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()

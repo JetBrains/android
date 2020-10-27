@@ -38,10 +38,15 @@ import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.FN_PROJECT_PROPERTIES;
 import static com.android.SdkConstants.GEN_FOLDER;
 import static com.android.SdkConstants.LIBS_FOLDER;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_CLASSPATH;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_PROJECT;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isIgnoredFile;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isTextFile;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.ECLIPSE_DOT_CLASSPATH;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.ECLIPSE_DOT_PROJECT;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isIgnoredFile;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isTextFile;
+import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.MEDIA_ROUTER_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_GROUP_ID;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
@@ -51,10 +56,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -67,17 +69,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.adtimport.GradleImport.*;
-import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
-import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;
-import static com.android.tools.idea.gradle.util.ImportUtil.MEDIA_ROUTER_ARTIFACT;
-import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_ARTIFACT;
-import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_GROUP_ID;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
 
 public abstract class ImportModule implements Comparable<ImportModule> {
   @SuppressWarnings("SpellCheckingInspection")

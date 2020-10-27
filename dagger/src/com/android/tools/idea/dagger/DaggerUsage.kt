@@ -84,7 +84,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     private val usageType = getTypeForMetrics(usageElement)
 
     override fun navigate(focus: Boolean) {
-      element.project.service<DaggerAnalyticsTracker>()
+      val project = element?.project ?: return
+      project.service<DaggerAnalyticsTracker>()
         .trackNavigation(
           DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
           fromElement = targetType,

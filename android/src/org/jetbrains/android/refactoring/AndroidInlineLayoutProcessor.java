@@ -29,11 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.refactoring.AndroidInlineLayoutProcessor");

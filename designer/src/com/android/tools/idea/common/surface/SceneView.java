@@ -279,14 +279,6 @@ public abstract class SceneView extends PositionableContent implements Disposabl
     return myContext;
   }
 
-  @Override
-  public void dispose() {
-    if (myLayersCache != null) {
-      myLayersCache.forEach(Disposer::dispose);
-      myLayersCache = null;
-    }
-  }
-
   /**
    * Called when {@link DesignSurface#updateUI()} is called.
    */
@@ -341,11 +333,13 @@ public abstract class SceneView extends PositionableContent implements Disposabl
     return true;
   }
 
+  @Override
   public void dispose() {
     synchronized (myLayersCacheLock) {
       if (myLayersCache != null) {
         // TODO(b/148936113)
         myLayersCache.forEach(Disposer::dispose);
+        myLayersCache = null;
       }
     }
   }

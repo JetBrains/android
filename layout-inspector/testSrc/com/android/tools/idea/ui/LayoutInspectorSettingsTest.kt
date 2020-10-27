@@ -75,12 +75,6 @@ class LayoutInspectorSettingsTest {
   private class MyToolWindowManager(val project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow: ToolWindow? = null
 
-    override fun initToolWindow(bean: ToolWindowEP) {
-      assertThat(bean.toolWindowFactory.isApplicable(project)).isTrue()
-      assertThat(bean.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
-      toolWindow = MyMockToolWindow(project)
-    }
-
     override fun getToolWindow(id: String?): ToolWindow? {
       assertThat(id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
       return toolWindow

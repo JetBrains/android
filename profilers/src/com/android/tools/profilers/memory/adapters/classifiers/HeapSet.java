@@ -16,9 +16,6 @@
 package com.android.tools.profilers.memory.adapters.classifiers;
 
 import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import org.jetbrains.annotations.NotNull;
-
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;

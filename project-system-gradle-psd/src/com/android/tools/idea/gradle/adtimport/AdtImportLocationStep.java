@@ -1,5 +1,5 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.ide.highlighter.ProjectFileType;
@@ -17,12 +17,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
-import javax.swing.*;
-import org.jetbrains.annotations.NotNull;
 
 class AdtImportLocationStep extends ProjectImportWizardStep {
   private JPanel myPanel;

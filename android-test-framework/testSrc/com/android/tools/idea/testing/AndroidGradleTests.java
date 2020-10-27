@@ -23,13 +23,14 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.*;
+import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.asCharSink;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -46,7 +47,6 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.template.KotlinVersionProvider;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -62,6 +62,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
@@ -69,6 +70,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
+import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -81,8 +83,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.RegEx;
-import com.intellij.util.ThrowableRunnable;
-import com.intellij.util.ThrowableRunnable;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -192,7 +192,7 @@ public class AndroidGradleTests {
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
       contents = updateMinSdkVersion(contents);
-      contents = updateLocalRepositories(contents, localRepositories);
+      contents = updateRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
         write(contents, path, Charsets.UTF_8);
@@ -219,7 +219,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
       contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
       contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
-      contents = updateLocalRepositories(contents, localRepositories);
+      contents = updateRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
         write(contents, path, Charsets.UTF_8);
@@ -321,7 +321,7 @@ public class AndroidGradleTests {
   public static String getLocalRepositoriesForGroovy(File... localRepos) {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
-    return StringUtil.join(
+    String localRepositoriesStr = StringUtil.join(
       Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  url \"" + file.toURI().toString() + "\"\n" +
@@ -333,13 +333,13 @@ public class AndroidGradleTests {
               "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
               "}", "\n");
 
-    return appendRemoteRepositoriesIfNeeded(localRepositories);
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
   }
 
   @NotNull
   public static String getLocalRepositoriesForKotlin(File... localRepos) {
     // Add metadataSources to work around http://b/144088459.
-    return StringUtil.join(
+    String localRepositoriesStr = StringUtil.join(
       Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
       file -> "maven {\n" +
               "  setUrl(\"" + file.toURI().toString() + "\")\n" +
@@ -349,7 +349,7 @@ public class AndroidGradleTests {
               "  }\n" +
               "}", "\n");
 
-    return appendRemoteRepositoriesIfNeeded(localRepositories);
+    return appendRemoteRepositoriesIfNeeded(localRepositoriesStr);
   }
 
   private static String appendRemoteRepositoriesIfNeeded(@NotNull String localRepositories) {
@@ -537,7 +537,7 @@ public class AndroidGradleTests {
 
     Sdk currentJdk = ideSdks.getJdk();
     TestCase.assertNotNull(currentJdk);
-    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), IdeSdks.getInstance().isJdkCompatible(currentJdk, JDK_1_8));
+    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), IdeSdks.getInstance().isJdkCompatible(currentJdk, JavaSdkVersion.JDK_1_8));
 
     // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
     // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
@@ -558,7 +558,7 @@ public class AndroidGradleTests {
   public static void importProject(
     @NotNull Project project,
     @NotNull GradleSyncInvoker.Request syncRequest,
-    @Nullable SyncIssueFilter issueFilter) {
+    @Nullable SyncIssueFilter issueFilter) throws Exception {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.configureNewProject(project);
@@ -634,7 +634,6 @@ public class AndroidGradleTests {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion);
     applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(projectRoot);
   }
 

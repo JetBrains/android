@@ -31,9 +31,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
-import java.awt.*
 import java.awt.event.FocusEvent
-import sun.awt.CausedFocusEvent
 import java.awt.Component
 import java.awt.Container
 import java.awt.DefaultKeyboardFocusManager

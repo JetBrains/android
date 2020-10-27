@@ -25,11 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.dom.resources.ResourceNameConverter;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   private final PsiElement myStyleElement;

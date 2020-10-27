@@ -41,7 +41,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
   public ScreenshotAction(@NotNull Project p, @NotNull DeviceContext context) {
     super(context, AndroidBundle.message("android.ddms.actions.screenshot"),
           AndroidBundle.message("android.ddms.actions.screenshot.description"),
-          StudioIcons.Logcat.SNAPSHOT);
+          StudioIcons.Logcat.Toolbar.SNAPSHOT);
     myProject = p;
   }
 
