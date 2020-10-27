@@ -18,6 +18,7 @@ package com.android.tools.idea.material.icons
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.utils.SdkUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Assert.assertFalse
@@ -64,7 +65,16 @@ class MaterialVdIconsLoaderTest {
   @Test
   fun testLoaderWithMockFileProvider() {
     val metadata = createMaterialIconsMetadata()
-    val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider())
+    val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider("icons/material"))
+    var icons = MaterialVdIcons.EMPTY
+    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    checkIcons(icons)
+  }
+
+  @Test
+  fun testLoaderWithMockFileProviderUsingWhitespace() {
+    val metadata = createMaterialIconsMetadata()
+    val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider("material icons/"))
     var icons = MaterialVdIcons.EMPTY
     metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
     checkIcons(icons)
@@ -202,7 +212,7 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
  * [MaterialIconsUrlProvider] implementation that returns a [URL] with a temp [File] for [MaterialIconsUrlProvider.getStyleUrl] and
  * references the test resources for [MaterialIconsUrlProvider.getIconUrl].
  */
-private class FakeStyleFileUrlProvider : MaterialIconsUrlProvider {
+private class FakeStyleFileUrlProvider(private val tempFilePath: String) : MaterialIconsUrlProvider {
 
   private val fileUrls: Map<String, URL> = mapOf(Pair("style 1", createFakeFileUrl("style1")), Pair("style 2", createFakeFileUrl("style2")))
 
@@ -215,13 +225,13 @@ private class FakeStyleFileUrlProvider : MaterialIconsUrlProvider {
   }
 
   private fun createFakeFileUrl(styleDir: String): URL {
-    val styleFile = FileUtil.createTempDirectory(javaClass.simpleName, null).resolve("${PATH}$styleDir/").apply { mkdirs() }.also {
+    val styleFile = FileUtil.createTempDirectory(javaClass.simpleName, null).resolve("${tempFilePath}$styleDir/").apply { mkdirs() }.also {
       it.resolve("my_icon_1").apply { mkdir() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
       it.resolve("my_icon_2").apply { mkdir() }.resolve("my_icon_2.xml").writeText(SIMPLE_VD)
       it.resolve("my_icon_3").apply { mkdir() }.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
       it.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
     }
-    return URL("file", "", -1, styleFile.path)
+    return SdkUtils.fileToUrl(styleFile)
   }
 }
 
