@@ -25,8 +25,10 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_PAYLOAD
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
+import com.android.tools.profiler.proto.Transport
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -143,7 +145,13 @@ internal class AppInspectorConnection(
       },
       startTimeNs = { connectionStartTimeNs }
     ).map {
-      it.event.appInspectionEvent.rawEvent.content.toByteArray()
+      val rawEvent = it.event.appInspectionEvent.rawEvent
+      when(rawEvent.dataCase) {
+        AppInspection.RawEvent.DataCase.CONTENT -> rawEvent.content.toByteArray()
+        AppInspection.RawEvent.DataCase.PAYLOAD_ID -> queryPayload(rawEvent.payloadId)
+        // This should never happen to users - devs should catch it if we ever add a new case
+        else -> throw IllegalStateException("Unhandled event data case: ${rawEvent.dataCase}")
+      }
     }.scopeCollection(scope.coroutineContext[Job]!!)
 
   /**
@@ -207,6 +215,31 @@ internal class AppInspectorConnection(
     }
   }
 
+  private fun queryPayload(id: Long): ByteArray {
+    val response = transport.client.transportStub.getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setFromTimestamp(connectionStartTimeNs)
+        .setKind(APP_INSPECTION_PAYLOAD)
+        .setGroupId(id)
+        .build()
+    )
+    val chunks = response
+      .groupsList
+      // payload ID is globally unique so there should only be one matching group, but we take most recent just in case
+      .last()
+      .eventsList
+      .map { commonEvent -> commonEvent.appInspectionPayload.chunk.toByteArray() }
+      .toList()
+
+    return ByteArray(chunks.sumBy { chunk -> chunk.size }).apply {
+      var bufferPos = 0
+      chunks.forEach { chunk ->
+        chunk.copyInto(this, bufferPos)
+        bufferPos += chunk.size
+      }
+    }
+  }
+
   private suspend fun cancelCommand(commandId: Int) {
     val cancellationCommand = AppInspectionCommand.newBuilder()
       .setInspectorId(inspectorId)
@@ -237,7 +270,13 @@ internal class AppInspectorConnection(
     }
 
     try {
-      return response.await().rawResponse.content.toByteArray()
+      val rawResponse = response.await().rawResponse
+      return when(rawResponse.dataCase) {
+        AppInspection.RawResponse.DataCase.CONTENT -> rawResponse.content.toByteArray()
+        AppInspection.RawResponse.DataCase.PAYLOAD_ID -> queryPayload(rawResponse.payloadId)
+        // This should never happen to users - devs should catch it if we ever add a new case
+        else -> throw IllegalStateException("Unhandled response data case: ${rawResponse.dataCase}")
+      }
     }
     catch (e: CancellationException) {
       withContext(NonCancellable) {

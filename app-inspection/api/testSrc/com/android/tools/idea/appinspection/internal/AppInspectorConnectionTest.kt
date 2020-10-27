@@ -22,6 +22,7 @@ import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createPayloadChunks
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
@@ -98,9 +99,21 @@ class AppInspectorConnectionTest {
     assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
   }
 
+  @Test
+  fun sendRawCommandSucceedWithPayload() = runBlocking<Unit> {
+    val payloadId = 1L
+    val connection = appInspectionRule.launchInspectorConnection(
+      commandHandler = TestAppInspectorCommandHandler(timer, rawInspectorResponse = createRawResponse(payloadId))
+    )
+
+    // Initialize the payload cache *before* sending a command (which will then trigger a payload response)
+    // Also, choose a chunk size smaller than the payload itself, to ensure chunking works
+    appInspectionRule.addAppInspectionPayload(payloadId, createPayloadChunks("TestResponse".toByteArray(), 2))
+    assertThat(connection.sendRawCommand("TestCommand".toByteArray())).isEqualTo("TestResponse".toByteArray())
+  }
 
   @Test
-  fun receiveRawEvent() = runBlocking<Unit> {
+  fun receiveRawEventWithData() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
@@ -115,6 +128,33 @@ class AppInspectorConnectionTest {
     }
     catch (e: CancellationException) {
     }
+  }
+
+  @Test
+  fun receiveRawEventWithPayload() = runBlocking<Unit> {
+    val connection = appInspectionRule.launchInspectorConnection()
+
+    val payloadId1 = 1L
+    val payloadId2 = 2L
+    val payloadId3 = 3L
+    val data1 = (0..127).map { it.toByte() }.toByteArray() // Make sure we can handle all bytes
+    val data2 = ByteArray(255) { 0 } // Make sure we can handle 0s
+    val data3 = byteArrayOf(0x1, 0x2, 0x3) // Make sure we can handle large chunk sizes
+
+    // Send the payloads first
+    appInspectionRule.addAppInspectionPayload(payloadId1, createPayloadChunks(data1, 5))
+    appInspectionRule.addAppInspectionPayload(payloadId2, createPayloadChunks(data2, 2))
+    appInspectionRule.addAppInspectionPayload(payloadId3, createPayloadChunks(data3, 999))
+
+    // Send payload events out of order, just to stress test that payloads can be queried anytime after they are sent
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId2))
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId1))
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId3))
+
+    val received = mutableListOf<ByteArray>()
+    connection.eventFlow.take(3).collect { received.add(it) }
+
+    assertThat(received.map { it.contentToString()}).containsExactly(data2.contentToString(), data1.contentToString(), data3.contentToString()).inOrder()
   }
 
   @Test
