@@ -1418,10 +1418,7 @@ fun findStyleableAttrFieldsForStyleable(facet: AndroidFacet, styleableName: Stri
  *
  */
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
-  ApplicationManager.getApplication().invokeLater {
-    psiManager.dropResolveCaches()
-    (psiManager.modificationTracker as PsiModificationTrackerImpl).incCounter()
-  }
+  ApplicationManager.getApplication().invokeLater({ psiManager.dropPsiCaches() }, psiManager.project.disposed)
 }
 
 private fun findResourceFieldsFromClass(
