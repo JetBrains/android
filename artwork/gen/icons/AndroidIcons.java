@@ -16,26 +16,10 @@ public final class AndroidIcons {
   }
   /** 16x16 */ public static final @NotNull Icon Activity = load("/icons/activity.png", 0L, 1);
   /** 16x16 */ public static final @NotNull Icon Android = load("/icons/android.svg", 7539975312323470635L, 0);
-  /** 16x16 */ public static final @NotNull Icon AndroidFile = load("/icons/android_file.png", 0L, 1);
 
   public static final class Assistant {
     /** 18x18 */ public static final @NotNull Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png", 0L, 7);
   }
-
-  /** 16x16 */ public static final @NotNull Icon AvdManager = load("/icons/avd_manager.png", 0L, 1);
-
-  public static final class Ddms {
-    /** 16x16 */ public static final @NotNull Icon Emulator02 = load("/icons/ddms/emulator_02.png", 0L, 1);
-    /** 16x16 */ public static final @Deprecated @NotNull Icon Emulator2 = Emulator02;
-    /** 16x16 */ public static final @NotNull Icon EmulatorDevice = load("/icons/ddms/emulator_device.png", 0L, 1);
-    /** 16x16 */ public static final @NotNull Icon RealDevice = load("/icons/ddms/real_device.png", 0L, 1);
-    /** 16x16 */ public static final @NotNull Icon ScreenCapture = load("/icons/ddms/screen_capture.png", 0L, 1);
-    /** 16x16 */ public static final @NotNull Icon ScreenRecorder = load("/icons/ddms/screen_recorder.png", 0L, 1);
-  }
-
-  /** 16x16 */ public static final @NotNull Icon Display = load("/icons/display.png", 0L, 1);
-  /** 20x20 */ public static final @NotNull Icon DropArrow = load("/icons/dropArrow.png", 0L, 0);
-  /** 40x40 */ public static final @NotNull Icon DropArrow_2 = load("/icons/dropArrow@2.png", 0L, 0);
 
   public static final class Explorer {
     /** 16x16 */ public static final @NotNull Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png", 0L, 7);
@@ -72,47 +56,7 @@ public final class AndroidIcons {
     /** 16x11 */ public static final @NotNull Icon Kz = load("/icons/flags/kz.png", 0L, 0);
   }
 
-  /** 16x16 */ public static final @NotNull Icon FlipLandscape = load("/icons/flip_landscape.png", 0L, 1);
-  /** 16x16 */ public static final @NotNull Icon FlipPortrait = load("/icons/flip_portrait.png", 0L, 1);
-  /** 23x23 */ public static final @NotNull Icon GreyQuestion = load("/icons/grey_question.png", 0L, 1);
-  /** 16x16 */ public static final @NotNull Icon Landscape = load("/icons/landscape.png", 0L, 1);
-
-  public static final class Mockup {
-    /** 16x16 */ public static final @NotNull Icon AspectRatio = load("/icons/mockup/aspect_ratio.png", 0L, 7);
-    /** 16x16 */ public static final @NotNull Icon Crop = load("/icons/mockup/crop.png", 0L, 7);
-    /** 16x16 */ public static final @NotNull Icon ExtractBg = load("/icons/mockup/extract_bg.png", 0L, 1);
-    /** 16x16 */ public static final @NotNull Icon Mockup = load("/icons/mockup/mockup.png", 0L, 7);
-    /** 16x16 */ public static final @NotNull Icon MockupAdd = load("/icons/mockup/mockup_add.png", 0L, 1);
-    /** 16x16 */ public static final @NotNull Icon NewLayout = load("/icons/mockup/new_layout.png", 0L, 7);
-    /** 100x100 */ public static final @NotNull Icon NoMockup = load("/icons/mockup/no_mockup.png", 0L, 7);
-  }
-
-  public static final class Nele {
-    public static final class Issue {
-      /** 8x8 */ public static final @NotNull Icon ErrorBadge = load("/icons/nele/issue/error-badge.png", 0L, 1);
-      /** 8x8 */ public static final @NotNull Icon WarningBadge = load("/icons/nele/issue/warning-badge.png", 0L, 1);
-    }
-  }
-
   /** 16x16 */ public static final @NotNull Icon NotMatch = load("/icons/notMatch.png", 0L, 7);
-  /** 16x16 */ public static final @NotNull Icon Portrait = load("/icons/portrait.png", 0L, 1);
-  /** 16x16 */ public static final @NotNull Icon RenderScript = load("/icons/render-script.png", 0L, 7);
-  /** 16x16 */ public static final @NotNull Icon SdkManager = load("/icons/sdk_manager.png", 0L, 1);
-
-  public static final class Sherpa {
-    /** 16x16 */ public static final @NotNull Icon SwitchBlueprintBoth = load("/icons/sherpa/switch_blueprint_both.png", 0L, 2);
-    /** 16x16 */ public static final @NotNull Icon SwitchBlueprintOff = load("/icons/sherpa/switch_blueprint_off.png", 0L, 2);
-    /** 16x16 */ public static final @NotNull Icon SwitchBlueprintOn = load("/icons/sherpa/switch_blueprint_on.png", 0L, 0);
-  }
-
-  /** 16x16 */ public static final @NotNull Icon Square = load("/icons/square.png", 0L, 1);
-  /** 16x16 */ public static final @NotNull Icon Targets = load("/icons/targets.png", 0L, 1);
-  /** 13x13 */ public static final @NotNull Icon ThemesPreview = load("/icons/themesPreview.png", 0L, 0);
-
-  public static final class Toolwindows {
-    /** 13x13 */ public static final @NotNull Icon ToolWindowWarning = load("/icons/toolwindows/toolWindowWarning.svg", 5553613674871854018L, 2);
-  }
-
   /** 16x16 */ public static final @NotNull Icon Variant = load("/icons/variant.png", 0L, 1);
 
   public static final class Versions {
@@ -146,7 +90,6 @@ public final class AndroidIcons {
     /** 512x512 */ public static final @NotNull Icon AndroidModule = load("/icons/wizards/android_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon AutomotiveModule = load("/icons/wizards/automotive_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon BenchmarkModule = load("/icons/wizards/benchmark_module.png", 0L, 0);
-    /** 256x256 */ public static final @NotNull Icon CppConfigure = load("/icons/wizards/cpp_configure.png", 0L, 1);
     /** 512x512 */ public static final @NotNull Icon DynamicFeatureModule = load("/icons/wizards/dynamic_feature_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon EclipseModule = load("/icons/wizards/eclipse_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon GradleModule = load("/icons/wizards/gradle_module.png", 0L, 0);
@@ -155,8 +98,6 @@ public final class AndroidIcons {
 
     public static final class Navigation {
       /** 256x256 */ public static final @NotNull Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png", 0L, 1);
-      /** 256x256 */ public static final @NotNull Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png", 0L, 1);
-      /** 256x256 */ public static final @NotNull Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png", 0L, 1);
     }
 
     /** 256x256 */ public static final @NotNull Icon NoActivity = load("/icons/wizards/no_activity.png", 0L, 7);
