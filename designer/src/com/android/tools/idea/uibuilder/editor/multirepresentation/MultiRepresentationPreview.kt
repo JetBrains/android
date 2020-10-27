@@ -384,6 +384,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   fun onDeactivate() {
     if (!isActive.getAndSet(false)) return
+    currentRepresentationIsActive.set(false)
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'"}
     editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()
