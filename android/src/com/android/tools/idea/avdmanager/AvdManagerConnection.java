@@ -36,7 +36,6 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RADIUS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
-
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
@@ -52,6 +51,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.io.impl.FileSystemFileOp;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
@@ -110,6 +110,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -425,10 +427,10 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      File skinFile = new File(skinPath);
-      File baseSkinFile = new File(skinFile.getName());
-      // Ensure the skin files are up-to-date
-      AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
+      FileSystem fileSystem =
+        myFileOp instanceof FileSystemFileOp ? ((FileSystemFileOp)myFileOp).getFileSystem() : FileSystems.getDefault();
+
+      DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath).getFileName(), null, fileSystem);
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
